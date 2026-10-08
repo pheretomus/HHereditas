@@ -1,0 +1,62 @@
+@import './tokens.css';
+
+/* Minimal reset + macOS-like defaults. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-md);
+  line-height: var(--hh-line-height);
+  color: var(--hh-text);
+  background: var(--hh-bg-window);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Desktop apps do not let the user select chrome text by accident. Content areas opt back in. */
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--hh-focus-ring);
+  outline-offset: 1px;
+}
+
+.hh-selectable {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.hh-mono {
+  font-family: var(--hh-font-mono);
+  font-variant-ligatures: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}

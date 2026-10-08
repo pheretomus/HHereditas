@@ -1,0 +1,2140 @@
+{
+ "record": {
+  "id": "addgene-11664-linear",
+  "name": "addgene-11664-linear",
+  "description": "3rd generation lentiviral transfer vector. pPRIME cloning plasmid with a CMV promoter controlling expression of dsRed and miR30-based shRNA targeting firefly luciferase",
+  "seq": "CCTGGCTGACCGCCCAACGACCCCCGCCCATTGACGTCAATAATGACGTATGTTCCCATAGTAACGCCAATAGGGACTTTCCATTGACGTCAATGGGTGGAGTATTTACGGTAAACTACCCACTTGGCAGTACATCAAGTGTATCATATGCCAAGTACGCCCCCTATTGACGTCAATGACGGTAAATGGCCCGCCTGGCATTATGCCCAGTACATGACCTTATGGGACTTTCCTACTTGGCAGTACATCTACGTATTAGTCATCGCTATTACCATGGTGATGCGGTTTTGGCAGTACATCAATGGGCGTGGATAGCGGTTTGACTCACGGGGATTTCCAAGTCTCCACCCCATTGACGTCAATGGGAGTTTGTTTTGGCACCAAAATCAACGGGACTTTCCAAAATGTCGTAACAACTCCGCCCCATTGACGCAAATGGGCGGTAGGCGTGTACGGTGGGAGGTCTATATAAGCAGAGCTGGTTTAGTGAACCGTCAGATCCGCTAGCGCTACCGGGCCTGCAGGATGGACTCCTCCGAGGACGTCATCAAGGAGTTCATGCGCTTCAAGGTGCGCATGGAGGGCTCCGTGAACGGCCACGAGTTCGAGATCGAGGGCGAGGGCGAGGGCCGCCCCTACGAGGGCACCCAGACCGCCAAGCTGAAGGTGACCAAGGGCGGCCCCCTGCCCTTCGCCTGGGACATCCTGTCCCCCCAGTTCCAGTACGGCTCCAAGGTGTACGTGAAGCACCCCGCCGACATCCCCGACTACAAGAAGCTGTCCTTCCCCGAGGGCTTCAAGTGGGAGCGCGTGATGAACTTCGAGGACGGCGGCGTGGTGACCGTGACCCAGGACTCCTCCCTGCAGGACGGCTCCTTCATCTACAAGGTGAAGTTCATCGGCGTGAACTTCCCCTCCGACGGCCCCGTAATGCAGAAGAAGACTATGGGCTGGGAGGCCTCCACCGAGCGCCTGTACCCCCGCGACGGCGTGCTGAAGGGCGAGATCCACAAGGCCCTGAAGCTGAAGGACGGCGGCCACTACCTGGTGGAGTTCAAGTCCATCTACATGGCCAAGAAGCCCGTGCAGCTGCCCGGCTACTACTACGTGGACTCCAAGCTGGACATCACCTCCCACAACGAGGACTACACCATCGTGGAGCAGTACGAGCGCGCCGAGGGCCGCCACCACCTGTTCCTGTAGGCGGCCGCAAGCCTTGTTAAGTGCTCGCTTCGGCAGCACATATACTATGTTGAATGAGGCTTCAGTACTTTACAGAATCGTTGCCTGCACATCTTGGAAACACTTGCTGGGATTACTTCTTCAGGTTAACCCAACAGAAGGCTCGAGAAGGTATATTGCTGTTGACAGTGAGCGAGCTCCCGTGAATTGGAATCCTAGTGAAGCCACAGATGTAGGATTCCAATTCAGCGGGAGCCTGCCTACTGCCTCGGAATTCAAGGGGCTACTTTAGGAGCAATTATCTTGTTTACTAAAACTGAATACCTTGCTATCTCTTTGATACATTTTTACAAAGCTGAATTAAAATGGTATAAATTAAATCACTTTTTTCAATTGGAAGACTAATGCGTTTAAACACGCGGCGACGCGTTCGACCGAATAAATACCTGTGACGGAAGATCACTTCGCAGAATAAATAAATCCTGGTGTCCCTGTTGATACCGGGAAGCCCTGGGCCAACTTTTGGCGAAAATGAGACGTTGATCGGCACGTAAGAGGTTCCAACTTTCACCATAATGAAATAAGATCACTACCGGGCGTATTTTTTGAGTTGTCGAGATTTTCAGGAGCTAAGGAAGCTAAAATGGAGAAAAAAATCACTGGATATACCACCGTTGATATATCCCAATGGCATCGTAAAGAACATTTTGAGGCATTTCAGTCAGTTGCTCAATGTACCTATAACCAGACCGTTCAGCTGGATATTACGGCCTTTTTAAAGACCGTAAAGAAAAATAAGCACAAGTTTTATCCGGCCTTTATTCACATTCTTGCCCGCCTGATGAATGCTCATCCGGAATTACGTATGGCAATGAAAGACGGTGAGCTGGTGATATGGGATAGTGTTCACCCTTGTTACACCGTTTTCCATGAGCAAACTGAAACGTTTTCATCGCTCTGGAGTGAATACCACGACGATTTCCGGCAGTTTCTACACATATATTCGCAAGATGTGGCGTGTTACGGTGAAAACCTGGCCTATTTCCCTAAAGGGTTTATTGAGAATATGTTTTTCGTCTCAGCCAATCCCTGGGTGAGTTTCACCAGTTTTGATTTAAACGTGGCCAATATGGACAACTTCTTCGCCCCCGTTTTCACCATGGGCAAATATTATACGCAAGGCGACAAGGTGCTGATGCCGCTGGCGATTCAGGTTCATCATGCCGTTTGTGATGGCTTCCATGTCGGCAGAATGCTTAATGAATTACAACAGTACTGCGATGAGTGGCAGGGCGGGGCGTAATTTTTTTAAGGCAGTTATTGGTGCCCTTAAACGCCTGGTTGCTACGCCTGAATAAGTGATAATAAGCGGATGAATGGCAGAAATTCGGATCTCGCGCGTTTGGGCGGTGGCTCCCTGCCACGCGGCTCCGAACAGAAGCTGATCTCCGAAGAGGATCTGACATGTGTTTAAACTTAATTAAGTCGAGGTCGACGGTATCGATAAGCTCGCTTCACGAGATCATGTTTAAGGGTTCCGGTTCCACTAGGTACAATTCGATATCAAGCTTATCGATAATCAACCTCTGGATTACAAAATTTGTGAAAGATTGACTGGTATTCTTAACTATGTTGCTCCTTTTACGCTATGTGGATACGCTGCTTTAATGCCTTTGTATCATGCTATTGCTTCCCGTATGGCTTTCATTTTCTCCTCCTTGTATAAATCCTGGTTGCTGTCTCTTTATGAGGAGTTGTGGCCCGTTGTCAGGCAACGTGGCGTGGTGTGCACTGTGTTTGCTGACGCAACCCCCACTGGTTGGGGCATTGCCACCACCTGTCAGCTCCTTTCCGGGACTTTCGCTTTCCCCCTCCCTATTGCCACGGCGGAACTCATCGCCGCCTGCCTTGCCCGCTGCTGGACAGGGGCTCGGCTGTTGGGCACTGACAATTCCGTGGTGTTGTCGGGGAAATCATCGTCCTTTCCTTGGCTGCTCGCCTGTGTTGCCACCTGGATTCTGCGCGGGACGTCCTTCTGCTACGTCCCTTCGGCCCTCAATCCAGCGGACCTTCCTTCCCGCGGCCTGCTGCCGGCTCTGCGGCCTCTTCCGCGTCTTCGCCTTCGCCCTCAGACGAGTCGGATCTCCCTTTGGGCCGCCTCCCCGCATCGATACCGTCGACCTCGATCGAGACCTAGAAAAACATGGAGCAATCACAAGTAGCAATACAGCAGCTACCAATGCTGATTGTGCCTGGCTAGAAGCACAAGAGGAGGAGGAGGTGGGTTTTCCAGTCACACCTCAGGTACCTTTAAGACCAATGACTTACAAGGCAGCTGTAGATCTTAGCCACTTTTTAAAAGAAAAGGGGGGACTGGAAGGGCTAATTCACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTGGCAGAACTACACACCAGGGCCAGGGATCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCAAGAGAAGGTAGAAGAAGCCAATGAAGGAGAGAACACCCGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTATTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACATGGCCCGAGAGCTGCATCCGGACTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCAGCATGTGAGCAAAAGGCCAGCAAAAGGCCAGGAACCGTAAAAAGGCCGCGTTGCTGGCGTTTTTCCATAGGCTCCGCCCCCCTGACGAGCATCACAAAAATCGACGCTCAAGTCAGAGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGAAGCTCCCTCGTGCGCTCTCCTGTTCCGACCCTGCCGCTTACCGGATACCTGTCCGCCTTTCTCCCTTCGGGAAGCGTGGCGCTTTCTCATAGCTCACGCTGTAGGTATCTCAGTTCGGTGTAGGTCGTTCGCTCCAAGCTGGGCTGTGTGCACGAACCCCCCGTTCAGCCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGTAAGACACGACTTATCGCCACTGGCAGCAGCCACTGGTAACAGGATTAGCAGAGCGAGGTATGTAGGCGGTGCTACAGAGTTCTTGAAGTGGTGGCCTAACTACGGCTACACTAGAAGAACAGTATTTGGTATCTGCGCTCTGCTGAAGCCAGTTACCTTCGGAAAAAGAGTTGGTAGCTCTTGATCCGGCAAACAAACCACCGCTGGTAGCGGTGGTTTTTTTGTTTGCAAGCAGCAGATTACGCGCAGAAAAAAAGGATCTCAAGAAGATCCTTTGATCTTTTCTACGGGGTCTGACGCTCAGTGGAACGAAAACTCACGTTAAGGGATTTTGGTCATGAGATTATCAAAAAGGATCTTCACCTAGATCCTTTTAAATTAAAAATGAAGTTTTAAATCAATCTAAAGTATATATGAGTAAACTTGGTCTGACAGTTACCAATGCTTAATCAGTGAGGCACCTATCTCAGCGATCTGTCTATTTCGTTCATCCATAGTTGCCTGACTCCCCGTCGTGTAGATAACTACGATACGGGAGGGCTTACCATCTGGCCCCAGTGCTGCAATGATACCGCGAGACCCACGCTCACCGGCTCCAGATTTATCAGCAATAAACCAGCCAGCCGGAAGGGCCGAGCGCAGAAGTGGTCCTGCAACTTTATCCGCCTCCATCCAGTCTATTAATTGTTGCCGGGAAGCTAGAGTAAGTAGTTCGCCAGTTAATAGTTTGCGCAACGTTGTTGCCATTGCTACAGGCATCGTGGTGTCACGCTCGTCGTTTGGTATGGCTTCATTCAGCTCCGGTTCCCAACGATCAAGGCGAGTTACATGATCCCCCATGTTGTGCAAAAAAGCGGTTAGCTCCTTCGGTCCTCCGATCGTTGTCAGAAGTAAGTTGGCCGCAGTGTTATCACTCATGGTTATGGCAGCACTGCATAATTCTCTTACTGTCATGCCATCCGTAAGATGCTTTTCTGTGACTGGTGAGTACTCAACCAAGTCATTCTGAGAATAGTGTATGCGGCGACCGAGTTGCTCTTGCCCGGCGTCAATACGGGATAATACCGCGCCACATAGCAGAACTTTAAAAGTGCTCATCATTGGAAAACGTTCTTCGGGGCGAAAACTCTCAAGGATCTTACCGCTGTTGAGATCCAGTTCGATGTAACCCACTCGTGCACCCAACTGATCTTCAGCATCTTTTACTTTCACCAGCGTTTCTGGGTGAGCAAAAACAGGAAGGCAAAATGCCGCAAAAAAGGGAATAAGGGCGACACGGAAATGTTGAATACTCATACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGAAAAATAAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGACGTCGACGGATCGGGAGATCTCCCGATCCCCTATGGTGCACTCTCAGTACAATCTGCTCTGATGCCGCATAGTTAAGCCAGTATCTGCTCCCTGCTTGTGTGTTGGAGGTCGCTGAGTAGTGCGCGAGCAAAATTTAAGCTACAACAAGGCAAGGCTTGACCGACAATTGCATGAAGAATCTGCTTAGGGTTAGGCGTTTTGCGCTGCTTCGCGATGTACGGGCCAGATATACGCGTTGACATTGATTATTGACTAGTTATTAATAGTAATCAATTACGGGGTCATTAGTTCATAGCCCATATATGGAGTTCCGCGTTACATAACTTACGGTAAATGGCCCGCCTGGCTGACCGCCCAACGACCCCCGCCCATTGACGTCAATAATGACGTATGTTCCCATAGTAACGCCAATAGGGACTTTCCATTGACGTCAATGGGTGGAGTATTTACGGTAAACTGCCCACTTGGCAGTACATCAAGTGTATCATATGCCAAGTACGCCCCCTATTGACGTCAATGACGGTAAATGGCCCGCCTGGCATTATGCCCAGTACATGACCTTATGGGACTTTCCTACTTGGCAGTACATCTACGTATTAGTCATCGCTATTACCATGGTGATGCGGTTTTGGCAGTACATCAATGGGCGTGGATAGCGGTTTGACTCACGGGGATTTCCAAGTCTCCACCCCATTGACGTCAATGGGAGTTTGTTTTGGCACCAAAATCAACGGGACTTTCCAAAATGTCGTAACAACTCCGCCCCATTGACGCAAATGGGCGGTAGGCGTGTACGGTGGGAGGTCTATATAAGCAGCGCGTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCAGTGGCGCCCGAACAGGGACTTGAAAGCGAAAGGGAAACCAGAGGAGCTCTCTCGACGCAGGACTCGGCTTGCTGAAGCGCGCACGGCAAGAGGCGAGGGGCGGCGACTGGTGAGTACGCCAAAAATTTTGACTAGCGGAGGCTAGAAGGAGAGAGATGGGTGCGAGAGCGTCAGTATTAAGCGGGGGAGAATTAGATCGCGATGGGAAAAAATTCGGTTAAGGCCAGGGGGAAAGAAAAAATATAAATTAAAACATATAGTATGGGCAAGCAGGGAGCTAGAACGATTCGCAGTTAATCCTGGCCTGTTAGAAACATCAGAAGGCTGTAGACAAATACTGGGACAGCTACAACCATCCCTTCAGACAGGATCAGAAGAACTTAGATCATTATATAATACAGTAGCAACCCTCTATTGTGTGCATCAAAGGATAGAGATAAAAGACACCAAGGAAGCTTTAGACAAGATAGAGGAAGAGCAAAACAAAAGTAAGACCACCGCACAGCAAGCGGCCGGCCGCTGATCTTCAGACCTGGAGGAGGAGATATGAGGGACAATTGGAGAAGTGAATTATATAAATATAAAGTAGTAAAAATTGAACCATTAGGAGTAGCACCCACCAAGGCAAAGAGAAGAGTGGTGCAGAGAGAAAAAAGAGCAGTGGGAATAGGAGCTTTGTTCCTTGGGTTCTTGGGAGCAGCAGGAAGCACTATGGGCGCAGCGTCAATGACGCTGACGGTACAGGCCAGACAATTATTGTCTGGTATAGTGCAGCAGCAGAACAATTTGCTGAGGGCTATTGAGGCGCAACAGCATCTGTTGCAACTCACAGTCTGGGGCATCAAGCAGCTCCAGGCAAGAATCCTGGCTGTGGAAAGATACCTAAAGGATCAACAGCTCCTGGGGATTTGGGGTTGCTCTGGAAAACTCATTTGCACCACTGCTGTGCCTTGGAATGCTAGTTGGAGTAATAAATCTCTGGAACAGATTTGGAATCACACGACCTGGATGGAGTGGGACAGAGAAATTAACAATTACACAAGCTTAATACACTCCTTAATTGAAGAATCGCAAAACCAGCAAGAAAAGAATGAACAAGAATTATTGGAATTAGATAAATGGGCAAGTTTGTGGAATTGGTTTAACATAACAAATTGGCTGTGGTATATAAAATTATTCATAATGATAGTAGGAGGCTTGGTAGGTTTAAGAATAGTTTTTGCTGTACTTTCTATAGTGAATAGAGTTAGGCAGGGATATTCACCATTATCGTTTCAGACCCACCTCCCAACCCCGAGGGGACCCGACAGGCCCGAAGGAATAGAAGAAGAAGGTGGAGAGAGAGACAGAGACAGATCCATTCGATTAGTGAACGGATCGGCACTGCGTGCGCCAATTCTGCAGACAAATGGCAGTATTCATCCACAATTTTAAAAGAAAAGGGGGGATTGGGGGGTACAGTGCAGGGGAAAGAATAGTAGACATAATAGCAACAGACATACAAACTAAAGAATTACAAAAACAAATTACAAAAATTCAAAATTTTCGGGTTTATTACAGGGACAGCAGAGATCCAGTTTGGTTAGTACCGGGCCCGCTCTAGACGTATTACCGCCATGCATTAGTTATTAATAGTAATCAATTACGGGGTCATTAGTTCATAGCCCATATATGGAGTTCCGCGTTACATAACTTACGGTAAATGGCCCG",
+  "topology": "linear",
+  "molecule": "DNA",
+  "features": [
+   {
+    "id": "addgene-11664-linear_f1",
+    "type": "promoter",
+    "name": "CMV promoter",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 276,
+      "end": 480
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "CMV promoter"
+     },
+     {
+      "key": "note",
+      "value": "human cytomegalovirus (CMV) immediate early promoter"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f2",
+    "type": "CDS",
+    "name": "DsRed-Express",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 525,
+      "end": 1203
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "codon_start",
+      "value": "1"
+     },
+     {
+      "key": "product",
+      "value": "rapidly maturing tetrameric variant of DsRed fluorescent protein (Bevis and Glick, 2002)"
+     },
+     {
+      "key": "label",
+      "value": "DsRed-Express"
+     },
+     {
+      "key": "note",
+      "value": "mammalian codon-optimized"
+     },
+     {
+      "key": "translation",
+      "value": "MDSSEDVIKEFMRFKVRMEGSVNGHEFEIEGEGEGRPYEGTQTAKLKVTKGGPLPFAWDILSPQFQYGSKVYVKHPADIPDYKKLSFPEGFKWERVMNFEDGGVVTVTQDSSLQDGSFIYKVKFIGVNFPSDGPVMQKKTMGWEASTERLYPRDGVLKGEIHKALKLKDGGHYLVEFKSIYMAKKPVQLPGYYYVDSKLDITSHNEDYTIVEQYERAEGRHHLFL"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f3",
+    "type": "primer_bind",
+    "name": "mCherry-R",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 655,
+      "end": 674
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "mCherry-R"
+     },
+     {
+      "key": "note",
+      "value": "mCherry, reverse primer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f4",
+    "type": "primer_bind",
+    "name": "DsRed1-N",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 705,
+      "end": 726
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "DsRed1-N"
+     },
+     {
+      "key": "note",
+      "value": "DsRed1, reverse primer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f5",
+    "type": "primer_bind",
+    "name": "mCherry-F",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 923,
+      "end": 943
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "mCherry-F"
+     },
+     {
+      "key": "note",
+      "value": "mCherry, forward primer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f6",
+    "type": "primer_bind",
+    "name": "DsRed1-C",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 1117,
+      "end": 1141
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "DsRed1-C"
+     },
+     {
+      "key": "note",
+      "value": "DsRed1, forward primer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f7",
+    "type": "ncRNA",
+    "name": "5' miR-30a",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 1252,
+      "end": 1374
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "5' miR-30a"
+     },
+     {
+      "key": "note",
+      "value": "sequence upstream of the 71-nt precursor of the human miR-30a microRNA (Zeng et al., 2002)"
+     },
+     {
+      "key": "ncRNA_class",
+      "value": "miRNA"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f8",
+    "type": "ncRNA",
+    "name": "miR-30a loop",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 1400,
+      "end": 1415
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "miR-30a loop"
+     },
+     {
+      "key": "note",
+      "value": "loop from the the 71-nt precursor of the human miR-30a microRNA (Zeng et al., 2002)"
+     },
+     {
+      "key": "ncRNA_class",
+      "value": "miRNA"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f9",
+    "type": "ncRNA",
+    "name": "3' miR-30a",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 1442,
+      "end": 1569
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "3' miR-30a"
+     },
+     {
+      "key": "note",
+      "value": "sequence downstream of the 71-nt precursor of the human miR-30a microRNA (Zeng et al., 2002)"
+     },
+     {
+      "key": "ncRNA_class",
+      "value": "miRNA"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f10",
+    "type": "promoter",
+    "name": "cat promoter",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 1722,
+      "end": 1825
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "cat promoter"
+     },
+     {
+      "key": "note",
+      "value": "promoter of the E. coli cat gene encoding chloramphenicol acetyltransferase"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f11",
+    "type": "CDS",
+    "name": "CmR",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 1825,
+      "end": 2485
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "codon_start",
+      "value": "1"
+     },
+     {
+      "key": "gene",
+      "value": "cat"
+     },
+     {
+      "key": "product",
+      "value": "chloramphenicol acetyltransferase"
+     },
+     {
+      "key": "label",
+      "value": "CmR"
+     },
+     {
+      "key": "note",
+      "value": "confers resistance to chloramphenicol"
+     },
+     {
+      "key": "translation",
+      "value": "MEKKITGYTTVDISQWHRKEHFEAFQSVAQCTYNQTVQLDITAFLKTVKKNKHKFYPAFIHILARLMNAHPELRMAMKDGELVIWDSVHPCYTVFHEQTETFSSLWSEYHDDFRQFLHIYSQDVACYGENLAYFPKGFIENMFFVSANPWVSFTSFDLNVANMDNFFAPVFTMGKYYTQGDKVLMPLAIQVHHAVCDGFHVGRMLNELQQYCDEWQGGA"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f12",
+    "type": "primer_bind",
+    "name": "CAT-R",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 1891,
+      "end": 1911
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "CAT-R"
+     },
+     {
+      "key": "note",
+      "value": "Chloramphenicol resistance gene, reverse primer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f13",
+    "type": "CDS",
+    "name": "Myc",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2614,
+      "end": 2644
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "codon_start",
+      "value": "1"
+     },
+     {
+      "key": "product",
+      "value": "Myc (human c-Myc proto-oncogene) epitope tag"
+     },
+     {
+      "key": "label",
+      "value": "Myc"
+     },
+     {
+      "key": "translation",
+      "value": "EQKLISEEDL"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f14",
+    "type": "primer_bind",
+    "name": "KS primer",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2668,
+      "end": 2685
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "KS primer"
+     },
+     {
+      "key": "note",
+      "value": "common sequencing primer, one of multiple similar variants"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f15",
+    "type": "misc_feature",
+    "name": "WPRE",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2759,
+      "end": 3348
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "WPRE"
+     },
+     {
+      "key": "note",
+      "value": "woodchuck hepatitis virus posttranscriptional regulatory element"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f16",
+    "type": "primer_bind",
+    "name": "WPRE-R",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 2812,
+      "end": 2833
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "WPRE-R"
+     },
+     {
+      "key": "note",
+      "value": "WPRE, reverse primer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f17",
+    "type": "CDS",
+    "name": "Factor Xa site",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 3230,
+      "end": 3242
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "codon_start",
+      "value": "1"
+     },
+     {
+      "key": "product",
+      "value": "Factor Xa recognition and cleavage site"
+     },
+     {
+      "key": "label",
+      "value": "Factor Xa site"
+     },
+     {
+      "key": "translation",
+      "value": "IEGR"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f18",
+    "type": "primer_bind",
+    "name": "KS primer",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 3350,
+      "end": 3367
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "KS primer"
+     },
+     {
+      "key": "note",
+      "value": "common sequencing primer, one of multiple similar variants"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f19",
+    "type": "LTR",
+    "name": "5' LTR (truncated)",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 3876,
+      "end": 4057
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "5' LTR (truncated)"
+     },
+     {
+      "key": "note",
+      "value": "truncated 5' long terminal repeat (LTR) from HIV-1"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f20",
+    "type": "rep_origin",
+    "name": "ori",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 4118,
+      "end": 4707
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "direction",
+      "value": "LEFT"
+     },
+     {
+      "key": "label",
+      "value": "ori"
+     },
+     {
+      "key": "note",
+      "value": "high-copy-number ColE1/pMB1/pBR322/pUC origin of replication"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f21",
+    "type": "primer_bind",
+    "name": "pBR322ori-F",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 4198,
+      "end": 4218
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "pBR322ori-F"
+     },
+     {
+      "key": "note",
+      "value": "pBR322 origin, forward primer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f22",
+    "type": "CDS",
+    "name": "AmpR",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 4877,
+      "end": 5738
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "codon_start",
+      "value": "1"
+     },
+     {
+      "key": "gene",
+      "value": "bla"
+     },
+     {
+      "key": "product",
+      "value": "beta-lactamase"
+     },
+     {
+      "key": "label",
+      "value": "AmpR"
+     },
+     {
+      "key": "note",
+      "value": "confers resistance to ampicillin, carbenicillin, and related antibiotics"
+     },
+     {
+      "key": "translation",
+      "value": "MSIQHFRVALIPFFAAFCLPVFAHPETLVKVKDAEDQLGARVGYIELDLNSGKILESFRPEERFPMMSTFKVLLCGAVLSRIDAGQEQLGRRIHYSQNDLVEYSPVTEKHLTDGMTVRELCSAAITMSDNTAANLLLTTIGGPKELTAFLHNMGDHVTRLDRWEPELNEAIPNDERDTTMPVAMATTLRKLLTGELLTLASRQQLIDWMEADKVAGPLLRSALPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGASLIKHW"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f23",
+    "type": "primer_bind",
+    "name": "Amp-R",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 5500,
+      "end": 5520
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "Amp-R"
+     },
+     {
+      "key": "note",
+      "value": "Ampicillin resistance gene, reverse primer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f24",
+    "type": "promoter",
+    "name": "AmpR promoter",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 5738,
+      "end": 5843
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "gene",
+      "value": "bla"
+     },
+     {
+      "key": "label",
+      "value": "AmpR promoter"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f25",
+    "type": "primer_bind",
+    "name": "pRS-marker",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 5917,
+      "end": 5937
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "pRS-marker"
+     },
+     {
+      "key": "note",
+      "value": "pRS vectors, use to sequence yeast selectable marker"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f26",
+    "type": "enhancer",
+    "name": "CMV enhancer",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 6108,
+      "end": 6488
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "CMV enhancer"
+     },
+     {
+      "key": "note",
+      "value": "human cytomegalovirus immediate early enhancer"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f27",
+    "type": "promoter",
+    "name": "CMV promoter",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 6489,
+      "end": 6688
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "CMV promoter"
+     },
+     {
+      "key": "note",
+      "value": "human cytomegalovirus (CMV) immediate early promoter"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f28",
+    "type": "LTR",
+    "name": "5' LTR (truncated)",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 6705,
+      "end": 6886
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "5' LTR (truncated)"
+     },
+     {
+      "key": "note",
+      "value": "truncated 5' long terminal repeat (LTR) from HIV-1"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f29",
+    "type": "misc_feature",
+    "name": "HIV-1 Psi",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 6932,
+      "end": 7058
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "HIV-1 Psi"
+     },
+     {
+      "key": "note",
+      "value": "packaging signal of human immunodeficiency virus type 1"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f30",
+    "type": "misc_feature",
+    "name": "RRE",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 7554,
+      "end": 7788
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "RRE"
+     },
+     {
+      "key": "note",
+      "value": "The Rev response element (RRE) of HIV-1 allows for Rev-dependent mRNA export from the nucleus to the cytoplasm."
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f31",
+    "type": "CDS",
+    "name": "gp41 peptide",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 7972,
+      "end": 8017
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "codon_start",
+      "value": "1"
+     },
+     {
+      "key": "product",
+      "value": "antigenic peptide corresponding to amino acids 655 to 669 of the HIV envelope protein gp41 (Lutje Hulsik et al., 2013)"
+     },
+     {
+      "key": "label",
+      "value": "gp41 peptide"
+     },
+     {
+      "key": "note",
+      "value": "recognized by the 2H10 single-chain llama nanobody"
+     },
+     {
+      "key": "translation",
+      "value": "KNEQELLELDKWASL"
+     }
+    ]
+   },
+   {
+    "id": "addgene-11664-linear_f32",
+    "type": "misc_feature",
+    "name": "cPPT/CTS",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 8314,
+      "end": 8432
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "label",
+      "value": "cPPT/CTS"
+     },
+     {
+      "key": "note",
+      "value": "central polypurine tract and central termination sequence of HIV-1"
+     }
+    ]
+   }
+  ],
+  "primers": [],
+  "meta": {
+   "sourceFormat": "genbank"
+  }
+ },
+ "enzymeSites": [
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 32,
+    "end": 38
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 37,
+     "bottom": 33
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 85,
+    "end": 91
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 90,
+     "bottom": 86
+    }
+   ]
+  },
+  {
+   "enzyme": "NdeI",
+   "range": {
+    "start": 144,
+    "end": 150
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 146,
+     "bottom": 148
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 168,
+    "end": 174
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 173,
+     "bottom": 169
+    }
+   ]
+  },
+  {
+   "enzyme": "NcoI",
+   "range": {
+    "start": 271,
+    "end": 277
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 272,
+     "bottom": 276
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 354,
+    "end": 360
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 359,
+     "bottom": 355
+    }
+   ]
+  },
+  {
+   "enzyme": "NheI",
+   "range": {
+    "start": 502,
+    "end": 508
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 503,
+     "bottom": 507
+    }
+   ]
+  },
+  {
+   "enzyme": "SbfI",
+   "range": {
+    "start": 517,
+    "end": 525
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 523,
+     "bottom": 519
+    }
+   ]
+  },
+  {
+   "enzyme": "PstI",
+   "range": {
+    "start": 518,
+    "end": 524
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 523,
+     "bottom": 519
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 540,
+    "end": 546
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 545,
+     "bottom": 541
+    }
+   ]
+  },
+  {
+   "enzyme": "SbfI",
+   "range": {
+    "start": 860,
+    "end": 868
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 866,
+     "bottom": 862
+    }
+   ]
+  },
+  {
+   "enzyme": "PstI",
+   "range": {
+    "start": 861,
+    "end": 867
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 866,
+     "bottom": 862
+    }
+   ]
+  },
+  {
+   "enzyme": "BbsI",
+   "range": {
+    "start": 938,
+    "end": 944
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 946,
+     "bottom": 950
+    }
+   ]
+  },
+  {
+   "enzyme": "StuI",
+   "range": {
+    "start": 955,
+    "end": 961
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 958,
+     "bottom": 958
+    }
+   ]
+  },
+  {
+   "enzyme": "PvuII",
+   "range": {
+    "start": 1086,
+    "end": 1092
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1089,
+     "bottom": 1089
+    }
+   ]
+  },
+  {
+   "enzyme": "NotI",
+   "range": {
+    "start": 1203,
+    "end": 1211
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1205,
+     "bottom": 1209
+    }
+   ]
+  },
+  {
+   "enzyme": "ScaI",
+   "range": {
+    "start": 1266,
+    "end": 1272
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1269,
+     "bottom": 1269
+    }
+   ]
+  },
+  {
+   "enzyme": "HpaI",
+   "range": {
+    "start": 1327,
+    "end": 1333
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1330,
+     "bottom": 1330
+    }
+   ]
+  },
+  {
+   "enzyme": "XhoI",
+   "range": {
+    "start": 1344,
+    "end": 1350
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1345,
+     "bottom": 1349
+    }
+   ]
+  },
+  {
+   "enzyme": "SacI",
+   "range": {
+    "start": 1376,
+    "end": 1382
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1381,
+     "bottom": 1377
+    }
+   ]
+  },
+  {
+   "enzyme": "EcoRI",
+   "range": {
+    "start": 1453,
+    "end": 1459
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1454,
+     "bottom": 1458
+    }
+   ]
+  },
+  {
+   "enzyme": "MfeI",
+   "range": {
+    "start": 1572,
+    "end": 1578
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1573,
+     "bottom": 1577
+    }
+   ]
+  },
+  {
+   "enzyme": "BbsI",
+   "range": {
+    "start": 1578,
+    "end": 1584
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1586,
+     "bottom": 1590
+    }
+   ]
+  },
+  {
+   "enzyme": "PmeI",
+   "range": {
+    "start": 1590,
+    "end": 1598
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1594,
+     "bottom": 1594
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 1591,
+    "end": 1597
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1594,
+     "bottom": 1594
+    }
+   ]
+  },
+  {
+   "enzyme": "MluI",
+   "range": {
+    "start": 1606,
+    "end": 1612
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1607,
+     "bottom": 1611
+    }
+   ]
+  },
+  {
+   "enzyme": "BsmBI",
+   "range": {
+    "start": 1715,
+    "end": 1721
+   },
+   "strand": -1,
+   "cuts": [
+    {
+     "top": 1710,
+     "bottom": 1714
+    }
+   ]
+  },
+  {
+   "enzyme": "PvuII",
+   "range": {
+    "start": 1936,
+    "end": 1942
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1939,
+     "bottom": 1939
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 1956,
+    "end": 1962
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1959,
+     "bottom": 1959
+    }
+   ]
+  },
+  {
+   "enzyme": "BsmBI",
+   "range": {
+    "start": 2256,
+    "end": 2262
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2263,
+     "bottom": 2267
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 2295,
+    "end": 2301
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2298,
+     "bottom": 2298
+    }
+   ]
+  },
+  {
+   "enzyme": "NcoI",
+   "range": {
+    "start": 2339,
+    "end": 2345
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2340,
+     "bottom": 2344
+    }
+   ]
+  },
+  {
+   "enzyme": "SspI",
+   "range": {
+    "start": 2348,
+    "end": 2354
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2351,
+     "bottom": 2351
+    }
+   ]
+  },
+  {
+   "enzyme": "ScaI",
+   "range": {
+    "start": 2453,
+    "end": 2459
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2456,
+     "bottom": 2456
+    }
+   ]
+  },
+  {
+   "enzyme": "PmeI",
+   "range": {
+    "start": 2650,
+    "end": 2658
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2654,
+     "bottom": 2654
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 2651,
+    "end": 2657
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2654,
+     "bottom": 2654
+    }
+   ]
+  },
+  {
+   "enzyme": "PacI",
+   "range": {
+    "start": 2658,
+    "end": 2666
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2663,
+     "bottom": 2661
+    }
+   ]
+  },
+  {
+   "enzyme": "SalI",
+   "range": {
+    "start": 2672,
+    "end": 2678
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2673,
+     "bottom": 2677
+    }
+   ]
+  },
+  {
+   "enzyme": "ClaI",
+   "range": {
+    "start": 2681,
+    "end": 2687
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2683,
+     "bottom": 2685
+    }
+   ]
+  },
+  {
+   "enzyme": "EcoRV",
+   "range": {
+    "start": 2741,
+    "end": 2747
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2744,
+     "bottom": 2744
+    }
+   ]
+  },
+  {
+   "enzyme": "HindIII",
+   "range": {
+    "start": 2747,
+    "end": 2753
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2748,
+     "bottom": 2752
+    }
+   ]
+  },
+  {
+   "enzyme": "ClaI",
+   "range": {
+    "start": 2753,
+    "end": 2759
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2755,
+     "bottom": 2757
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 3208,
+    "end": 3214
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3213,
+     "bottom": 3209
+    }
+   ]
+  },
+  {
+   "enzyme": "BbsI",
+   "range": {
+    "start": 3294,
+    "end": 3300
+   },
+   "strand": -1,
+   "cuts": [
+    {
+     "top": 3288,
+     "bottom": 3292
+    }
+   ]
+  },
+  {
+   "enzyme": "ClaI",
+   "range": {
+    "start": 3348,
+    "end": 3354
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3350,
+     "bottom": 3352
+    }
+   ]
+  },
+  {
+   "enzyme": "SalI",
+   "range": {
+    "start": 3357,
+    "end": 3363
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3358,
+     "bottom": 3362
+    }
+   ]
+  },
+  {
+   "enzyme": "PvuI",
+   "range": {
+    "start": 3365,
+    "end": 3371
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3369,
+     "bottom": 3367
+    }
+   ]
+  },
+  {
+   "enzyme": "BsaI",
+   "range": {
+    "start": 3370,
+    "end": 3376
+   },
+   "strand": -1,
+   "cuts": [
+    {
+     "top": 3365,
+     "bottom": 3369
+    }
+   ]
+  },
+  {
+   "enzyme": "KpnI",
+   "range": {
+    "start": 3485,
+    "end": 3491
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3490,
+     "bottom": 3486
+    }
+   ]
+  },
+  {
+   "enzyme": "PvuII",
+   "range": {
+    "start": 3514,
+    "end": 3520
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3517,
+     "bottom": 3517
+    }
+   ]
+  },
+  {
+   "enzyme": "BglII",
+   "range": {
+    "start": 3521,
+    "end": 3527
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3522,
+     "bottom": 3526
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 3536,
+    "end": 3542
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3539,
+     "bottom": 3539
+    }
+   ]
+  },
+  {
+   "enzyme": "BbsI",
+   "range": {
+    "start": 3580,
+    "end": 3586
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3588,
+     "bottom": 3592
+    }
+   ]
+  },
+  {
+   "enzyme": "EcoRV",
+   "range": {
+    "start": 3588,
+    "end": 3594
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3591,
+     "bottom": 3591
+    }
+   ]
+  },
+  {
+   "enzyme": "EcoRV",
+   "range": {
+    "start": 3667,
+    "end": 3673
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3670,
+     "bottom": 3670
+    }
+   ]
+  },
+  {
+   "enzyme": "BsaI",
+   "range": {
+    "start": 3877,
+    "end": 3883
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3884,
+     "bottom": 3888
+    }
+   ]
+  },
+  {
+   "enzyme": "BglII",
+   "range": {
+    "start": 3895,
+    "end": 3901
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3896,
+     "bottom": 3900
+    }
+   ]
+  },
+  {
+   "enzyme": "SacI",
+   "range": {
+    "start": 3909,
+    "end": 3915
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3914,
+     "bottom": 3910
+    }
+   ]
+  },
+  {
+   "enzyme": "AflII",
+   "range": {
+    "start": 3939,
+    "end": 3945
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3940,
+     "bottom": 3944
+    }
+   ]
+  },
+  {
+   "enzyme": "HindIII",
+   "range": {
+    "start": 3953,
+    "end": 3959
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3954,
+     "bottom": 3958
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 4814,
+    "end": 4820
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4817,
+     "bottom": 4817
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 4833,
+    "end": 4839
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4836,
+     "bottom": 4836
+    }
+   ]
+  },
+  {
+   "enzyme": "BsaI",
+   "range": {
+    "start": 5017,
+    "end": 5023
+   },
+   "strand": -1,
+   "cuts": [
+    {
+     "top": 5012,
+     "bottom": 5016
+    }
+   ]
+  },
+  {
+   "enzyme": "PvuI",
+   "range": {
+    "start": 5317,
+    "end": 5323
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 5321,
+     "bottom": 5319
+    }
+   ]
+  },
+  {
+   "enzyme": "ScaI",
+   "range": {
+    "start": 5428,
+    "end": 5434
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 5431,
+     "bottom": 5431
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 5525,
+    "end": 5531
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 5528,
+     "bottom": 5528
+    }
+   ]
+  },
+  {
+   "enzyme": "SspI",
+   "range": {
+    "start": 5752,
+    "end": 5758
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 5755,
+     "bottom": 5755
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 5868,
+    "end": 5874
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 5873,
+     "bottom": 5869
+    }
+   ]
+  },
+  {
+   "enzyme": "SalI",
+   "range": {
+    "start": 5871,
+    "end": 5877
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 5872,
+     "bottom": 5876
+    }
+   ]
+  },
+  {
+   "enzyme": "BglII",
+   "range": {
+    "start": 5885,
+    "end": 5891
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 5886,
+     "bottom": 5890
+    }
+   ]
+  },
+  {
+   "enzyme": "MfeI",
+   "range": {
+    "start": 6034,
+    "end": 6040
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6035,
+     "bottom": 6039
+    }
+   ]
+  },
+  {
+   "enzyme": "MluI",
+   "range": {
+    "start": 6101,
+    "end": 6107
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6102,
+     "bottom": 6106
+    }
+   ]
+  },
+  {
+   "enzyme": "SpeI",
+   "range": {
+    "start": 6122,
+    "end": 6128
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6123,
+     "bottom": 6127
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 6244,
+    "end": 6250
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6249,
+     "bottom": 6245
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 6297,
+    "end": 6303
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6302,
+     "bottom": 6298
+    }
+   ]
+  },
+  {
+   "enzyme": "NdeI",
+   "range": {
+    "start": 6356,
+    "end": 6362
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6358,
+     "bottom": 6360
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 6380,
+    "end": 6386
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6385,
+     "bottom": 6381
+    }
+   ]
+  },
+  {
+   "enzyme": "NcoI",
+   "range": {
+    "start": 6483,
+    "end": 6489
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6484,
+     "bottom": 6488
+    }
+   ]
+  },
+  {
+   "enzyme": "AatII",
+   "range": {
+    "start": 6566,
+    "end": 6572
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6571,
+     "bottom": 6567
+    }
+   ]
+  },
+  {
+   "enzyme": "BsaI",
+   "range": {
+    "start": 6706,
+    "end": 6712
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6713,
+     "bottom": 6717
+    }
+   ]
+  },
+  {
+   "enzyme": "BglII",
+   "range": {
+    "start": 6724,
+    "end": 6730
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6725,
+     "bottom": 6729
+    }
+   ]
+  },
+  {
+   "enzyme": "SacI",
+   "range": {
+    "start": 6738,
+    "end": 6744
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6743,
+     "bottom": 6739
+    }
+   ]
+  },
+  {
+   "enzyme": "AflII",
+   "range": {
+    "start": 6768,
+    "end": 6774
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6769,
+     "bottom": 6773
+    }
+   ]
+  },
+  {
+   "enzyme": "HindIII",
+   "range": {
+    "start": 6782,
+    "end": 6788
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6783,
+     "bottom": 6787
+    }
+   ]
+  },
+  {
+   "enzyme": "SacI",
+   "range": {
+    "start": 6929,
+    "end": 6935
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 6934,
+     "bottom": 6930
+    }
+   ]
+  },
+  {
+   "enzyme": "HindIII",
+   "range": {
+    "start": 7338,
+    "end": 7344
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 7339,
+     "bottom": 7343
+    }
+   ]
+  },
+  {
+   "enzyme": "SapI",
+   "range": {
+    "start": 7358,
+    "end": 7365
+   },
+   "strand": -1,
+   "cuts": [
+    {
+     "top": 7354,
+     "bottom": 7357
+    }
+   ]
+  },
+  {
+   "enzyme": "FseI",
+   "range": {
+    "start": 7396,
+    "end": 7404
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 7402,
+     "bottom": 7398
+    }
+   ]
+  },
+  {
+   "enzyme": "MfeI",
+   "range": {
+    "start": 7440,
+    "end": 7446
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 7441,
+     "bottom": 7445
+    }
+   ]
+  },
+  {
+   "enzyme": "HindIII",
+   "range": {
+    "start": 7926,
+    "end": 7932
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 7927,
+     "bottom": 7931
+    }
+   ]
+  },
+  {
+   "enzyme": "PstI",
+   "range": {
+    "start": 8284,
+    "end": 8290
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 8289,
+     "bottom": 8285
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 8315,
+    "end": 8321
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 8318,
+     "bottom": 8318
+    }
+   ]
+  },
+  {
+   "enzyme": "ApaI",
+   "range": {
+    "start": 8476,
+    "end": 8482
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 8481,
+     "bottom": 8477
+    }
+   ]
+  },
+  {
+   "enzyme": "XbaI",
+   "range": {
+    "start": 8484,
+    "end": 8490
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 8485,
+     "bottom": 8489
+    }
+   ]
+  },
+  {
+   "enzyme": "NsiI",
+   "range": {
+    "start": 8502,
+    "end": 8508
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 8507,
+     "bottom": 8503
+    }
+   ]
+  }
+ ]
+}

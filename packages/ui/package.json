@@ -1,0 +1,19 @@
+{
+  "name": "@hhereditas/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HHereditas design system: tokens, theme and macOS-style UI primitives shared by the desktop app and the future mobile viewer.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/index.css"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "peerDependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}

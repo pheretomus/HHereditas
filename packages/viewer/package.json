@@ -1,0 +1,24 @@
+{
+  "name": "@hhereditas/viewer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive sequence visualizations (circular map, linear map, sequence view, gel) for HHereditas.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/index.css"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@hhereditas/core": "*",
+    "@hhereditas/ui": "*",
+    "@tanstack/react-virtual": "^3.14.13"
+  },
+  "peerDependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}

@@ -1,0 +1,974 @@
+{
+ "record": {
+  "id": "pBAD30",
+  "name": "pBAD30",
+  "description": "",
+  "seq": "GCTAGCGGAGTGTATACTGGCTTACTATGTTGGCACTGATGAGGGTGTCAGTGAAGTGCTTCATGTGGCAGGAGAAAAAAGGCTGCACCGGTGCGTCAGCAGAATATGTGATACAGGATATATTCCGCTTCCTCGCTCACTGACTCGCTACGCTCGGTCGTTCGACTGCGGCGAGCGGAAATGGCTTACGAACGGGGCGGAGATTTCCTGGAAGATGCCAGGAAGATACTTAACAGGGAAGTGAGAGGGCCGCGGCAAAGCCGTTTTTCCATAGGCTCCGCCCCCCTGACAAGCATCACGAAATCTGACGCTCAAATCAGTGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGCGGCTCCCTCGTGCGCTCTCCTGTTCCTGCCTTTCGGTTTACCGGTGTCATTCCGCTGTTATGGCCGCGTTTGTCTCATTCCACGCCTGACACTCAGTTCCGGGTAGGCAGTTCGCTCCAAGCTGGACTGTATGCACGAACCCCCCGTTCAGTCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGAAAGACATGCAAAAGCACCACTGGCAGCAGCCACTGGTAATTGATTTAGAGGAGTTAGTCTTGAAGTCATGCGCCGGTTAAGGCTAAACTGAAAGGACAAGTTTTGGTGACTGCGCTCCTCCAAGCCAGTTACCTCGGTTCAAAGAGTTGGTAGCTCAGAGAACCTTCGAAAAACCGCCCTGCAAGGCGGTTTTTTCGTTTTCAGAGCAAGAGATTACGCGCAGACCAAAACGATCTCAAGAAGATCATCTTATTAATCAGATAAAATATTTGCTCATGAGCCCGAAGTGGCGAGCCCGATCTTCCCCATCGGTGATGTCGGCGATATAGGCGCCAGCAACCGCACCTGTGGCGCCGGTGATGCCGGCCACGATGCGTCCGGCGTAGAGGATCTGCTCATGTTTGACAGCTTATCATCGATGCATAATGTGCCTGTCAAATGGACGAAGCAGGGATTCTGCAAACCCTATGCTACTCCGTCAAGCCGTCAATTGTCTGATTCGTTACCAATTATGACAACTTGACGGCTACATCATTCACTTTTTCTTCACAACCGGCACGGAACTCGCTCGGGCTGGCCCCGGTGCATTTTTTAAATACCCGCGAGAAATAGAGTTGATCGTCAAAACCAACATTGCGACCGACGGTGGCGATAGGCATCCGGGTGGTGCTCAAAAGCAGCTTCGCCTGGCTGATACGTTGGTCCTCGCGCCAGCTTAAGACGCTAATCCCTAACTGCTGGCGGAAAAGATGTGACAGACGCGACGGCGACAAGCAAACATGCTGTGCGACGCTGGCGATATCAAAATTGCTGTCTGCCAGGTGATCGCTGATGTACTGACAAGCCTCGCGTACCCGATTATCCATCGGTGGATGGAGCGACTCGTTAATCGCTTCCATGCGCCGCAGTAACAATTGCTCAAGCAGATTTATCGCCAGCAGCTCCGAATAGCGCCCTTCCCCTTGCCCGGCGTTAATGATTTGCCCAAACAGGTCGCTGAAATGCGGCTGGTGCGCTTCATCCGGGCGAAAGAACCCCGTATTGGCAAATATTGACGGCCAGTTAAGCCATTCATGCCAGTAGGCGCGCGGACGAAAGTAAACCCACTGGTGATACCATTCGCGAGCCTCCGGATGACGACCGTAGTGATGAATCTCTCCTGGCGGGAACAGCAAAATATCACCCGGTCGGCAAACAAATTCTCGTCCCTGATTTTTCACCACCCCCTGACCGCGAATGGTGAGATTGAGAATATAACCTTTCATTCCCAGCGGTCGGTCGATAAAAAAATCGAGATAACCGTTGGCCTCAATCGGCGTTAAACCCGCCACCAGATGGGCATTAAACGAGTATCCCGGCAGCAGGGGATCATTTTGCGCTTCAGCCATACTTTTCATACTCCCGCCATTCAGAGAAGAAACCAATTGTCCATATTGCATCAGACATTGCCGTCACTGCGTCTTTTACTGGCTCTTCTCGCTAACCAAACCGGTAACCCCGCTTATTAAAAGCATTCTGTAACAAAGCGGGACCAAAGCCATGACAAAAACGCGTAACAAAAGTGTCTATAATCACGGCAGAAAAGTCCACATTGATTATTTGCACGGCGTCACACTTTGCTATGCCATAGCATTTTTATCCATAAGATTAGCGGATCCTACCTGACGCTTTTTATCGCAACTCTCTACTGTTTCTCCATACCCGTTTTTTTGGGCTAGCGAATTCGAGCTCGGTACCCGGGGATCCTCTAGAGTCGACCTGCAGGCATGCAAGCTTGGCTGTTTTGGCGGATGAGAGAAGATTTTCAGCCTGATACAGATTAAATCAGAACGCAGAAGCGGTCTGATAAAACAGAATTTGCCTGGCGGCAGTAGCGCGGTGGTCCCACCTGACCCCATGCCGAACTCAGAAGTGAAACGCCGTAGCGCCGATGGTAGTGTGGGGTCTCCCCATGCGAGAGTAGGGAACTGCCAGGCATCAAATAAAACGAAAGGCTCAGTCGAAAGACTGGGCCTTTCGTTTTATCTGTTGTTTGTCGGTGAACGCTCTCCTGAGTAGGACAAATCCGCCGGGAGCGGATTTGAACGTTGCGAAGCAACGGCCCGGAGGGTGGCGGGCAGGACGCCCGCCATAAACTGCCAGGCATCAAATTAAGCAGAAGGCCATCCTGACGGATGGCCTTTTTGCGTTTCTACAAACTCTTTTGTTTATTTTTCTAAATACATTCAAATATGTATCCGCTCATGAGACAATAACCCTGATAAATGCTTCAATAATATTGAAAAAGGAAGAGTATGAGTATTCAACATTTCCGTGTCGCCCTTATTCCCTTTTTTGCGGCATTTTGCCTTCCTGTTTTTGCTCACCCAGAAACGCTGGTGAAAGTAAAAGATGCTGAAGATCAGTTGGGTGCACGAGTGGGTTACATCGAACTGGATCTCAACAGCGGTAAGATCCTTGAGAGTTTTCGCCCCGAAGAACGTTTTCCAATGATGAGCACTTTTAAAGTTCTGCTATGTGGCGCGGTATTATCCCGTGTTGACGCCGGGCAAGAGCAACTCGGTCGCCGCATACACTATTCTCAGAATGACTTGGTTGAGTACTCACCAGTCACAGAAAAGCATCTTACGGATGGCATGACAGTAAGAGAATTATGCAGTGCTGCCATAACCATGAGTGATAACACTGCGGCCAACTTACTTCTGACAACGATCGGAGGACCGAAGGAGCTAACCGCTTTTTTGCACAACATGGGGGATCATGTAACTCGCCTTGATCGTTGGGAACCGGAGCTGAATGAAGCCATACCAAACGACGAGCGTGACACCACGATGCCTGCAGCAATGGCAACAACGTTGCGCAAACTATTAACTGGCGAACTACTTACTCTAGCTTCCCGGCAACAATTAATAGACTGGATGGAGGCGGATAAAGTTGCAGGACCACTTCTGCGCTCGGCCCTTCCGGCTGGCTGGTTTATTGCTGATAAATCTGGAGCCGGTGAGCGTGGGTCTCGCGGTATCATTGCAGCACTGGGGCCAGATGGTAAGCCCTCCCGTATCGTAGTTATCTACACGACGGGGAGTCAGGCAACTATGGATGAACGAAATAGACAGATCGCTGAGATAGGTGCCTCACTGATTAAGCATTGGTAACTGTCAGACCAAGTTTACTCATATATACTTTAGATTGATTTACGCGCCCTGTAGCGGCGCATTAAGCGCGGCGGGTGTGGTGGTTACGCGCAGCGTGACCGCTACACTTGCCAGCGCCCTAGCGCCCGCTCCTTTCGCTTTCTTCCCTTCCTTTCTCGCCACGTTCGCCGGCTTTCCCCGTCAAGCTCTAAATCGGGGGCTCCCTTTAGGGTTCCGATTTAGTGCTTTACGGCACCTCGACCCCAAAAAACTTGATTTGGGTGATGGTTCACGTAGTGGGCCATCGCCCTGATAGACGGTTTTTCGCCCTTTGACGTTGGAGTCCACGTTCTTTAATAGTGGACTCTTGTTCCAAACTTGAACAACACTCAACCCTATCTCGGGCTATTCTTTTGATTTATAAGGGATTTTGCCGATTTCGGCCTATTGGTTAAAAAATGAGCTGATTTAACAAAAATTTAACGCGAATTTTAACAAAATATTAACGTTTACAATTTAAAAGGATCTAGGTGAAGATCCTTTTTGATAATCTCATGACCAAAATCCCTTAACGTGAGTTTTCGTTCCACTGAGCGTCAGACCCCGTAGAAAAGATCAAAGGATCTTCTTGAGATCCTTTTTTTCTGCGCGTAATCTGCTGCTTGCAAACAAAAAAACCACCGCTACCAGCGGTGGTTTGTTTGCCGGATCAAGAGCTACCAACTCTTTTTCCGAAGGTAACTGGCTTCAGCAGAGCGCAGATACCAAATACTGTCCTTCTAGTGTAGCCGTAGTTAGGCCACCACTTCAAGAACTCTGTAGCACCGCCTACATACCTCGCTCTGCTAATCCTGTTACCAGTCAGGCATTTGAGAAGCACACGGTCACACTGCTTCCGGTAGTCAATAAACCGGTAAACCAGCAATAGACATAAGCGGCTATTTAACGACCCTGCCCTGAACCGACGACCGGGTCGAATTTGCTTTCGAATTTCTGCCATTCATCCGCTTATTATCACTTATTCAGGCGTAGCACCAGGCGTTTAAGGGCACCAATAACTGCCTTAAAAAAATTACGCCCCGCCCTGCCACTCATCGCAGTACTGTTGTAATTCATTAAGCATTCTGCCGACATGGAAGCCATCACAGACGGCATGATGAACCTGAATCGCCAGCGGCATCAGCACCTTGTCGCCTTGCGTATAATATTTGCCCATG",
+  "topology": "circular",
+  "molecule": "DNA",
+  "features": [
+   {
+    "id": "pBAD30_f0",
+    "type": "rep_origin",
+    "name": "P15A_ORI",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 0,
+      "end": 843
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "33"
+     },
+     {
+      "key": "label",
+      "value": "P15A_ORI"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f1",
+    "type": "CDS",
+    "name": "araC",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 1081,
+      "end": 1960
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "4"
+     },
+     {
+      "key": "label",
+      "value": "araC"
+     },
+     {
+      "key": "note",
+      "value": "araC regulator of the arabinose BAD promoter"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f2",
+    "type": "misc_feature",
+    "name": "operator\\O2",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 1988,
+      "end": 2006
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "21"
+     },
+     {
+      "key": "label",
+      "value": "operator\\O2"
+     },
+     {
+      "key": "note",
+      "value": "operator O2"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f3",
+    "type": "promoter",
+    "name": "araC\\promoter",
+    "strand": -1,
+    "segments": [
+     {
+      "start": 2110,
+      "end": 2139
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "30"
+     },
+     {
+      "key": "label",
+      "value": "araC\\promoter"
+     },
+     {
+      "key": "note",
+      "value": "araC promoter"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f4",
+    "type": "misc_feature",
+    "name": "operator\\O1",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2146,
+      "end": 2168
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "21"
+     },
+     {
+      "key": "label",
+      "value": "operator\\O1"
+     },
+     {
+      "key": "note",
+      "value": "operator O1"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f5",
+    "type": "misc_feature",
+    "name": "CAP\\site",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2189,
+      "end": 2203
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "21"
+     },
+     {
+      "key": "label",
+      "value": "CAP\\site"
+     },
+     {
+      "key": "note",
+      "value": "CAP site"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f6",
+    "type": "misc_feature",
+    "name": "operator\\I2\\and\\I1",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2198,
+      "end": 2237
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "21"
+     },
+     {
+      "key": "label",
+      "value": "operator\\I2\\and\\I1"
+     },
+     {
+      "key": "note",
+      "value": "operator I2 + I1"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f7",
+    "type": "promoter",
+    "name": "arabinose\\BAD\\promoter",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2235,
+      "end": 2263
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "30"
+     },
+     {
+      "key": "label",
+      "value": "arabinose\\BAD\\promoter"
+     },
+     {
+      "key": "note",
+      "value": "arabinose pBAD promoter"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f8",
+    "type": "misc_feature",
+    "name": "MCS",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2285,
+      "end": 2348
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "21"
+     },
+     {
+      "key": "label",
+      "value": "MCS"
+     },
+     {
+      "key": "note",
+      "value": "multiple cloning site"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f9",
+    "type": "terminator",
+    "name": "rrnB\\T1\\T2",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2348,
+      "end": 2774
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "43"
+     },
+     {
+      "key": "label",
+      "value": "rrnB\\T1\\T2"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f10",
+    "type": "promoter",
+    "name": "P(BLA)",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2828,
+      "end": 2835
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "30"
+     },
+     {
+      "key": "label",
+      "value": "P(BLA)"
+     },
+     {
+      "key": "note",
+      "value": "bla P3 promoter"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f11",
+    "type": "CDS",
+    "name": "AP(R)",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 2866,
+      "end": 3730
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "4"
+     },
+     {
+      "key": "label",
+      "value": "AP(R)"
+     }
+    ]
+   },
+   {
+    "id": "pBAD30_f12",
+    "type": "rep_origin",
+    "name": "M13\\ORI",
+    "strand": 1,
+    "segments": [
+     {
+      "start": 3765,
+      "end": 4224
+     }
+    ],
+    "qualifiers": [
+     {
+      "key": "vntifkey",
+      "value": "33"
+     },
+     {
+      "key": "label",
+      "value": "M13\\ORI"
+     },
+     {
+      "key": "note",
+      "value": "M13 origin"
+     }
+    ]
+   }
+  ],
+  "primers": [],
+  "meta": {
+   "sourceFormat": "genbank"
+  }
+ },
+ "enzymeSites": [
+  {
+   "enzyme": "NheI",
+   "range": {
+    "start": 0,
+    "end": 6
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1,
+     "bottom": 5
+    }
+   ]
+  },
+  {
+   "enzyme": "AgeI",
+   "range": {
+    "start": 86,
+    "end": 92
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 87,
+     "bottom": 91
+    }
+   ]
+  },
+  {
+   "enzyme": "AgeI",
+   "range": {
+    "start": 410,
+    "end": 416
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 411,
+     "bottom": 415
+    }
+   ]
+  },
+  {
+   "enzyme": "BstBI",
+   "range": {
+    "start": 736,
+    "end": 742
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 738,
+     "bottom": 740
+    }
+   ]
+  },
+  {
+   "enzyme": "SspI",
+   "range": {
+    "start": 836,
+    "end": 842
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 839,
+     "bottom": 839
+    }
+   ]
+  },
+  {
+   "enzyme": "ClaI",
+   "range": {
+    "start": 986,
+    "end": 992
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 988,
+     "bottom": 990
+    }
+   ]
+  },
+  {
+   "enzyme": "NsiI",
+   "range": {
+    "start": 990,
+    "end": 996
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 995,
+     "bottom": 991
+    }
+   ]
+  },
+  {
+   "enzyme": "MfeI",
+   "range": {
+    "start": 1059,
+    "end": 1065
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1060,
+     "bottom": 1064
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 1162,
+    "end": 1168
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1165,
+     "bottom": 1165
+    }
+   ]
+  },
+  {
+   "enzyme": "AflII",
+   "range": {
+    "start": 1286,
+    "end": 1292
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1287,
+     "bottom": 1291
+    }
+   ]
+  },
+  {
+   "enzyme": "EcoRV",
+   "range": {
+    "start": 1369,
+    "end": 1375
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1372,
+     "bottom": 1372
+    }
+   ]
+  },
+  {
+   "enzyme": "MfeI",
+   "range": {
+    "start": 1483,
+    "end": 1489
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1484,
+     "bottom": 1488
+    }
+   ]
+  },
+  {
+   "enzyme": "SspI",
+   "range": {
+    "start": 1619,
+    "end": 1625
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1622,
+     "bottom": 1622
+    }
+   ]
+  },
+  {
+   "enzyme": "MfeI",
+   "range": {
+    "start": 1993,
+    "end": 1999
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 1994,
+     "bottom": 1998
+    }
+   ]
+  },
+  {
+   "enzyme": "SapI",
+   "range": {
+    "start": 2041,
+    "end": 2048
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2049,
+     "bottom": 2052
+    }
+   ]
+  },
+  {
+   "enzyme": "AgeI",
+   "range": {
+    "start": 2059,
+    "end": 2065
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2060,
+     "bottom": 2064
+    }
+   ]
+  },
+  {
+   "enzyme": "MluI",
+   "range": {
+    "start": 2120,
+    "end": 2126
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2121,
+     "bottom": 2125
+    }
+   ]
+  },
+  {
+   "enzyme": "BamHI",
+   "range": {
+    "start": 2224,
+    "end": 2230
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2225,
+     "bottom": 2229
+    }
+   ]
+  },
+  {
+   "enzyme": "NheI",
+   "range": {
+    "start": 2285,
+    "end": 2291
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2286,
+     "bottom": 2290
+    }
+   ]
+  },
+  {
+   "enzyme": "EcoRI",
+   "range": {
+    "start": 2291,
+    "end": 2297
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2292,
+     "bottom": 2296
+    }
+   ]
+  },
+  {
+   "enzyme": "SacI",
+   "range": {
+    "start": 2297,
+    "end": 2303
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2302,
+     "bottom": 2298
+    }
+   ]
+  },
+  {
+   "enzyme": "KpnI",
+   "range": {
+    "start": 2303,
+    "end": 2309
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2308,
+     "bottom": 2304
+    }
+   ]
+  },
+  {
+   "enzyme": "SmaI",
+   "range": {
+    "start": 2307,
+    "end": 2313
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2310,
+     "bottom": 2310
+    }
+   ]
+  },
+  {
+   "enzyme": "XmaI",
+   "range": {
+    "start": 2307,
+    "end": 2313
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2308,
+     "bottom": 2312
+    }
+   ]
+  },
+  {
+   "enzyme": "BamHI",
+   "range": {
+    "start": 2312,
+    "end": 2318
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2313,
+     "bottom": 2317
+    }
+   ]
+  },
+  {
+   "enzyme": "XbaI",
+   "range": {
+    "start": 2318,
+    "end": 2324
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2319,
+     "bottom": 2323
+    }
+   ]
+  },
+  {
+   "enzyme": "SalI",
+   "range": {
+    "start": 2324,
+    "end": 2330
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2325,
+     "bottom": 2329
+    }
+   ]
+  },
+  {
+   "enzyme": "SbfI",
+   "range": {
+    "start": 2329,
+    "end": 2337
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2335,
+     "bottom": 2331
+    }
+   ]
+  },
+  {
+   "enzyme": "PstI",
+   "range": {
+    "start": 2330,
+    "end": 2336
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2335,
+     "bottom": 2331
+    }
+   ]
+  },
+  {
+   "enzyme": "SphI",
+   "range": {
+    "start": 2336,
+    "end": 2342
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2341,
+     "bottom": 2337
+    }
+   ]
+  },
+  {
+   "enzyme": "HindIII",
+   "range": {
+    "start": 2342,
+    "end": 2348
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2343,
+     "bottom": 2347
+    }
+   ]
+  },
+  {
+   "enzyme": "BsaI",
+   "range": {
+    "start": 2514,
+    "end": 2520
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2521,
+     "bottom": 2525
+    }
+   ]
+  },
+  {
+   "enzyme": "SspI",
+   "range": {
+    "start": 2846,
+    "end": 2852
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 2849,
+     "bottom": 2849
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 3073,
+    "end": 3079
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3076,
+     "bottom": 3076
+    }
+   ]
+  },
+  {
+   "enzyme": "ScaI",
+   "range": {
+    "start": 3170,
+    "end": 3176
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3173,
+     "bottom": 3173
+    }
+   ]
+  },
+  {
+   "enzyme": "PvuI",
+   "range": {
+    "start": 3281,
+    "end": 3287
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3285,
+     "bottom": 3283
+    }
+   ]
+  },
+  {
+   "enzyme": "PstI",
+   "range": {
+    "start": 3407,
+    "end": 3413
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3412,
+     "bottom": 3408
+    }
+   ]
+  },
+  {
+   "enzyme": "BsaI",
+   "range": {
+    "start": 3581,
+    "end": 3587
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 3588,
+     "bottom": 3592
+    }
+   ]
+  },
+  {
+   "enzyme": "SspI",
+   "range": {
+    "start": 4204,
+    "end": 4210
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4207,
+     "bottom": 4207
+    }
+   ]
+  },
+  {
+   "enzyme": "DraI",
+   "range": {
+    "start": 4221,
+    "end": 4227
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4224,
+     "bottom": 4224
+    }
+   ]
+  },
+  {
+   "enzyme": "AgeI",
+   "range": {
+    "start": 4615,
+    "end": 4621
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4616,
+     "bottom": 4620
+    }
+   ]
+  },
+  {
+   "enzyme": "BstBI",
+   "range": {
+    "start": 4690,
+    "end": 4696
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4692,
+     "bottom": 4694
+    }
+   ]
+  },
+  {
+   "enzyme": "ScaI",
+   "range": {
+    "start": 4804,
+    "end": 4810
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4807,
+     "bottom": 4807
+    }
+   ]
+  },
+  {
+   "enzyme": "SspI",
+   "range": {
+    "start": 4909,
+    "end": 4915
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4912,
+     "bottom": 4912
+    }
+   ]
+  },
+  {
+   "enzyme": "NcoI",
+   "range": {
+    "start": 4918,
+    "end": 4924
+   },
+   "strand": 1,
+   "cuts": [
+    {
+     "top": 4919,
+     "bottom": 0
+    }
+   ]
+  }
+ ]
+}

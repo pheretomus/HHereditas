@@ -1,0 +1,315 @@
+/*
+ * HHereditas design tokens.
+ *
+ * Visual language: macOS (Human Interface Guidelines): quiet neutral chrome, one accent
+ * colour, thin separators, generous whitespace, so the sequence visualizations stay the hero.
+ * Every colour has a light and a dark value. Components must only use these variables
+ * (never hard-coded colours) so both themes and future user themes keep working.
+ *
+ * Theme selection: the <html> element carries data-theme="light" | "dark". Without the
+ * attribute the OS preference (prefers-color-scheme) decides.
+ * Variable names are a stable API: add new ones freely, do not rename existing ones.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* ---- Typography ---- */
+  /* SF Pro on macOS; Inter (bundled, very close to SF) on Windows/Linux. */
+  --hh-font-ui: -apple-system, BlinkMacSystemFont, 'Inter Variable', 'Inter', 'Segoe UI Variable Text', system-ui, sans-serif;
+  /* SF Mono on macOS; JetBrains Mono (bundled) elsewhere. Sequence text uses this. */
+  --hh-font-mono: 'SF Mono', ui-monospace, 'JetBrains Mono Variable', 'JetBrains Mono', Menlo, Consolas, monospace;
+  --hh-text-xs: 10px;
+  --hh-text-sm: 11px;
+  --hh-text-md: 13px; /* macOS body size */
+  --hh-text-lg: 15px;
+  --hh-text-xl: 17px;
+  --hh-text-2xl: 22px;
+  --hh-text-3xl: 28px;
+  --hh-weight-regular: 400;
+  --hh-weight-medium: 500;
+  --hh-weight-semibold: 600;
+  --hh-weight-bold: 700;
+  --hh-line-height: 1.38;
+
+  /* ---- Spacing (4 px grid) ---- */
+  --hh-space-1: 4px;
+  --hh-space-2: 8px;
+  --hh-space-3: 12px;
+  --hh-space-4: 16px;
+  --hh-space-5: 20px;
+  --hh-space-6: 24px;
+  --hh-space-8: 32px;
+
+  /* ---- Radii ---- */
+  --hh-radius-xs: 4px;
+  --hh-radius-sm: 6px;  /* buttons, fields */
+  --hh-radius-md: 8px;  /* list selection, chips */
+  --hh-radius-lg: 10px; /* popovers, cards */
+  --hh-radius-xl: 14px; /* sheets, dialogs */
+
+  /* ---- Layout ---- */
+  --hh-toolbar-height: 52px;
+  --hh-statusbar-height: 26px;
+  --hh-sidebar-width: 248px;
+  --hh-inspector-width: 288px;
+  --hh-row-height: 28px; /* source-list rows */
+  /* Space reserved for the macOS traffic lights when the title bar overlays the content. */
+  --hh-traffic-light-inset: 0px;
+
+  /* ---- Motion ---- */
+  --hh-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --hh-duration-fast: 120ms;
+  --hh-duration: 200ms;
+
+  /* ---- Colours: light ---- */
+  --hh-accent: #007aff;
+  --hh-accent-hover: #0062cc;
+  --hh-accent-contrast: #ffffff; /* text on accent */
+  --hh-accent-soft: rgba(0, 122, 255, 0.12);
+  --hh-focus-ring: rgba(0, 122, 255, 0.45);
+
+  --hh-red: #ff3b30;
+  --hh-orange: #ff9500;
+  --hh-yellow: #ffcc00;
+  --hh-green: #34c759;
+  --hh-teal: #30b0c7;
+  --hh-blue: #007aff;
+  --hh-indigo: #5856d6;
+  --hh-purple: #af52de;
+  --hh-pink: #ff2d55;
+  --hh-gray: #8e8e93;
+
+  --hh-text: rgba(0, 0, 0, 0.86);
+  --hh-text-secondary: rgba(0, 0, 0, 0.55);
+  --hh-text-tertiary: rgba(0, 0, 0, 0.32);
+  --hh-text-disabled: rgba(0, 0, 0, 0.25);
+
+  --hh-bg-window: #ececec;        /* window / toolbar background */
+  --hh-bg-content: #ffffff;       /* main canvas, documents */
+  --hh-bg-sidebar: #e8e8ea;       /* source-list sidebar (approximates macOS vibrancy) */
+  --hh-bg-inspector: #f6f6f6;
+  --hh-bg-elevated: #ffffff;      /* popovers, menus, sheets */
+  --hh-bg-control: #ffffff;       /* buttons, fields */
+  --hh-bg-control-hover: #f2f2f2;
+  --hh-bg-control-active: #e5e5e5;
+  --hh-bg-hover: rgba(0, 0, 0, 0.05);
+  --hh-bg-pressed: rgba(0, 0, 0, 0.09);
+  --hh-bg-selected: rgba(0, 0, 0, 0.09);           /* unemphasized selection (window inactive / secondary) */
+  --hh-bg-selected-strong: #0064e1;                /* emphasized source-list selection */
+  --hh-bg-subtle: rgba(0, 0, 0, 0.035);            /* zebra rows, wells */
+
+  --hh-separator: rgba(0, 0, 0, 0.1);
+  --hh-separator-strong: rgba(0, 0, 0, 0.18);
+  --hh-border-control: rgba(0, 0, 0, 0.14);
+
+  --hh-shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  --hh-shadow-popover: 0 8px 28px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  --hh-shadow-sheet: 0 22px 70px rgba(0, 0, 0, 0.28), 0 0 0 0.5px rgba(0, 0, 0, 0.14);
+
+  /* ---- Sequence visualization ---- */
+  --hh-seq-text: rgba(0, 0, 0, 0.86);
+  --hh-seq-text-complement: rgba(0, 0, 0, 0.42);
+  --hh-seq-ruler: rgba(0, 0, 0, 0.42);
+  --hh-seq-backbone: rgba(0, 0, 0, 0.55);
+  --hh-seq-selection: rgba(0, 122, 255, 0.2);
+  --hh-seq-selection-edge: #007aff;
+  --hh-seq-caret: #007aff;
+  --hh-seq-search-hit: rgba(255, 204, 0, 0.55);
+  --hh-seq-hover: rgba(0, 0, 0, 0.06);
+  --hh-enzyme-unique: rgba(0, 0, 0, 0.86); /* single-cutter labels are emphasized */
+  --hh-enzyme-multi: rgba(0, 0, 0, 0.5);
+  --hh-enzyme-cut: #d70015;
+  --hh-primer-fwd: #1f7a3a;
+  --hh-primer-rev: #9c2c80;
+  --hh-orf: rgba(88, 86, 214, 0.55);
+  --hh-gel-bg: #1b1d22;
+  --hh-gel-band: #f2f5ff;
+  --hh-gel-text: rgba(255, 255, 255, 0.72);
+
+  /* Feature fills by type (strokes are derived by darkening in the viewer). */
+  --hh-feature-cds: #f5b841;
+  --hh-feature-gene: #f0c96b;
+  --hh-feature-promoter: #5bbf6a;
+  --hh-feature-terminator: #e5584f;
+  --hh-feature-rep-origin: #f2d03b;
+  --hh-feature-primer-bind: #8a9bb0;
+  --hh-feature-rbs: #b18ae6;
+  --hh-feature-protein-bind: #e679ad;
+  --hh-feature-enhancer: #f39a3d;
+  --hh-feature-polya: #c49a6c;
+  --hh-feature-ltr: #7b8ce8;
+  --hh-feature-sig-peptide: #5ac8fa;
+  --hh-feature-rna: #9ccc3c;
+  --hh-feature-regulatory: #5fb3a6;
+  --hh-feature-repeat: #b0b7c3;
+  --hh-feature-misc: #9fb0c4;
+}
+
+/* Dark values: applied by explicit data-theme="dark" or by the OS preference when no theme is forced. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --hh-accent: #0a84ff;
+  --hh-accent-hover: #409cff;
+  --hh-accent-contrast: #ffffff;
+  --hh-accent-soft: rgba(10, 132, 255, 0.2);
+  --hh-focus-ring: rgba(10, 132, 255, 0.55);
+
+  --hh-red: #ff453a;
+  --hh-orange: #ff9f0a;
+  --hh-yellow: #ffd60a;
+  --hh-green: #30d158;
+  --hh-teal: #40c8e0;
+  --hh-blue: #0a84ff;
+  --hh-indigo: #5e5ce6;
+  --hh-purple: #bf5af2;
+  --hh-pink: #ff375f;
+  --hh-gray: #98989d;
+
+  --hh-text: rgba(255, 255, 255, 0.88);
+  --hh-text-secondary: rgba(255, 255, 255, 0.58);
+  --hh-text-tertiary: rgba(255, 255, 255, 0.32);
+  --hh-text-disabled: rgba(255, 255, 255, 0.25);
+
+  --hh-bg-window: #2b2b2d;
+  --hh-bg-content: #1e1e20;
+  --hh-bg-sidebar: #252527;
+  --hh-bg-inspector: #232325;
+  --hh-bg-elevated: #2f2f32;
+  --hh-bg-control: #48484b;
+  --hh-bg-control-hover: #535357;
+  --hh-bg-control-active: #5d5d62;
+  --hh-bg-hover: rgba(255, 255, 255, 0.06);
+  --hh-bg-pressed: rgba(255, 255, 255, 0.11);
+  --hh-bg-selected: rgba(255, 255, 255, 0.1);
+  --hh-bg-selected-strong: #0a5fd1;
+  --hh-bg-subtle: rgba(255, 255, 255, 0.04);
+
+  --hh-separator: rgba(255, 255, 255, 0.1);
+  --hh-separator-strong: rgba(255, 255, 255, 0.18);
+  --hh-border-control: rgba(255, 255, 255, 0.12);
+
+  --hh-shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+  --hh-shadow-popover: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
+  --hh-shadow-sheet: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+
+  --hh-seq-text: rgba(255, 255, 255, 0.88);
+  --hh-seq-text-complement: rgba(255, 255, 255, 0.42);
+  --hh-seq-ruler: rgba(255, 255, 255, 0.45);
+  --hh-seq-backbone: rgba(255, 255, 255, 0.6);
+  --hh-seq-selection: rgba(10, 132, 255, 0.32);
+  --hh-seq-selection-edge: #0a84ff;
+  --hh-seq-caret: #0a84ff;
+  --hh-seq-search-hit: rgba(255, 214, 10, 0.42);
+  --hh-seq-hover: rgba(255, 255, 255, 0.07);
+  --hh-enzyme-unique: rgba(255, 255, 255, 0.9);
+  --hh-enzyme-multi: rgba(255, 255, 255, 0.52);
+  --hh-enzyme-cut: #ff6961;
+  --hh-primer-fwd: #4cd07d;
+  --hh-primer-rev: #e07ad0;
+  --hh-orf: rgba(125, 122, 255, 0.6);
+  --hh-gel-bg: #0f1013;
+  --hh-gel-band: #eef2ff;
+  --hh-gel-text: rgba(255, 255, 255, 0.7);
+
+  --hh-feature-cds: #e0a53a;
+  --hh-feature-gene: #d6b25e;
+  --hh-feature-promoter: #4cad5b;
+  --hh-feature-terminator: #d64f47;
+  --hh-feature-rep-origin: #d9bb35;
+  --hh-feature-primer-bind: #7f90a6;
+  --hh-feature-rbs: #a07ed8;
+  --hh-feature-protein-bind: #d46d9f;
+  --hh-feature-enhancer: #e08c35;
+  --hh-feature-polya: #b38c61;
+  --hh-feature-ltr: #7080d8;
+  --hh-feature-sig-peptide: #4fb8e8;
+  --hh-feature-rna: #8dbb36;
+  --hh-feature-regulatory: #55a397;
+  --hh-feature-repeat: #8f96a3;
+  --hh-feature-misc: #8798ad;
+}
+
+/* Follow the OS when no theme is forced. Duplicates the dark block above on purpose. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='dark']) {
+    color-scheme: dark;
+    --hh-accent: #0a84ff;
+    --hh-accent-hover: #409cff;
+    --hh-accent-contrast: #ffffff;
+    --hh-accent-soft: rgba(10, 132, 255, 0.2);
+    --hh-focus-ring: rgba(10, 132, 255, 0.55);
+    --hh-red: #ff453a;
+    --hh-orange: #ff9f0a;
+    --hh-yellow: #ffd60a;
+    --hh-green: #30d158;
+    --hh-teal: #40c8e0;
+    --hh-blue: #0a84ff;
+    --hh-indigo: #5e5ce6;
+    --hh-purple: #bf5af2;
+    --hh-pink: #ff375f;
+    --hh-gray: #98989d;
+    --hh-text: rgba(255, 255, 255, 0.88);
+    --hh-text-secondary: rgba(255, 255, 255, 0.58);
+    --hh-text-tertiary: rgba(255, 255, 255, 0.32);
+    --hh-text-disabled: rgba(255, 255, 255, 0.25);
+    --hh-bg-window: #2b2b2d;
+    --hh-bg-content: #1e1e20;
+    --hh-bg-sidebar: #252527;
+    --hh-bg-inspector: #232325;
+    --hh-bg-elevated: #2f2f32;
+    --hh-bg-control: #48484b;
+    --hh-bg-control-hover: #535357;
+    --hh-bg-control-active: #5d5d62;
+    --hh-bg-hover: rgba(255, 255, 255, 0.06);
+    --hh-bg-pressed: rgba(255, 255, 255, 0.11);
+    --hh-bg-selected: rgba(255, 255, 255, 0.1);
+    --hh-bg-selected-strong: #0a5fd1;
+    --hh-bg-subtle: rgba(255, 255, 255, 0.04);
+    --hh-separator: rgba(255, 255, 255, 0.1);
+    --hh-separator-strong: rgba(255, 255, 255, 0.18);
+    --hh-border-control: rgba(255, 255, 255, 0.12);
+    --hh-shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+    --hh-shadow-popover: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
+    --hh-shadow-sheet: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+    --hh-seq-text: rgba(255, 255, 255, 0.88);
+    --hh-seq-text-complement: rgba(255, 255, 255, 0.42);
+    --hh-seq-ruler: rgba(255, 255, 255, 0.45);
+    --hh-seq-backbone: rgba(255, 255, 255, 0.6);
+    --hh-seq-selection: rgba(10, 132, 255, 0.32);
+    --hh-seq-selection-edge: #0a84ff;
+    --hh-seq-caret: #0a84ff;
+    --hh-seq-search-hit: rgba(255, 214, 10, 0.42);
+    --hh-seq-hover: rgba(255, 255, 255, 0.07);
+    --hh-enzyme-unique: rgba(255, 255, 255, 0.9);
+    --hh-enzyme-multi: rgba(255, 255, 255, 0.52);
+    --hh-enzyme-cut: #ff6961;
+    --hh-primer-fwd: #4cd07d;
+    --hh-primer-rev: #e07ad0;
+    --hh-orf: rgba(125, 122, 255, 0.6);
+    --hh-gel-bg: #0f1013;
+    --hh-gel-band: #eef2ff;
+    --hh-gel-text: rgba(255, 255, 255, 0.7);
+    --hh-feature-cds: #e0a53a;
+    --hh-feature-gene: #d6b25e;
+    --hh-feature-promoter: #4cad5b;
+    --hh-feature-terminator: #d64f47;
+    --hh-feature-rep-origin: #d9bb35;
+    --hh-feature-primer-bind: #7f90a6;
+    --hh-feature-rbs: #a07ed8;
+    --hh-feature-protein-bind: #d46d9f;
+    --hh-feature-enhancer: #e08c35;
+    --hh-feature-polya: #b38c61;
+    --hh-feature-ltr: #7080d8;
+    --hh-feature-sig-peptide: #4fb8e8;
+    --hh-feature-rna: #8dbb36;
+    --hh-feature-regulatory: #55a397;
+    --hh-feature-repeat: #8f96a3;
+    --hh-feature-misc: #8798ad;
+  }
+}
+
+/* macOS: the window title bar overlays the content (titleBarStyle "Overlay" in tauri.conf.json). */
+:root.hh-platform-mac {
+  --hh-traffic-light-inset: 78px;
+}
