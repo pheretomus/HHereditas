@@ -29,6 +29,8 @@ npm install
 ```
 
 On Windows 11, WSLg displays Linux GUI windows directly, so `npm run tauri dev` opens the app window on the Windows desktop.
+`libEGL`/`MESA` warnings in the terminal are normal under WSL (WebKitGTK falls back to software rendering).
+If the window stays blank, start it with `WEBKIT_DISABLE_DMABUF_RENDERER=1 npm run tauri dev -w @hhereditas/desktop`.
 
 ### Windows (native) and macOS
 
