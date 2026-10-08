@@ -49,6 +49,42 @@
     "copyright": "",
     "macOS": {
       "minimumSystemVersion": "13.0"
-    }
+    },
+    "fileAssociations": [
+      {
+        "ext": [
+          "gb",
+          "gbk",
+          "genbank",
+          "gbff",
+          "ape"
+        ],
+        "name": "GenBank sequence",
+        "description": "GenBank sequence file",
+        "role": "Editor",
+        "mimeType": "chemical/seq-na-genbank"
+      },
+      {
+        "ext": [
+          "dna"
+        ],
+        "name": "SnapGene sequence",
+        "description": "SnapGene DNA file",
+        "role": "Editor"
+      },
+      {
+        "ext": [
+          "fa",
+          "fasta",
+          "fas",
+          "fna",
+          "ffn"
+        ],
+        "name": "FASTA sequence",
+        "description": "FASTA sequence file",
+        "role": "Editor",
+        "mimeType": "chemical/seq-na-fasta"
+      }
+    ]
   }
 }

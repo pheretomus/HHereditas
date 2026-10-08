@@ -1,13 +1,26 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "enables the default permissions",
+  "description": "Permissions of the main window. The webview only ever loads the bundled app (see the CSP in tauri.conf.json); it may read and write any file the user opens, saves, drops or double-clicks.",
   "windows": [
     "main"
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-set-title",
+    "core:window:allow-start-dragging",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-close",
+    "core:window:allow-destroy",
+    "core:menu:default",
     "dialog:default",
-    "fs:default"
+    "fs:read-files",
+    "fs:write-files",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        "**"
+      ]
+    }
   ]
 }
