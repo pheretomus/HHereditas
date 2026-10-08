@@ -1,0 +1,224 @@
+{
+ "file": "qualifier_escaping_read.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [
+  "The NCBI states double-quote characters like \" should be escaped as \"\" (two double - quotes), but here it was not: 'One missing \"\"quotation mark\" here'",
+  "The NCBI states double-quote characters like \" should be escaped as \"\" (two double - quotes), but here it was not: 'End not properly \"escaped\"'",
+  "The NCBI states double-quote characters like \" should be escaped as \"\" (two double - quotes), but here it was not: '\"Start\" not properly escaped'",
+  "The NCBI states double-quote characters like \" should be escaped as \"\" (two double - quotes), but here it was not: 'Middle not \"properly\" escaped'"
+ ],
+ "records": [
+  {
+   "name": "NP_034640",
+   "id": "NP_034640.1",
+   "description": "interferon beta, fibroblast [Mus musculus]",
+   "seqDefined": true,
+   "seqLength": 182,
+   "seqSha1": "fbf3922e2c8659c15688b5a05bfc4329efba325f",
+   "seq": "MNNRWILHAAFLLCFSTTALSINYKQLQLQERTNIRKCQELLEQLNGKINLTYRADFKIPMEMTEKMQKSYTAFAIQEMLQNVFLVFRNNFSSTGWNETIVVRLLDELHQQTVFLKTVLEEKQEERLTWEMSSTALHLKSYYWRVQRYLKLMKYNSYAWMVVRAEIFRNFLIIRRLTRNFQN",
+   "topology": null,
+   "moleculeType": "protein",
+   "division": "ROD",
+   "date": "01-NOV-2000",
+   "accessions": [
+    "NP_034640"
+   ],
+   "sequenceVersion": 1,
+   "gi": "6754304",
+   "keywords": [
+    ""
+   ],
+   "source": "house mouse",
+   "organism": "Mus musculus",
+   "taxonomy": [
+    "Eukaryota",
+    "Metazoa",
+    "Chordata",
+    "Craniata",
+    "Vertebrata",
+    "Euteleostomi",
+    "Mammalia",
+    "Eutheria",
+    "Rodentia",
+    "Sciurognathi",
+    "Muridae",
+    "Murinae",
+    "Mus"
+   ],
+   "comment": "PROVISIONAL REFSEQ: This record has not yet been subject to final\nNCBI review. The reference sequence was derived from K00020.1.",
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       182
+      ]
+     ],
+     "authors": "Higashi,Y., Sokawa,Y., Watanabe,Y., Kawade,Y., Ohno,S., Takaoka,C. and Taniguchi,T.",
+     "consrtm": "",
+     "title": "structure and expression of a cloned cdna for mouse interferon-beta",
+     "journal": "J. Biol. Chem. 258, 9522-9529 (1983)",
+     "medline": "83265757",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 5,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 182,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Mus musculus"
+      ],
+      [
+       "db_xref",
+       "taxon:10090"
+      ],
+      [
+       "chromosome",
+       "4"
+      ],
+      [
+       "map",
+       "4 42.6 cM"
+      ],
+      [
+       "note",
+       "\"This\" is \"already\" \"escaped\""
+      ]
+     ]
+    },
+    {
+     "type": "Protein",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 182,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "product",
+       "interferon beta, fibroblast"
+      ],
+      [
+       "note",
+       "One missing \"quotation mark\" here"
+      ]
+     ]
+    },
+    {
+     "type": "sig_peptide",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 21,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "End not properly \"escaped\""
+      ]
+     ]
+    },
+    {
+     "type": "Region",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 182,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "region_name",
+       "Interferon alpha/beta domain"
+      ],
+      [
+       "db_xref",
+       "CDD:pfam00143"
+      ],
+      [
+       "note",
+       "\"Start\" not properly escaped"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 215901,
+        "end": 365470,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "standard_name",
+       "RP11-242F24"
+      ],
+      [
+       "note",
+       "Middle not \"properly\" escaped"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

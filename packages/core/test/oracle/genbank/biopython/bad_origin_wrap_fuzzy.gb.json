@@ -1,0 +1,232 @@
+{
+ "file": "bad_origin_wrap_fuzzy.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [
+  "Attempting to fix invalid location '<2644..159' as it looks like incorrect origin wrapping. Please fix input file, this could have unintended behavior."
+ ],
+ "records": [
+  {
+   "name": "SYNPUC19CV",
+   "id": "L09137.2",
+   "description": "Cloning vector pUC19c, complete sequence",
+   "seqDefined": true,
+   "seqLength": 2686,
+   "seqSha1": "ef50783f04a0059de1b458c95f01cfc6d5083d81",
+   "seq": "TCGCGCGTTTCGGTGATGACGGTGAAAACCTCTGACACATGCAGCTCCCGGAGACGGTCACAGCTTGTCTGTAAGCGGATGCCGGGAGCAGACAAGCCCGTCAGGGCGCGTCAGCGGGTGTTGGCGGGTGTCGGGGCTGGCTTAACTATGCGGCATCAGAGCAGATTGTACTGAGAGTGCACCATATGCGGTGTGAAATACCGCACAGATGCGTAAGGAGAAAATACCGCATCAGGCGCCATTCGCCATTCAGGCTGCGCAACTGTTGGGAAGGGCGATCGGTGCGGGCCTCTTCGCTATTACGCCAGCTGGCGAAAGGGGGATGTGCTGCAAGGCGATTAAGTTGGGTAACGCCAGGGTTTTCCCAGTCACGACGTTGTAAAACGACGGCCAGTGAATTCGAGCTCGGTACCCGGGGATCCTCTAGAGTCGACCTGCAGGCATGCAAGCTTGGCGTAATCATGGTCATAGCTGTTTCCTGTGTGAAATTGTTATCCGCTCACAATTCCACACAACATACGAGCCGGAAGCATAAAGTGTAAAGCCTGGGGTGCCTAATGAGTGAGCTAACTCACATTAATTGCGTTGCGCTCACTGCCCGCTTTCCAGTCGGGAAACCTGTCGTGCCAGCTGCATTAATGAATCGGCCAACGCGCGGGGAGAGGCGGTTTGCGTATTGGGCGCTCTTCCGCTTCCTCGCTCACTGACTCGCTGCGCTCGGTCGTTCGGCTGCGGCGAGCGGTATCAGCTCACTCAAAGGCGGTAATACGGTTATCCACAGAATCAGGGGATAACGCAGGAAAGAACATGTGAGCAAAAGGCCAGCAAAAGGCCAGGAACCGTAAAAAGGCCGCGTTGCTGGCGTTTTTCCATAGGCTCCGCCCCCCTGACGAGCATCACAAAAATCGACGCTCAAGTCAGAGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGAAGCTCCCTCGTGCGCTCTCCTGTTCCGACCCTGCCGCTTACCGGATACCTGTCCGCCTTTCTCCCTTCGGGAAGCGTGGCGCTTTCTCATAGCTCACGCTGTAGGTATCTCAGTTCGGTGTAGGTCGTTCGCTCCAAGCTGGGCTGTGTGCACGAACCCCCCGTTCAGCCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGTAAGACACGACTTATCGCCACTGGCAGCAGCCACTGGTAACAGGATTAGCAGAGCGAGGTATGTAGGCGGTGCTACAGAGTTCTTGAAGTGGTGGCCTAACTACGGCTACACTAGAAGAACAGTATTTGGTATCTGCGCTCTGCTGAAGCCAGTTACCTTCGGAAAAAGAGTTGGTAGCTCTTGATCCGGCAAACAAACCACCGCTGGTAGCGGTGGTTTTTTTGTTTGCAAGCAGCAGATTACGCGCAGAAAAAAAGGATCTCAAGAAGATCCTTTGATCTTTTCTACGGGGTCTGACGCTCAGTGGAACGAAAACTCACGTTAAGGGATTTTGGTCATGAGATTATCAAAAAGGATCTTCACCTAGATCCTTTTAAATTAAAAATGAAGTTTTAAATCAATCTAAAGTATATATGAGTAAACTTGGTCTGACAGTTACCAATGCTTAATCAGTGAGGCACCTATCTCAGCGATCTGTCTATTTCGTTCATCCATAGTTGCCTGACTCCCCGTCGTGTAGATAACTACGATACGGGAGGGCTTACCATCTGGCCCCAGTGCTGCAATGATACCGCGAGACCCACGCTCACCGGCTCCAGATTTATCAGCAATAAACCAGCCAGCCGGAAGGGCCGAGCGCAGAAGTGGTCCTGCAACTTTATCCGCCTCCATCCAGTCTATTAATTGTTGCCGGGAAGCTAGAGTAAGTAGTTCGCCAGTTAATAGTTTGCGCAACGTTGTTGCCATTGCTACAGGCATCGTGGTGTCACGCTCGTCGTTTGGTATGGCTTCATTCAGCTCCGGTTCCCAACGATCAAGGCGAGTTACATGATCCCCCATGTTGTGCAAAAAAGCGGTTAGCTCCTTCGGTCCTCCGATCGTTGTCAGAAGTAAGTTGGCCGCAGTGTTATCACTCATGGTTATGGCAGCACTGCATAATTCTCTTACTGTCATGCCATCCGTAAGATGCTTTTCTGTGACTGGTGAGTACTCAACCAAGTCATTCTGAGAATAGTGTATGCGGCGACCGAGTTGCTCTTGCCCGGCGTCAATACGGGATAATACCGCGCCACATAGCAGAACTTTAAAAGTGCTCATCATTGGAAAACGTTCTTCGGGGCGAAAACTCTCAAGGATCTTACCGCTGTTGAGATCCAGTTCGATGTAACCCACTCGTGCACCCAACTGATCTTCAGCATCTTTTACTTTCACCAGCGTTTCTGGGTGAGCAAAAACAGGAAGGCAAAATGCCGCAAAAAAGGGAATAAGGGCGACACGGAAATGTTGAATACTCATACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGAAAAATAAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGACGTCTAAGAAACCATTATTATCATGACATTAACCTATAAAAATAGGCGTATCACGAGGCCCTTTCGTC",
+   "topology": "circular",
+   "moleculeType": "DNA",
+   "division": "SYN",
+   "date": "17-MAY-2019",
+   "accessions": [
+    "L09137"
+   ],
+   "sequenceVersion": 2,
+   "gi": null,
+   "keywords": [
+    ""
+   ],
+   "source": "Cloning vector pUC19c",
+   "organism": "Cloning vector pUC19c",
+   "taxonomy": [
+    "other sequences",
+    "artificial sequences",
+    "vectors"
+   ],
+   "comment": "On Apr 11, 2002 this sequence version replaced L09137.1. These data\nand their annotation were supplied to GenBank by Will    Gilbert\nunder the auspices of the GenBank Currator Program. pUC19c  -\nCloning vector (beta-galactosidase mRNA on complementary strand)\nENTRY PUC19C                    #TYPE DNA CIRCULAR TITLE pUC19c -\nCloning vector\n              (beta-galactosidase mRNA on complementary strand)\nDATE      03-FEB-1986\n   #sequence  16-DEC-1986\nACCESSION VB0033\nSOURCE    artificial\nCOLLECTION  ATCC 37254\nREFERENCE\n   #number\n   #authors  Norrander J., Kempe T., Messing J.\n   #journal Gene (1983) 26: 101-106\nREFERENCE\n   #number  1\n   #authors  Yanisch-Perron C., Vieira J., Messing J.\n   #journal Gene (1985) 33: 103-119\n   #comment shows the complete compiled sequence\nREFERENCE\n   #number  2\n   #authors  Chambers,S.P., et al.\n   #journal Gene (1988) 68: 139-149\n   #describes mutation at nt1308 and its effect on copy number\nREFERENCE\n   #number\n   #authors Pouwels P.H., Enger-Valk B.E., Brammar W.J.\n   #book    Cloning Vectors, Elsvier 1985 and supplements\n   #comment  vector I-A-iv-20\nCOMMENT\n   This Sequence was obtained 3-MAR-1986 from J. Messing, Waksman\n   Institute, NJ on floppy disk.\n   Revised 16-DEC-1986 by F. Pfeiffer:\n   1062/3 'AT' to 'TA' to match revised sequence of PBR322\n   The beta-galactosidase mRNA sequence including the multiple\n   cloning site of M13mp19 is on the strand complementary to that\n   shown.\nKEYWORDS\nCROSSREFERENCE\n   #complement\n     VecBase(3):pUC19\n   #prerevised\n     GenBank(50):M11662, EMBL(11):ARPuc19\n   #parent\n     VecBase(3):pUC13, VecBase(3):M13mp19, VecSource(3):bGal19\nPARENT\n   Features of pUC19c (2686 bp)\n     residue     source\n      1- 137  2074-2210 pBR322\n    138- 237  2252-2351 pBR322\n    238- 395  1461-1304 (c) Lac-Operon\n    396- 452    57-   1 (c) polylinker of M13mp19\n    455- 682  1298-1071 (c) Lac-Operon\n    683-2686  2352-4355 pBR322\n   Conflict (cfl) and Mutations (mut):\n        pUC19c  source\n   mut 1308  A  G  2977   pBR322   linked to increased copy number\n   mut 1942  A  G  3611   pBR322\n   mut 2243  T  C  3912   pBR322\nFEATURE\n   1629-2417 789-1 (c) Ap-R\nb-lactamase                            POLYLINKER\nHindIII-SphI-PstI-SalI-XbaI-BamHI-SmaI-KpnI-SacI-EcoRI  SELECTION\n#resistance  Ap\n#indicator beta-galactosidase\nSUMMARY  pUC19c    #length 2686   #checksum 4465.",
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       2686
+      ]
+     ],
+     "authors": "Yanisch-Perron,C., Vieira,J. and Messing,J.",
+     "consrtm": "",
+     "title": "Improved M13 phage cloning vectors and host strains: nucleotide sequences of the M13mp18 and pUC19 vectors",
+     "journal": "Gene 33 (1), 103-119 (1985)",
+     "medline": "",
+     "pubmed": "2985470",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       2686
+      ]
+     ],
+     "authors": "Chambers,S.P., Prior,S.E., Barstow,D.A. and Minton,N.P.",
+     "consrtm": "",
+     "title": "The pMTL nic- cloning vectors. I. Improved pUC polylinker regions to facilitate the use of sonicated DNA for nucleotide sequencing",
+     "journal": "Gene 68 (1), 139-149 (1988)",
+     "medline": "",
+     "pubmed": "2851488",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       2686
+      ]
+     ],
+     "authors": "Gilbert,W.",
+     "consrtm": "",
+     "title": "Obtained from VecBase 3.0",
+     "journal": "Unpublished",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       2686
+      ]
+     ],
+     "authors": "Messing,J.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (27-APR-1993) Department of Biochemistry, University of Minnesota, St. Paul, MN 55108, USA",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       2686
+      ]
+     ],
+     "authors": "Messing,J.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (11-APR-2002) Rutgers, The State University of New Jersey, Waksman Institute of Microbiology, 190 Frelinghuysen Road, Piscataway, NJ 08854-8020, USA",
+     "medline": "",
+     "pubmed": "",
+     "comment": "Sequence update by submitter"
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 4,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 2686,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Cloning vector pUC19c"
+      ],
+      [
+       "mol_type",
+       "genomic DNA"
+      ],
+      [
+       "db_xref",
+       "taxon:174689"
+      ]
+     ]
+    },
+    {
+     "type": "promoter",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 513,
+        "end": 543,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "standard_name",
+       "lac prom"
+      ]
+     ]
+    },
+    {
+     "type": "promoter",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 2527,
+        "end": 2556,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "standard_name",
+       "amp prom"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2643,
+        "end": 2686,
+        "strand": 1,
+        "ref": null,
+        "startKind": "before",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 159,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "standard_name",
+       "cross origin trunc"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

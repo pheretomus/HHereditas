@@ -1,0 +1,51 @@
+.field {
+  min-width: 0;
+}
+
+.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inline {
+  display: grid;
+  align-items: start;
+  column-gap: 10px;
+}
+
+.label {
+  color: var(--hh-text);
+  font-size: var(--hh-text-md);
+  line-height: 1.3;
+}
+
+.inline > .label {
+  /* Align the label text with the text inside a 28 px control. */
+  padding-top: 6px;
+  color: var(--hh-text);
+  text-align: right;
+}
+
+.stacked > .label {
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-medium);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.note {
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  line-height: 1.35;
+}
+
+.error {
+  color: var(--hh-red);
+}

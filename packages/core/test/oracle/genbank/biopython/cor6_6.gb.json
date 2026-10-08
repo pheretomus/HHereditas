@@ -1,0 +1,1609 @@
+{
+ "file": "cor6_6.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "ATCOR66M",
+   "id": "X55053.1",
+   "description": "A.thaliana cor6.6 mRNA",
+   "seqDefined": true,
+   "seqLength": 513,
+   "seqSha1": "49a6d9680e15d9e2c4f7fd859b9167c98cb4ec9e",
+   "seq": "AACAAAACACACATCAAAAACGATTTTACAAGAAAAAAATATCTGAAAAATGTCAGAGACCAACAAGAATGCCTTCCAAGCCGGTCAGGCCGCTGGCAAAGCTGAGGAGAAGAGCAATGTTCTGCTGGACAAGGCCAAGGATGCTGCTGCTGCAGCTGGAGCTTCCGCGCAACAGGCGGGAAAGAGTATATCGGATGCGGCAGTGGGAGGTGTTAACTTCGTGAAGGACAAGACCGGCCTGAACAAGTAGCGATCCGAGTCAACTTTGGGAGTTATAATTTCCCTTTTCTAATTAATTGTTGGGATTTTCAAATAAAATTTGGGAGTCATAATTGATTCTCGTACTCATCGTACTTGTTGTTGTTTTTAGTGTTGTAATGTTTTAATGTTTCTTCTCCCTTTAGATGTACTACGTTTGGAACTTTAAGTTTAATCAACAAAATCTAGTTTAAGTTCTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+   "topology": null,
+   "moleculeType": "mRNA",
+   "division": "PLN",
+   "date": "02-MAR-1992",
+   "accessions": [
+    "X55053"
+   ],
+   "sequenceVersion": 1,
+   "gi": "16229",
+   "keywords": [
+    "antifreeze protein homology",
+    "cold-regulated gene",
+    "cor6.6 gene",
+    "KIN1 homology"
+   ],
+   "source": "thale cress",
+   "organism": "Arabidopsis thaliana",
+   "taxonomy": [
+    "Eukaryota",
+    "Viridiplantae",
+    "Streptophyta",
+    "Embryophyta",
+    "Tracheophyta",
+    "euphyllophytes",
+    "Spermatophyta",
+    "Magnoliophyta",
+    "eudicotyledons",
+    "Rosidae",
+    "Capparales",
+    "Brassicaceae",
+    "Arabidopsis"
+   ],
+   "comment": "Cor6.6 homologous to KIN1. KIN1 is a cold-regulated Arabidopsis\ngene with suggested similarity to type I fish antifreeze proteins.",
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       513
+      ]
+     ],
+     "authors": "Thomashow,M.F.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (01-FEB-1991) M.F. Thomashow, Dept. Crop and Soil Sciences, Dept. Microbiology, Michigan State University, East Lansing, Michigan 48824, USA",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       513
+      ]
+     ],
+     "authors": "Gilmour,S.J., Artus,N.N. and Thomashow,M.F.",
+     "consrtm": "",
+     "title": "cDNA sequence analysis and expression of two cold-regulated genes of Arabidopsis thaliana",
+     "journal": "Plant Mol. Biol. 18 (1), 13-21 (1992)",
+     "medline": "92119220",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 3,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 513,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Arabidopsis thaliana"
+      ],
+      [
+       "strain",
+       "Columbia"
+      ],
+      [
+       "db_xref",
+       "taxon:3702"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 49,
+        "end": 250,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "cor6.6"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 49,
+        "end": 250,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "cor6.6"
+      ],
+      [
+       "note",
+       "cold regulated"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "protein_id",
+       "CAA38894.1"
+      ],
+      [
+       "db_xref",
+       "GI:16230"
+      ],
+      [
+       "db_xref",
+       "SWISS-PROT:P31169"
+      ],
+      [
+       "translation",
+       "MSETNKNAFQAGQAAGKAEEKSNVLLDKAKDAAAAAGASAQQAGKSISDAAVGGVNFVKDKTGLNK"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ATKIN2",
+   "id": "X62281.1",
+   "description": "A.thaliana kin2 gene",
+   "seqDefined": true,
+   "seqLength": 880,
+   "seqSha1": "97b82324513a5bf4b58c99f9fb5012ad4296fc50",
+   "seq": "ATTTGGCCTATAAATATAAACCCTTAAGCCCACATATCTTCTCAATCCATCACAAACAAAACACACATCAAAAACGATTTTACAAGAAAAAAATATCTGAAAAATGTCAGAGACCAACAAGAATGCCTTCCAAGCCGGTCAGGCCGCTGGCAAAGCTGAGGTACTCTTTCTCTCTTAGAACAGAGTACTGATAGATTGTTCAAGTTATAACTCTTTGAAAACAGTTGAAACTTGATCACTCCTAGAACTTCCATTTTCTTGTTTAATTTAGTTTGTCGTAATTATGTAATTGATTTTGTGTTGACCATGGTTGTTATATAGGAGAAGAGCAATGTTCTGCTGGACAAGGCCAAGGATGCTGCTGCTGCAGCTGGAGCTTCCGCGCAACAGGTAAACGATCTATACACACATTATGACATTTATGTAAAGAATGAAAAGTCTTCTTAGAGCATACATTTACGCAGATTTCTGATATTTTCATATGGTTTGATGTAAATGTTATAGGCGGGAAAGAGTATATCGGATGCGGCAGTGGGAGGTGTTAACTTCGTGAAGGACAAGACCGGCCTGAACAAGTAGCGATCCGAGTCAACTTTGGGAGTTATAATTTCCCTTTTCTAATTAATTGTTGGGATTTTCAAATAAAATTTGGGAGTCATAATTGATTCTCGTACTCATCGTACTTGTTGTTGTTTTTAGTGTTGTAATGTTTTAATGTTTCTTCTCCCTTTAGATGTACTACGTTTGGAACTTTAAGTTTAATCAACAAAATCTAGTTTAAGTTCTAAGAACTTTGTTTTACCATCCTCTTTTTTATTGCACTTAATGCTTATAGACTTTTATCTCCATCCATTTCTCAATTCGGCTACGTTGAATTATA",
+   "topology": null,
+   "moleculeType": "DNA",
+   "division": "PLN",
+   "date": "23-JUL-1992",
+   "accessions": [
+    "X62281"
+   ],
+   "sequenceVersion": 1,
+   "gi": "16353",
+   "keywords": [
+    "kin2 gene"
+   ],
+   "source": "thale cress",
+   "organism": "Arabidopsis thaliana",
+   "taxonomy": [
+    "Eukaryota",
+    "Viridiplantae",
+    "Streptophyta",
+    "Embryophyta",
+    "Tracheophyta",
+    "euphyllophytes",
+    "Spermatophyta",
+    "Magnoliophyta",
+    "eudicotyledons",
+    "Rosidae",
+    "Capparales",
+    "Brassicaceae",
+    "Arabidopsis"
+   ],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       880
+      ]
+     ],
+     "authors": "Borg-Franck,M.E.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (27-SEP-1991) M.E. Borg-Franck, Inst of Biotechnology, University of Helsinki, Karvaamokuja 3, SF-00380 Helsinki, FINLAND",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       880
+      ]
+     ],
+     "authors": "Kurkela,S. and Borg-Franck,M.",
+     "consrtm": "",
+     "title": "Structure and expression of kin2, one of two cold- and ABA-induced genes of Arabidopsis thaliana",
+     "journal": "Plant Mol. Biol. 19 (4), 689-692 (1992)",
+     "medline": "92329728",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 15,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 880,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Arabidopsis thaliana"
+      ],
+      [
+       "strain",
+       "ssp. L. Heynh, Colombia"
+      ],
+      [
+       "db_xref",
+       "taxon:3702"
+      ]
+     ]
+    },
+    {
+     "type": "TATA_signal",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 8,
+        "end": 20,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": []
+    },
+    {
+     "type": "exon",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 43,
+        "end": 160,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ],
+      [
+       "number",
+       "1"
+      ]
+     ]
+    },
+    {
+     "type": "prim_transcript",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 43,
+        "end": 579,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "after"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ]
+     ]
+    },
+    {
+     "type": "mRNA",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 43,
+        "end": 160,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 319,
+        "end": 390,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 503,
+        "end": 579,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "after"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 43,
+        "end": 579,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 103,
+        "end": 160,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 319,
+        "end": 390,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 503,
+        "end": 579,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "protein_id",
+       "CAA44171.1"
+      ],
+      [
+       "db_xref",
+       "GI:16354"
+      ],
+      [
+       "db_xref",
+       "SWISS-PROT:P31169"
+      ],
+      [
+       "translation",
+       "MSETNKNAFQAGQAAGKAERRRAMFCWTRPRMLLLQLELPRNRAGKSISDAAVGGVNFVKDKTGLNK"
+      ]
+     ]
+    },
+    {
+     "type": "intron",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 160,
+        "end": 319,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ],
+      [
+       "number",
+       "1"
+      ]
+     ]
+    },
+    {
+     "type": "exon",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 319,
+        "end": 390,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ],
+      [
+       "number",
+       "2"
+      ]
+     ]
+    },
+    {
+     "type": "intron",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 390,
+        "end": 503,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ],
+      [
+       "number",
+       "2"
+      ]
+     ]
+    },
+    {
+     "type": "exon",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 503,
+        "end": 579,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "after"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin2"
+      ],
+      [
+       "number",
+       "3"
+      ]
+     ]
+    },
+    {
+     "type": "polyA_signal",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 619,
+        "end": 625,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": []
+    },
+    {
+     "type": "polyA_signal",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 640,
+        "end": 646,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": []
+    },
+    {
+     "type": "polyA_site",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 784,
+        "end": 785,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": []
+    },
+    {
+     "type": "polyA_site",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 799,
+        "end": 800,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": []
+    }
+   ]
+  },
+  {
+   "name": "BNAKINI",
+   "id": "M81224.1",
+   "description": "Rapeseed Kin1 protein (kin1) mRNA, complete cds",
+   "seqDefined": true,
+   "seqLength": 441,
+   "seqSha1": "4ed5ac5e8e394b765c948072e17fd625cdfdf826",
+   "seq": "AAAAAAACACAACAAAACTCAATAAATAAACAAATGGCAGACAACAAGCAGAGCTTCCAAGCCGGTCAAGCCTCTGGTCGTGCTGAGGAGAAGGGTAATGTGCTGATGGACAAGGTCAAGGATGCTGCTACCGCAGCTGGAGCGTCTGCGCAAACCGCGGGACAGAAGATAACGGAGGCGGCAGGGGGAGCCGTTAATCTCGTGAAGGAGAAGACCGGCATGAACAAGTAGCCCCATTGGAAATAAAATTGGGAGTTATAGTTTCCCTTTTTAATGTTAATCGTTGTGGTTTTAAATAAAAATTGGGTGTTCTAATTGATCTTCACCGTAGTTGTTGTTGTTGTTGTTTTTAGTGTTTGAAGTAATGTTTTCAACCTTTAGGTGTATGTCTTGATGTTTATGTACTTAGTTCCCCCTTAATGAACATCTGATTTAAGCTTC",
+   "topology": null,
+   "moleculeType": "mRNA",
+   "division": "PLN",
+   "date": "27-APR-1993",
+   "accessions": [
+    "M81224"
+   ],
+   "sequenceVersion": 1,
+   "gi": "167145",
+   "keywords": [
+    ""
+   ],
+   "source": "Brassica napus (cultivar Jet neuf) cold induced leaf cDNA to mRNA",
+   "organism": "Brassica napus",
+   "taxonomy": [
+    "Eukaryota",
+    "Viridiplantae",
+    "Embryophyta",
+    "Tracheophyta",
+    "Spermatophyta",
+    "Magnoliophyta",
+    "eudicotyledons",
+    "core eudicots",
+    "Rosidae",
+    "eurosids II",
+    "Brassicales",
+    "Brassicaceae",
+    "Brassica"
+   ],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       441
+      ]
+     ],
+     "authors": "Orr,W., Iu,B., White,T., Robert,L.S. and Singh,J.",
+     "consrtm": "",
+     "title": "Nucleotide sequence of a winter B. napus Kin 1 cDNA",
+     "journal": "Plant Physiol. 98, 1532-1534 (1992)",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 6,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 441,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Brassica napus"
+      ],
+      [
+       "cultivar",
+       "Jet neuf"
+      ],
+      [
+       "db_xref",
+       "taxon:3708"
+      ],
+      [
+       "dev_stage",
+       "cold induced"
+      ],
+      [
+       "tissue_type",
+       "leaf"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 33,
+        "end": 300,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin1"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 33,
+        "end": 231,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin1"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "evidence",
+       "experimental"
+      ],
+      [
+       "protein_id",
+       "AAA32993.1"
+      ],
+      [
+       "db_xref",
+       "GI:167146"
+      ],
+      [
+       "translation",
+       "MADNKQSFQAGQASGRAEEKGNVLMDKVKDAATAAGASAQTAGQKITEAAGGAVNLVKEKTGMNK"
+      ]
+     ]
+    },
+    {
+     "type": "polyA_signal",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 240,
+        "end": 247,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin1"
+      ],
+      [
+       "note",
+       "putative"
+      ]
+     ]
+    },
+    {
+     "type": "polyA_signal",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 293,
+        "end": 300,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin1"
+      ],
+      [
+       "note",
+       "putative"
+      ]
+     ]
+    },
+    {
+     "type": "polyA_site",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 440,
+        "end": 441,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin1"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ARU237582",
+   "id": "AJ237582.1",
+   "description": "Armoracia rusticana csp14 gene (partial), exons 2-3",
+   "seqDefined": true,
+   "seqLength": 206,
+   "seqSha1": "ff042f9ab97ced059c9bd9653b8fde7e0db75608",
+   "seq": "GGACAAGGCCAAGGATGCTGCTGCTGCAGCTGGAGCTTCCGCGCAACAAGTAAACAGATACACACACATGACACATATATAANTACATATCACAAGTAGGTCGTAGATTTCTGATATNTTTGTATTGTGTATTACGTATATAGGCGGGAAAGAACATATCGGATGCAGCAGCTGGAGGTGTTAACTTCGTGAAGGAGAAGACCGGC",
+   "topology": null,
+   "moleculeType": "DNA",
+   "division": "PLN",
+   "date": "24-MAR-1999",
+   "accessions": [
+    "AJ237582"
+   ],
+   "sequenceVersion": 1,
+   "gi": "4538892",
+   "keywords": [
+    "cold shock protein",
+    "csp14 gene"
+   ],
+   "source": "horseradish",
+   "organism": "Armoracia rusticana",
+   "taxonomy": [
+    "Eukaryota",
+    "Viridiplantae",
+    "Streptophyta",
+    "Embryophyta",
+    "Tracheophyta",
+    "euphyllophytes",
+    "Spermatophyta",
+    "Magnoliophyta",
+    "eudicotyledons",
+    "Rosidae",
+    "Capparales",
+    "Brassicaceae",
+    "Armoracia"
+   ],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       206
+      ]
+     ],
+     "authors": "Baymiev,A.K., Gimalov,F.R. and Vakhitov,V.A.",
+     "consrtm": "",
+     "title": "",
+     "journal": "Unpublished",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       206
+      ]
+     ],
+     "authors": "Baymiev,A.K.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (20-MAR-1999) Baymiev A.K., Departament of Biochemistry and Cytochemistry, Ufa Scientific Centre, pr. Oktyabrya 69, Ufa, Bashkortostan, Russia, 450054, RUSSIA",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 7,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 206,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Armoracia rusticana"
+      ],
+      [
+       "db_xref",
+       "taxon:3704"
+      ],
+      [
+       "country",
+       "Russia:Bashkortostan"
+      ]
+     ]
+    },
+    {
+     "type": "mRNA",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 48,
+        "strand": 1,
+        "ref": null,
+        "startKind": "before",
+        "endKind": "exact"
+       },
+       {
+        "start": 142,
+        "end": 206,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "after"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "csp14"
+      ]
+     ]
+    },
+    {
+     "type": "exon",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 48,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "csp14"
+      ],
+      [
+       "number",
+       "2"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 206,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "csp14"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 48,
+        "strand": 1,
+        "ref": null,
+        "startKind": "before",
+        "endKind": "exact"
+       },
+       {
+        "start": 142,
+        "end": 206,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "after"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "csp14"
+      ],
+      [
+       "codon_start",
+       "2"
+      ],
+      [
+       "product",
+       "cold shock protein"
+      ],
+      [
+       "protein_id",
+       "CAB39890.1"
+      ],
+      [
+       "db_xref",
+       "GI:4538893"
+      ],
+      [
+       "translation",
+       "DKAKDAAAAAGASAQQAGKNISDAAAGGVNFVKEKTG"
+      ]
+     ]
+    },
+    {
+     "type": "intron",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 48,
+        "end": 142,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "csp14"
+      ],
+      [
+       "number",
+       "2"
+      ]
+     ]
+    },
+    {
+     "type": "exon",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 142,
+        "end": 206,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "csp14"
+      ],
+      [
+       "number",
+       "3"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "BRRBIF72",
+   "id": "L31939.1",
+   "description": "Brassica rapa (clone bif72) kin mRNA, complete cds",
+   "seqDefined": true,
+   "seqLength": 282,
+   "seqSha1": "05483a6315d229611c1451f42f4f09cda2c6850b",
+   "seq": "AACAAAACTCAATAAATAAACAAATGGCAGACAACAAGCAGAGCTTCCAAGCCGGTCAAGCCGCTGGTCGTGCTGAGGAGAAGGGTAATGTGCTGCTGATGGACAAGGTCAAGGATGCTGCTACCGCAGCTGGAGCTCTCCAAACCGCGGGACAGAAGATAACGGAGGCGGCAGGGGGAGCCGTTAATCTCGTGAAGGAGAAGACCGGCATGAACAAGTAGCCCCATTGGAAACAAAATTGGGAGTTATAGTTTCCTTTTTAATATTAATCGTTGTGGTTTT",
+   "topology": null,
+   "moleculeType": "mRNA",
+   "division": "PLN",
+   "date": "01-MAR-1996",
+   "accessions": [
+    "L31939"
+   ],
+   "sequenceVersion": 1,
+   "gi": "1209261",
+   "keywords": [
+    ""
+   ],
+   "source": "Brassica rapa flower cDNA to mRNA",
+   "organism": "Brassica rapa",
+   "taxonomy": [
+    "Eukaryota",
+    "Viridiplantae",
+    "Embryophyta",
+    "Tracheophyta",
+    "Spermatophyta",
+    "Magnoliophyta",
+    "eudicotyledons",
+    "core eudicots",
+    "Rosidae",
+    "eurosids II",
+    "Brassicales",
+    "Brassicaceae",
+    "Brassica"
+   ],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       282
+      ]
+     ],
+     "authors": "Kim,J.-B., Kim,H.-U., Park,B.-S., Yun,C.-H., Cho,W.-S., Ryu,J.-C. and Chung,T.-Y.",
+     "consrtm": "",
+     "title": "Nucleotide sequences of kin gene in chinese cabbage",
+     "journal": "Unpublished (1994)",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 3,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 282,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Brassica rapa"
+      ],
+      [
+       "db_xref",
+       "taxon:3711"
+      ],
+      [
+       "dev_stage",
+       "flower"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 23,
+        "end": 221,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 23,
+        "end": 221,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "kin"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "protein_id",
+       "AAA91051.1"
+      ],
+      [
+       "db_xref",
+       "GI:1209262"
+      ],
+      [
+       "translation",
+       "MADNKQSFQAGQAAGRAEEKGNVLLMDKVKDAATAAGALQTAGQKITEAAGGAVNLVKEKTGMNK"
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AF297471",
+   "id": "AF297471.1",
+   "description": "Brassica napus BN28a (BN28a) gene, complete cds",
+   "seqDefined": true,
+   "seqLength": 497,
+   "seqSha1": "b9511878041257910340e9c5a1e32655e6be3a8c",
+   "seq": "ATGGCAGACAACAAGCAGAGCTTCCAAGCCGGTCAAGCCGCTGGTCGTGCTGAGGTCTCTTTCTCTCTTTAACTCTCTGATCAAATGCAGTTGCTGCGGTTAAACAATCACACTTTATAAAATAAAGAGAAGTTATTTATATTTTCTTGAACCAAGTAAATGAATGTATTTTGACCAAAAAAAGAAGAAGTAAATGAATGTATTAATTGATTTCGTGTGGACAATGGTGTGTAAATATAGGAGAAGGGTAATGTGCTGATGGACAAGGTCAAGGATGCTGCTACCGCAGCTGGAGCGTCTGCGCAAACCGTAAGCGATCTACCCCATGATATATAAATAAACATACGTCTCTACTCTCTACTGTACATGTTCGTAGATCTCATATCTTTTTATGCTGTTCTAACATGTATTTACGTTTATAGGCGGGACAGAAGATAACGGAGGCGGCAGGGGGAGCCGTTAATCTCGTGAAGGAGAAGACCGGCATGAACAAGTAG",
+   "topology": null,
+   "moleculeType": "DNA",
+   "division": "PLN",
+   "date": "14-SEP-2000",
+   "accessions": [
+    "AF297471"
+   ],
+   "sequenceVersion": 1,
+   "gi": "10121868",
+   "keywords": [
+    ""
+   ],
+   "source": "rape",
+   "organism": "Brassica napus",
+   "taxonomy": [
+    "Eukaryota",
+    "Viridiplantae",
+    "Embryophyta",
+    "Tracheophyta",
+    "Spermatophyta",
+    "Magnoliophyta",
+    "eudicotyledons",
+    "core eudicots",
+    "Rosidae",
+    "eurosids II",
+    "Brassicales",
+    "Brassicaceae",
+    "Brassica"
+   ],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       497
+      ]
+     ],
+     "authors": "Byass,L.J. and Flanagan,A.M.",
+     "consrtm": "",
+     "title": "BN28a, a low temperature-induced gene of Brassica napus",
+     "journal": "Unpublished",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       497
+      ]
+     ],
+     "authors": "Byass,L.J. and Flanagan,A.M.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (18-AUG-2000) AFNS, University of Alberta, 4-10 Agriculture/Forestry Centre, Edmonton, Alberta T6G 2P5, Canada",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 4,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 497,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Brassica napus"
+      ],
+      [
+       "cultivar",
+       "Cascade"
+      ],
+      [
+       "db_xref",
+       "taxon:3708"
+      ]
+     ]
+    },
+    {
+     "type": "mRNA",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 54,
+        "strand": 1,
+        "ref": null,
+        "startKind": "before",
+        "endKind": "exact"
+       },
+       {
+        "start": 240,
+        "end": 309,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 422,
+        "end": 497,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "after"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "BN28a"
+      ],
+      [
+       "product",
+       "BN28a"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 497,
+        "strand": 1,
+        "ref": null,
+        "startKind": "before",
+        "endKind": "after"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "BN28a"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 54,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 240,
+        "end": 309,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 422,
+        "end": 497,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "BN28a"
+      ],
+      [
+       "note",
+       "low temperature-induced; similar to Brassica napus Kin1 in Accession Number M81224"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "BN28a"
+      ],
+      [
+       "protein_id",
+       "AAG13407.1"
+      ],
+      [
+       "db_xref",
+       "GI:10121869"
+      ],
+      [
+       "translation",
+       "MADNKQSFQAGQAAGRAEEKGNVLMDKVKDAATAAGASAQTAGQKITEAAGGAVNLVKEKTGMNK"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

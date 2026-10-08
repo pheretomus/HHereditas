@@ -1,0 +1,69 @@
+LOCUS       PX514774                1100 bp    mRNA    linear   BCT 28-SEP-2026
+DEFINITION  Peribacillus asahii strain NABI10 endo-1,4-beta mannanase
+            (man26A10) mRNA, partial cds.
+ACCESSION   PX514774
+VERSION     PX514774.1
+KEYWORDS    .
+SOURCE      Peribacillus asahii
+  ORGANISM  Peribacillus asahii
+            Bacteria; Bacillati; Bacillota; Bacilli; Caryophanales;
+            Bacillaceae; Peribacillus.
+REFERENCE   1  (bases 1 to 1100)
+  AUTHORS   Mazumder,K. and Saini,S.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (29-OCT-2025) Food Biotechnology, National Agri-Food and
+            Bio-Manufacturing Institute, Sector-81, Knowledge City, SAS Nagar,
+            Mohali, Punjab 140306, India
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1100
+                     /organism="Peribacillus asahii"
+                     /mol_type="mRNA"
+                     /strain="NABI10"
+                     /isolation_source="soil"
+                     /specimen_voucher="NABI HR10"
+                     /db_xref="taxon:228899"
+                     /geo_loc_name="India: Sohna, Gurugra, Haryana"
+                     /collection_date="15-Nov-2022"
+     gene            1..>1100
+                     /gene="man26A10"
+                     /note="Bas_man26A10"
+     CDS             1..>1100
+                     /gene="man26A10"
+                     /EC_number="3.2.1.78"
+                     /note="GH26 glycosyl hydrolase"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="endo-1,4-beta mannanase"
+                     /protein_id="YGX81797.1"
+                     /translation="MGELHLFKKHTISFLIIFLLASAVLAKPIEAHTVSPVNPNAQQT
+                     TKAVMNWLAHLPNRTENRVLSGAFGGYSHDTFSVAEADRIRSATGQSPAIYGCDYARG
+                     WLETAKIEDSIDVSCNGDLISYWKNGGIPQISLHLANPAFQSGHFKTPITNDQYKKIL
+                     DSSTAEGKRLNAMLSKIADGLQELENQGVPVLFRPLHEMNGEWFWWGLTSYNQKDNER
+                     ISLYKQLYKKIYHYMTDTRGLDHLIWVYSPDANRDFKTDFYPGASYVDIVGLDAYFQD
+                     AYSINGYDQLTALNKPFAFTEVGPQPANGSFDYSLFINAIKQKYPKTIYFLAWNDEWS
+                     PAVNKGASALYHDSWTLNKGEIWNGDSLTPIV"
+ORIGIN      
+        1 atgggggagt tgcatttgtt taagaaacat acgatctctt tcctcattat atttttactt
+       61 gcgtctgctg ttttagcaaa accaattgaa gcgcatactg tgtcgcctgt gaatcctaat
+      121 gcccagcaga caacaaaagc agtgatgaac tggcttgcac acctgccgaa ccgaacggaa
+      181 aacagagtcc tttccggagc gttcggaggt tacagtcatg acacattttc tgtggctgag
+      241 gctgatagaa tccgaagcgc caccgggcaa tcgcctgcta tttacggctg cgattatgcc
+      301 agagggtggc ttgaaacagc taaaattgaa gattcaatag atgtaagctg caacggtgat
+      361 ttaatttcgt attggaaaaa tggcggaatt ccgcaaatca gtttgcacct ggcgaaccct
+      421 gcttttcagt cagggcattt taaaacaccg attacaaacg atcagtataa aaaaatacta
+      481 gattcttcaa cagcagaagg aaagcggcta aatgccatgc tcagcaaaat tgctgacgga
+      541 cttcaagagc tggagaacca aggtgtgcct gttctgttca ggccactgca tgaaatgaat
+      601 ggcgaatggt tttggtgggg acttacatca tataaccaaa aggataatga aagaatctct
+      661 ctatataaac agctctacaa gaaaatctat cattatatga ccgacacaag aggacttgat
+      721 catttgattt gggtttactc acccgacgcc aaccgagatt ttaaaactga tttttacccg
+      781 ggagcgtctt acgtggatat tgtcggatta gatgcgtatt ttcaagatgc ctactcgatc
+      841 aatggatacg atcagctaac agcgcttaat aaaccatttg cttttacaga agtcggcccg
+      901 caaccagcaa acggcagctt tgattacagc ctatttatca atgctataaa acaaaaatat
+      961 cctaaaacca tttacttcct cgcatggaat gatgaatgga gcccagcagt aaacaagggt
+     1021 gcttccgctt tatatcatga cagctggaca ctcaacaagg gagaaatatg gaatggcgat
+     1081 tctttaacgc caatcgttga
+//
+

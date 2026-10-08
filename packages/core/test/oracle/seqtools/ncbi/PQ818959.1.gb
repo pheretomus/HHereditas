@@ -1,0 +1,55 @@
+LOCUS       PQ818959                 430 bp    mRNA    linear   INV 30-SEP-2026
+DEFINITION  Aphis glycines insulin-like peptide 9 precursor, mRNA, partial cds.
+ACCESSION   PQ818959
+VERSION     PQ818959.1
+KEYWORDS    .
+SOURCE      Aphis glycines (soybean aphid)
+  ORGANISM  Aphis glycines
+            Eukaryota; Metazoa; Ecdysozoa; Arthropoda; Altocrustacea;
+            Allotriocarida; Hexapoda; Insecta; Pterygota; Neoptera; Eumetabola;
+            Paraneoptera; Hemiptera; Sternorrhyncha; Aphidomorpha; Aphidoidea;
+            Aphididae; Aphidini; Aphis; Aphis.
+REFERENCE   1  (bases 1 to 430)
+  AUTHORS   Wang,Z., Zhang,H., Yang,M., Zheng,M., Bao,H., Dong,S., Chen,Z.,
+            Sang,X. and Ma,K.
+  TITLE     Identification and Characterization of Neuropeptides and Their G
+            Protein-Coupled Receptors (GPCRs) in the soybean aphid Aphis
+            glycines Matsumura (Hemiptera: Aphididae)
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 430)
+  AUTHORS   Wang,Z., Zhang,H., Yang,M., Zheng,M., Bao,H., Dong,S., Chen,Z.,
+            Sang,X. and Ma,K.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (30-DEC-2024) College of Life Science and Agronomy,
+            Zhoukou Normal University, Wenchang Road No. 6, Zhoukou, Henan
+            466001, China
+COMMENT     ##Assembly-Data-START##
+            Assembly Method       :: Trinity v. 2021
+            Sequencing Technology :: Illumina
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..430
+                     /organism="Aphis glycines"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:307491"
+                     /geo_loc_name="China: Henan, Zhoukou"
+                     /collection_date="2021"
+     CDS             73..>430
+                     /note="ILP9"
+                     /codon_start=1
+                     /product="insulin-like peptide 9 precursor"
+                     /protein_id="XLZ10843.1"
+                     /translation="MKLIKVFFVFLIQLLDIFMASPVPALYMETPVQFCGQQLAVELS
+                     IICKGRYNEARGNGHRRHKRGIIDDCCLKTCTRQYVKINYCGPEPAEPKITKPAETTT
+                     TSRPKKINKVPLKGGDL"
+ORIGIN      
+        1 gaaggtctaa acatcccatg aaccattccg aattatatat tctaccctgc caaaattttc
+       61 tataaagaaa aaatgaagtt aatcaaagta ttctttgtat ttctcatcca gcttttggat
+      121 atttttatgg cgtcaccggt accagcttta tatatggaaa cacctgtaca gttttgcgga
+      181 caacagttgg cagttgaact atccatcatt tgcaaggggc gatataatga agctagaggt
+      241 aatggacatc ggcgtcataa aaggggtatt atcgatgact gttgtttaaa aacttgtaca
+      301 agacaatacg tcaaaataaa ctattgtgga cctgaaccgg ctgaaccaaa aataactaaa
+      361 cctgcagaaa caactacaac cagtagacca aagaaaataa acaaagtgcc acttaaagga
+      421 ggagaccttc
+//
+

@@ -1,0 +1,59 @@
+.search {
+  padding-left: 7px;
+}
+
+/* Hide the browser's own clear button and decorations. */
+.search input::-webkit-search-cancel-button,
+.search input::-webkit-search-decoration {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.search input {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.magnifier {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+.status {
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin: 0 -3px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--hh-text-tertiary);
+  cursor: default;
+}
+
+.clear:hover {
+  color: var(--hh-text-secondary);
+}
+
+.clear :where(svg) {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+/* Toolbar appearance: borderless, tinted well until focused (macOS unified toolbar). */
+:global([data-hh-toolbar]) .search:not(:focus-within) {
+  background: var(--hh-bg-well);
+  box-shadow: none;
+}

@@ -1,0 +1,330 @@
+/*
+ * Circular map. Colours come only from --hh-* tokens; SVG colours are set here (or via
+ * style={{ fill }}) because WebKit does not resolve var() in SVG presentation attributes.
+ */
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  font-family: var(--hh-font-ui);
+  color: var(--hh-text);
+}
+
+.root:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--hh-focus-ring);
+  border-radius: var(--hh-radius-md);
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  font-family: var(--hh-font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Ring ------------------------------------------------------------------ */
+
+.backbone {
+  fill: none;
+  stroke: var(--hh-seq-backbone);
+  stroke-width: 1.25;
+}
+
+.backboneEnds {
+  fill: none;
+  stroke: var(--hh-seq-backbone);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+}
+
+.backboneEmpty {
+  fill: none;
+  stroke: var(--hh-separator-strong);
+  stroke-width: 1.25;
+  stroke-dasharray: 3 4;
+}
+
+.rulerCircle {
+  fill: none;
+  stroke: var(--hh-separator-strong);
+  stroke-width: 0.75;
+}
+
+.tickMajor {
+  fill: none;
+  stroke: var(--hh-seq-ruler);
+  stroke-width: 1;
+}
+
+.tickMinor {
+  fill: none;
+  stroke: var(--hh-seq-ruler);
+  stroke-width: 0.75;
+  opacity: 0.55;
+}
+
+.tickOrigin {
+  fill: none;
+  stroke: var(--hh-seq-backbone);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.tickLabel {
+  fill: var(--hh-seq-ruler);
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Annotations ------------------------------------------------------------- */
+
+.feature {
+  fill-rule: evenodd;
+  stroke-width: 0.75;
+  stroke-linejoin: round;
+}
+
+.connector {
+  fill: none;
+  stroke-width: 1;
+}
+
+.insideLabel {
+  font-weight: var(--hh-weight-medium);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.orf {
+  fill: var(--hh-orf);
+}
+
+.primerFwd {
+  fill: var(--hh-primer-fwd);
+}
+
+.primerRev {
+  fill: var(--hh-primer-rev);
+}
+
+.enzymeTick {
+  fill: none;
+  stroke: var(--hh-enzyme-multi);
+  stroke-width: 1;
+}
+
+.enzymeTickUnique {
+  stroke: var(--hh-enzyme-unique);
+}
+
+/* ---- Outside labels ------------------------------------------------------------ */
+
+.leader {
+  fill: none;
+  stroke: var(--hh-separator-strong);
+  stroke-width: 0.75;
+  stroke-linejoin: round;
+}
+
+.label {
+  fill: var(--hh-text);
+}
+
+.labelEnzyme {
+  fill: var(--hh-enzyme-multi);
+}
+
+.labelEnzymeUnique {
+  fill: var(--hh-enzyme-unique);
+}
+
+.labelPrimerFwd {
+  fill: var(--hh-primer-fwd);
+}
+
+.labelPrimerRev {
+  fill: var(--hh-primer-rev);
+}
+
+.chip {
+  stroke: var(--hh-separator-strong);
+  stroke-width: 0.5;
+}
+
+.note {
+  fill: var(--hh-text-tertiary);
+}
+
+/* ---- Centre ------------------------------------------------------------------------ */
+
+.centreName {
+  fill: var(--hh-text);
+  font-weight: var(--hh-weight-semibold);
+  text-anchor: middle;
+}
+
+.centreDetail {
+  fill: var(--hh-text-secondary);
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.centreNote {
+  fill: var(--hh-text-tertiary);
+  text-anchor: middle;
+}
+
+/* ---- Selection ------------------------------------------------------------------- */
+
+.selWedge {
+  fill: var(--hh-seq-selection);
+}
+
+.selStopCentre {
+  stop-color: var(--hh-seq-selection);
+  stop-opacity: 0.15;
+}
+
+.selStopMid {
+  stop-color: var(--hh-seq-selection);
+  stop-opacity: 0.55;
+}
+
+.selStopEdge {
+  stop-color: var(--hh-seq-selection);
+  stop-opacity: 1;
+}
+
+.selArc {
+  fill: none;
+  stroke: var(--hh-seq-selection-edge);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.selEdge {
+  fill: none;
+  stroke: var(--hh-seq-selection-edge);
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.caret {
+  fill: none;
+  stroke: var(--hh-seq-caret);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.caretKnob {
+  fill: var(--hh-seq-caret);
+}
+
+/* ---- Hover / highlight --------------------------------------------------------------- */
+
+.hoverFeature {
+  fill: none;
+  stroke: var(--hh-accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.hoverShape {
+  fill: none;
+  stroke: var(--hh-accent);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.hoverLabel {
+  fill: var(--hh-accent-soft);
+  pointer-events: none;
+}
+
+.hoverLeader {
+  fill: none;
+  stroke: var(--hh-text-secondary);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.hoverTick {
+  fill: none;
+  stroke: var(--hh-enzyme-cut);
+  stroke-width: 2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+/* ---- Tooltip ---------------------------------------------------------------------- */
+
+.tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  max-width: 280px;
+  padding: 7px 10px 8px;
+  border-radius: var(--hh-radius-md);
+  background: var(--hh-bg-elevated);
+  box-shadow: var(--hh-shadow-popover);
+  color: var(--hh-text);
+  font-size: var(--hh-text-sm);
+  line-height: 1.4;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: hh-circular-tooltip-in var(--hh-duration-fast) var(--hh-ease) 80ms both;
+}
+
+@keyframes hh-circular-tooltip-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.ttTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ttTitleText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ttSwatch {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 2.5px;
+  box-shadow: inset 0 0 0 0.5px var(--hh-separator-strong);
+}
+
+.ttMeta {
+  color: var(--hh-text-secondary);
+}
+
+.ttRange {
+  color: var(--hh-text);
+  font-variant-numeric: tabular-nums;
+}

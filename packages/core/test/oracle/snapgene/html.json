@@ -1,0 +1,3685 @@
+{
+ "html5": {
+  "AElig": 198,
+  "Aacute": 193,
+  "Acirc": 194,
+  "Agrave": 192,
+  "Alpha": 913,
+  "Aring": 197,
+  "Atilde": 195,
+  "Auml": 196,
+  "Beta": 914,
+  "Ccedil": 199,
+  "Chi": 935,
+  "Dagger": 8225,
+  "Delta": 916,
+  "ETH": 208,
+  "Eacute": 201,
+  "Ecirc": 202,
+  "Egrave": 200,
+  "Epsilon": 917,
+  "Eta": 919,
+  "Euml": 203,
+  "Gamma": 915,
+  "Iacute": 205,
+  "Icirc": 206,
+  "Igrave": 204,
+  "Iota": 921,
+  "Iuml": 207,
+  "Kappa": 922,
+  "Lambda": 923,
+  "Mu": 924,
+  "Ntilde": 209,
+  "Nu": 925,
+  "OElig": 338,
+  "Oacute": 211,
+  "Ocirc": 212,
+  "Ograve": 210,
+  "Omega": 937,
+  "Omicron": 927,
+  "Oslash": 216,
+  "Otilde": 213,
+  "Ouml": 214,
+  "Phi": 934,
+  "Pi": 928,
+  "Prime": 8243,
+  "Psi": 936,
+  "Rho": 929,
+  "Scaron": 352,
+  "Sigma": 931,
+  "THORN": 222,
+  "Tau": 932,
+  "Theta": 920,
+  "Uacute": 218,
+  "Ucirc": 219,
+  "Ugrave": 217,
+  "Upsilon": 933,
+  "Uuml": 220,
+  "Xi": 926,
+  "Yacute": 221,
+  "Yuml": 376,
+  "Zeta": 918,
+  "aacute": 225,
+  "acirc": 226,
+  "acute": 180,
+  "aelig": 230,
+  "agrave": 224,
+  "alefsym": 8501,
+  "alpha": 945,
+  "amp": 38,
+  "and": 8743,
+  "ang": 8736,
+  "aring": 229,
+  "asymp": 8776,
+  "atilde": 227,
+  "auml": 228,
+  "bdquo": 8222,
+  "beta": 946,
+  "brvbar": 166,
+  "bull": 8226,
+  "cap": 8745,
+  "ccedil": 231,
+  "cedil": 184,
+  "cent": 162,
+  "chi": 967,
+  "circ": 710,
+  "clubs": 9827,
+  "cong": 8773,
+  "copy": 169,
+  "crarr": 8629,
+  "cup": 8746,
+  "curren": 164,
+  "dArr": 8659,
+  "dagger": 8224,
+  "darr": 8595,
+  "deg": 176,
+  "delta": 948,
+  "diams": 9830,
+  "divide": 247,
+  "eacute": 233,
+  "ecirc": 234,
+  "egrave": 232,
+  "empty": 8709,
+  "emsp": 8195,
+  "ensp": 8194,
+  "epsilon": 949,
+  "equiv": 8801,
+  "eta": 951,
+  "eth": 240,
+  "euml": 235,
+  "euro": 8364,
+  "exist": 8707,
+  "fnof": 402,
+  "forall": 8704,
+  "frac12": 189,
+  "frac14": 188,
+  "frac34": 190,
+  "frasl": 8260,
+  "gamma": 947,
+  "ge": 8805,
+  "gt": 62,
+  "hArr": 8660,
+  "harr": 8596,
+  "hearts": 9829,
+  "hellip": 8230,
+  "iacute": 237,
+  "icirc": 238,
+  "iexcl": 161,
+  "igrave": 236,
+  "image": 8465,
+  "infin": 8734,
+  "int": 8747,
+  "iota": 953,
+  "iquest": 191,
+  "isin": 8712,
+  "iuml": 239,
+  "kappa": 954,
+  "lArr": 8656,
+  "lambda": 955,
+  "lang": 10216,
+  "laquo": 171,
+  "larr": 8592,
+  "lceil": 8968,
+  "ldquo": 8220,
+  "le": 8804,
+  "lfloor": 8970,
+  "lowast": 8727,
+  "loz": 9674,
+  "lrm": 8206,
+  "lsaquo": 8249,
+  "lsquo": 8216,
+  "lt": 60,
+  "macr": 175,
+  "mdash": 8212,
+  "micro": 181,
+  "middot": 183,
+  "minus": 8722,
+  "mu": 956,
+  "nabla": 8711,
+  "nbsp": 160,
+  "ndash": 8211,
+  "ne": 8800,
+  "ni": 8715,
+  "not": 172,
+  "notin": 8713,
+  "nsub": 8836,
+  "ntilde": 241,
+  "nu": 957,
+  "oacute": 243,
+  "ocirc": 244,
+  "oelig": 339,
+  "ograve": 242,
+  "oline": 8254,
+  "omega": 969,
+  "omicron": 959,
+  "oplus": 8853,
+  "or": 8744,
+  "ordf": 170,
+  "ordm": 186,
+  "oslash": 248,
+  "otilde": 245,
+  "otimes": 8855,
+  "ouml": 246,
+  "para": 182,
+  "part": 8706,
+  "permil": 8240,
+  "perp": 8869,
+  "phi": 966,
+  "pi": 960,
+  "piv": 982,
+  "plusmn": 177,
+  "pound": 163,
+  "prime": 8242,
+  "prod": 8719,
+  "prop": 8733,
+  "psi": 968,
+  "quot": 34,
+  "rArr": 8658,
+  "radic": 8730,
+  "rang": 10217,
+  "raquo": 187,
+  "rarr": 8594,
+  "rceil": 8969,
+  "rdquo": 8221,
+  "real": 8476,
+  "reg": 174,
+  "rfloor": 8971,
+  "rho": 961,
+  "rlm": 8207,
+  "rsaquo": 8250,
+  "rsquo": 8217,
+  "sbquo": 8218,
+  "scaron": 353,
+  "sdot": 8901,
+  "sect": 167,
+  "shy": 173,
+  "sigma": 963,
+  "sigmaf": 962,
+  "sim": 8764,
+  "spades": 9824,
+  "sub": 8834,
+  "sube": 8838,
+  "sum": 8721,
+  "sup": 8835,
+  "sup1": 185,
+  "sup2": 178,
+  "sup3": 179,
+  "supe": 8839,
+  "szlig": 223,
+  "tau": 964,
+  "there4": 8756,
+  "theta": 952,
+  "thetasym": 977,
+  "thinsp": 8201,
+  "thorn": 254,
+  "tilde": 732,
+  "times": 215,
+  "trade": 8482,
+  "uArr": 8657,
+  "uacute": 250,
+  "uarr": 8593,
+  "ucirc": 251,
+  "ugrave": 249,
+  "uml": 168,
+  "upsih": 978,
+  "upsilon": 965,
+  "uuml": 252,
+  "weierp": 8472,
+  "xi": 958,
+  "yacute": 253,
+  "yen": 165,
+  "yuml": 255,
+  "zeta": 950,
+  "zwj": 8205,
+  "zwnj": 8204
+ },
+ "invalid_charrefs": {
+  "0": 65533,
+  "128": 8364,
+  "129": 129,
+  "13": 13,
+  "130": 8218,
+  "131": 402,
+  "132": 8222,
+  "133": 8230,
+  "134": 8224,
+  "135": 8225,
+  "136": 710,
+  "137": 8240,
+  "138": 352,
+  "139": 8249,
+  "140": 338,
+  "141": 141,
+  "142": 381,
+  "143": 143,
+  "144": 144,
+  "145": 8216,
+  "146": 8217,
+  "147": 8220,
+  "148": 8221,
+  "149": 8226,
+  "150": 8211,
+  "151": 8212,
+  "152": 732,
+  "153": 8482,
+  "154": 353,
+  "155": 8250,
+  "156": 339,
+  "157": 157,
+  "158": 382,
+  "159": 376
+ },
+ "name2codepoint": {
+  "AElig": 198,
+  "Aacute": 193,
+  "Acirc": 194,
+  "Agrave": 192,
+  "Alpha": 913,
+  "Aring": 197,
+  "Atilde": 195,
+  "Auml": 196,
+  "Beta": 914,
+  "Ccedil": 199,
+  "Chi": 935,
+  "Dagger": 8225,
+  "Delta": 916,
+  "ETH": 208,
+  "Eacute": 201,
+  "Ecirc": 202,
+  "Egrave": 200,
+  "Epsilon": 917,
+  "Eta": 919,
+  "Euml": 203,
+  "Gamma": 915,
+  "Iacute": 205,
+  "Icirc": 206,
+  "Igrave": 204,
+  "Iota": 921,
+  "Iuml": 207,
+  "Kappa": 922,
+  "Lambda": 923,
+  "Mu": 924,
+  "Ntilde": 209,
+  "Nu": 925,
+  "OElig": 338,
+  "Oacute": 211,
+  "Ocirc": 212,
+  "Ograve": 210,
+  "Omega": 937,
+  "Omicron": 927,
+  "Oslash": 216,
+  "Otilde": 213,
+  "Ouml": 214,
+  "Phi": 934,
+  "Pi": 928,
+  "Prime": 8243,
+  "Psi": 936,
+  "Rho": 929,
+  "Scaron": 352,
+  "Sigma": 931,
+  "THORN": 222,
+  "Tau": 932,
+  "Theta": 920,
+  "Uacute": 218,
+  "Ucirc": 219,
+  "Ugrave": 217,
+  "Upsilon": 933,
+  "Uuml": 220,
+  "Xi": 926,
+  "Yacute": 221,
+  "Yuml": 376,
+  "Zeta": 918,
+  "aacute": 225,
+  "acirc": 226,
+  "acute": 180,
+  "aelig": 230,
+  "agrave": 224,
+  "alefsym": 8501,
+  "alpha": 945,
+  "amp": 38,
+  "and": 8743,
+  "ang": 8736,
+  "aring": 229,
+  "asymp": 8776,
+  "atilde": 227,
+  "auml": 228,
+  "bdquo": 8222,
+  "beta": 946,
+  "brvbar": 166,
+  "bull": 8226,
+  "cap": 8745,
+  "ccedil": 231,
+  "cedil": 184,
+  "cent": 162,
+  "chi": 967,
+  "circ": 710,
+  "clubs": 9827,
+  "cong": 8773,
+  "copy": 169,
+  "crarr": 8629,
+  "cup": 8746,
+  "curren": 164,
+  "dArr": 8659,
+  "dagger": 8224,
+  "darr": 8595,
+  "deg": 176,
+  "delta": 948,
+  "diams": 9830,
+  "divide": 247,
+  "eacute": 233,
+  "ecirc": 234,
+  "egrave": 232,
+  "empty": 8709,
+  "emsp": 8195,
+  "ensp": 8194,
+  "epsilon": 949,
+  "equiv": 8801,
+  "eta": 951,
+  "eth": 240,
+  "euml": 235,
+  "euro": 8364,
+  "exist": 8707,
+  "fnof": 402,
+  "forall": 8704,
+  "frac12": 189,
+  "frac14": 188,
+  "frac34": 190,
+  "frasl": 8260,
+  "gamma": 947,
+  "ge": 8805,
+  "gt": 62,
+  "hArr": 8660,
+  "harr": 8596,
+  "hearts": 9829,
+  "hellip": 8230,
+  "iacute": 237,
+  "icirc": 238,
+  "iexcl": 161,
+  "igrave": 236,
+  "image": 8465,
+  "infin": 8734,
+  "int": 8747,
+  "iota": 953,
+  "iquest": 191,
+  "isin": 8712,
+  "iuml": 239,
+  "kappa": 954,
+  "lArr": 8656,
+  "lambda": 955,
+  "lang": 9001,
+  "laquo": 171,
+  "larr": 8592,
+  "lceil": 8968,
+  "ldquo": 8220,
+  "le": 8804,
+  "lfloor": 8970,
+  "lowast": 8727,
+  "loz": 9674,
+  "lrm": 8206,
+  "lsaquo": 8249,
+  "lsquo": 8216,
+  "lt": 60,
+  "macr": 175,
+  "mdash": 8212,
+  "micro": 181,
+  "middot": 183,
+  "minus": 8722,
+  "mu": 956,
+  "nabla": 8711,
+  "nbsp": 160,
+  "ndash": 8211,
+  "ne": 8800,
+  "ni": 8715,
+  "not": 172,
+  "notin": 8713,
+  "nsub": 8836,
+  "ntilde": 241,
+  "nu": 957,
+  "oacute": 243,
+  "ocirc": 244,
+  "oelig": 339,
+  "ograve": 242,
+  "oline": 8254,
+  "omega": 969,
+  "omicron": 959,
+  "oplus": 8853,
+  "or": 8744,
+  "ordf": 170,
+  "ordm": 186,
+  "oslash": 248,
+  "otilde": 245,
+  "otimes": 8855,
+  "ouml": 246,
+  "para": 182,
+  "part": 8706,
+  "permil": 8240,
+  "perp": 8869,
+  "phi": 966,
+  "pi": 960,
+  "piv": 982,
+  "plusmn": 177,
+  "pound": 163,
+  "prime": 8242,
+  "prod": 8719,
+  "prop": 8733,
+  "psi": 968,
+  "quot": 34,
+  "rArr": 8658,
+  "radic": 8730,
+  "rang": 9002,
+  "raquo": 187,
+  "rarr": 8594,
+  "rceil": 8969,
+  "rdquo": 8221,
+  "real": 8476,
+  "reg": 174,
+  "rfloor": 8971,
+  "rho": 961,
+  "rlm": 8207,
+  "rsaquo": 8250,
+  "rsquo": 8217,
+  "sbquo": 8218,
+  "scaron": 353,
+  "sdot": 8901,
+  "sect": 167,
+  "shy": 173,
+  "sigma": 963,
+  "sigmaf": 962,
+  "sim": 8764,
+  "spades": 9824,
+  "sub": 8834,
+  "sube": 8838,
+  "sum": 8721,
+  "sup": 8835,
+  "sup1": 185,
+  "sup2": 178,
+  "sup3": 179,
+  "supe": 8839,
+  "szlig": 223,
+  "tau": 964,
+  "there4": 8756,
+  "theta": 952,
+  "thetasym": 977,
+  "thinsp": 8201,
+  "thorn": 254,
+  "tilde": 732,
+  "times": 215,
+  "trade": 8482,
+  "uArr": 8657,
+  "uacute": 250,
+  "uarr": 8593,
+  "ucirc": 251,
+  "ugrave": 249,
+  "uml": 168,
+  "upsih": 978,
+  "upsilon": 965,
+  "uuml": 252,
+  "weierp": 8472,
+  "xi": 958,
+  "yacute": 253,
+  "yen": 165,
+  "yuml": 255,
+  "zeta": 950,
+  "zwj": 8205,
+  "zwnj": 8204
+ },
+ "render": [
+  [
+   "polyA pUC",
+   "polyA pUC",
+   "polyA pUC"
+  ],
+  [
+   "<html><body>it's (+) T7 HindIII ≥<div>A&amp;B promoter α-helix lac M13</div></body></html>",
+   "it's (+) T7 HindIII ≥ A&B promoter α-helix lac M13",
+   "it's (+) T7 HindIII ≥\nA&B promoter α-helix lac M13"
+  ],
+  [
+   "<html><body><!--StartFragment-->37&#176;C His6 37&#176;C <b>&alpha;-helix</b> 🧬<!--EndFragment--></body></html>",
+   "37°C His6 37°C α-helix 🧬",
+   "37°C His6 37°C α-helix 🧬"
+  ],
+  [
+   "<html><body>&amp;amp;</body></html>",
+   "&amp;",
+   "&amp;"
+  ],
+  [
+   "µg/ml end. µg/ml a;b",
+   "µg/ml end. µg/ml a;b",
+   "µg/ml end. µg/ml a;b"
+  ],
+  [
+   "key=value α-helix \"quoted\"",
+   "key=value α-helix \"quoted\"",
+   "key=value α-helix \"quoted\""
+  ],
+  [
+   "tab promoter CMV",
+   "tab promoter CMV",
+   "tab promoter CMV"
+  ],
+  [
+   "<html><body>Sp6 HindIII end. SV40 AmpR<br>5′→3′ HindIII Ori</body></html>",
+   "Sp6 HindIII end. SV40 AmpR 5′→3′ HindIII Ori",
+   "Sp6 HindIII end. SV40 AmpR\n5′→3′ HindIII Ori"
+  ],
+  [
+   "<html><body>end.\n\n</body></html>",
+   "end.",
+   "end."
+  ],
+  [
+   "<html><body>operator a;b µg/ml<br>SV40 T7 operator polyA pUC<br>polyA µg/ml (+)</body></html>",
+   "operator a;b µg/ml SV40 T7 operator polyA pUC polyA µg/ml (+)",
+   "operator a;b µg/ml\nSV40 T7 operator polyA pUC\npolyA µg/ml (+)"
+  ],
+  [
+   "β-lactamase Ori SV40 polyA [note] it's",
+   "β-lactamase Ori SV40 polyA [note] it's",
+   "β-lactamase Ori SV40 polyA [note] it's"
+  ],
+  [
+   "Kan polyA",
+   "Kan polyA",
+   "Kan polyA"
+  ],
+  [
+   "<html><body>[note]&nbsp;Neo operator naïve T7 (+)</body></html>",
+   "[note] Neo operator naïve T7 (+)",
+   "[note] Neo operator naïve T7 (+)"
+  ],
+  [
+   "\"quoted\" CMV",
+   "\"quoted\" CMV",
+   "\"quoted\" CMV"
+  ],
+  [
+   "µg/ml Sp6 M13",
+   "µg/ml Sp6 M13",
+   "µg/ml Sp6 M13"
+  ],
+  [
+   "<html><body>lac tab<div>SV40</div></body></html>",
+   "lac tab SV40",
+   "lac tab\nSV40"
+  ],
+  [
+   "T7",
+   "T7",
+   "T7"
+  ],
+  [
+   "<html><body>end. CMV<div>&lt;5kb&gt; ≥ tab ©</div><div>50% ≥</div><div>tab</div></body></html>",
+   "end. CMV <5kb> ≥ tab © 50% ≥ tab",
+   "end. CMV\n<5kb> ≥ tab ©\n50% ≥\ntab"
+  ],
+  [
+   "<5kb> [note] T7 it's",
+   "<5kb> [note] T7 it's",
+   "<5kb> [note] T7 it's"
+  ],
+  [
+   "<html><body>promoter (+) lac M13 Ori<br>≥ His6<br>µg/ml<br>50% HindIII A&amp;B promoter</body></html>",
+   "promoter (+) lac M13 Ori ≥ His6 µg/ml 50% HindIII A&B promoter",
+   "promoter (+) lac M13 Ori\n≥ His6\nµg/ml\n50% HindIII A&B promoter"
+  ],
+  [
+   "<html><body>&ge;\n&micro;g/ml T7 HindIII na&iuml;ve</body></html>",
+   "≥ µg/ml T7 HindIII naïve",
+   "≥ µg/ml T7 HindIII naïve"
+  ],
+  [
+   "<html><body>T7 FLAG®<br>A&amp;B β-lactamase it's Kan<br>© 🧬</body></html>",
+   "T7 FLAG® A&B β-lactamase it's Kan © 🧬",
+   "T7 FLAG®\nA&B β-lactamase it's Kan\n© 🧬"
+  ],
+  [
+   "5′→3′ HindIII",
+   "5′→3′ HindIII",
+   "5′→3′ HindIII"
+  ],
+  [
+   "<html><body>A&amp;B AmpR<div>a;b 50% x&gt;y</div></body></html>",
+   "A&B AmpR a;b 50% x>y",
+   "A&B AmpR\na;b 50% x>y"
+  ],
+  [
+   "<html><body><span>&lt;5kb&gt;</font>\n\n</body></html>",
+   "<5kb>",
+   "<5kb>"
+  ],
+  [
+   "<html><body>end. pUC EcoRI β-lactamase<br>promoter<br>&lt;5kb&gt; promoter A&amp;B<br>(+) EcoRI</body></html>",
+   "end. pUC EcoRI β-lactamase promoter <5kb> promoter A&B (+) EcoRI",
+   "end. pUC EcoRI β-lactamase\npromoter\n<5kb> promoter A&B\n(+) EcoRI"
+  ],
+  [
+   "<html><body>pUC</body></html>",
+   "pUC",
+   "pUC"
+  ],
+  [
+   "&amp; Kan",
+   "&amp; Kan",
+   "&amp; Kan"
+  ],
+  [
+   "<html><body>polyA\npolyA</body></html>",
+   "polyA polyA",
+   "polyA polyA"
+  ],
+  [
+   "<html><body>[note] &amp;amp;</body></html>",
+   "[note] &amp;",
+   "[note] &amp;"
+  ],
+  [
+   "M13",
+   "M13",
+   "M13"
+  ],
+  [
+   "<html><body>key=value</body></html>",
+   "key=value",
+   "key=value"
+  ],
+  [
+   "<html><body>lac (+) AmpR\n\n</body></html>",
+   "lac (+) AmpR",
+   "lac (+) AmpR"
+  ],
+  [
+   "<html><body>operator M13<div>T7 50% tab T7</div><div>x&gt;y polyA CMV</div><div>a;b tab Ori</div></body></html>",
+   "operator M13 T7 50% tab T7 x>y polyA CMV a;b tab Ori",
+   "operator M13\nT7 50% tab T7\nx>y polyA CMV\na;b tab Ori"
+  ],
+  [
+   "<html><body><!--StartFragment-->EcoRI&nbsp;pUC CMV lac AmpR 37°C<!--EndFragment-->\n\n</body></html>",
+   "EcoRI pUC CMV lac AmpR 37°C",
+   "EcoRI pUC CMV lac AmpR 37°C"
+  ],
+  [
+   "lac",
+   "lac",
+   "lac"
+  ],
+  [
+   "5′→3′ Ori α-helix it's [note] SV40 CMV",
+   "5′→3′ Ori α-helix it's [note] SV40 CMV",
+   "5′→3′ Ori α-helix it's [note] SV40 CMV"
+  ],
+  [
+   "<html><body>© AmpR [note] T7 key=value<br>β-lactamase 37°C polyA x&gt;y FLAG®</body></html>",
+   "© AmpR [note] T7 key=value β-lactamase 37°C polyA x>y FLAG®",
+   "© AmpR [note] T7 key=value\nβ-lactamase 37°C polyA x>y FLAG®"
+  ],
+  [
+   "<html><body><!--StartFragment-->β-lactamase&nbsp;SV40<!--EndFragment--></body></html>",
+   "β-lactamase SV40",
+   "β-lactamase SV40"
+  ],
+  [
+   "<html><body>β-lactamase naïve<br>α-helix<br>A&amp;B operator<br>Sp6</body></html>",
+   "β-lactamase naïve α-helix A&B operator Sp6",
+   "β-lactamase naïve\nα-helix\nA&B operator\nSp6"
+  ],
+  [
+   "<html><body>&lt;5kb&gt; key=value operator &#8805;\n\n</body></html>",
+   "<5kb> key=value operator ≥",
+   "<5kb> key=value operator ≥"
+  ],
+  [
+   "<html><body>🧬</body></html>",
+   "🧬",
+   "🧬"
+  ],
+  [
+   "\"quoted\" AmpR A&B lac 5′→3′ M13 HindIII [note]",
+   "\"quoted\" AmpR A&B lac 5′→3′ M13 HindIII [note]",
+   "\"quoted\" AmpR A&B lac 5′→3′ M13 HindIII [note]"
+  ],
+  [
+   "<html><body><!--StartFragment-->&quot;quoted&quot;&nbsp;end.<!--EndFragment--></body></html>",
+   "\"quoted\" end.",
+   "\"quoted\" end."
+  ],
+  [
+   "<html><body>a;b pUC x&gt;y end.</body></html>",
+   "a;b pUC x>y end.",
+   "a;b pUC x>y end."
+  ],
+  [
+   "≥ CMV 37°C",
+   "≥ CMV 37°C",
+   "≥ CMV 37°C"
+  ],
+  [
+   "lac",
+   "lac",
+   "lac"
+  ],
+  [
+   "<html><body>&ge; (+) <i>FLAG&reg;</b> &beta;-lactamase 37&deg;C AmpR M13</body></html>",
+   "≥ (+) FLAG® β-lactamase 37°C AmpR M13",
+   "≥ (+) FLAG® β-lactamase 37°C AmpR M13"
+  ],
+  [
+   "50%",
+   "50%",
+   "50%"
+  ],
+  [
+   "SV40 SV40 tab",
+   "SV40 SV40 tab",
+   "SV40 SV40 tab"
+  ],
+  [
+   "EcoRI",
+   "EcoRI",
+   "EcoRI"
+  ],
+  [
+   "50%",
+   "50%",
+   "50%"
+  ],
+  [
+   "<html><body>\"quoted\" x&gt;y tab key=value<br>🧬 it's naïve<br>&lt;5kb&gt; x&gt;y<br>\"quoted\"</body></html>",
+   "\"quoted\" x>y tab key=value 🧬 it's naïve <5kb> x>y \"quoted\"",
+   "\"quoted\" x>y tab key=value\n🧬 it's naïve\n<5kb> x>y\n\"quoted\""
+  ],
+  [
+   "<html><body>x&gt;y Neo</body></html>",
+   "x>y Neo",
+   "x>y Neo"
+  ],
+  [
+   "<html><body>Neo 5′→3′ &lt;5kb&gt; © T7<br>promoter Ori</body></html>",
+   "Neo 5′→3′ <5kb> © T7 promoter Ori",
+   "Neo 5′→3′ <5kb> © T7\npromoter Ori"
+  ],
+  [
+   "© CMV",
+   "© CMV",
+   "© CMV"
+  ],
+  [
+   "<html><body><div>50%</div><div>FLAG® EcoRI \"quoted\" tab</div></body></html>",
+   "50% FLAG® EcoRI \"quoted\" tab",
+   "50%\nFLAG® EcoRI \"quoted\" tab"
+  ],
+  [
+   "[note] x>y a;b 50% µg/ml",
+   "[note] x>y a;b 50% µg/ml",
+   "[note] x>y a;b 50% µg/ml"
+  ],
+  [
+   "<html><body>50% M13<br>polyA β-lactamase tab x&gt;y</body></html>",
+   "50% M13 polyA β-lactamase tab x>y",
+   "50% M13\npolyA β-lactamase tab x>y"
+  ],
+  [
+   "<html><body>key=value 50% pUC\n\n</body></html>",
+   "key=value 50% pUC",
+   "key=value 50% pUC"
+  ],
+  [
+   "<html><body>polyA tab<div>T7 it's polyA Kan Neo</div><div><br></div><div>Ori A&amp;B AmpR \"quoted\" SV40</div></body></html>",
+   "polyA tab T7 it's polyA Kan Neo Ori A&B AmpR \"quoted\" SV40",
+   "polyA tab\nT7 it's polyA Kan Neo\n\nOri A&B AmpR \"quoted\" SV40"
+  ],
+  [
+   "🧬 EcoRI operator A&B SV40 operator &amp; 🧬",
+   "🧬 EcoRI operator A&B SV40 operator &amp; 🧬",
+   "🧬 EcoRI operator A&B SV40 operator &amp; 🧬"
+  ],
+  [
+   "x>y pUC &amp; M13 FLAG®",
+   "x>y pUC &amp; M13 FLAG®",
+   "x>y pUC &amp; M13 FLAG®"
+  ],
+  [
+   "HindIII",
+   "HindIII",
+   "HindIII"
+  ],
+  [
+   "HindIII 5′→3′",
+   "HindIII 5′→3′",
+   "HindIII 5′→3′"
+  ],
+  [
+   "<html><body>Ori (+) Sp6 Neo β-lactamase Ori ≥</body></html>",
+   "Ori (+) Sp6 Neo β-lactamase Ori ≥",
+   "Ori (+) Sp6 Neo β-lactamase Ori ≥"
+  ],
+  [
+   "<html><body>50%<br>(+) [note] [note] promoter 🧬</body></html>",
+   "50% (+) [note] [note] promoter 🧬",
+   "50%\n(+) [note] [note] promoter 🧬"
+  ],
+  [
+   "(+) operator",
+   "(+) operator",
+   "(+) operator"
+  ],
+  [
+   "<html><body>operator<br>His6<br>β-lactamase 🧬 µg/ml Neo a;b<br>FLAG® (+)</body></html>",
+   "operator His6 β-lactamase 🧬 µg/ml Neo a;b FLAG® (+)",
+   "operator\nHis6\nβ-lactamase 🧬 µg/ml Neo a;b\nFLAG® (+)"
+  ],
+  [
+   "<html><body>AmpR SV40 polyA end. T7 T7 Neo Kan</body></html>",
+   "AmpR SV40 polyA end. T7 T7 Neo Kan",
+   "AmpR SV40 polyA end. T7 T7 Neo Kan"
+  ],
+  [
+   "promoter [note] operator",
+   "promoter [note] operator",
+   "promoter [note] operator"
+  ],
+  [
+   "x>y",
+   "x>y",
+   "x>y"
+  ],
+  [
+   "<html><body>SV40 ©<br>Neo His6</body></html>",
+   "SV40 © Neo His6",
+   "SV40 ©\nNeo His6"
+  ],
+  [
+   "<html><body><span>37&#176;C</span></body></html>",
+   "37°C",
+   "37°C"
+  ],
+  [
+   "SV40 ≥ A&B it's Sp6 T7 Kan",
+   "SV40 ≥ A&B it's Sp6 T7 Kan",
+   "SV40 ≥ A&B it's Sp6 T7 Kan"
+  ],
+  [
+   "<html><body>\"quoted\" A&amp;B EcoRI M13 FLAG®<div><br></div><div>Sp6 SV40 M13 naïve</div></body></html>",
+   "\"quoted\" A&B EcoRI M13 FLAG® Sp6 SV40 M13 naïve",
+   "\"quoted\" A&B EcoRI M13 FLAG®\n\nSp6 SV40 M13 naïve"
+  ],
+  [
+   "<html><body><!--StartFragment-->µg/ml&nbsp;© 50% T7 T7 pUC polyA<!--EndFragment--></body></html>",
+   "µg/ml © 50% T7 T7 pUC polyA",
+   "µg/ml © 50% T7 T7 pUC polyA"
+  ],
+  [
+   "<html><body>[note]<br>FLAG® Kan ≥ operator<br>x&gt;y A&amp;B 37°C key=value</body></html>",
+   "[note] FLAG® Kan ≥ operator x>y A&B 37°C key=value",
+   "[note]\nFLAG® Kan ≥ operator\nx>y A&B 37°C key=value"
+  ],
+  [
+   "<html><body><!--StartFragment--><font>key=value</font> AmpR 🧬<!--EndFragment--></body></html>",
+   "key=value AmpR 🧬",
+   "key=value AmpR 🧬"
+  ],
+  [
+   "<html><body>5′→3′ M13 &lt;5kb&gt;<div>50% &lt;5kb&gt; µg/ml A&amp;B M13</div><div>Ori EcoRI</div><div>&lt;5kb&gt; ≥</div></body></html>",
+   "5′→3′ M13 <5kb> 50% <5kb> µg/ml A&B M13 Ori EcoRI <5kb> ≥",
+   "5′→3′ M13 <5kb>\n50% <5kb> µg/ml A&B M13\nOri EcoRI\n<5kb> ≥"
+  ],
+  [
+   "<html><body><b>T7</b>\nM13\n\n</body></html>",
+   "T7 M13",
+   "T7 M13"
+  ],
+  [
+   "<html><body>🧬 [note] 🧬<div>CMV it's \"quoted\" operator</div><div><br></div><div>µg/ml promoter &lt;5kb&gt; 50% \"quoted\"</div></body></html>",
+   "🧬 [note] 🧬 CMV it's \"quoted\" operator µg/ml promoter <5kb> 50% \"quoted\"",
+   "🧬 [note] 🧬\nCMV it's \"quoted\" operator\n\nµg/ml promoter <5kb> 50% \"quoted\""
+  ],
+  [
+   "lac CMV SV40",
+   "lac CMV SV40",
+   "lac CMV SV40"
+  ],
+  [
+   "<html><body>[note] ≥ ≥ CMV<br>37°C promoter x&gt;y µg/ml</body></html>",
+   "[note] ≥ ≥ CMV 37°C promoter x>y µg/ml",
+   "[note] ≥ ≥ CMV\n37°C promoter x>y µg/ml"
+  ],
+  [
+   "β-lactamase Kan it's key=value <5kb> operator",
+   "β-lactamase Kan it's key=value <5kb> operator",
+   "β-lactamase Kan it's key=value <5kb> operator"
+  ],
+  [
+   "<html><body>a;b Ori 50%<br><br><br>lac ≥ © T7 end.</body></html>",
+   "a;b Ori 50% lac ≥ © T7 end.",
+   "a;b Ori 50%\n\n\nlac ≥ © T7 end."
+  ],
+  [
+   "<html><body><!--StartFragment-->A&amp;B&nbsp;x&gt;y pUC<!--EndFragment--></body></html>",
+   "A&B x>y pUC",
+   "A&B x>y pUC"
+  ],
+  [
+   "<html><body>it's promoter EcoRI CMV it's<div>M13 operator SV40 SV40 37°C</div><div>FLAG®</div><div>α-helix &lt;5kb&gt;</div></body></html>",
+   "it's promoter EcoRI CMV it's M13 operator SV40 SV40 37°C FLAG® α-helix <5kb>",
+   "it's promoter EcoRI CMV it's\nM13 operator SV40 SV40 37°C\nFLAG®\nα-helix <5kb>"
+  ],
+  [
+   "<html><body>Kan T7 &beta;-lactamase &lt;5kb&gt;\n\n</body></html>",
+   "Kan T7 β-lactamase <5kb>",
+   "Kan T7 β-lactamase <5kb>"
+  ],
+  [
+   "<html><body>operator His6 CMV<div>\"quoted\" AmpR</div><div>AmpR</div></body></html>",
+   "operator His6 CMV \"quoted\" AmpR AmpR",
+   "operator His6 CMV\n\"quoted\" AmpR\nAmpR"
+  ],
+  [
+   "<html><body>&amp;amp; <b>EcoRI</span> 5′→3′ β-lactamase key=value α-helix M13 AmpR</body></html>",
+   "&amp; EcoRI 5′→3′ β-lactamase key=value α-helix M13 AmpR",
+   "&amp; EcoRI 5′→3′ β-lactamase key=value α-helix M13 AmpR"
+  ],
+  [
+   "5′→3′",
+   "5′→3′",
+   "5′→3′"
+  ],
+  [
+   "🧬 SV40 operator [note] pUC naïve",
+   "🧬 SV40 operator [note] pUC naïve",
+   "🧬 SV40 operator [note] pUC naïve"
+  ],
+  [
+   "<html><body>5′→3′<div><br></div><div>5′→3′</div></body></html>",
+   "5′→3′ 5′→3′",
+   "5′→3′\n\n5′→3′"
+  ],
+  [
+   "T7",
+   "T7",
+   "T7"
+  ],
+  [
+   "<html><body>\"quoted\" HindIII ≥<br>operator His6 lac<br>Kan lac x&gt;y β-lactamase 37°C<br>50% Sp6 promoter &amp;amp; pUC</body></html>",
+   "\"quoted\" HindIII ≥ operator His6 lac Kan lac x>y β-lactamase 37°C 50% Sp6 promoter &amp; pUC",
+   "\"quoted\" HindIII ≥\noperator His6 lac\nKan lac x>y β-lactamase 37°C\n50% Sp6 promoter &amp; pUC"
+  ],
+  [
+   "<html><body>Kan\n(+) (+) a;b EcoRI α-helix His6</body></html>",
+   "Kan (+) (+) a;b EcoRI α-helix His6",
+   "Kan (+) (+) a;b EcoRI α-helix His6"
+  ],
+  [
+   "<html><body>operator FLAG® M13 it's<div>(+)</div></body></html>",
+   "operator FLAG® M13 it's (+)",
+   "operator FLAG® M13 it's\n(+)"
+  ],
+  [
+   "AmpR <5kb> <5kb>",
+   "AmpR <5kb> <5kb>",
+   "AmpR <5kb> <5kb>"
+  ],
+  [
+   "<html><body>AmpR ≥ M13 tab 🧬<div>\"quoted\" [note] HindIII 37°C (+)</div></body></html>",
+   "AmpR ≥ M13 tab 🧬 \"quoted\" [note] HindIII 37°C (+)",
+   "AmpR ≥ M13 tab 🧬\n\"quoted\" [note] HindIII 37°C (+)"
+  ],
+  [
+   "µg/ml β-lactamase T7 lac",
+   "µg/ml β-lactamase T7 lac",
+   "µg/ml β-lactamase T7 lac"
+  ],
+  [
+   "<html><body><!--StartFragment-->&quot;quoted&quot;\nKan AmpR operator x&gt;y 50% <b>©</font><!--EndFragment-->\n\n</body></html>",
+   "\"quoted\" Kan AmpR operator x>y 50% ©",
+   "\"quoted\" Kan AmpR operator x>y 50% ©"
+  ],
+  [
+   "[note] naïve <5kb> <5kb> AmpR",
+   "[note] naïve <5kb> <5kb> AmpR",
+   "[note] naïve <5kb> <5kb> AmpR"
+  ],
+  [
+   "<html><body>5′→3′</body></html>",
+   "5′→3′",
+   "5′→3′"
+  ],
+  [
+   "<html><body>β-lactamase 🧬 promoter &amp;amp;<br>promoter EcoRI © 🧬 promoter<br>promoter © (+) x&gt;y</body></html>",
+   "β-lactamase 🧬 promoter &amp; promoter EcoRI © 🧬 promoter promoter © (+) x>y",
+   "β-lactamase 🧬 promoter &amp;\npromoter EcoRI © 🧬 promoter\npromoter © (+) x>y"
+  ],
+  [
+   "x>y it's EcoRI HindIII",
+   "x>y it's EcoRI HindIII",
+   "x>y it's EcoRI HindIII"
+  ],
+  [
+   "<html><body>tab 37°C AmpR</body></html>",
+   "tab 37°C AmpR",
+   "tab 37°C AmpR"
+  ],
+  [
+   "key=value EcoRI it's pUC 5′→3′ end. operator T7",
+   "key=value EcoRI it's pUC 5′→3′ end. operator T7",
+   "key=value EcoRI it's pUC 5′→3′ end. operator T7"
+  ],
+  [
+   "<html><body>Sp6&nbsp;tab &lt;5kb&gt; Kan 37&deg;C M13 lac &#181;g/ml\n\n</body></html>",
+   "Sp6 tab <5kb> Kan 37°C M13 lac µg/ml",
+   "Sp6 tab <5kb> Kan 37°C M13 lac µg/ml"
+  ],
+  [
+   "<html><body>\"quoted\" AmpR Ori</body></html>",
+   "\"quoted\" AmpR Ori",
+   "\"quoted\" AmpR Ori"
+  ],
+  [
+   "<html><body>&#945;-helix 37&deg;C promoter &lt;5kb&gt; Ori na&iuml;ve</body></html>",
+   "α-helix 37°C promoter <5kb> Ori naïve",
+   "α-helix 37°C promoter <5kb> Ori naïve"
+  ],
+  [
+   "<html><body>EcoRI 🧬 end. Ori<br>tab (+) CMV lac EcoRI<br>Kan (+) µg/ml</body></html>",
+   "EcoRI 🧬 end. Ori tab (+) CMV lac EcoRI Kan (+) µg/ml",
+   "EcoRI 🧬 end. Ori\ntab (+) CMV lac EcoRI\nKan (+) µg/ml"
+  ],
+  [
+   "<html><body><!--StartFragment-->AmpR <b>(+)</span> AmpR<!--EndFragment--></body></html>",
+   "AmpR (+) AmpR",
+   "AmpR (+) AmpR"
+  ],
+  [
+   "<html><body>&lt;5kb&gt; lac pUC<div>end. naïve promoter 🧬</div><div>key=value tab</div></body></html>",
+   "<5kb> lac pUC end. naïve promoter 🧬 key=value tab",
+   "<5kb> lac pUC\nend. naïve promoter 🧬\nkey=value tab"
+  ],
+  [
+   "<html><body><!--StartFragment-->37&deg;C<!--EndFragment--></body></html>",
+   "37°C",
+   "37°C"
+  ],
+  [
+   "<html><body>µg/ml SV40 EcoRI naïve ≥<div>µg/ml M13</div></body></html>",
+   "µg/ml SV40 EcoRI naïve ≥ µg/ml M13",
+   "µg/ml SV40 EcoRI naïve ≥\nµg/ml M13"
+  ],
+  [
+   "<html><body>key=value &lt;5kb&gt; &alpha;-helix M13 AmpR</body></html>",
+   "key=value <5kb> α-helix M13 AmpR",
+   "key=value <5kb> α-helix M13 AmpR"
+  ],
+  [
+   "it's",
+   "it's",
+   "it's"
+  ],
+  [
+   "<html><body>x&gt;y\na;b A&amp;B EcoRI operator AmpR © tab\n\n</body></html>",
+   "x>y a;b A&B EcoRI operator AmpR © tab",
+   "x>y a;b A&B EcoRI operator AmpR © tab"
+  ],
+  [
+   "<html><body>Neo 🧬 end. α-helix 🧬<div>x&gt;y</div></body></html>",
+   "Neo 🧬 end. α-helix 🧬 x>y",
+   "Neo 🧬 end. α-helix 🧬\nx>y"
+  ],
+  [
+   "<html><body><!--StartFragment-->His6\nA&amp;B naïve lac <i>tab</i> &lt;5kb&gt; FLAG®<!--EndFragment--></body></html>",
+   "His6 A&B naïve lac tab <5kb> FLAG®",
+   "His6 A&B naïve lac tab <5kb> FLAG®"
+  ],
+  [
+   "<html><body>tab<div>&lt;5kb&gt; 37°C A&amp;B</div><div>it's &lt;5kb&gt;</div></body></html>",
+   "tab <5kb> 37°C A&B it's <5kb>",
+   "tab\n<5kb> 37°C A&B\nit's <5kb>"
+  ],
+  [
+   "<html><body>na&#239;ve Neo Sp6 &#181;g/ml <i>na&#239;ve</i>\n\n</body></html>",
+   "naïve Neo Sp6 µg/ml naïve",
+   "naïve Neo Sp6 µg/ml naïve"
+  ],
+  [
+   "<html><body>Ori end. (+) [note] lac<br>His6 37°C operator<br>naïve polyA</body></html>",
+   "Ori end. (+) [note] lac His6 37°C operator naïve polyA",
+   "Ori end. (+) [note] lac\nHis6 37°C operator\nnaïve polyA"
+  ],
+  [
+   "<html><body>AmpR EcoRI promoter (+)</body></html>",
+   "AmpR EcoRI promoter (+)",
+   "AmpR EcoRI promoter (+)"
+  ],
+  [
+   "naïve",
+   "naïve",
+   "naïve"
+  ],
+  [
+   "<html><body>[note] Neo &lt;5kb&gt;<br><br>α-helix 37°C promoter Ori 37°C</body></html>",
+   "[note] Neo <5kb> α-helix 37°C promoter Ori 37°C",
+   "[note] Neo <5kb>\n\nα-helix 37°C promoter Ori 37°C"
+  ],
+  [
+   "<html><body><!--StartFragment-->pUC\nKan M13 µg/ml 37°C FLAG® promoter operator<!--EndFragment--></body></html>",
+   "pUC Kan M13 µg/ml 37°C FLAG® promoter operator",
+   "pUC Kan M13 µg/ml 37°C FLAG® promoter operator"
+  ],
+  [
+   "<html><body>(+) EcoRI</body></html>",
+   "(+) EcoRI",
+   "(+) EcoRI"
+  ],
+  [
+   "M13 a;b &amp;",
+   "M13 a;b &amp;",
+   "M13 a;b &amp;"
+  ],
+  [
+   "naïve M13 naïve",
+   "naïve M13 naïve",
+   "naïve M13 naïve"
+  ],
+  [
+   "© a;b Neo SV40 ©",
+   "© a;b Neo SV40 ©",
+   "© a;b Neo SV40 ©"
+  ],
+  [
+   "<html><body>EcoRI M13 \"quoted\" Neo</body></html>",
+   "EcoRI M13 \"quoted\" Neo",
+   "EcoRI M13 \"quoted\" Neo"
+  ],
+  [
+   "A&B end. AmpR SV40 🧬",
+   "A&B end. AmpR SV40 🧬",
+   "A&B end. AmpR SV40 🧬"
+  ],
+  [
+   "<html><body>5′→3′ Kan SV40 it's<br>pUC 🧬 operator</body></html>",
+   "5′→3′ Kan SV40 it's pUC 🧬 operator",
+   "5′→3′ Kan SV40 it's\npUC 🧬 operator"
+  ],
+  [
+   "<html><body>AmpR SV40 na&#239;ve\n\n</body></html>",
+   "AmpR SV40 naïve",
+   "AmpR SV40 naïve"
+  ],
+  [
+   "<html><body>operator β-lactamase 37°C<br><br>HindIII Neo</body></html>",
+   "operator β-lactamase 37°C HindIII Neo",
+   "operator β-lactamase 37°C\n\nHindIII Neo"
+  ],
+  [
+   "<html><body>🧬 naïve © 50% key=value &lt;5kb&gt; 50%\n\n</body></html>",
+   "🧬 naïve © 50% key=value <5kb> 50%",
+   "🧬 naïve © 50% key=value <5kb> 50%"
+  ],
+  [
+   "<html><body>Neo HindIII 50% Sp6 AmpR<div>🧬 His6 \"quoted\" a;b</div><div>β-lactamase</div><div>α-helix</div></body></html>",
+   "Neo HindIII 50% Sp6 AmpR 🧬 His6 \"quoted\" a;b β-lactamase α-helix",
+   "Neo HindIII 50% Sp6 AmpR\n🧬 His6 \"quoted\" a;b\nβ-lactamase\nα-helix"
+  ],
+  [
+   "<html><body><!--StartFragment-->&amp;amp;\npromoter &copy; &#945;-helix a;b CMV EcoRI [note]<!--EndFragment--></body></html>",
+   "&amp; promoter © α-helix a;b CMV EcoRI [note]",
+   "&amp; promoter © α-helix a;b CMV EcoRI [note]"
+  ],
+  [
+   "<html><body>HindIII SV40<br>A&amp;B α-helix ≥ © T7<br>FLAG® T7 HindIII SV40 EcoRI</body></html>",
+   "HindIII SV40 A&B α-helix ≥ © T7 FLAG® T7 HindIII SV40 EcoRI",
+   "HindIII SV40\nA&B α-helix ≥ © T7\nFLAG® T7 HindIII SV40 EcoRI"
+  ],
+  [
+   "<html><body><font>&amp;amp;&nbsp;&beta;-lactamase</b> A&amp;B \"quoted\" Kan \"quoted\" &ge;</body></html>",
+   "&amp; β-lactamase A&B \"quoted\" Kan \"quoted\" ≥",
+   "&amp; β-lactamase A&B \"quoted\" Kan \"quoted\" ≥"
+  ],
+  [
+   "<html><body>EcoRI EcoRI<br>µg/ml HindIII</body></html>",
+   "EcoRI EcoRI µg/ml HindIII",
+   "EcoRI EcoRI\nµg/ml HindIII"
+  ],
+  [
+   "EcoRI Kan 37°C HindIII it's 🧬 His6 37°C",
+   "EcoRI Kan 37°C HindIII it's 🧬 His6 37°C",
+   "EcoRI Kan 37°C HindIII it's 🧬 His6 37°C"
+  ],
+  [
+   "<html><body>🧬 Neo<div>🧬</div></body></html>",
+   "🧬 Neo 🧬",
+   "🧬 Neo\n🧬"
+  ],
+  [
+   "polyA Sp6",
+   "polyA Sp6",
+   "polyA Sp6"
+  ],
+  [
+   "<html><body>CMV β-lactamase<br>EcoRI Neo M13 © &lt;5kb&gt;<br>Sp6</body></html>",
+   "CMV β-lactamase EcoRI Neo M13 © <5kb> Sp6",
+   "CMV β-lactamase\nEcoRI Neo M13 © <5kb>\nSp6"
+  ],
+  [
+   "<html><body>lac\n<b>naïve</b> \"quoted\" operator\n\n</body></html>",
+   "lac naïve \"quoted\" operator",
+   "lac naïve \"quoted\" operator"
+  ],
+  [
+   "<html><body>37°C HindIII polyA pUC Kan<div>[note]</div></body></html>",
+   "37°C HindIII polyA pUC Kan [note]",
+   "37°C HindIII polyA pUC Kan\n[note]"
+  ],
+  [
+   "a;b",
+   "a;b",
+   "a;b"
+  ],
+  [
+   "end. tab",
+   "end. tab",
+   "end. tab"
+  ],
+  [
+   "<html><body>it's (+) pUC<br>\"quoted\"<br>pUC M13</body></html>",
+   "it's (+) pUC \"quoted\" pUC M13",
+   "it's (+) pUC\n\"quoted\"\npUC M13"
+  ],
+  [
+   "naïve it's",
+   "naïve it's",
+   "naïve it's"
+  ],
+  [
+   "<html><body>(+) ≥</body></html>",
+   "(+) ≥",
+   "(+) ≥"
+  ],
+  [
+   "SV40 [note] lac tab it's EcoRI 5′→3′ SV40",
+   "SV40 [note] lac tab it's EcoRI 5′→3′ SV40",
+   "SV40 [note] lac tab it's EcoRI 5′→3′ SV40"
+  ],
+  [
+   "<html><body>≥ β-lactamase T7 operator<br>polyA Kan Neo<br>&lt;5kb&gt;</body></html>",
+   "≥ β-lactamase T7 operator polyA Kan Neo <5kb>",
+   "≥ β-lactamase T7 operator\npolyA Kan Neo\n<5kb>"
+  ],
+  [
+   "T7 µg/ml AmpR",
+   "T7 µg/ml AmpR",
+   "T7 µg/ml AmpR"
+  ],
+  [
+   "<html><body>HindIII&nbsp;end. polyA &#129516; operator</body></html>",
+   "HindIII end. polyA 🧬 operator",
+   "HindIII end. polyA 🧬 operator"
+  ],
+  [
+   "<html><body>x&gt;y M13 \"quoted\" naïve<div>&amp;amp; operator ≥ µg/ml</div><div>key=value &amp;amp; T7 FLAG® SV40</div><div>A&amp;B Kan EcoRI 50% Neo</div></body></html>",
+   "x>y M13 \"quoted\" naïve &amp; operator ≥ µg/ml key=value &amp; T7 FLAG® SV40 A&B Kan EcoRI 50% Neo",
+   "x>y M13 \"quoted\" naïve\n&amp; operator ≥ µg/ml\nkey=value &amp; T7 FLAG® SV40\nA&B Kan EcoRI 50% Neo"
+  ],
+  [
+   "<html><body>a;b AmpR lac AmpR 50% 50%</body></html>",
+   "a;b AmpR lac AmpR 50% 50%",
+   "a;b AmpR lac AmpR 50% 50%"
+  ],
+  [
+   "<html><body>Ori 37°C 37°C<div>EcoRI His6 Ori</div></body></html>",
+   "Ori 37°C 37°C EcoRI His6 Ori",
+   "Ori 37°C 37°C\nEcoRI His6 Ori"
+  ],
+  [
+   "<html><body>SV40\nT7 M13 &#945;-helix A&amp;B</body></html>",
+   "SV40 T7 M13 α-helix A&B",
+   "SV40 T7 M13 α-helix A&B"
+  ],
+  [
+   "<html><body>operator ≥ ≥ lac lac<br>SV40 α-helix<br>FLAG® EcoRI</body></html>",
+   "operator ≥ ≥ lac lac SV40 α-helix FLAG® EcoRI",
+   "operator ≥ ≥ lac lac\nSV40 α-helix\nFLAG® EcoRI"
+  ],
+  [
+   "(+)",
+   "(+)",
+   "(+)"
+  ],
+  [
+   "<html><body>Sp6 pUC &amp;amp; AmpR<div>FLAG® \"quoted\" Ori</div><div>≥</div><div>\"quoted\" x&gt;y 37°C µg/ml</div></body></html>",
+   "Sp6 pUC &amp; AmpR FLAG® \"quoted\" Ori ≥ \"quoted\" x>y 37°C µg/ml",
+   "Sp6 pUC &amp; AmpR\nFLAG® \"quoted\" Ori\n≥\n\"quoted\" x>y 37°C µg/ml"
+  ],
+  [
+   "<html><body>promoter\n<span>x&gt;y</i> a;b 🧬\n\n</body></html>",
+   "promoter x>y a;b 🧬",
+   "promoter x>y a;b 🧬"
+  ],
+  [
+   "Kan it's key=value EcoRI",
+   "Kan it's key=value EcoRI",
+   "Kan it's key=value EcoRI"
+  ],
+  [
+   "CMV µg/ml A&B T7",
+   "CMV µg/ml A&B T7",
+   "CMV µg/ml A&B T7"
+  ],
+  [
+   "<html><body>&micro;g/ml Kan FLAG&reg; &alpha;-helix</body></html>",
+   "µg/ml Kan FLAG® α-helix",
+   "µg/ml Kan FLAG® α-helix"
+  ],
+  [
+   "<html><body>naïve x&gt;y polyA T7<br>Ori<br>🧬 polyA 50%</body></html>",
+   "naïve x>y polyA T7 Ori 🧬 polyA 50%",
+   "naïve x>y polyA T7\nOri\n🧬 polyA 50%"
+  ],
+  [
+   "<html><body><!--StartFragment-->CMV A&amp;B naïve Neo<!--EndFragment--></body></html>",
+   "CMV A&B naïve Neo",
+   "CMV A&B naïve Neo"
+  ],
+  [
+   "5′→3′ polyA",
+   "5′→3′ polyA",
+   "5′→3′ polyA"
+  ],
+  [
+   "<html><body>\"quoted\"<div>CMV 5′→3′</div></body></html>",
+   "\"quoted\" CMV 5′→3′",
+   "\"quoted\"\nCMV 5′→3′"
+  ],
+  [
+   "lac",
+   "lac",
+   "lac"
+  ],
+  [
+   "🧬",
+   "🧬",
+   "🧬"
+  ],
+  [
+   "M13 Ori lac naïve 5′→3′ CMV pUC",
+   "M13 Ori lac naïve 5′→3′ CMV pUC",
+   "M13 Ori lac naïve 5′→3′ CMV pUC"
+  ],
+  [
+   "<html><body>37°C operator pUC © ≥<div>[note] Sp6 (+)</div></body></html>",
+   "37°C operator pUC © ≥ [note] Sp6 (+)",
+   "37°C operator pUC © ≥\n[note] Sp6 (+)"
+  ],
+  [
+   "<html><body>end.</body></html>",
+   "end.",
+   "end."
+  ],
+  [
+   "<html><body>lac</body></html>",
+   "lac",
+   "lac"
+  ],
+  [
+   "<html><body>AmpR\nOri FLAG® 37°C ≥ β-lactamase key=value naïve</body></html>",
+   "AmpR Ori FLAG® 37°C ≥ β-lactamase key=value naïve",
+   "AmpR Ori FLAG® 37°C ≥ β-lactamase key=value naïve"
+  ],
+  [
+   "<html><body>🧬 His6 CMV EcoRI M13<br>polyA promoter EcoRI (+) Ori<br>🧬 © 50% T7 Neo<br>pUC</body></html>",
+   "🧬 His6 CMV EcoRI M13 polyA promoter EcoRI (+) Ori 🧬 © 50% T7 Neo pUC",
+   "🧬 His6 CMV EcoRI M13\npolyA promoter EcoRI (+) Ori\n🧬 © 50% T7 Neo\npUC"
+  ],
+  [
+   "<html><body>(+)\n🧬 lac a;b\n\n</body></html>",
+   "(+) 🧬 lac a;b",
+   "(+) 🧬 lac a;b"
+  ],
+  [
+   "🧬 T7 [note] Neo T7",
+   "🧬 T7 [note] Neo T7",
+   "🧬 T7 [note] Neo T7"
+  ],
+  [
+   "<html><body>α-helix\n&amp;amp; FLAG®</body></html>",
+   "α-helix &amp; FLAG®",
+   "α-helix &amp; FLAG®"
+  ],
+  [
+   "<html><body>[note] \"quoted\" © AmpR Sp6<div>Kan tab Sp6 FLAG®</div><div>CMV</div></body></html>",
+   "[note] \"quoted\" © AmpR Sp6 Kan tab Sp6 FLAG® CMV",
+   "[note] \"quoted\" © AmpR Sp6\nKan tab Sp6 FLAG®\nCMV"
+  ],
+  [
+   "<html><body>His6&nbsp;🧬 µg/ml Sp6</body></html>",
+   "His6 🧬 µg/ml Sp6",
+   "His6 🧬 µg/ml Sp6"
+  ],
+  [
+   "<html><body>&lt;5kb&gt; A&amp;B β-lactamase</body></html>",
+   "<5kb> A&B β-lactamase",
+   "<5kb> A&B β-lactamase"
+  ],
+  [
+   "SV40 🧬 Neo Ori",
+   "SV40 🧬 Neo Ori",
+   "SV40 🧬 Neo Ori"
+  ],
+  [
+   "Kan Kan 37°C",
+   "Kan Kan 37°C",
+   "Kan Kan 37°C"
+  ],
+  [
+   "β-lactamase ≥ α-helix ≥ operator",
+   "β-lactamase ≥ α-helix ≥ operator",
+   "β-lactamase ≥ α-helix ≥ operator"
+  ],
+  [
+   "<html><body>lac SV40<br>polyA promoter<br>x&gt;y His6 naïve His6 &amp;amp;</body></html>",
+   "lac SV40 polyA promoter x>y His6 naïve His6 &amp;",
+   "lac SV40\npolyA promoter\nx>y His6 naïve His6 &amp;"
+  ],
+  [
+   "Ori x>y Ori ≥ α-helix Ori \"quoted\" x>y",
+   "Ori x>y Ori ≥ α-helix Ori \"quoted\" x>y",
+   "Ori x>y Ori ≥ α-helix Ori \"quoted\" x>y"
+  ],
+  [
+   "α-helix 50%",
+   "α-helix 50%",
+   "α-helix 50%"
+  ],
+  [
+   "<html><body>lac&nbsp;it's lac µg/ml Neo Ori\n\n</body></html>",
+   "lac it's lac µg/ml Neo Ori",
+   "lac it's lac µg/ml Neo Ori"
+  ],
+  [
+   "🧬 T7 operator AmpR",
+   "🧬 T7 operator AmpR",
+   "🧬 T7 operator AmpR"
+  ],
+  [
+   "<5kb> α-helix β-lactamase tab operator (+) β-lactamase polyA",
+   "<5kb> α-helix β-lactamase tab operator (+) β-lactamase polyA",
+   "<5kb> α-helix β-lactamase tab operator (+) β-lactamase polyA"
+  ],
+  [
+   "<html><body><!--StartFragment-->&amp;amp;<!--EndFragment--></body></html>",
+   "&amp;",
+   "&amp;"
+  ],
+  [
+   "operator promoter \"quoted\" polyA 37°C",
+   "operator promoter \"quoted\" polyA 37°C",
+   "operator promoter \"quoted\" polyA 37°C"
+  ],
+  [
+   "<html><body>&amp;amp;&nbsp;end.</body></html>",
+   "&amp; end.",
+   "&amp; end."
+  ],
+  [
+   "<html><body>HindIII pUC tab end.<br>Ori naïve<br>M13 naïve Ori polyA Kan</body></html>",
+   "HindIII pUC tab end. Ori naïve M13 naïve Ori polyA Kan",
+   "HindIII pUC tab end.\nOri naïve\nM13 naïve Ori polyA Kan"
+  ],
+  [
+   "37°C <5kb> lac",
+   "37°C <5kb> lac",
+   "37°C <5kb> lac"
+  ],
+  [
+   "<html><body>© promoter 50% &lt;5kb&gt; α-helix<br>naïve</body></html>",
+   "© promoter 50% <5kb> α-helix naïve",
+   "© promoter 50% <5kb> α-helix\nnaïve"
+  ],
+  [
+   "37°C EcoRI lac α-helix tab",
+   "37°C EcoRI lac α-helix tab",
+   "37°C EcoRI lac α-helix tab"
+  ],
+  [
+   "EcoRI",
+   "EcoRI",
+   "EcoRI"
+  ],
+  [
+   "FLAG® Kan (+) a;b Neo",
+   "FLAG® Kan (+) a;b Neo",
+   "FLAG® Kan (+) a;b Neo"
+  ],
+  [
+   "<html><body>it's tab M13 x&gt;y<div><br></div></body></html>",
+   "it's tab M13 x>y",
+   "it's tab M13 x>y"
+  ],
+  [
+   "<html><body>promoter&nbsp;5′→3′\n5′→3′ T7 Kan β-lactamase tab Kan</body></html>",
+   "promoter 5′→3′ 5′→3′ T7 Kan β-lactamase tab Kan",
+   "promoter 5′→3′ 5′→3′ T7 Kan β-lactamase tab Kan"
+  ],
+  [
+   "<html><body>Ori ≥ 🧬 Sp6 🧬<div>His6 🧬</div><div>&lt;5kb&gt; &amp;amp; CMV</div><div>© HindIII polyA end. a;b</div></body></html>",
+   "Ori ≥ 🧬 Sp6 🧬 His6 🧬 <5kb> &amp; CMV © HindIII polyA end. a;b",
+   "Ori ≥ 🧬 Sp6 🧬\nHis6 🧬\n<5kb> &amp; CMV\n© HindIII polyA end. a;b"
+  ],
+  [
+   "[note] lac Ori \"quoted\" [note] M13",
+   "[note] lac Ori \"quoted\" [note] M13",
+   "[note] lac Ori \"quoted\" [note] M13"
+  ],
+  [
+   "<html><body>[note] β-lactamase α-helix</body></html>",
+   "[note] β-lactamase α-helix",
+   "[note] β-lactamase α-helix"
+  ],
+  [
+   "<html><body><!--StartFragment-->&ge;<!--EndFragment--></body></html>",
+   "≥",
+   "≥"
+  ],
+  [
+   "<html><body>tab T7 AmpR<div>Ori © a;b lac pUC</div></body></html>",
+   "tab T7 AmpR Ori © a;b lac pUC",
+   "tab T7 AmpR\nOri © a;b lac pUC"
+  ],
+  [
+   "<html><body>SV40\n\n</body></html>",
+   "SV40",
+   "SV40"
+  ],
+  [
+   "<html><body>A&amp;B</body></html>",
+   "A&B",
+   "A&B"
+  ],
+  [
+   "α-helix ≥ M13 SV40 operator",
+   "α-helix ≥ M13 SV40 operator",
+   "α-helix ≥ M13 SV40 operator"
+  ],
+  [
+   "<html><body>it's<div>Neo SV40 &lt;5kb&gt; EcoRI \"quoted\"</div></body></html>",
+   "it's Neo SV40 <5kb> EcoRI \"quoted\"",
+   "it's\nNeo SV40 <5kb> EcoRI \"quoted\""
+  ],
+  [
+   "<html><body>na&iuml;ve\nEcoRI FLAG&#174;\n\n</body></html>",
+   "naïve EcoRI FLAG®",
+   "naïve EcoRI FLAG®"
+  ],
+  [
+   "<html><body>it's Kan A&amp;B a;b<div>it's key=value © T7</div><div><br></div><div>key=value His6 β-lactamase</div></body></html>",
+   "it's Kan A&B a;b it's key=value © T7 key=value His6 β-lactamase",
+   "it's Kan A&B a;b\nit's key=value © T7\n\nkey=value His6 β-lactamase"
+  ],
+  [
+   "[note] Neo 37°C CMV AmpR a;b end. naïve",
+   "[note] Neo 37°C CMV AmpR a;b end. naïve",
+   "[note] Neo 37°C CMV AmpR a;b end. naïve"
+  ],
+  [
+   "<html><body>SV40 x&gt;y tab Kan promoter<div>© Neo</div><div>Sp6 µg/ml 5′→3′</div><div>50% [note] FLAG®</div></body></html>",
+   "SV40 x>y tab Kan promoter © Neo Sp6 µg/ml 5′→3′ 50% [note] FLAG®",
+   "SV40 x>y tab Kan promoter\n© Neo\nSp6 µg/ml 5′→3′\n50% [note] FLAG®"
+  ],
+  [
+   "<html><body>Neo Kan Kan FLAG&#174; &micro;g/ml Ori\n\n</body></html>",
+   "Neo Kan Kan FLAG® µg/ml Ori",
+   "Neo Kan Kan FLAG® µg/ml Ori"
+  ],
+  [
+   "<html><body>50% [note] SV40 polyA 5′→3′<br>it's it's pUC polyA AmpR<br>lac end.<br>a;b His6 Ori A&amp;B &amp;amp;</body></html>",
+   "50% [note] SV40 polyA 5′→3′ it's it's pUC polyA AmpR lac end. a;b His6 Ori A&B &amp;",
+   "50% [note] SV40 polyA 5′→3′\nit's it's pUC polyA AmpR\nlac end.\na;b His6 Ori A&B &amp;"
+  ],
+  [
+   "it's 🧬 x>y a;b",
+   "it's 🧬 x>y a;b",
+   "it's 🧬 x>y a;b"
+  ],
+  [
+   "<html><body>lac ≥ 🧬 50%<br>operator &lt;5kb&gt; Kan<br>µg/ml naïve end.</body></html>",
+   "lac ≥ 🧬 50% operator <5kb> Kan µg/ml naïve end.",
+   "lac ≥ 🧬 50%\noperator <5kb> Kan\nµg/ml naïve end."
+  ],
+  [
+   "<html><body><!--StartFragment-->it's CMV end. EcoRI M13<!--EndFragment-->\n\n</body></html>",
+   "it's CMV end. EcoRI M13",
+   "it's CMV end. EcoRI M13"
+  ],
+  [
+   "<html><body>tab AmpR pUC T7 ©<div>Sp6 [note] 🧬 © key=value</div><div>x&gt;y 50% AmpR α-helix</div><div>≥</div></body></html>",
+   "tab AmpR pUC T7 © Sp6 [note] 🧬 © key=value x>y 50% AmpR α-helix ≥",
+   "tab AmpR pUC T7 ©\nSp6 [note] 🧬 © key=value\nx>y 50% AmpR α-helix\n≥"
+  ],
+  [
+   "<html><body>AmpR&nbsp;EcoRI <i>Kan</font></body></html>",
+   "AmpR EcoRI Kan",
+   "AmpR EcoRI Kan"
+  ],
+  [
+   "<html><body>promoter Kan Ori end. A&amp;B<div>end.</div></body></html>",
+   "promoter Kan Ori end. A&B end.",
+   "promoter Kan Ori end. A&B\nend."
+  ],
+  [
+   "<html><body>&copy;&nbsp;key=value CMV polyA M13 operator x&gt;y</body></html>",
+   "© key=value CMV polyA M13 operator x>y",
+   "© key=value CMV polyA M13 operator x>y"
+  ],
+  [
+   "<html><body>µg/ml lac HindIII<br>(+)<br>5′→3′ polyA EcoRI<br>promoter Sp6 M13 &lt;5kb&gt;</body></html>",
+   "µg/ml lac HindIII (+) 5′→3′ polyA EcoRI promoter Sp6 M13 <5kb>",
+   "µg/ml lac HindIII\n(+)\n5′→3′ polyA EcoRI\npromoter Sp6 M13 <5kb>"
+  ],
+  [
+   "<html><body><!--StartFragment-->🧬 naïve CMV <font>&amp;amp;</i> &amp;amp; \"quoted\" key=value Ori<!--EndFragment--></body></html>",
+   "🧬 naïve CMV &amp; &amp; \"quoted\" key=value Ori",
+   "🧬 naïve CMV &amp; &amp; \"quoted\" key=value Ori"
+  ],
+  [
+   "<html><body>AmpR T7 50% &amp;amp; M13<div>Ori</div><div>Neo &amp;amp; SV40 it's end.</div><div>promoter 5′→3′ FLAG® Sp6</div></body></html>",
+   "AmpR T7 50% &amp; M13 Ori Neo &amp; SV40 it's end. promoter 5′→3′ FLAG® Sp6",
+   "AmpR T7 50% &amp; M13\nOri\nNeo &amp; SV40 it's end.\npromoter 5′→3′ FLAG® Sp6"
+  ],
+  [
+   "<html><body>polyA\nend. © 50% Kan Sp6 key=value</body></html>",
+   "polyA end. © 50% Kan Sp6 key=value",
+   "polyA end. © 50% Kan Sp6 key=value"
+  ],
+  [
+   "<html><body>[note] end. 37°C<br>Kan</body></html>",
+   "[note] end. 37°C Kan",
+   "[note] end. 37°C\nKan"
+  ],
+  [
+   "<html><body><!--StartFragment-->His6\n50%<!--EndFragment--></body></html>",
+   "His6 50%",
+   "His6 50%"
+  ],
+  [
+   "<html><body>EcoRI 5′→3′ end. FLAG® A&amp;B</body></html>",
+   "EcoRI 5′→3′ end. FLAG® A&B",
+   "EcoRI 5′→3′ end. FLAG® A&B"
+  ],
+  [
+   "<html><body>A&amp;B</body></html>",
+   "A&B",
+   "A&B"
+  ],
+  [
+   "5′→3′ key=value ≥ A&B",
+   "5′→3′ key=value ≥ A&B",
+   "5′→3′ key=value ≥ A&B"
+  ],
+  [
+   "Ori A&B promoter 50% α-helix",
+   "Ori A&B promoter 50% α-helix",
+   "Ori A&B promoter 50% α-helix"
+  ],
+  [
+   "<html><body>tab FLAG®<br>37°C His6 AmpR<br>Neo 37°C<br>α-helix Sp6 µg/ml ≥ A&amp;B</body></html>",
+   "tab FLAG® 37°C His6 AmpR Neo 37°C α-helix Sp6 µg/ml ≥ A&B",
+   "tab FLAG®\n37°C His6 AmpR\nNeo 37°C\nα-helix Sp6 µg/ml ≥ A&B"
+  ],
+  [
+   "promoter end. tab His6 naïve",
+   "promoter end. tab His6 naïve",
+   "promoter end. tab His6 naïve"
+  ],
+  [
+   "α-helix T7 end. promoter",
+   "α-helix T7 end. promoter",
+   "α-helix T7 end. promoter"
+  ],
+  [
+   "<html><body><!--StartFragment--><span>&amp;amp;</b> it&#x27;s &lt;5kb&gt; &micro;g/ml<!--EndFragment--></body></html>",
+   "&amp; it's <5kb> µg/ml",
+   "&amp; it's <5kb> µg/ml"
+  ],
+  [
+   "<html><body>M13<br>CMV HindIII naïve Ori Ori</body></html>",
+   "M13 CMV HindIII naïve Ori Ori",
+   "M13\nCMV HindIII naïve Ori Ori"
+  ],
+  [
+   "[note] &amp; (+) &amp; \"quoted\" © M13",
+   "[note] &amp; (+) &amp; \"quoted\" © M13",
+   "[note] &amp; (+) &amp; \"quoted\" © M13"
+  ],
+  [
+   "<html><body>lac A&amp;B<br>M13 © HindIII end.</body></html>",
+   "lac A&B M13 © HindIII end.",
+   "lac A&B\nM13 © HindIII end."
+  ],
+  [
+   "[note] end. HindIII 🧬",
+   "[note] end. HindIII 🧬",
+   "[note] end. HindIII 🧬"
+  ],
+  [
+   "<html><body>β-lactamase<br>pUC SV40</body></html>",
+   "β-lactamase pUC SV40",
+   "β-lactamase\npUC SV40"
+  ],
+  [
+   "<html><body><!--StartFragment--><span>promoter</i> CMV M13 (+) 50%<!--EndFragment--></body></html>",
+   "promoter CMV M13 (+) 50%",
+   "promoter CMV M13 (+) 50%"
+  ],
+  [
+   "<html><body>HindIII<br>Ori (+) HindIII<br>FLAG®</body></html>",
+   "HindIII Ori (+) HindIII FLAG®",
+   "HindIII\nOri (+) HindIII\nFLAG®"
+  ],
+  [
+   "CMV \"quoted\" [note] CMV 🧬",
+   "CMV \"quoted\" [note] CMV 🧬",
+   "CMV \"quoted\" [note] CMV 🧬"
+  ],
+  [
+   "<html><body>A&amp;B A&amp;B</body></html>",
+   "A&B A&B",
+   "A&B A&B"
+  ],
+  [
+   "<html><body>&lt;5kb&gt;&nbsp;&ge; lac T7 SV40 lac Sp6 a;b\n\n</body></html>",
+   "<5kb> ≥ lac T7 SV40 lac Sp6 a;b",
+   "<5kb> ≥ lac T7 SV40 lac Sp6 a;b"
+  ],
+  [
+   "Neo",
+   "Neo",
+   "Neo"
+  ],
+  [
+   "<html><body><!--StartFragment-->EcoRI Kan<!--EndFragment--></body></html>",
+   "EcoRI Kan",
+   "EcoRI Kan"
+  ],
+  [
+   "\"quoted\" © 37°C FLAG® ©",
+   "\"quoted\" © 37°C FLAG® ©",
+   "\"quoted\" © 37°C FLAG® ©"
+  ],
+  [
+   "<html><body><!--StartFragment-->&copy;&nbsp;EcoRI &alpha;-helix &amp;amp; T7 (+) operator<!--EndFragment--></body></html>",
+   "© EcoRI α-helix &amp; T7 (+) operator",
+   "© EcoRI α-helix &amp; T7 (+) operator"
+  ],
+  [
+   "Sp6 naïve it's β-lactamase β-lactamase",
+   "Sp6 naïve it's β-lactamase β-lactamase",
+   "Sp6 naïve it's β-lactamase β-lactamase"
+  ],
+  [
+   "<html><body>(+)&nbsp;T7 pUC Ori <i>&amp;amp;</font> 50%</body></html>",
+   "(+) T7 pUC Ori &amp; 50%",
+   "(+) T7 pUC Ori &amp; 50%"
+  ],
+  [
+   "<html><body>a;b<br>≥ naïve<br>α-helix FLAG® Neo<br>β-lactamase β-lactamase polyA 37°C</body></html>",
+   "a;b ≥ naïve α-helix FLAG® Neo β-lactamase β-lactamase polyA 37°C",
+   "a;b\n≥ naïve\nα-helix FLAG® Neo\nβ-lactamase β-lactamase polyA 37°C"
+  ],
+  [
+   "operator tab tab <5kb> 50% lac",
+   "operator tab tab <5kb> 50% lac",
+   "operator tab tab <5kb> 50% lac"
+  ],
+  [
+   "key=value polyA Ori naïve",
+   "key=value polyA Ori naïve",
+   "key=value polyA Ori naïve"
+  ],
+  [
+   "<html><body><!--StartFragment-->His6<!--EndFragment--></body></html>",
+   "His6",
+   "His6"
+  ],
+  [
+   "tab",
+   "tab",
+   "tab"
+  ],
+  [
+   "<html><body><!--StartFragment-->it&#x27;s a;b M13 lac naïve lac µg/ml naïve<!--EndFragment-->\n\n</body></html>",
+   "it's a;b M13 lac naïve lac µg/ml naïve",
+   "it's a;b M13 lac naïve lac µg/ml naïve"
+  ],
+  [
+   "≥ end. T7 key=value HindIII",
+   "≥ end. T7 key=value HindIII",
+   "≥ end. T7 key=value HindIII"
+  ],
+  [
+   "<html><body>lac 50% FLAG&reg; operator x&gt;y (+)</body></html>",
+   "lac 50% FLAG® operator x>y (+)",
+   "lac 50% FLAG® operator x>y (+)"
+  ],
+  [
+   "<html><body>pUC lac 🧬 lac promoter<br>AmpR EcoRI it's<br>end.</body></html>",
+   "pUC lac 🧬 lac promoter AmpR EcoRI it's end.",
+   "pUC lac 🧬 lac promoter\nAmpR EcoRI it's\nend."
+  ],
+  [
+   "<5kb> HindIII pUC key=value lac pUC \"quoted\" ©",
+   "<5kb> HindIII pUC key=value lac pUC \"quoted\" ©",
+   "<5kb> HindIII pUC key=value lac pUC \"quoted\" ©"
+  ],
+  [
+   "<html><body>it's T7 [note] it's promoter<br><br>Ori EcoRI</body></html>",
+   "it's T7 [note] it's promoter Ori EcoRI",
+   "it's T7 [note] it's promoter\n\nOri EcoRI"
+  ],
+  [
+   "<html><body><font>EcoRI</i></body></html>",
+   "EcoRI",
+   "EcoRI"
+  ],
+  [
+   "<html><body>FLAG®<br>Sp6 polyA © His6</body></html>",
+   "FLAG® Sp6 polyA © His6",
+   "FLAG®\nSp6 polyA © His6"
+  ],
+  [
+   "<html><body><!--StartFragment-->α-helix\nit's naïve Sp6 \"quoted\" a;b operator a;b<!--EndFragment--></body></html>",
+   "α-helix it's naïve Sp6 \"quoted\" a;b operator a;b",
+   "α-helix it's naïve Sp6 \"quoted\" a;b operator a;b"
+  ],
+  [
+   "key=value",
+   "key=value",
+   "key=value"
+  ],
+  [
+   "<html><body><b>β-lactamase</span></body></html>",
+   "β-lactamase",
+   "β-lactamase"
+  ],
+  [
+   "<html><body>HindIII ≥ A&amp;B<br>© FLAG® (+) 37°C 5′→3′<br>Kan &amp;amp; polyA EcoRI</body></html>",
+   "HindIII ≥ A&B © FLAG® (+) 37°C 5′→3′ Kan &amp; polyA EcoRI",
+   "HindIII ≥ A&B\n© FLAG® (+) 37°C 5′→3′\nKan &amp; polyA EcoRI"
+  ],
+  [
+   "tab HindIII [note] lac [note]",
+   "tab HindIII [note] lac [note]",
+   "tab HindIII [note] lac [note]"
+  ],
+  [
+   "<html><body>polyA 50% Ori<br>A&amp;B polyA<br>A&amp;B &amp;amp;</body></html>",
+   "polyA 50% Ori A&B polyA A&B &amp;",
+   "polyA 50% Ori\nA&B polyA\nA&B &amp;"
+  ],
+  [
+   "<html><body>Ori\n<font>AmpR</i> α-helix pUC</body></html>",
+   "Ori AmpR α-helix pUC",
+   "Ori AmpR α-helix pUC"
+  ],
+  [
+   "<html><body>naïve polyA promoter HindIII<br>EcoRI a;b<br>T7</body></html>",
+   "naïve polyA promoter HindIII EcoRI a;b T7",
+   "naïve polyA promoter HindIII\nEcoRI a;b\nT7"
+  ],
+  [
+   "<html><body><!--StartFragment-->polyA&nbsp;Kan\nHindIII <span>key=value</b><!--EndFragment-->\n\n</body></html>",
+   "polyA Kan HindIII key=value",
+   "polyA Kan HindIII key=value"
+  ],
+  [
+   "<html><body>x&gt;y pUC \"quoted\"<br>&lt;5kb&gt; promoter naïve end.<br>© FLAG® [note] AmpR<br>≥ pUC M13 tab Ori</body></html>",
+   "x>y pUC \"quoted\" <5kb> promoter naïve end. © FLAG® [note] AmpR ≥ pUC M13 tab Ori",
+   "x>y pUC \"quoted\"\n<5kb> promoter naïve end.\n© FLAG® [note] AmpR\n≥ pUC M13 tab Ori"
+  ],
+  [
+   "<html><body>promoter&nbsp;a;b lac na&#239;ve &alpha;-helix</body></html>",
+   "promoter a;b lac naïve α-helix",
+   "promoter a;b lac naïve α-helix"
+  ],
+  [
+   "<html><body>His6 &lt;5kb&gt;<div>37°C © naïve lac CMV</div><div>T7 37°C T7 lac</div></body></html>",
+   "His6 <5kb> 37°C © naïve lac CMV T7 37°C T7 lac",
+   "His6 <5kb>\n37°C © naïve lac CMV\nT7 37°C T7 lac"
+  ],
+  [
+   "<html><body>&#129516;\n[note] EcoRI operator &copy; Kan CMV M13\n\n</body></html>",
+   "🧬 [note] EcoRI operator © Kan CMV M13",
+   "🧬 [note] EcoRI operator © Kan CMV M13"
+  ],
+  [
+   "© operator β-lactamase &amp;",
+   "© operator β-lactamase &amp;",
+   "© operator β-lactamase &amp;"
+  ],
+  [
+   "<html><body>Kan M13\n\n</body></html>",
+   "Kan M13",
+   "Kan M13"
+  ],
+  [
+   "<html><body>Neo T7<div>Kan a;b HindIII © a;b</div></body></html>",
+   "Neo T7 Kan a;b HindIII © a;b",
+   "Neo T7\nKan a;b HindIII © a;b"
+  ],
+  [
+   "<html><body><!--StartFragment-->Sp6&nbsp;tab (+)<!--EndFragment--></body></html>",
+   "Sp6 tab (+)",
+   "Sp6 tab (+)"
+  ],
+  [
+   "<html><body>polyA FLAG®<br>CMV Ori lac 🧬 promoter</body></html>",
+   "polyA FLAG® CMV Ori lac 🧬 promoter",
+   "polyA FLAG®\nCMV Ori lac 🧬 promoter"
+  ],
+  [
+   "HindIII 37°C Sp6 a;b 50%",
+   "HindIII 37°C Sp6 a;b 50%",
+   "HindIII 37°C Sp6 a;b 50%"
+  ],
+  [
+   "<html><body>CMV a;b A&amp;B it's 50%<div>EcoRI pUC CMV operator operator</div><div>His6 AmpR</div></body></html>",
+   "CMV a;b A&B it's 50% EcoRI pUC CMV operator operator His6 AmpR",
+   "CMV a;b A&B it's 50%\nEcoRI pUC CMV operator operator\nHis6 AmpR"
+  ],
+  [
+   "<html><body>EcoRI\nEcoRI</body></html>",
+   "EcoRI EcoRI",
+   "EcoRI EcoRI"
+  ],
+  [
+   "<html><body>&amp;amp; (+) (+) ≥ &lt;5kb&gt;<br>CMV 🧬 polyA key=value</body></html>",
+   "&amp; (+) (+) ≥ <5kb> CMV 🧬 polyA key=value",
+   "&amp; (+) (+) ≥ <5kb>\nCMV 🧬 polyA key=value"
+  ],
+  [
+   "<html><body>50% \"quoted\" M13</body></html>",
+   "50% \"quoted\" M13",
+   "50% \"quoted\" M13"
+  ],
+  [
+   "<html><body>37°C<br>SV40 © (+)<br>5′→3′ Sp6 key=value AmpR</body></html>",
+   "37°C SV40 © (+) 5′→3′ Sp6 key=value AmpR",
+   "37°C\nSV40 © (+)\n5′→3′ Sp6 key=value AmpR"
+  ],
+  [
+   "<html><body>tab\n<font>Ori</font> end. Kan Ori AmpR promoter</body></html>",
+   "tab Ori end. Kan Ori AmpR promoter",
+   "tab Ori end. Kan Ori AmpR promoter"
+  ],
+  [
+   "<html><body>tab<div>EcoRI M13 α-helix operator Ori</div><div>promoter</div></body></html>",
+   "tab EcoRI M13 α-helix operator Ori promoter",
+   "tab\nEcoRI M13 α-helix operator Ori\npromoter"
+  ],
+  [
+   "≥ ≥ EcoRI AmpR lac",
+   "≥ ≥ EcoRI AmpR lac",
+   "≥ ≥ EcoRI AmpR lac"
+  ],
+  [
+   "<html><body>operator</body></html>",
+   "operator",
+   "operator"
+  ],
+  [
+   "AmpR it's key=value α-helix 5′→3′ EcoRI operator T7",
+   "AmpR it's key=value α-helix 5′→3′ EcoRI operator T7",
+   "AmpR it's key=value α-helix 5′→3′ EcoRI operator T7"
+  ],
+  [
+   "<html><body>lac<div>50% x&gt;y</div></body></html>",
+   "lac 50% x>y",
+   "lac\n50% x>y"
+  ],
+  [
+   "CMV A&B A&B [note] it's",
+   "CMV A&B A&B [note] it's",
+   "CMV A&B A&B [note] it's"
+  ],
+  [
+   "µg/ml His6 it's M13 Sp6",
+   "µg/ml His6 it's M13 Sp6",
+   "µg/ml His6 it's M13 Sp6"
+  ],
+  [
+   "<html><body>β-lactamase\nM13 M13 β-lactamase (+) SV40\n\n</body></html>",
+   "β-lactamase M13 M13 β-lactamase (+) SV40",
+   "β-lactamase M13 M13 β-lactamase (+) SV40"
+  ],
+  [
+   "<html><body>AmpR A&amp;B x&gt;y<br>operator &amp;amp;</body></html>",
+   "AmpR A&B x>y operator &amp;",
+   "AmpR A&B x>y\noperator &amp;"
+  ],
+  [
+   "<html><body>CMV&nbsp;a;b\n(+) <font>β-lactamase</span> (+) pUC polyA naïve</body></html>",
+   "CMV a;b (+) β-lactamase (+) pUC polyA naïve",
+   "CMV a;b (+) β-lactamase (+) pUC polyA naïve"
+  ],
+  [
+   "<html><body>5′→3′ β-lactamase tab<div>37°C Sp6 \"quoted\"</div><div>β-lactamase Sp6 end. 5′→3′ end.</div></body></html>",
+   "5′→3′ β-lactamase tab 37°C Sp6 \"quoted\" β-lactamase Sp6 end. 5′→3′ end.",
+   "5′→3′ β-lactamase tab\n37°C Sp6 \"quoted\"\nβ-lactamase Sp6 end. 5′→3′ end."
+  ],
+  [
+   "<html><body>Sp6\nit&#x27;s <b>A&amp;B</font> promoter</body></html>",
+   "Sp6 it's A&B promoter",
+   "Sp6 it's A&B promoter"
+  ],
+  [
+   "M13 β-lactamase (+) 50% FLAG®",
+   "M13 β-lactamase (+) 50% FLAG®",
+   "M13 β-lactamase (+) 50% FLAG®"
+  ],
+  [
+   "Ori tab A&B x>y",
+   "Ori tab A&B x>y",
+   "Ori tab A&B x>y"
+  ],
+  [
+   "<html><body>Neo (+) promoter<div>Kan</div></body></html>",
+   "Neo (+) promoter Kan",
+   "Neo (+) promoter\nKan"
+  ],
+  [
+   "<html><body>5′→3′ His6 promoter key=value Kan Neo</body></html>",
+   "5′→3′ His6 promoter key=value Kan Neo",
+   "5′→3′ His6 promoter key=value Kan Neo"
+  ],
+  [
+   "pUC naïve",
+   "pUC naïve",
+   "pUC naïve"
+  ],
+  [
+   "<html><body>FLAG®\nKan AmpR end. FLAG® SV40</body></html>",
+   "FLAG® Kan AmpR end. FLAG® SV40",
+   "FLAG® Kan AmpR end. FLAG® SV40"
+  ],
+  [
+   "<html><body>Kan<br>α-helix 🧬 \"quoted\" key=value 5′→3′<br>end.</body></html>",
+   "Kan α-helix 🧬 \"quoted\" key=value 5′→3′ end.",
+   "Kan\nα-helix 🧬 \"quoted\" key=value 5′→3′\nend."
+  ],
+  [
+   "µg/ml <5kb> µg/ml Kan",
+   "µg/ml <5kb> µg/ml Kan",
+   "µg/ml <5kb> µg/ml Kan"
+  ],
+  [
+   "a;b &amp; <5kb> Ori",
+   "a;b &amp; <5kb> Ori",
+   "a;b &amp; <5kb> Ori"
+  ],
+  [
+   "<html><body><!--StartFragment-->His6 © © SV40 Neo 50% end. pUC<!--EndFragment--></body></html>",
+   "His6 © © SV40 Neo 50% end. pUC",
+   "His6 © © SV40 Neo 50% end. pUC"
+  ],
+  [
+   "<html><body>Neo &lt;5kb&gt; operator © 37°C<br>promoter pUC pUC Kan</body></html>",
+   "Neo <5kb> operator © 37°C promoter pUC pUC Kan",
+   "Neo <5kb> operator © 37°C\npromoter pUC pUC Kan"
+  ],
+  [
+   "end. Kan ≥ Kan",
+   "end. Kan ≥ Kan",
+   "end. Kan ≥ Kan"
+  ],
+  [
+   "<html><body>© A&amp;B HindIII x&gt;y</body></html>",
+   "© A&B HindIII x>y",
+   "© A&B HindIII x>y"
+  ],
+  [
+   "<html><body>polyA\nit&#x27;s CMV tab</body></html>",
+   "polyA it's CMV tab",
+   "polyA it's CMV tab"
+  ],
+  [
+   "<html><body>(+) µg/ml tab ≥ pUC</body></html>",
+   "(+) µg/ml tab ≥ pUC",
+   "(+) µg/ml tab ≥ pUC"
+  ],
+  [
+   "<html><body><i>FLAG®&nbsp;≥</b> CMV &quot;quoted&quot;</body></html>",
+   "FLAG® ≥ CMV \"quoted\"",
+   "FLAG® ≥ CMV \"quoted\""
+  ],
+  [
+   "<html><body>\"quoted\" Neo<br>a;b &lt;5kb&gt; Ori 50%</body></html>",
+   "\"quoted\" Neo a;b <5kb> Ori 50%",
+   "\"quoted\" Neo\na;b <5kb> Ori 50%"
+  ],
+  [
+   "<html><body>polyA (+) SV40 x&gt;y (+) M13 key=value</body></html>",
+   "polyA (+) SV40 x>y (+) M13 key=value",
+   "polyA (+) SV40 x>y (+) M13 key=value"
+  ],
+  [
+   "<html><body>M13\nOri &quot;quoted&quot; end.</body></html>",
+   "M13 Ori \"quoted\" end.",
+   "M13 Ori \"quoted\" end."
+  ],
+  [
+   "<html><body>CMV &amp;amp; Ori EcoRI</body></html>",
+   "CMV &amp; Ori EcoRI",
+   "CMV &amp; Ori EcoRI"
+  ],
+  [
+   "<html><body>&lt;5kb&gt;&nbsp;polyA &#946;-lactamase\n\n</body></html>",
+   "<5kb> polyA β-lactamase",
+   "<5kb> polyA β-lactamase"
+  ],
+  [
+   "<html><body>end.</body></html>",
+   "end.",
+   "end."
+  ],
+  [
+   "<5kb> Sp6 end.",
+   "<5kb> Sp6 end.",
+   "<5kb> Sp6 end."
+  ],
+  [
+   "<html><body>x&gt;y<div>5′→3′ T7 µg/ml</div><div>α-helix A&amp;B tab</div></body></html>",
+   "x>y 5′→3′ T7 µg/ml α-helix A&B tab",
+   "x>y\n5′→3′ T7 µg/ml\nα-helix A&B tab"
+  ],
+  [
+   "<html><body>37°C&nbsp;M13 a;b operator HindIII\n\n</body></html>",
+   "37°C M13 a;b operator HindIII",
+   "37°C M13 a;b operator HindIII"
+  ],
+  [
+   "<html><body>lac<div>Ori A&amp;B</div></body></html>",
+   "lac Ori A&B",
+   "lac\nOri A&B"
+  ],
+  [
+   "<5kb> 5′→3′ key=value 5′→3′ 🧬 key=value",
+   "<5kb> 5′→3′ key=value 5′→3′ 🧬 key=value",
+   "<5kb> 5′→3′ key=value 5′→3′ 🧬 key=value"
+  ],
+  [
+   "<html><body>promoter pUC<br>polyA T7 CMV a;b<br>Kan SV40 SV40 (+) Sp6<br>polyA Sp6</body></html>",
+   "promoter pUC polyA T7 CMV a;b Kan SV40 SV40 (+) Sp6 polyA Sp6",
+   "promoter pUC\npolyA T7 CMV a;b\nKan SV40 SV40 (+) Sp6\npolyA Sp6"
+  ],
+  [
+   "37°C M13",
+   "37°C M13",
+   "37°C M13"
+  ],
+  [
+   "end. 50% tab",
+   "end. 50% tab",
+   "end. 50% tab"
+  ],
+  [
+   "<html><body><!--StartFragment-->x&gt;y&nbsp;tab\nHindIII 50% <span>HindIII</i> Neo<!--EndFragment--></body></html>",
+   "x>y tab HindIII 50% HindIII Neo",
+   "x>y tab HindIII 50% HindIII Neo"
+  ],
+  [
+   "<html><body>A&amp;B<div><br></div><div>Sp6 FLAG® (+) &amp;amp;</div><div>&lt;5kb&gt; 5′→3′ &lt;5kb&gt; x&gt;y end.</div></body></html>",
+   "A&B Sp6 FLAG® (+) &amp; <5kb> 5′→3′ <5kb> x>y end.",
+   "A&B\n\nSp6 FLAG® (+) &amp;\n<5kb> 5′→3′ <5kb> x>y end."
+  ],
+  [
+   "<html><body><!--StartFragment-->HindIII\n🧬<!--EndFragment--></body></html>",
+   "HindIII 🧬",
+   "HindIII 🧬"
+  ],
+  [
+   "<html><body>naïve SV40 Kan</body></html>",
+   "naïve SV40 Kan",
+   "naïve SV40 Kan"
+  ],
+  [
+   "pUC Kan CMV naïve a;b",
+   "pUC Kan CMV naïve a;b",
+   "pUC Kan CMV naïve a;b"
+  ],
+  [
+   "<html><body>end. it's &lt;5kb&gt; EcoRI<div>A&amp;B &amp;amp; FLAG® ≥</div></body></html>",
+   "end. it's <5kb> EcoRI A&B &amp; FLAG® ≥",
+   "end. it's <5kb> EcoRI\nA&B &amp; FLAG® ≥"
+  ],
+  [
+   "µg/ml <5kb> (+) [note] 🧬 polyA β-lactamase β-lactamase",
+   "µg/ml <5kb> (+) [note] 🧬 polyA β-lactamase β-lactamase",
+   "µg/ml <5kb> (+) [note] 🧬 polyA β-lactamase β-lactamase"
+  ],
+  [
+   "<html><body>©<div>CMV Sp6 HindIII Sp6</div><div>A&amp;B 37°C CMV a;b</div></body></html>",
+   "© CMV Sp6 HindIII Sp6 A&B 37°C CMV a;b",
+   "©\nCMV Sp6 HindIII Sp6\nA&B 37°C CMV a;b"
+  ],
+  [
+   "<html><body>Kan&nbsp;5′→3′</body></html>",
+   "Kan 5′→3′",
+   "Kan 5′→3′"
+  ],
+  [
+   "<html><body>α-helix µg/ml lac pUC naïve<div>[note] 50% © 5′→3′</div></body></html>",
+   "α-helix µg/ml lac pUC naïve [note] 50% © 5′→3′",
+   "α-helix µg/ml lac pUC naïve\n[note] 50% © 5′→3′"
+  ],
+  [
+   "[note] ≥ key=value HindIII",
+   "[note] ≥ key=value HindIII",
+   "[note] ≥ key=value HindIII"
+  ],
+  [
+   "pUC operator AmpR Sp6",
+   "pUC operator AmpR Sp6",
+   "pUC operator AmpR Sp6"
+  ],
+  [
+   "<html><body>operator\nCMV SV40 key=value &#181;g/ml key=value promoter</body></html>",
+   "operator CMV SV40 key=value µg/ml key=value promoter",
+   "operator CMV SV40 key=value µg/ml key=value promoter"
+  ],
+  [
+   "<html><body>pUC<br><br>x&gt;y pUC</body></html>",
+   "pUC x>y pUC",
+   "pUC\n\nx>y pUC"
+  ],
+  [
+   "<html><body><!--StartFragment-->promoter &lt;5kb&gt; SV40 \"quoted\" EcoRI tab<!--EndFragment--></body></html>",
+   "promoter <5kb> SV40 \"quoted\" EcoRI tab",
+   "promoter <5kb> SV40 \"quoted\" EcoRI tab"
+  ],
+  [
+   "Neo end. (+) CMV",
+   "Neo end. (+) CMV",
+   "Neo end. (+) CMV"
+  ],
+  [
+   "<html><body>end. His6 x&gt;y α-helix a;b <font>a;b</font></body></html>",
+   "end. His6 x>y α-helix a;b a;b",
+   "end. His6 x>y α-helix a;b a;b"
+  ],
+  [
+   "<html><body>pUC operator His6<br>(+) His6 β-lactamase<br>end. 50% \"quoted\" naïve SV40</body></html>",
+   "pUC operator His6 (+) His6 β-lactamase end. 50% \"quoted\" naïve SV40",
+   "pUC operator His6\n(+) His6 β-lactamase\nend. 50% \"quoted\" naïve SV40"
+  ],
+  [
+   "5′→3′ tab <5kb> 5′→3′",
+   "5′→3′ tab <5kb> 5′→3′",
+   "5′→3′ tab <5kb> 5′→3′"
+  ],
+  [
+   "<html><body>[note] operator CMV (+)</body></html>",
+   "[note] operator CMV (+)",
+   "[note] operator CMV (+)"
+  ],
+  [
+   "<html><body>&amp;amp; x&gt;y [note] SV40\n\n</body></html>",
+   "&amp; x>y [note] SV40",
+   "&amp; x>y [note] SV40"
+  ],
+  [
+   "<5kb> (+) HindIII His6",
+   "<5kb> (+) HindIII His6",
+   "<5kb> (+) HindIII His6"
+  ],
+  [
+   "<html><body>α-helix\n\n</body></html>",
+   "α-helix",
+   "α-helix"
+  ],
+  [
+   "<html><body>HindIII operator 5′→3′ 5′→3′ lac</body></html>",
+   "HindIII operator 5′→3′ 5′→3′ lac",
+   "HindIII operator 5′→3′ 5′→3′ lac"
+  ],
+  [
+   "<html><body><!--StartFragment-->T7 Sp6 tab x&gt;y T7 [note]<!--EndFragment--></body></html>",
+   "T7 Sp6 tab x>y T7 [note]",
+   "T7 Sp6 tab x>y T7 [note]"
+  ],
+  [
+   "<html><body>[note] T7<div>Sp6 naïve end.</div><div>50% \"quoted\"</div><div>FLAG® EcoRI 5′→3′ tab µg/ml</div></body></html>",
+   "[note] T7 Sp6 naïve end. 50% \"quoted\" FLAG® EcoRI 5′→3′ tab µg/ml",
+   "[note] T7\nSp6 naïve end.\n50% \"quoted\"\nFLAG® EcoRI 5′→3′ tab µg/ml"
+  ],
+  [
+   "AmpR end. His6 tab pUC it's",
+   "AmpR end. His6 tab pUC it's",
+   "AmpR end. His6 tab pUC it's"
+  ],
+  [
+   "<html><body><!--StartFragment--><span>EcoRI</b> &lt;5kb&gt; FLAG&#174; it&#x27;s polyA 50% HindIII x&gt;y<!--EndFragment--></body></html>",
+   "EcoRI <5kb> FLAG® it's polyA 50% HindIII x>y",
+   "EcoRI <5kb> FLAG® it's polyA 50% HindIII x>y"
+  ],
+  [
+   "<html><body>naïve<br>FLAG® x&gt;y<br>a;b</body></html>",
+   "naïve FLAG® x>y a;b",
+   "naïve\nFLAG® x>y\na;b"
+  ],
+  [
+   "<html><body>&lt;5kb&gt; <b>&lt;5kb&gt;</span> it's</body></html>",
+   "<5kb> <5kb> it's",
+   "<5kb> <5kb> it's"
+  ],
+  [
+   "<html><body>[note]<div>50% &lt;5kb&gt; β-lactamase</div></body></html>",
+   "[note] 50% <5kb> β-lactamase",
+   "[note]\n50% <5kb> β-lactamase"
+  ],
+  [
+   "Ori 🧬 5′→3′",
+   "Ori 🧬 5′→3′",
+   "Ori 🧬 5′→3′"
+  ],
+  [
+   "<html><body>α-helix µg/ml</body></html>",
+   "α-helix µg/ml",
+   "α-helix µg/ml"
+  ],
+  [
+   "key=value x>y AmpR [note] Neo key=value",
+   "key=value x>y AmpR [note] Neo key=value",
+   "key=value x>y AmpR [note] Neo key=value"
+  ],
+  [
+   "<html><body>Neo 5′→3′<br>EcoRI M13</body></html>",
+   "Neo 5′→3′ EcoRI M13",
+   "Neo 5′→3′\nEcoRI M13"
+  ],
+  [
+   "<html><body>FLAG&reg; CMV &beta;-lactamase 50% &#169; polyA\n\n</body></html>",
+   "FLAG® CMV β-lactamase 50% © polyA",
+   "FLAG® CMV β-lactamase 50% © polyA"
+  ],
+  [
+   "HindIII HindIII 50% HindIII lac",
+   "HindIII HindIII 50% HindIII lac",
+   "HindIII HindIII 50% HindIII lac"
+  ],
+  [
+   "His6 SV40 µg/ml Sp6 operator (+) (+)",
+   "His6 SV40 µg/ml Sp6 operator (+) (+)",
+   "His6 SV40 µg/ml Sp6 operator (+) (+)"
+  ],
+  [
+   "it's",
+   "it's",
+   "it's"
+  ],
+  [
+   "β-lactamase",
+   "β-lactamase",
+   "β-lactamase"
+  ],
+  [
+   "<html><body>Ori T7 🧬 [note] Sp6<div>37°C end. A&amp;B</div></body></html>",
+   "Ori T7 🧬 [note] Sp6 37°C end. A&B",
+   "Ori T7 🧬 [note] Sp6\n37°C end. A&B"
+  ],
+  [
+   "<html><body>Kan end. [note] (+) &#169; [note] key=value</body></html>",
+   "Kan end. [note] (+) © [note] key=value",
+   "Kan end. [note] (+) © [note] key=value"
+  ],
+  [
+   "<html><body>[note]<br>lac</body></html>",
+   "[note] lac",
+   "[note]\nlac"
+  ],
+  [
+   "5′→3′ Sp6 T7 operator EcoRI M13 Ori A&B",
+   "5′→3′ Sp6 T7 operator EcoRI M13 Ori A&B",
+   "5′→3′ Sp6 T7 operator EcoRI M13 Ori A&B"
+  ],
+  [
+   "<html><body>SV40\nSV40 &quot;quoted&quot; SV40 polyA CMV a;b</body></html>",
+   "SV40 SV40 \"quoted\" SV40 polyA CMV a;b",
+   "SV40 SV40 \"quoted\" SV40 polyA CMV a;b"
+  ],
+  [
+   "<html><body>it's 50%<div>FLAG® &lt;5kb&gt; end. polyA</div></body></html>",
+   "it's 50% FLAG® <5kb> end. polyA",
+   "it's 50%\nFLAG® <5kb> end. polyA"
+  ],
+  [
+   "<html><body>[note]</body></html>",
+   "[note]",
+   "[note]"
+  ],
+  [
+   "<html><body>key=value key=value β-lactamase pUC operator<br>x&gt;y<br>🧬 end. β-lactamase</body></html>",
+   "key=value key=value β-lactamase pUC operator x>y 🧬 end. β-lactamase",
+   "key=value key=value β-lactamase pUC operator\nx>y\n🧬 end. β-lactamase"
+  ]
+ ],
+ "unescape": [
+  [
+   "α-helix<5kb>&#1114102;🧬&cap;Kan&#34;&#xc378;& 37°CSp6",
+   "α-helix<5kb>􏿶🧬∩Kan\"썸& 37°CSp6"
+  ],
+  [
+   "&#1114109;&#x2a50a;&#140283;&ndash;&fnof;&#x20206;",
+   "􏿽𪔊𢏻–ƒ𠈆"
+  ],
+  [
+   "&isin;Kan&unknownentity;&ordf;",
+   "∈Kan&unknownentity;ª"
+  ],
+  [
+   "&#4726;&brvbar;&amp;",
+   "ቶ¦&"
+  ],
+  [
+   "A&BCMV&#55588;&zwnj;≥&empty;Neo&equiv;<5kb>",
+   "A&BCMV�‌≥∅Neo≡<5kb>"
+  ],
+  [
+   "CMV",
+   "CMV"
+  ],
+  [
+   "&sup;M13operator&uuml;SV40(+)AT&Tend.",
+   "⊃M13operatorüSV40(+)AT&Tend."
+  ],
+  [
+   "&#x21aa4;&kappa;&sube;&#x7094;",
+   "𡪤κ⊆炔"
+  ],
+  [
+   "naïve&#x1c7f6;&unknownentity;&#120808;&#x1ef18;",
+   "naïve𜟶&unknownentity;𝟨𞼘"
+  ],
+  [
+   "β-lactamase&#295;©[note]&#x11255;37°Cit's&unknownentity;&divide;&#164780;",
+   "β-lactamaseħ©[note]𑉕37°Cit's&unknownentity;÷𨎬"
+  ],
+  [
+   "x>yCMV&#x1ade7;& &Atilde;&AElig;&sigma;&or;&#x5659;naïve≥&Ouml;",
+   "x>yCMV𚷧& ÃÆσ∨噙naïve≥Ö"
+  ],
+  [
+   "&#x239f1;&#126;&lrm;&#477;&minus;",
+   "𣧱~‎ǝ−"
+  ],
+  [
+   "&#x86bb;&#1114106;",
+   "蚻􏿺"
+  ],
+  [
+   "&prop;&Ouml;&#1114112;&lsquo;EcoRI&#xZZ;&uarr;His6& 37°C",
+   "∝Ö�‘EcoRI&#xZZ;↑His6& 37°C"
+  ],
+  [
+   "&prop;&oline;&trade;&equiv;M13&#246;SV40&part;50%5′→3′",
+   "∝‾™≡M13öSV40∂50%5′→3′"
+  ],
+  [
+   "&#4;&micro;&#x3103;&#155559;&#x1bf1c;&acute;lac&#x156d8;&#x2b029;",
+   "µ㄃𥾧𛼜´lac𕛘𫀩"
+  ],
+  [
+   "&unknownentity;",
+   "&unknownentity;"
+  ],
+  [
+   "&#x26d99;&#x17b1d;50%&phi;&sum;&crarr;CMV&#1114124;&zwnj;&crarr;&minus;&Chi;",
+   "𦶙𗬝50%φ∑↵CMV�‌↵−Χ"
+  ],
+  [
+   "&nu;T7&lt;",
+   "νT7<"
+  ],
+  [
+   "&fnof;FLAG®&#x20013;&shy;&#xZZ;&#202;&Phi;<5kb>",
+   "ƒFLAG®𠀓­&#xZZ;ÊΦ<5kb>"
+  ],
+  [
+   "CMV&unknownentity;",
+   "CMV&unknownentity;"
+  ],
+  [
+   "&lceil;Kan",
+   "⌈Kan"
+  ],
+  [
+   "&eta;",
+   "η"
+  ],
+  [
+   "&emsp;&#x4a6f;",
+   " 䩯"
+  ],
+  [
+   "SV40&delta;polyA&thorn;A&B& &#x17558;&#1114108;&#325;🧬",
+   "SV40δpolyAþA&B& 𗕘􏿼Ņ🧬"
+  ],
+  [
+   "His6©a;b&#329;&not;HindIIIM13&#392;&#245;&theta;EcoRI≥",
+   "His6©a;bŉ¬HindIIIM13ƈõθEcoRI≥"
+  ],
+  [
+   "&#1114125;&lowast;&acute;",
+   "�∗´"
+  ],
+  [
+   "&#55982;x>y&#x21143;&#27593;His6[note]&#x262bd;",
+   "�x>y𡅃毉His6[note]𦊽"
+  ],
+  [
+   "A&B&#x12bff;&#116623;&unknownentity;&lArr;&#xZZ;&spades;&#56100;&#35;&thinsp;x>y&oplus;",
+   "A&B𒯿𜞏&unknownentity;⇐&#xZZ;♠�# x>y⊕"
+  ],
+  [
+   "&#16148;&pi;&Agrave;AmpR&Ucirc;&#180965;",
+   "㼔πÀAmpRÛ𬋥"
+  ],
+  [
+   "pUC&#;Ori&#x1c5af;&#56535;&lambda;a;b&#xd672;&not;&omega;operator",
+   "pUC&#;Ori𜖯�λa;b홲¬ωoperator"
+  ],
+  [
+   "&ucirc;&#x674c;",
+   "û杌"
+  ],
+  [
+   "key=valueM13",
+   "key=valueM13"
+  ],
+  [
+   "&#8062;&pi;&ETH;x>ySV40&Oacute;[note]&#x1ecab;&weierp;Neo",
+   "὾πÐx>ySV40Ó[note]𞲫℘Neo"
+  ],
+  [
+   "&#56560;&#xd729;&#1114115;&;lac&amp;",
+   "�휩�&;lac&"
+  ],
+  [
+   "&Lambda;&#52563;pUC&Upsilon;CMV\"quoted\"&#x17ce3;HindIII&lang;&#x16849;&#xf80f;tab",
+   "Λ쵓pUCΥCMV\"quoted\"𗳣HindIII⟨𖡉tab"
+  ],
+  [
+   "&sum;polyA🧬&prod;SV40<5kb>&shy;&ntilde;&thorn;&acute;",
+   "∑polyA🧬∏SV40<5kb>­ñþ´"
+  ],
+  [
+   "Sp6&#x421b;&#56765;lac<5kb>&mdash;🧬HindIII&#1114119;β-lactamase",
+   "Sp6䈛�lac<5kb>—🧬HindIII�β-lactamase"
+  ],
+  [
+   "&#;&#1114099;",
+   "&#;􏿳"
+  ],
+  [
+   "naïve50%&epsilon;&#xZZ;&Acirc;&OElig;Ori&micro;&clubs;(+)&iexcl;(+)",
+   "naïve50%ε&#xZZ;ÂŒOriµ♣(+)¡(+)"
+  ],
+  [
+   "KanAmpR&#x2a2c3;&bull;&#xZZ;&raquo;pUC37°Coperator&#x127;HindIII",
+   "KanAmpR𪋃•&#xZZ;»pUC37°CoperatorħHindIII"
+  ],
+  [
+   "&ldquo;&ni;&#98944;&#1114096;&Ocirc;&infin;&tilde;🧬&#xZZ;&lfloor;&zwj;",
+   "“∋𘊀􏿰Ô∞˜🧬&#xZZ;⌊‍"
+  ],
+  [
+   "&#x1f1cf;EcoRI",
+   "🇏EcoRI"
+  ],
+  [
+   "end.5′→3′&frac34;&rho;&#1114103;&rArr;operator5′→3′&#;",
+   "end.5′→3′¾ρ􏿷⇒operator5′→3′&#;"
+  ],
+  [
+   "&lceil;EcoRIa;b≥&infin;&Ocirc;<5kb>a;b",
+   "⌈EcoRIa;b≥∞Ô<5kb>a;b"
+  ],
+  [
+   "🧬&loz;&#160599;&#xa0af;",
+   "🧬◊𧍗ꂯ"
+  ],
+  [
+   "&#x15a88;&darr;&lsaquo;Sp6Ori&icirc;&rarr;Kanend.&#494;&iota;",
+   "𕪈↓‹Sp6Oriî→Kanend.Ǯι"
+  ],
+  [
+   "&#;&there4;&#x16eb7;&iota;&ang;&Aring;β-lactamase&#56516;µg/ml&infin;&Euml;",
+   "&#;∴𖺷ι∠Åβ-lactamase�µg/ml∞Ë"
+  ],
+  [
+   "&#1114109;µg/mlFLAG®M13&#137012;µg/ml&Icirc;&scaron;&#56755;(+)",
+   "􏿽µg/mlFLAG®M13𡜴µg/mlÎš�(+)"
+  ],
+  [
+   "&nbsp;&#x2d14b;SV40&#x2fe9a;&ne;",
+   " 𭅋SV40𯺚≠"
+  ],
+  [
+   "&#1114104;\"quoted\"Sp6&#57250;",
+   "􏿸\"quoted\"Sp6�"
+  ],
+  [
+   "&aring;&#1114118;",
+   "å�"
+  ],
+  [
+   "&#xf838;&thinsp;AmpR",
+   " AmpR"
+  ],
+  [
+   "&sum;&#334;&unknownentity;&chi;&#x13da;&;α-helix&ldquo;&#70689;it's&sube;&#56473;",
+   "∑Ŏ&unknownentity;χᏚ&;α-helix“𑐡it's⊆�"
+  ],
+  [
+   "&#1114116;&perp;&#56056;",
+   "�⊥�"
+  ],
+  [
+   "&supe;tab&#x4d9f;HindIIINeo&uuml;&#x7ece;©",
+   "⊇tab䶟HindIIINeoü绎©"
+  ],
+  [
+   "&hearts;CMV&Nu;&#x223c0;",
+   "♥CMVΝ𢏀"
+  ],
+  [
+   "©",
+   "©"
+  ],
+  [
+   "&#42716;promoter&#55333;&#x1e128;&#xZZ;pUC&rdquo;&#x250a0;&Scaron;&#1114117;FLAG®CMV",
+   "ꛜpromoter�𞄨&#xZZ;pUC”𥂠Š�FLAG®CMV"
+  ],
+  [
+   "&#135;&sum;50%&#1114123;&#82835;&#x8e25;",
+   "‡∑50%�𔎓踥"
+  ],
+  [
+   "&rdquo;&#55;tab(+)5′→3′",
+   "”7tab(+)5′→3′"
+  ],
+  [
+   "HindIII&rlm;key=value&amp;&#16;&auml;&#55868;Sp6CMV&iexcl;",
+   "HindIII‏key=value&ä�Sp6CMV¡"
+  ],
+  [
+   "&#1114106;🧬",
+   "􏿺🧬"
+  ],
+  [
+   "&#x26561;",
+   "𦕡"
+  ],
+  [
+   "&Prime;🧬β-lactamase37°CEcoRI",
+   "″🧬β-lactamase37°CEcoRI"
+  ],
+  [
+   "&#1114097;&#;&circ;&#61;&ccedil;&iacute;",
+   "􏿱&#;ˆ=çí"
+  ],
+  [
+   "&ucirc;Neo&#1114122;end.&#1114123;&Ccedil;&unknownentity;&#x245ee;&Yacute;&nbsp;",
+   "ûNeo�end.�Ç&unknownentity;𤗮Ý "
+  ],
+  [
+   "&unknownentity;&zwnj;&#143;&#x26460;pUC&#x1952;&#90730;M13&nsub;&agrave;",
+   "&unknownentity;‌𦑠pUCᥒ𖉪M13⊄à"
+  ],
+  [
+   "&ordf;",
+   "ª"
+  ],
+  [
+   "end.&oline;&egrave;& β-lactamase©&Aring;≥",
+   "end.‾è& β-lactamase©Å≥"
+  ],
+  [
+   "5′→3′&#xZZ;&rArr;&egrave;FLAG®A&B&#364;SV40&#1114126;&Ecirc;operator&#1114107;",
+   "5′→3′&#xZZ;⇒èFLAG®A&BŬSV40�Êoperator􏿻"
+  ],
+  [
+   "AmpROriAmpR&ldquo;&oacute;&amp;end.&plusmn;&rdquo;&#135157;",
+   "AmpROriAmpR“ó&end.±”𠿵"
+  ],
+  [
+   "β-lactamase&#1114123;&#1114122;&sim;promoter&notin;&deg;&kappa;&#;Kan5′→3′µg/ml",
+   "β-lactamase��∼promoter∉°κ&#;Kan5′→3′µg/ml"
+  ],
+  [
+   "FLAG®&#x3e42;&#x15142;&amp;x>yoperator&Agrave;",
+   "FLAG®㹂𕅂&x>yoperatorÀ"
+  ],
+  [
+   "lac&reg;",
+   "lac®"
+  ],
+  [
+   "[note]&#138575;Ori&#100440;&asymp;",
+   "[note]𡵏Ori𘡘≈"
+  ],
+  [
+   "FLAG®&rdquo;pUC&#206;&#x2bbff;&Omega;&#x15ac8;Ori&#x1f053;",
+   "FLAG®”pUCÎ𫯿Ω𕫈Ori🁓"
+  ],
+  [
+   "&#x24764;&#x1ceb2;&lceil;& &#55538;&aacute;37°C5′→3′naïve",
+   "𤝤𜺲⌈& �á37°C5′→3′naïve"
+  ],
+  [
+   "(+)key=value&Ouml;&scaron;&#55623;α-helixnaïveHindIII&oslash;&#1114108;",
+   "(+)key=valueÖš�α-helixnaïveHindIIIø􏿼"
+  ],
+  [
+   "T7&#x20a47;&#x24174;&#x256a6;µg/ml&#x1e4aa;&rdquo;FLAG®&#x28b52;Ori&#323;& ",
+   "T7𠩇𤅴𥚦µg/ml𞒪”FLAG®𨭒OriŃ& "
+  ],
+  [
+   "naïveT7α-helix37°CCMV& ",
+   "naïveT7α-helix37°CCMV& "
+  ],
+  [
+   "&#;M13&acirc;50%M13lacit'sAmpRβ-lactamase&;&theta;",
+   "&#;M13â50%M13lacit'sAmpRβ-lactamase&;θ"
+  ],
+  [
+   "&reg;&#110829;SV40µg/ml&zeta;FLAG®His6&#24;<5kb>T7µg/ml",
+   "®𛃭SV40µg/mlζFLAG®His6<5kb>T7µg/ml"
+  ],
+  [
+   "5′→3′a;b&Omicron;naïve©Sp6&euml;&mdash;SV40&kappa;Neo",
+   "5′→3′a;bΟnaïve©Sp6ë—SV40κNeo"
+  ],
+  [
+   "promoter&#169969;β-lactamaseHindIII&#1114122;",
+   "promoter𩟱β-lactamaseHindIII�"
+  ],
+  [
+   "&#x17cf2;&copy;AT&T&int;&#153;&#;&;&#;",
+   "𗳲©AT&T∫™&#;&;&#;"
+  ],
+  [
+   "&#55776;&ocirc;&#;&ensp;&int;µg/ml&copy;&empty;&#xZZ;&amp;",
+   "�ô&#; ∫µg/ml©∅&#xZZ;&"
+  ],
+  [
+   "[note]&#;Sp6",
+   "[note]&#;Sp6"
+  ],
+  [
+   "x>y",
+   "x>y"
+  ],
+  [
+   "50%&#x27dda;Ori<5kb>",
+   "50%𧷚Ori<5kb>"
+  ],
+  [
+   "A&B&#x4e50;🧬&#56542;\"quoted\"&otilde;&sup1;&rang;µg/ml&#89667;",
+   "A&B乐🧬�\"quoted\"õ¹⟩µg/ml𕹃"
+  ],
+  [
+   "AT&T& &eta;& &oplus;&part;operatorNeo&rho;",
+   "AT&T& η& ⊕∂operatorNeoρ"
+  ],
+  [
+   "HindIII&#56698;&Sigma;&xi;&#57304;",
+   "HindIII�Σξ�"
+  ],
+  [
+   "&frasl;polyA&ograve;",
+   "⁄polyAò"
+  ],
+  [
+   "it's≥&amp;5′→3′&ordm;His6lac&#1114121;&#x1caef;<5kb>&Sigma;&#55420;",
+   "it's≥&5′→3′ºHis6lac�𜫯<5kb>Σ�"
+  ],
+  [
+   "SV40&Pi;&Yuml;(+)tab&omicron;5′→3′[note]&dArr;key=value&#1114127;&#x5ae5;",
+   "SV40ΠŸ(+)tabο5′→3′[note]⇓key=value�嫥"
+  ],
+  [
+   "&oelig;&iuml;&rsaquo;&#x27e1d;& &bdquo;HindIII&unknownentity;",
+   "œï›𧸝& „HindIII&unknownentity;"
+  ],
+  [
+   "&#266;&#55475;&Ocirc;&ldquo;&Dagger;&unknownentity;&harr;&#x2abfa;&#55730;",
+   "Ċ�Ô“‡&unknownentity;↔𪯺�"
+  ],
+  [
+   "&Zeta;HindIII",
+   "ΖHindIII"
+  ],
+  [
+   "promoterpolyAµg/mlAT&T&#1114110;&unknownentity;&rlm;&Lambda;&#119;& &#25072;&#157850;",
+   "promoterpolyAµg/mlAT&T&unknownentity;‏Λw& 懰𦢚"
+  ],
+  [
+   "AT&TAmpRA&B<5kb><5kb>naïve&#x2b0af;&#56350;polyA&unknownentity;37°C",
+   "AT&TAmpRA&B<5kb><5kb>naïve𫂯�polyA&unknownentity;37°C"
+  ],
+  [
+   "&#x185cf;&#36123;A&B&#xffe2;&Euml;CMV",
+   "𘗏贛A&B￢ËCMV"
+  ],
+  [
+   "©&#1114098;&Epsilon;&#x248e4;tab",
+   "©􏿲Ε𤣤tab"
+  ],
+  [
+   "FLAG®&Icirc;&#x2f6ac;NeopUC&forall;©",
+   "FLAG®Î𯚬NeopUC∀©"
+  ],
+  [
+   "&#25305;HindIII&unknownentity;&divide;&curren;&alefsym;",
+   "拙HindIII&unknownentity;÷¤ℵ"
+  ],
+  [
+   "<5kb>AmpR&#1114114;x>y&#1114125;🧬&Atilde;(+)&aacute;HindIIIend.",
+   "<5kb>AmpR�x>y�🧬Ã(+)áHindIIIend."
+  ],
+  [
+   "&Otilde;&yen;",
+   "Õ¥"
+  ],
+  [
+   "&zeta;&#1114108;&szlig;a;b&Ecirc;HindIII&pound;&#;&frasl;5′→3′Kan",
+   "ζ􏿼ßa;bÊHindIII£&#;⁄5′→3′Kan"
+  ],
+  [
+   "HindIII",
+   "HindIII"
+  ],
+  [
+   "&supe;&thetasym;&lowast;\"quoted\"[note]&#1114117;",
+   "⊇ϑ∗\"quoted\"[note]�"
+  ],
+  [
+   "&prop;Kan",
+   "∝Kan"
+  ],
+  [
+   "&#x2770;&frac12;&yuml;operator&cap;50%Kan&Prime;&otimes;",
+   "❰½ÿoperator∩50%Kan″⊗"
+  ],
+  [
+   "µg/ml&#475;&#x1bfa6;&#xZZ;&Iuml;&#32287;&#x1228a;&#56013;M13&ordm;",
+   "µg/mlǛ𛾦&#xZZ;Ï縟𒊊�M13º"
+  ],
+  [
+   "&#167499;SV40operator&sup3;&Sigma;&AElig;&psi;&phi;β-lactamase",
+   "𨹋SV40operator³ΣÆψφβ-lactamase"
+  ],
+  [
+   "SV40",
+   "SV40"
+  ],
+  [
+   "it's",
+   "it's"
+  ],
+  [
+   "[note]promoter&ugrave;&frac12;&#1114126;&Theta;&#1114109;&pi;& ",
+   "[note]promoterù½�Θ􏿽π& "
+  ],
+  [
+   "Neo&rsquo;",
+   "Neo’"
+  ],
+  [
+   "AmpR50%&sup1;&#x14950;operator&lsquo;&trade;&#55291;",
+   "AmpR50%¹𔥐operator‘™ퟻ"
+  ],
+  [
+   "operator&diams;KanA&B&#171432;&unknownentity;& ",
+   "operator♦KanA&B𩶨&unknownentity;& "
+  ],
+  [
+   "&amp;&#152279;&#56105;&#55545;&Auml;&#219;&frac12;& &#x22fd6;&eta;&#xZZ;&prod;",
+   "&𥋗��ÄÛ½& 𢿖η&#xZZ;∏"
+  ],
+  [
+   "&macr;Sp6&sup1;&Eta;&lfloor;&#1114103;&oslash;&#359;&#270;A&B&#185219;(+)",
+   "¯Sp6¹Η⌊􏿷øŧĎA&B𭎃(+)"
+  ],
+  [
+   "&#56292;(+)&#x2a997;&int;FLAG®&#57121;&exist;lac",
+   "�(+)𪦗∫FLAG®�∃lac"
+  ],
+  [
+   "&lt;&ugrave;",
+   "<ù"
+  ],
+  [
+   "&#1114116;Neo&Iota;&yuml;",
+   "�NeoΙÿ"
+  ],
+  [
+   "Kantab&sup2;&emsp;&#x6955;&otilde;&frac12;&Ouml;it's&#34242;",
+   "Kantab² 楕õ½Öit's藂"
+  ],
+  [
+   "🧬&#1114105;&#186164;pUC&hArr;β-lactamase",
+   "🧬􏿹𭜴pUC⇔β-lactamase"
+  ],
+  [
+   "&;x>y",
+   "&;x>y"
+  ],
+  [
+   "µg/ml",
+   "µg/ml"
+  ],
+  [
+   "&aring;His6β-lactamase37°CAT&T&prime;[note]",
+   "åHis6β-lactamase37°CAT&T′[note]"
+  ],
+  [
+   "&#x1c4ed;37°C&#;polyA(+)",
+   "𜓭37°C&#;polyA(+)"
+  ],
+  [
+   "&tilde;A&B",
+   "˜A&B"
+  ],
+  [
+   "it's&#188203;M13",
+   "it's𭼫M13"
+  ],
+  [
+   "&#43343;&OElig;&Kappa;&#56488;&Auml;&#;&#345;&oacute;key=value&sbquo;",
+   "ꥏŒΚ�Ä&#;řókey=value‚"
+  ],
+  [
+   "&#452;&#;&otimes;&frasl;&prime;&#x1df6f;&#x5000;&#110037;µg/ml&sup2;β-lactamase",
+   "Ǆ&#;⊗⁄′𝽯倀𚷕µg/ml²β-lactamase"
+  ],
+  [
+   "&#x12dfc;&#22229;&#x1092a;",
+   "𒷼囕𐤪"
+  ],
+  [
+   "&#x10559;Ori",
+   "𐕙Ori"
+  ],
+  [
+   "His6&#11621;Sp6&#x96d4;&amp;lac&#1114105;&perp;&ograve;&Aring;&#169338;",
+   "His6ⵥSp6雔&lac􏿹⊥òÅ𩕺"
+  ],
+  [
+   "5′→3′\"quoted\"&#98672;polyApolyAα-helixlac&curren;50%&iota;&#28396;&forall;",
+   "5′→3′\"quoted\"𘅰polyApolyAα-helixlac¤50%ι滬∀"
+  ],
+  [
+   "naïve&#57196;CMVA&B",
+   "naïve�CMVA&B"
+  ],
+  [
+   "&prod;&pi;end.&Chi;&#21265;Sp6&unknownentity;",
+   "∏πend.Χ匑Sp6&unknownentity;"
+  ],
+  [
+   "µg/mlpromoterFLAG®&Ograve;&nu;&epsilon;promoternaïveSV40&#441;&;CMV",
+   "µg/mlpromoterFLAG®ÒνεpromoternaïveSV40ƹ&;CMV"
+  ],
+  [
+   "&unknownentity;&plusmn;",
+   "&unknownentity;±"
+  ],
+  [
+   "&agrave;Kana;b&forall;M13",
+   "àKana;b∀M13"
+  ],
+  [
+   "&brvbar;Kan37°C",
+   "¦Kan37°C"
+  ],
+  [
+   "&#1114128;(+)operator&unknownentity;operator&Oslash;&ldquo;µg/ml&minus;",
+   "�(+)operator&unknownentity;operatorØ“µg/ml−"
+  ],
+  [
+   "&rArr;&dArr;&Psi;&#57235;AmpRoperator&#xcb2b;&Icirc;&#1114118;&upsilon;&sim;α-helix",
+   "⇒⇓Ψ�AmpRoperator쬫Î�υ∼α-helix"
+  ],
+  [
+   "37°C&ldquo;",
+   "37°C“"
+  ],
+  [
+   "&#1114116;&#xZZ;&ni;&#1114115;T7",
+   "�&#xZZ;∋�T7"
+  ],
+  [
+   "tab&omega;&cedil;&unknownentity;CMVT7&#56681;α-helix&divide;",
+   "tabω¸&unknownentity;CMVT7�α-helix÷"
+  ],
+  [
+   "(+)",
+   "(+)"
+  ],
+  [
+   "🧬&pi;&pound;[note]Sp6&#x9ff;&#1114116;EcoRICMVend.&Ouml;&#55373;",
+   "🧬π£[note]Sp6৿�EcoRICMVend.Ö�"
+  ],
+  [
+   "end.",
+   "end."
+  ],
+  [
+   "&lsquo;x>y&scaron;&#x1b3e8;&beta;&and;&#;&#210;&#169112;",
+   "‘x>yš𛏨β∧&#;Ò𩒘"
+  ],
+  [
+   "A&B&ndash;",
+   "A&B–"
+  ],
+  [
+   "&#374;&;&#35186;T7AmpR",
+   "Ŷ&;襲T7AmpR"
+  ],
+  [
+   "& &#509;&#x1820b;",
+   "& ǽ𘈋"
+  ],
+  [
+   "&#98;5′→3′&;His6&raquo;CMVtab&amp;🧬&euml;",
+   "b5′→3′&;His6»CMVtab&🧬ë"
+  ],
+  [
+   "it's&otilde;&#183;AmpR&sim;&#x28835;FLAG®\"quoted\"",
+   "it'sõ·AmpR∼𨠵FLAG®\"quoted\""
+  ],
+  [
+   "&#91;operator&#408;tab&#55626;&#x23af2;&#x20acf;&#x25663;HindIII&Ntilde;",
+   "[operatorƘtab�𣫲𠫏𥙣HindIIIÑ"
+  ],
+  [
+   "[note]SV40≥&#399;&exist;&oline;&uuml;",
+   "[note]SV40≥Ə∃‾ü"
+  ],
+  [
+   "&otilde;a;b&ordf;",
+   "õa;bª"
+  ],
+  [
+   "SV40operatorFLAG®&oacute;",
+   "SV40operatorFLAG®ó"
+  ],
+  [
+   "&unknownentity;≥CMV&#1114114;50%",
+   "&unknownentity;≥CMV�50%"
+  ],
+  [
+   "promoter&#56835;promoterend.A&B",
+   "promoter�promoterend.A&B"
+  ],
+  [
+   "<5kb>",
+   "<5kb>"
+  ],
+  [
+   "<5kb>A&BHindIII37°C& ",
+   "<5kb>A&BHindIII37°C& "
+  ],
+  [
+   "& &#x1f8dc;HindIII©≥&acute;β-lactamase",
+   "& 🣜HindIII©≥´β-lactamase"
+  ],
+  [
+   "operator&unknownentity;M13α-helixtab",
+   "operator&unknownentity;M13α-helixtab"
+  ],
+  [
+   "&isin;",
+   "∈"
+  ],
+  [
+   "&#55369;&#1114125;&rdquo;&#55371;",
+   "��”�"
+  ],
+  [
+   "&#xa55;",
+   "੕"
+  ],
+  [
+   "SV40promoterα-helixFLAG®M13[note]&darr;&amp;&#56549;SV40&#56854;&deg;",
+   "SV40promoterα-helixFLAG®M13[note]↓&�SV40�°"
+  ],
+  [
+   "&thetasym;≥&#187070;&Eacute;AmpR&#x25acc;",
+   "ϑ≥𭪾ÉAmpR𥫌"
+  ],
+  [
+   "&eth;",
+   "ð"
+  ],
+  [
+   "β-lactamase&ugrave;it'sAT&T&#57259;&auml;Sp6&#29855;&#1114111;",
+   "β-lactamaseùit'sAT&T�äSp6璟"
+  ],
+  [
+   "5′→3′&Yacute;&#xa0e2;&rsquo;&cent;\"quoted\"37°C",
+   "5′→3′Ýꃢ’¢\"quoted\"37°C"
+  ],
+  [
+   "&gt;",
+   ">"
+  ],
+  [
+   "&#x14791;&#x295a1;&#x1236d;Ori[note]&darr;&#x408d;&upsilon;&#x63e2;&#56656;50%&piv;",
+   "𔞑𩖡𒍭Ori[note]↓䂍υ揢�50%ϖ"
+  ],
+  [
+   "&#1114096;\"quoted\"&#19061;&gt;&#1114123;His6[note]",
+   "􏿰\"quoted\"䩵>�His6[note]"
+  ],
+  [
+   "\"quoted\"&;&Delta;promoter&oplus;&asymp;&gt;lac&#x23eac;&#x463e;end.naïve",
+   "\"quoted\"&;Δpromoter⊕≈>lac𣺬䘾end.naïve"
+  ],
+  [
+   "T7",
+   "T7"
+  ],
+  [
+   "&cedil;&;<5kb>&hearts;&Ugrave;&unknownentity;&#x6470;tab",
+   "¸&;<5kb>♥Ù&unknownentity;摰tab"
+  ],
+  [
+   "50%T7promoter&uArr;&Igrave;it's",
+   "50%T7promoter⇑Ìit's"
+  ],
+  [
+   "&oslash;polyA&nsub;β-lactamase&#x2fcd1;&ETH;&frac34;&#195655;&rArr;",
+   "øpolyA⊄β-lactamase𯳑Ð¾𯱇⇒"
+  ],
+  [
+   "T7&#x9daf;naïve&#377;≥AT&TAT&T",
+   "T7鶯naïveŹ≥AT&TAT&T"
+  ],
+  [
+   "<5kb>&lt;&#56811;&#1114103;&#249;50%Ori&sube;&lang;&#154;",
+   "<5kb><�􏿷ù50%Ori⊆⟨š"
+  ],
+  [
+   "&#289;&#11692;AT&Ta;b&#56515;EcoRI",
+   "ġⶬAT&Ta;b�EcoRI"
+  ],
+  [
+   "operator&iquest;&upsih;&Mu;&gt;<5kb>&#385;",
+   "operator¿ϒΜ><5kb>Ɓ"
+  ],
+  [
+   "&#56741;<5kb>& ",
+   "�<5kb>& "
+  ],
+  [
+   "&#316;key=value©&szlig;&#x2e44b;",
+   "ļkey=value©ß𮑋"
+  ],
+  [
+   "&oplus;β-lactamaseα-helix&#x2e2e1;&#55464;",
+   "⊕β-lactamaseα-helix𮋡�"
+  ],
+  [
+   "&egrave;EcoRI&#1114108;His6&#x1ab3d;&micro;&#x2d015;&infin;&tau;&icirc;",
+   "èEcoRI􏿼His6𚬽µ𭀕∞τî"
+  ],
+  [
+   "a;b&lambda;&Auml;AT&T&#56848;&ugrave;T7x>y&AElig;",
+   "a;bλÄAT&T�ùT7x>yÆ"
+  ],
+  [
+   "🧬&Auml;FLAG®&#1114101;&unknownentity;&trade;µg/ml&#xf8be;",
+   "🧬ÄFLAG®􏿵&unknownentity;™µg/ml"
+  ],
+  [
+   "&#x22651;&rarr;&#xZZ;operator&#9;&#1114102;&nbsp;&minus;&Aring;",
+   "𢙑→&#xZZ;operator\t􏿶 −Å"
+  ],
+  [
+   "&frasl;&epsilon;&dagger;&atilde;&rArr;&Uacute;&#71756;Ori&Sigma;&oline;& &#x1e7e5;",
+   "⁄ε†ã⇒Ú𑡌OriΣ‾& 𞟥"
+  ],
+  [
+   "&#;M13HindIII&#x1259;&Phi;&psi;&thetasym;&#1114120;pUC&rdquo;&Ntilde;",
+   "&#;M13HindIII቙Φψϑ�pUC”Ñ"
+  ],
+  [
+   "&kappa;&Ouml;[note]&#60981;&#64003;µg/mlpromoterlac&#129;Neo",
+   "κÖ[note]糖µg/mlpromoterlacNeo"
+  ],
+  [
+   "\"quoted\"&#x1a0;&#331;&#x46e0;&empty;Ori&agrave;",
+   "\"quoted\"Ơŋ䛠∅Orià"
+  ],
+  [
+   "Sp6",
+   "Sp6"
+  ],
+  [
+   "M13&#x1ca16;Kanoperator&egrave;&Egrave;EcoRI",
+   "M13𜨖KanoperatorèÈEcoRI"
+  ],
+  [
+   "α-helix&iquest;&rfloor;\"quoted\"&Mu;naïveT7SV40SV40&acirc;Ori&upsilon;",
+   "α-helix¿⌋\"quoted\"ΜnaïveT7SV40SV40âOriυ"
+  ],
+  [
+   "&#xZZ;&#1114123;",
+   "&#xZZ;�"
+  ],
+  [
+   "&Ograve;",
+   "Ò"
+  ],
+  [
+   "x>y",
+   "x>y"
+  ],
+  [
+   "&#404;&#xZZ;🧬&#xf84a;",
+   "Ɣ&#xZZ;🧬"
+  ],
+  [
+   "Sp6AT&T(+)",
+   "Sp6AT&T(+)"
+  ],
+  [
+   "&#x2aa11;tab\"quoted\"",
+   "𪨑tab\"quoted\""
+  ],
+  [
+   "A&B&#1114096;α-helixCMV&#x1286b;EcoRI&#x1dcb5;&perp;",
+   "A&B􏿰α-helixCMV𒡫EcoRI𝲵⊥"
+  ],
+  [
+   "5′→3′T7",
+   "5′→3′T7"
+  ],
+  [
+   "&ni;pUC&amp;µg/ml&sdot;37°CAmpR&#456;(+)a;b",
+   "∋pUC&µg/ml⋅37°CAmpRǈ(+)a;b"
+  ],
+  [
+   "it's&omega;&#1114125;AmpR&loz;T750%&diams;CMVCMV&#353;🧬",
+   "it'sω�AmpR◊T750%♦CMVCMVš🧬"
+  ],
+  [
+   "&#xd539;37°C&sect;&#144157;&mdash;CMV",
+   "픹37°C§𣌝—CMV"
+  ],
+  [
+   "A&Btab&#56210;&part;&#x2089e;polyAα-helixkey=valuepromoter&#x13f2b;",
+   "A&Btab�∂𠢞polyAα-helixkey=valuepromoter𓼫"
+  ],
+  [
+   "&#187;&#;&#55472;&#1114113;Sp6end.&#135200;&#55397;",
+   "»&#;��Sp6end.𡀠�"
+  ],
+  [
+   "&frac12;",
+   "½"
+  ],
+  [
+   "&macr;&#;&#172;CMV&#190209;&#;&piv;&#x5082;",
+   "¯&#;¬CMV𮜁&#;ϖ傂"
+  ],
+  [
+   "\"quoted\"&unknownentity;Neo&#x26a75;key=valuekey=value&#162955;operator©",
+   "\"quoted\"&unknownentity;Neo𦩵key=valuekey=value𧲋operator©"
+  ],
+  [
+   "&ni;&yacute;&empty;&#56099;&THORN;&#x1a730;CMVHindIII",
+   "∋ý∅�Þ𚜰CMVHindIII"
+  ],
+  [
+   "&Zeta;&#132039;&uacute;&#1114104;FLAG®",
+   "Ζ𠏇ú􏿸FLAG®"
+  ],
+  [
+   "&#x2d2c4;M13EcoRI",
+   "𭋄M13EcoRI"
+  ],
+  [
+   "&uArr;&#x2f399;",
+   "⇑𯎙"
+  ],
+  [
+   "&Iacute;≥&#xZZ;&sum;key=valueAT&T&#x19f0d;&OElig;&#x1417b;&Epsilon;&unknownentity;Sp6",
+   "Í≥&#xZZ;∑key=valueAT&T𙼍Œ𔅻Ε&unknownentity;Sp6"
+  ],
+  [
+   "&tau;&euro;",
+   "τ€"
+  ],
+  [
+   "tabNeo&otilde;&Atilde;naïve&#x2c3f3;Sp6&there4;a;b",
+   "tabNeoõÃnaïve𬏳Sp6∴a;b"
+  ],
+  [
+   "a;b&#1114117;≥&Beta;&#x26ed;His6\"quoted\"50%&Omicron;end.&;&Scaron;",
+   "a;b�≥Β⛭His6\"quoted\"50%Οend.&;Š"
+  ],
+  [
+   "&#xc142;&#148329;&quot;Sp6&#155206;",
+   "셂𤍩\"Sp6𥹆"
+  ],
+  [
+   "(+)&unknownentity;&Ucirc;x>y&sect;pUC&part;M13&#x2b1eb;Kan",
+   "(+)&unknownentity;Ûx>y§pUC∂M13𫇫Kan"
+  ],
+  [
+   "&oplus;&exist;&#x7cb5;T7&#1114101;& AT&TKan&isin;",
+   "⊕∃粵T7􏿵& AT&TKan∈"
+  ],
+  [
+   "&psi;&icirc;&ouml;&#x24dca;&rarr;pUCT7",
+   "ψîö𤷊→pUCT7"
+  ],
+  [
+   "&#56092;",
+   "�"
+  ],
+  [
+   "M13&#56587;& 50%& &nabla;",
+   "M13�& 50%& ∇"
+  ],
+  [
+   "&iota;operatorµg/mlpromoter& ",
+   "ιoperatorµg/mlpromoter& "
+  ],
+  [
+   "&#x1014e;&piv;&#x26e59;polyA",
+   "𐅎ϖ𦹙polyA"
+  ],
+  [
+   "naïve&#x11f19;&unknownentity;&ETH;a;bCMV&#x1a0f9;",
+   "naïve𑼙&unknownentity;Ða;bCMV𚃹"
+  ],
+  [
+   "a;b",
+   "a;b"
+  ],
+  [
+   "&Ccedil;&darr;&#x21035;pUCpUC",
+   "Ç↓𡀵pUCpUC"
+  ],
+  [
+   "&#1114117;&unknownentity;&Omicron;FLAG®SV40&szlig;&#1114098;operator&#x2d353;Sp6&Theta;&#x16ccd;",
+   "�&unknownentity;ΟFLAG®SV40ß􏿲operator𭍓Sp6Θ𖳍"
+  ],
+  [
+   "it'sCMV&Icirc;&rarr;&#xZZ;&unknownentity;",
+   "it'sCMVÎ→&#xZZ;&unknownentity;"
+  ],
+  [
+   "&#1114112;&#43248;",
+   "�꣰"
+  ],
+  [
+   "&lrm;&zeta;&#1114107;Ori",
+   "‎ζ􏿻Ori"
+  ],
+  [
+   "end.&#26247;5′→3′&#x18bdf;FLAG®&#x103f;&#x2a3e1;",
+   "end.暇5′→3′𘯟FLAG®ဿ𪏡"
+  ],
+  [
+   "AmpR&plusmn;[note]&euml;Ori&#132120;&minus;&#1114102;",
+   "AmpR±[note]ëOri𠐘−􏿶"
+  ],
+  [
+   "&#xZZ;HindIIIµg/ml&#x7248;operator&delta;&AElig;operator&#x22d48;&iexcl;",
+   "&#xZZ;HindIIIµg/ml版operatorδÆoperator𢵈¡"
+  ],
+  [
+   "&Eacute;&gamma;tabOri&#294;AmpR&#1114100;",
+   "ÉγtabOriĦAmpR􏿴"
+  ],
+  [
+   "&omega;T7&Ocirc;&#x121fd;& EcoRINeoit's& &unknownentity;polyA&amp;",
+   "ωT7Ô𒇽& EcoRINeoit's& &unknownentity;polyA&"
+  ],
+  [
+   "&#1114105;&#x226cc;&emsp;&micro;a;b&euml;&#262;&Iacute;",
+   "􏿹𢛌 µa;bëĆÍ"
+  ],
+  [
+   "AmpRAT&T&#16409;",
+   "AmpRAT&T䀙"
+  ],
+  [
+   "<5kb>&Egrave;",
+   "<5kb>È"
+  ],
+  [
+   "&trade;&#1114116;&#x8e75;lac&#21;≥&ldquo;&radic;&#268;T7&#255;",
+   "™�蹵lac≥“√ČT7ÿ"
+  ],
+  [
+   "&cup;&rsaquo;&unknownentity;",
+   "∪›&unknownentity;"
+  ],
+  [
+   "&#228;His6&#;&#179430;&Tau;(+)&#480;&unknownentity;&#xafad;&AElig;key=value",
+   "äHis6&#;𫳦Τ(+)Ǡ&unknownentity;꾭Ækey=value"
+  ],
+  [
+   "SV40&#x11742;&#55918;&#146;&Ugrave;",
+   "SV40𑝂�’Ù"
+  ],
+  [
+   "polyA",
+   "polyA"
+  ],
+  [
+   "key=value&icirc;M13&#122479;&unknownentity;&eta;&hearts;&rceil;&Psi;AmpR",
+   "key=valueîM13𝹯&unknownentity;η♥⌉ΨAmpR"
+  ],
+  [
+   "&#55980;&Kappa;&#x1f105;Ori&#x5c24;&#xZZ;&#1114102;🧬",
+   "�Κ🄅Ori尤&#xZZ;􏿶🧬"
+  ],
+  [
+   "SV40&#146279;&#1114119;FLAG®",
+   "SV40𣭧�FLAG®"
+  ],
+  [
+   "&sim;lac<5kb>\"quoted\"&acirc;&#1114097;β-lactamase&infin;",
+   "∼lac<5kb>\"quoted\"â􏿱β-lactamase∞"
+  ],
+  [
+   "&#x1d15c;&#x10338;OriFLAG®&#259;promoter&copy;&amp;&#179;FLAG®",
+   "𝅜𐌸OriFLAG®ăpromoter©&³FLAG®"
+  ],
+  [
+   "CMV&#x20e25;&Igrave;&frac34;T7&#75773;promoter&xi;&cent;",
+   "CMV𠸥Ì¾T7𒟽promoterξ¢"
+  ],
+  [
+   "Sp6&aring;&copy;&divide;&amp;&rdquo;",
+   "Sp6å©÷&”"
+  ],
+  [
+   "lac&thetasym;&Aacute;&amp;&radic;AT&TOri",
+   "lacϑÁ&√AT&TOri"
+  ],
+  [
+   "it's&eth;&Ntilde;&psi;lac",
+   "it'sðÑψlac"
+  ],
+  [
+   "🧬Ori",
+   "🧬Ori"
+  ],
+  [
+   "β-lactamase&notin;&#260;&#x299d8;&Aacute;&#x16e4f;&#259;",
+   "β-lactamase∉Ą𩧘Á𖹏ă"
+  ],
+  [
+   "promoter&#55575;&;&asymp;",
+   "promoter�&;≈"
+  ],
+  [
+   "&#xd7db;(+)&ecirc;&#xcf10;AT&T&#xZZ;&frasl;&#407;(+)",
+   "ퟛ(+)ê켐AT&T&#xZZ;⁄Ɨ(+)"
+  ],
+  [
+   "Sp6CMV&or;",
+   "Sp6CMV∨"
+  ],
+  [
+   "&#x1ce5c;&perp;lac&Icirc;\"quoted\"operatorit's",
+   "𜹜⊥lacÎ\"quoted\"operatorit's"
+  ],
+  [
+   "&Oslash;&#1114108;&#56922;it'skey=valueHindIIIlac&Ocirc;",
+   "Ø􏿼�it'skey=valueHindIIIlacÔ"
+  ],
+  [
+   "&#55500;&#xZZ;end.M13&frasl;",
+   "�&#xZZ;end.M13⁄"
+  ],
+  [
+   "His6SV40Ori&sup2;&#x161af;",
+   "His6SV40Ori²𖆯"
+  ],
+  [
+   "&#x1b4a8;",
+   "𛒨"
+  ],
+  [
+   "&#x1c395;&#;AT&T&kappa;AmpR37°C&lambda;",
+   "𜎕&#;AT&TκAmpR37°Cλ"
+  ],
+  [
+   "promoter&#56394;A&B",
+   "promoter�A&B"
+  ],
+  [
+   "it's&dArr;&mdash;naïve&#x1cc89;&#x9aa7;&acute;&Chi;&pound;",
+   "it's⇓—naïve𜲉骧´Χ£"
+  ],
+  [
+   "&#139512;&rang;&#x2c32;&phi;&sigma;&#x6749;",
+   "𢃸⟩ⰲφσ杉"
+  ],
+  [
+   "&#161868;&#x8ff4;&sub;&#196;&Oacute;Kan&;&#x1960b;&harr;α-helix37°C&#80195;",
+   "𧡌迴⊂ÄÓKan&;𙘋↔α-helix37°C𓥃"
+  ],
+  [
+   "&#55462;&#1114121;key=valueEcoRISV40EcoRI",
+   "��key=valueEcoRISV40EcoRI"
+  ],
+  [
+   "operatorkey=value50%lac&int;",
+   "operatorkey=value50%lac∫"
+  ],
+  [
+   "&#xc03;&unknownentity;",
+   "ః&unknownentity;"
+  ],
+  [
+   "AT&T&sigma;&oacute;&#x22e7b;Sp6&amp;&#x261bd;&infin;&brvbar;&#67838;≥",
+   "AT&Tσó𢹻Sp6&𦆽∞¦𐣾≥"
+  ],
+  [
+   "&pound;&cedil;&#x2fb7;tab",
+   "£¸⾷tab"
+  ],
+  [
+   "&larr;≥",
+   "←≥"
+  ],
+  [
+   "AT&T&#166;&ordf;&uacute;&hellip;",
+   "AT&T¦ªú…"
+  ],
+  [
+   "&theta;&Scaron;&#;&gamma;",
+   "θŠ&#;γ"
+  ],
+  [
+   "&frac12;end.&Ucirc;Kan& &ge;",
+   "½end.ÛKan& ≥"
+  ],
+  [
+   "SV40&infin;&Otilde;&#x1c878;",
+   "SV40∞Õ𜡸"
+  ],
+  [
+   "µg/mlT7promoterit's",
+   "µg/mlT7promoterit's"
+  ],
+  [
+   "SV40&cap;&sub;key=value&sube;T7&rfloor;&#x2e637;",
+   "SV40∩⊂key=value⊆T7⌋𮘷"
+  ],
+  [
+   "Neo&pi;CMV&#369;&ordf;µg/ml&lt;taboperator&#x2bbe8;&oelig;",
+   "NeoπCMVűªµg/ml<taboperator𫯨œ"
+  ],
+  [
+   "tab",
+   "tab"
+  ],
+  [
+   "SV40end.&thinsp;&#x6928;&empty;operator&zwj;",
+   "SV40end. 椨∅operator‍"
+  ],
+  [
+   "&#xa9be;tab",
+   "ꦾtab"
+  ],
+  [
+   "Ori&Oslash;&#1114109;&diams;AT&T&part;",
+   "OriØ􏿽♦AT&T∂"
+  ],
+  [
+   "\"quoted\"5′→3′&#x24899;&#x2ed54;&times;",
+   "\"quoted\"5′→3′𤢙𮵔×"
+  ],
+  [
+   "≥&#1114124;&harr;&#160140;promoter&oline;key=value",
+   "≥�↔𧆌promoter‾key=value"
+  ],
+  [
+   "&#x169aa;&#x2e5c5;&#56939;&Alpha;",
+   "𖦪𮗅�Α"
+  ],
+  [
+   "&#450;&#x2aa15;EcoRI&amp;",
+   "ǂ𪨕EcoRI&"
+  ]
+ ]
+}

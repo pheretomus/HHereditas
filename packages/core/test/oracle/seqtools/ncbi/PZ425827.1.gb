@@ -1,0 +1,57 @@
+LOCUS       PZ425827                1007 bp    mRNA    linear   PLN 11-AUG-2026
+DEFINITION  Ipomoea batatas actin mRNA, partial cds.
+ACCESSION   PZ425827
+VERSION     PZ425827.1
+KEYWORDS    .
+SOURCE      Ipomoea batatas (sweet potato)
+  ORGANISM  Ipomoea batatas
+            Eukaryota; Viridiplantae; Streptophyta; Embryophyta; Tracheophyta;
+            Spermatophyta; Magnoliopsida; eudicotyledons; Gunneridae;
+            Pentapetalae; asterids; lamiids; Solanales; Convolvulaceae;
+            Ipomoeeae; Ipomoea.
+REFERENCE   1  (bases 1 to 1007)
+  AUTHORS   Wang,F.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (17-MAY-2026) Crop Research Institute, Sichuan Academy of
+            Agriculture Science, JJS20, SC 10019, China
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1007
+                     /organism="Ipomoea batatas"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:4120"
+                     /geo_loc_name="China: Sichuan Chengdu"
+                     /collection_date="20-Jul-2021"
+     CDS             <1..>1007
+                     /codon_start=1
+                     /product="actin"
+                     /protein_id="YGD30200.1"
+                     /translation="MADAEDIQPLVCDNGTGMVKVSLIVNIHVSVAIKCFPVLLVVPR
+                     HTGVMVGMGQKDAYVGDEAQSKRGILTLKYPIEHGIVSNWDDMEKIWHHTFYNELRVA
+                     PEEHPVLLTEAPLNPKANREKMTQIMFETFNVPAMYVAIQAVLSLYASGRTTGIVLDS
+                     GDGVSHTVPIYEGYALPHAILRLDLAGRDLTDHLMKILTERGYMFTTTAEREIVRDMK
+                     EKLAYVALDYEQEIETARSSSSIEKNYELPDGQVITIGAERFRCPEVLFQPSMIGMEA
+                     AGIHETTYNSIMKCDVDIRKDLYGNIVLSGGSTMFPGIADRMSKEITALAPSSMKIKV
+                     VA"
+ORIGIN      
+        1 atggcagatg ctgaggatat tcagcccctt gtctgtgaca atggaacggg aatggtgaag
+       61 gttagtctga ttgttaatat tcatgtgtct gtagccataa agtgtttccc agtattgttg
+      121 gtcgtcccta ggcacactgg tgttatggtt gggatgggac agaaagatgc ttatgtgggt
+      181 gatgaagccc agtctaagag aggtatcttg accttgaaat accccattga gcatggtatt
+      241 gtcagcaact gggatgacat ggaaaagatt tggcatcaca cattctacaa tgagcttcgt
+      301 gttgctcctg aggagcatcc tgtccttctc actgaggcac ccctcaaccc caaagctaac
+      361 agggagaaga tgacccaaat catgtttgag acttttaatg ttcctgctat gtatgttgct
+      421 attcaggctg tgctgtctct ctatgccagt ggtcgtacaa ctggtattgt gctggattct
+      481 ggtgatggtg ttagtcacac agtaccaatt tatgaaggtt atgcccttcc tcatgccatc
+      541 cttaggttgg accttgctgg ccgtgatctc actgatcatc taatgaagat tctcaccgaa
+      601 agaggctaca tgttcaccac tactgctgag cgggaaattg ttcgcgacat gaaggaaaag
+      661 cttgcatatg tggcccttga ctacgagcaa gagattgaaa cagcaaggag cagctcctct
+      721 attgagaaga actatgagtt gcctgatgga caggtaatta caattggagc tgagagattc
+      781 cgttgcccag aagtcctatt ccagccatct atgattggaa tggaagctgc gggtattcat
+      841 gagactacct acaactccat catgaagtgt gatgtagata ttaggaagga cctctatggt
+      901 aacattgttc tcagtggtgg ttctaccatg tttcctggta ttgccgatcg tatgagcaag
+      961 gaaatcaccg ctctggcacc cagcagcatg aagattaagg ttgtcgc
+//
+

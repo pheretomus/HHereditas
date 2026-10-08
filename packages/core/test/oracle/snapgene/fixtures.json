@@ -1,0 +1,3479 @@
+{
+ "biopython": "1.88",
+ "files": {
+  "linebreak_in_qualifier_text.dna": {
+   "biopython": {
+    "date": "2025-12-01",
+    "description": "<unknown description>",
+    "division": "UNC",
+    "feature_types": [
+     "oriT",
+     "primer_bind",
+     "primer_bind",
+     "primer_bind"
+    ],
+    "id": "<unknown id>",
+    "name": "<unknown name>",
+    "seq": "cttttccgctgcataaccctgcttcggggtcattatagcgattttttcggtatatccatcctttttcgcacgatatacaggattttgccaaagggttcgtgtagactttccttggtgtatccaacggcgtcagccgggcaggataggtgaagtaggcccacccgcgagcgggtgttccttcttcactgtcccttattcgcacctggcggtgctcaacgggaatcctgctctgcgaggctggccgta",
+    "topology": "linear"
+   },
+   "expected": {
+    "description": "",
+    "features": [
+     {
+      "alignment": [
+       [
+        "same",
+        "Origin of transference region of RP4 plasmid"
+       ],
+       [
+        "same",
+        "oriT"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         0,
+         246,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "Origin of transference region of RP4 plasmid"
+         ]
+        ],
+        [
+         "label",
+         [
+          "oriT"
+         ]
+        ]
+       ],
+       "type": "oriT"
+      },
+      "color": "#a6acb3",
+      "name": "oriT",
+      "qualifiers": [
+       [
+        "note",
+        "Origin of transference region of RP4 plasmid"
+       ],
+       [
+        "label",
+        "oriT"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        0,
+        246
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body><!--StartFragment-->Origin of transference region of RP4 plasmid<!--EndFragment-->\n\n</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "oriT"
+       }
+      ],
+      "strand": 0,
+      "type": "oriT"
+     }
+    ],
+    "meta": {
+     "date": "01-DEC-2025",
+     "division": "UNA",
+     "extras": {
+      "Created": "2025.12.1",
+      "Created.UTC": "10:23:26",
+      "CreatedBy": "SnapGene License",
+      "DamMethylated": "0",
+      "DcmMethylated": "0",
+      "DownstreamModification": "Unmodified",
+      "EcoKIMethylated": "0",
+      "LastModified": "2025.12.1",
+      "LastModified.UTC": "10:23:26",
+      "SequenceClass": "UNA",
+      "Strandedness": "double",
+      "TransformedInto": "unspecified",
+      "Type": "Natural",
+      "UUID": "eb744748-5fd7-4da4-830c-7f071b9105e7",
+      "UpstreamModification": "Unmodified"
+     },
+     "sourceFormat": "snapgene"
+    },
+    "name": "linebreak_in_qualifier_text",
+    "primers": [
+     {
+      "name": "AC4_Fragment.REV",
+      "sequence": "TAATTATTGGGGACCCCTGGTATAAACGCAGAAAGGCCCACCC"
+     },
+     {
+      "description": "05/09/2017,Alex Primers 1,37",
+      "name": "P.SEVA.AbR.R",
+      "sequence": "TCGCTATAATGACCCCGAAGC"
+     },
+     {
+      "description": "03/08/2017,Alex Primers 1,33",
+      "name": "P.SEVA.ORI.F",
+      "sequence": "CGGTGCTCAACGGGAATC"
+     }
+    ],
+    "seq": "CTTTTCCGCTGCATAACCCTGCTTCGGGGTCATTATAGCGATTTTTTCGGTATATCCATCCTTTTTCGCACGATATACAGGATTTTGCCAAAGGGTTCGTGTAGACTTTCCTTGGTGTATCCAACGGCGTCAGCCGGGCAGGATAGGTGAAGTAGGCCCACCCGCGAGCGGGTGTTCCTTCTTCACTGTCCCTTATTCGCACCTGGCGGTGCTCAACGGGAATCCTGCTCTGCGAGGCTGGCCGTA",
+    "topology": "linear"
+   },
+   "raw": {
+    "cookie": [
+     1,
+     15,
+     19
+    ],
+    "dna": {
+     "flags": 2,
+     "length": 246
+    },
+    "packets": [
+     [
+      9,
+      0,
+      14
+     ],
+     [
+      0,
+      19,
+      247
+     ],
+     [
+      3,
+      271,
+      7824
+     ],
+     [
+      17,
+      8100,
+      45
+     ],
+     [
+      8,
+      8150,
+      263
+     ],
+     [
+      10,
+      8418,
+      417
+     ],
+     [
+      5,
+      8840,
+      1980
+     ],
+     [
+      6,
+      10825,
+      308
+     ],
+     [
+      13,
+      11138,
+      345
+     ],
+     [
+      28,
+      11488,
+      51
+     ],
+     [
+      14,
+      11544,
+      41
+     ]
+    ],
+    "truncated": null,
+    "xml": [
+     {
+      "offset": 8150,
+      "root": "AdditionalSequenceProperties",
+      "type": 8
+     },
+     {
+      "offset": 8418,
+      "root": "Features",
+      "type": 10
+     },
+     {
+      "offset": 8840,
+      "root": "Primers",
+      "type": 5
+     },
+     {
+      "offset": 10825,
+      "root": "Notes",
+      "type": 6
+     }
+    ]
+   }
+  },
+  "looped_feature.dna": {
+   "biopython": {
+    "date": "2026-02-18",
+    "description": "<unknown description>",
+    "division": "SYN",
+    "feature_types": [
+     "misc_feature"
+    ],
+    "id": "<unknown id>",
+    "name": "<unknown name>",
+    "seq": "AAAAAAAAAA",
+    "topology": "circular"
+   },
+   "expected": {
+    "description": "",
+    "features": [
+     {
+      "alignment": [
+       [
+        "same",
+        "Feature 1"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         2,
+         10,
+         1
+        ],
+        [
+         0,
+         2,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "label",
+         [
+          "Feature 1"
+         ]
+        ]
+       ],
+       "type": "misc_feature"
+      },
+      "color": "#a6acb3",
+      "name": "Feature 1",
+      "qualifiers": [
+       [
+        "label",
+        "Feature 1"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        2,
+        12
+       ]
+      ],
+      "sources": [
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "Feature 1"
+       }
+      ],
+      "strand": 0,
+      "type": "misc_feature"
+     }
+    ],
+    "meta": {
+     "date": "18-FEB-2026",
+     "division": "SYN",
+     "extras": {
+      "ConfirmedExperimentally": "0",
+      "Created": "2026.2.18",
+      "Created.UTC": "11:51:22",
+      "CreatedBy": "SnapGene License",
+      "DamMethylated": "1",
+      "DcmMethylated": "1",
+      "DownstreamModification": "FivePrimePhosphorylated",
+      "EcoKIMethylated": "1",
+      "LastModified": "2026.2.18",
+      "LastModified.UTC": "11:52:52",
+      "SequenceClass": "UNA",
+      "Strandedness": "double",
+      "TransformedInto": "unspecified",
+      "Type": "Synthetic",
+      "UUID": "8f736d9b-eecc-4435-aaa9-fd271fc8fca5",
+      "UpstreamModification": "FivePrimePhosphorylated"
+     },
+     "sourceFormat": "snapgene"
+    },
+    "name": "looped_feature",
+    "primers": [],
+    "seq": "AAAAAAAAAA",
+    "topology": "circular"
+   },
+   "raw": {
+    "cookie": [
+     1,
+     15,
+     20
+    ],
+    "dna": {
+     "flags": 31,
+     "length": 10
+    },
+    "packets": [
+     [
+      9,
+      0,
+      14
+     ],
+     [
+      0,
+      19,
+      11
+     ],
+     [
+      3,
+      35,
+      7656
+     ],
+     [
+      11,
+      7696,
+      922
+     ],
+     [
+      7,
+      8623,
+      388
+     ],
+     [
+      17,
+      9016,
+      45
+     ],
+     [
+      8,
+      9066,
+      289
+     ],
+     [
+      10,
+      9360,
+      243
+     ],
+     [
+      5,
+      9608,
+      217
+     ],
+     [
+      6,
+      9830,
+      363
+     ],
+     [
+      13,
+      10198,
+      345
+     ],
+     [
+      35,
+      10548,
+      60
+     ],
+     [
+      28,
+      10613,
+      51
+     ],
+     [
+      14,
+      10669,
+      41
+     ]
+    ],
+    "truncated": null,
+    "xml": [
+     {
+      "offset": 9066,
+      "root": "AdditionalSequenceProperties",
+      "type": 8
+     },
+     {
+      "offset": 9360,
+      "root": "Features",
+      "type": 10
+     },
+     {
+      "offset": 9608,
+      "root": "Primers",
+      "type": 5
+     },
+     {
+      "offset": 9830,
+      "root": "Notes",
+      "type": 6
+     }
+    ]
+   }
+  },
+  "looped_feature_origin.dna": {
+   "biopython": {
+    "date": "2026-02-18",
+    "description": "<unknown description>",
+    "division": "SYN",
+    "feature_types": [
+     "misc_feature"
+    ],
+    "id": "<unknown id>",
+    "name": "<unknown name>",
+    "seq": "AAAAAAAAAA",
+    "topology": "circular"
+   },
+   "expected": {
+    "description": "",
+    "features": [
+     {
+      "alignment": [
+       [
+        "same",
+        "looped_from_origin"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         0,
+         10,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "label",
+         [
+          "looped_from_origin"
+         ]
+        ]
+       ],
+       "type": "misc_feature"
+      },
+      "color": "#a6acb3",
+      "name": "looped_from_origin",
+      "qualifiers": [
+       [
+        "label",
+        "looped_from_origin"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        0,
+        10
+       ]
+      ],
+      "sources": [
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "looped_from_origin"
+       }
+      ],
+      "strand": 0,
+      "type": "misc_feature"
+     }
+    ],
+    "meta": {
+     "date": "18-FEB-2026",
+     "division": "SYN",
+     "extras": {
+      "ConfirmedExperimentally": "0",
+      "Created": "2026.2.18",
+      "Created.UTC": "12:0:48",
+      "CreatedBy": "SnapGene License",
+      "DamMethylated": "0",
+      "DcmMethylated": "0",
+      "DownstreamModification": "FivePrimePhosphorylated",
+      "EcoKIMethylated": "0",
+      "LastModified": "2026.2.18",
+      "LastModified.UTC": "12:0:48",
+      "SequenceClass": "UNA",
+      "Strandedness": "double",
+      "TransformedInto": "unspecified",
+      "Type": "Synthetic",
+      "UUID": "10f4f06f-3bf5-46cc-990d-447b9fbce7f3",
+      "UpstreamModification": "FivePrimePhosphorylated"
+     },
+     "sourceFormat": "snapgene"
+    },
+    "name": "looped_feature_origin",
+    "primers": [],
+    "seq": "AAAAAAAAAA",
+    "topology": "circular"
+   },
+   "raw": {
+    "cookie": [
+     1,
+     15,
+     20
+    ],
+    "dna": {
+     "flags": 3,
+     "length": 10
+    },
+    "packets": [
+     [
+      9,
+      0,
+      14
+     ],
+     [
+      0,
+      19,
+      11
+     ],
+     [
+      3,
+      35,
+      7656
+     ],
+     [
+      11,
+      7696,
+      1054
+     ],
+     [
+      11,
+      8755,
+      914
+     ],
+     [
+      11,
+      9674,
+      755
+     ],
+     [
+      7,
+      10434,
+      624
+     ],
+     [
+      17,
+      11063,
+      45
+     ],
+     [
+      8,
+      11113,
+      289
+     ],
+     [
+      10,
+      11407,
+      253
+     ],
+     [
+      5,
+      11665,
+      217
+     ],
+     [
+      6,
+      11887,
+      361
+     ],
+     [
+      13,
+      12253,
+      345
+     ],
+     [
+      35,
+      12603,
+      60
+     ],
+     [
+      28,
+      12668,
+      51
+     ],
+     [
+      14,
+      12724,
+      41
+     ]
+    ],
+    "truncated": null,
+    "xml": [
+     {
+      "offset": 11113,
+      "root": "AdditionalSequenceProperties",
+      "type": 8
+     },
+     {
+      "offset": 11407,
+      "root": "Features",
+      "type": 10
+     },
+     {
+      "offset": 11665,
+      "root": "Primers",
+      "type": 5
+     },
+     {
+      "offset": 11887,
+      "root": "Notes",
+      "type": 6
+     }
+    ]
+   }
+  },
+  "pFA-KanMX4.dna": {
+   "biopython": {
+    "date": "2020-07-30",
+    "description": "<unknown description>",
+    "division": "SYN",
+    "feature_types": [
+     "promoter",
+     "promoter",
+     "promoter",
+     "terminator",
+     "promoter",
+     "rep_origin",
+     "CDS",
+     "CDS",
+     "gene"
+    ],
+    "id": "<unknown id>",
+    "name": "<unknown name>",
+    "seq": "GAACGCGGCCGCCAGCTGAAGCTTCGTACGCTGCAGGTCGACGGATCCCCGGGTTAATTAAGGCGCGCCAGATCTGTTTAGCTTGCCTCGTCCCCGCCGGGTCACCCGGCCAGCGACATGGAGGCCCAGAATACCCTCCTTGACAGTCTTGACGTGCGCAGCTCAGGGGCATGATGTGACTGTCGCCCGTACATTTAGCCCATACATCCCCATGTATAATCATTTGCATCCATACATTTTGATGGCCGCACGGCGCGAAGCAAAAATTACGGCTCCTCGCTGCAGACCTGCGAGCAGGGAAACGCTCCCCTCACAGACGCGTTGAATTGTCCCCACGCCGCGCCCCTGTAGAGAAATATAAAAGGTTAGGATTTGCCACTGAGGTTCTTCTTTCATATACTTCCTTTTAAAATCTTGCTAGGATACAGTTCTCACATCACATCCGAACATAAACAACCATGGGTAAGGAAAAGACTCACGTTTCGAGGCCGCGATTAAATTCCAACATGGATGCTGATTTATATGGGTATAAATGGGCTCGCGATAATGTCGGGCAATCAGGTGCGACAATCTATCGATTGTATGGGAAGCCCGATGCGCCAGAGTTGTTTCTGAAACATGGCAAAGGTAGCGTTGCCAATGATGTTACAGATGAGATGGTCAGACTAAACTGGCTGACGGAATTTATGCCTCTTCCGACCATCAAGCATTTTATCCGTACTCCTGATGATGCATGGTTACTCACCACTGCGATCCCCGGCAAAACAGCATTCCAGGTATTAGAAGAATATCCTGATTCAGGTGAAAATATTGTTGATGCGCTGGCAGTGTTCCTGCGCCGGTTGCATTCGATTCCTGTTTGTAATTGTCCTTTTAACAGCGATCGCGTATTTCGTCTCGCTCAGGCGCAATCACGAATGAATAACGGTTTGGTTGATGCGAGTGATTTTGATGACGAGCGTAATGGCTGGCCTGTTGAACAAGTCTGGAAAGAAATGCATAAGCTTTTGCCATTCTCACCGGATTCAGTCGTCACTCATGGTGATTTCTCACTTGATAACCTTATTTTTGACGAGGGGAAATTAATAGGTTGTATTGATGTTGGACGAGTCGGAATCGCAGACCGATACCAGGATCTTGCCATCCTATGGAACTGCCTCGGTGAGTTTTCTCCTTCATTACAGAAACGGCTTTTTCAAAAATATGGTATTGATAATCCTGATATGAATAAATTGCAGTTTCATTTGATGCTCGATGAGTTTTTCTAATCAGTACTGACAATAAAAAGATTCTTGTTTTCAAGAACTTGTCATTTGTATAGTTTTTTTATATTGTAGTTGTTCTATTTTAATCAAATGTTAGCGTGATTTATATTTTTTTTCGCCTCGACATCATCTGCCCAGATGCGAAGTTAAGTGCGCAGAAAGTAATATCATGCGTCAATCGTATGTGAATGCTGGTCGCTATACTGCTGTCGATTCGATACTAACGCCGCCATCCAGTGTCGAAAACGAGCTCGAATTCATCGATGATATCAGATCCACTAGTGGCCTATGCGGCCGCGGATCTGCCGGTCTCCCTATAGTGAGTCGTATTAATTTCGATAAGCCAGGTTAACCTGCATTAATGAATCGGCCAACGCGCGGGGAGAGGCGGTTTGCGTATTGGGCGCTCTTCCGCTTCCTCGCTCACTGACTCGCTGCGCTCGGTCGTTCGGCTGCGGCGAGCGGTATCAGCTCACTCAAAGGCGGTAATACGGTTATCCACAGAATCAGGGGATAACGCAGGAAAGAACATGTGAGCAAAAGGCCAGCAAAAGGCCAGGAACCGTAAAAAGGCCGCGTTGCTGGCGTTTTTCCATAGGCTCCGCCCCCCTGACGAGCATCACAAAAATCGACGCTCAAGTCAGAGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGAAGCTCCCTCGTGCGCTCTCCTGTTCCGACCCTGCCGCTTACCGGATACCTGTCCGCCTTTCTCCCTTCGGGAAGCGTGGCGCTTTCTCAATGCTCACGCTGTAGGTATCTCAGTTCGGTGTAGGTCGTTCGCTCCAAGCTGGGCTGTGTGCACGAACCCCCCGTTCAGCCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGTAAGACACGACTTATCGCCACTGGCAGCAGCCACTGGTAACAGGATTAGCAGAGCGAGGTATGTAGGCGGTGCTACAGAGTTCTTGAAGTGGTGGCCTAACTACGGCTACACTAGAAGGACAGTATTTGGTATCTGCGCTCTGCTGAAGCCAGTTACCTTCGGAAAAAGAGTTGGTAGCTCTTGATCCGGCAAACAAACCACCGCTGGTAGCGGTGGTTTTTTTGTTTGCAAGCAGCAGATTACGCGCAGAAAAAAAGGATCTCAAGAAGATCCTTTGATCTTTTCTACGGGGTCTGACGCTCAGTGGAACGAAAACTCACGTTAAGGGATTTTGGTCATGAGATTATCAAAAAGGATCTTCACCTAGATCCTTTTAAATTAAAAATGAAGTTTTAAATCAATCTAAAGTATATATGAGTAAACTTGGTCTGACAGTTACCAATGCTTAATCAGTGAGGCACCTATCTCAGCGATCTGTCTATTTCGTTCATCCATAGTTGCCTGACTCCCCGTCGTGTAGATAACTACGATACGGGAGGGCTTACCATCTGGCCCCAGTGCTGCAATGATACCGCGAGACCCACGCTCACCGGCTCCAGATTTATCAGCAATAAACCAGCCAGCCGGAAGGGCCGAGCGCAGAAGTGGTCCTGCAACTTTATCCGCCTCCATCCAGTCTATTAATTGTTGCCGGGAAGCTAGAGTAAGTAGTTCGCCAGTTAATAGTTTGCGCAACGTTGTTGCCATTGCTACAGGCATCGTGGTGTCACGCTCGTCGTTTGGTATGGCTTCATTCAGCTCCGGTTCCCAACGATCAAGGCGAGTTACATGATCCCCCATGTTGTGCAAAAAAGCGGTTAGCTCCTTCGGTCCTCCGATCGTTGTCAGAAGTAAGTTGGCCGCAGTGTTATCACTCATGGTTATGGCAGCACTGCATAATTCTCTTACTGTCATGCCATCCGTAAGATGCTTTTCTGTGACTGGTGAGTACTCAACCAAGTCATTCTGAGAATAGTGTATGCGGCGACCGAGTTGCTCTTGCCCGGCGTCAATACGGGATAATACCGCGCCACATAGCAGAACTTTAAAAGTGCTCATCATTGGAAAACGTTCTTCGGGGCGAAAACTCTCAAGGATCTTACCGCTGTTGAGATCCAGTTCGATGTAACCCACTCGTGCACCCAACTGATCTTCAGCATCTTTTACTTTCACCAGCGTTTCTGGGTGAGCAAAAACAGGAAGGCAAAATGCCGCAAAAAAGGGAATAAGGGCGACACGGAAATGTTGAATACTCATACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGAAAAATAAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGACGTCTAAGAAACCATTATTATCATGACATTAACCTATAAAAATAGGCGTATCACGAGGCCCTTTCGTCTCGCGCGTTTCGGTGATGACGGTGAAAACCTCTGACACATGCAGCTCCCGGAGACGGTCACAGCTTGTCTGTAAGCGGATGCCGGGAGCAGACAAGCCCGTCAGGGCGCGTCAGCGGGTGTTGGCGGGTGTCGGGGCTGGCTTAACTATGCGGCATCAGAGCAGATTGTACTGAGAGTGCACCATATGGACATATTGTCGTTAGAACGCGGCTACAATTAATACATAACCTTATGTATCATACACATACGATTTAGGTGACACTATA",
+    "topology": "circular"
+   },
+   "expected": {
+    "description": "Plasmid carrying the kanMX selector module conferring kanamycin resistance. Also known as pFA6a-kanMX4.",
+    "features": [
+     {
+      "alignment": [
+       [
+        "same",
+        "promoter for bacteriophage SP6 RNA polymerase"
+       ],
+       [
+        "same",
+        "SP6 promoter"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         3924,
+         3941,
+         1
+        ],
+        [
+         0,
+         2,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "promoter for bacteriophage SP6 RNA polymerase"
+         ]
+        ],
+        [
+         "label",
+         [
+          "SP6 promoter"
+         ]
+        ]
+       ],
+       "type": "promoter"
+      },
+      "color": "#ffffff",
+      "name": "SP6 promoter",
+      "qualifiers": [
+       [
+        "note",
+        "promoter for bacteriophage SP6 RNA polymerase"
+       ],
+       [
+        "label",
+        "SP6 promoter"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        3924,
+        3943
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>promoter for bacteriophage SP6 RNA polymerase</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "SP6 promoter"
+       }
+      ],
+      "strand": 1,
+      "type": "promoter"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "promoter for bacteriophage T7 RNA polymerase"
+       ],
+       [
+        "same",
+        "T7 promoter"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         1578,
+         1597,
+         -1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "promoter for bacteriophage T7 RNA polymerase"
+         ]
+        ],
+        [
+         "label",
+         [
+          "T7 promoter"
+         ]
+        ]
+       ],
+       "type": "promoter"
+      },
+      "color": "#ffffff",
+      "name": "T7 promoter",
+      "qualifiers": [
+       [
+        "note",
+        "promoter for bacteriophage T7 RNA polymerase"
+       ],
+       [
+        "label",
+        "T7 promoter"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        1578,
+        1597
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>promoter for bacteriophage T7 RNA polymerase</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "T7 promoter"
+       }
+      ],
+      "strand": -1,
+      "type": "promoter"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "bla"
+       ],
+       [
+        "same",
+        "AmpR promoter"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         3474,
+         3579,
+         -1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "gene",
+         [
+          "bla"
+         ]
+        ],
+        [
+         "label",
+         [
+          "AmpR promoter"
+         ]
+        ]
+       ],
+       "type": "promoter"
+      },
+      "color": "#ffffff",
+      "name": "AmpR promoter",
+      "qualifiers": [
+       [
+        "gene",
+        "bla"
+       ],
+       [
+        "label",
+        "AmpR promoter"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        3474,
+        3579
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "gene",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body><i>bla</i></body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "AmpR promoter"
+       }
+      ],
+      "strand": -1,
+      "type": "promoter"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "Ashbya gossypii TEF terminator"
+       ],
+       [
+        "same",
+        "TEF terminator"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         1273,
+         1471,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "Ashbya gossypii TEF terminator"
+         ]
+        ],
+        [
+         "label",
+         [
+          "TEF terminator"
+         ]
+        ]
+       ],
+       "type": "terminator"
+      },
+      "color": "#ffffff",
+      "name": "TEF terminator",
+      "qualifiers": [
+       [
+        "note",
+        "Ashbya gossypii TEF terminator"
+       ],
+       [
+        "label",
+        "TEF terminator"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        1273,
+        1471
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body><i>Ashbya gossypii TEF</i> terminator</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "TEF terminator"
+       }
+      ],
+      "strand": 0,
+      "type": "terminator"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "Ashbya gossypii TEF promoter"
+       ],
+       [
+        "same",
+        "TEF promoter"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         114,
+         458,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "Ashbya gossypii TEF promoter"
+         ]
+        ],
+        [
+         "label",
+         [
+          "TEF promoter"
+         ]
+        ]
+       ],
+       "type": "promoter"
+      },
+      "color": "#ffffff",
+      "name": "TEF promoter",
+      "qualifiers": [
+       [
+        "note",
+        "Ashbya gossypii TEF promoter"
+       ],
+       [
+        "label",
+        "TEF promoter"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        114,
+        458
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body><i>Ashbya gossypii TEF</i> promoter</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "TEF promoter"
+       }
+      ],
+      "strand": 1,
+      "type": "promoter"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "high-copy-number colE1/pMB1/pBR322/pUC origin of replication"
+       ],
+       [
+        "same",
+        "LEFT"
+       ],
+       [
+        "same",
+        "ori"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         1854,
+         2443,
+         -1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "high-copy-number colE1/pMB1/pBR322/pUC origin of replication"
+         ]
+        ],
+        [
+         "direction",
+         [
+          "LEFT"
+         ]
+        ],
+        [
+         "label",
+         [
+          "ori"
+         ]
+        ]
+       ],
+       "type": "rep_origin"
+      },
+      "color": "#ffff00",
+      "name": "ori",
+      "qualifiers": [
+       [
+        "note",
+        "high-copy-number colE1/pMB1/pBR322/pUC origin of replication"
+       ],
+       [
+        "direction",
+        "LEFT"
+       ],
+       [
+        "label",
+        "ori"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        1854,
+        2443
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>high-copy-number colE1/pMB1/pBR322/pUC origin of replication</body></html>"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "direction",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "LEFT"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "ori"
+       }
+      ],
+      "strand": -1,
+      "type": "rep_origin"
+     },
+     {
+      "alignment": [
+       [
+        "translation",
+        "MGKEKTHVSRPRLNSNMDADLYGYKWARDNVGQSGATIYRLYGKPDAPELFLKHGKGSVANDVTDEMVRLNWLTEFMPLPTIKHFIRTPDDAWLLTTAIPGKTAFQVLEEYPDSGENIVDALAVFLRRLHSIPVCNCPFNSDRVFRLAQAQSRMNNGLVDASDFDDERNGWPVEQVWKEMHKLLPFSPDSVVTHGDFSLDNLIFDEGKLIGCIDVGRVGIADRYQDLAILWNCLGEFSPSLQKRLFQKYGIDNPDMNKLQFHLMLDEFF*"
+       ],
+       [
+        "same",
+        "aminoglycoside phosphotransferase"
+       ],
+       [
+        "same",
+        "confers resistance to kanamycin in bacteria or G418 (Geneticin®) in eukaryotes"
+       ],
+       [
+        "same",
+        1
+       ],
+       [
+        "same",
+        1
+       ],
+       [
+        "same",
+        "aph(3')-Ia"
+       ],
+       [
+        "same",
+        "KanR"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         458,
+         1268,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "translation",
+         [
+          "MGKEKTHVSRPRLNSNMDADLYGYKWARDNVGQSGATIYRLYGKPDAPELFLKHGKGSVANDVTDEMVRLNWLTEFMPLPTIKHFIRTPDDAWLLTTAIPGKTAFQVLEEYPDSGENIVDALAVFLRRLHSIPVCNCPFNSDRVFRLAQAQSRMNNGLVDASDFDDERNGWPVEQVWKEMHKLLPFSPDSVVTHGDFSLDNLIFDEGKLIGCIDVGRVGIADRYQDLAILWNCLGEFSPSLQKRLFQKYGIDNPDMNKLQFHLMLDEFF*"
+         ]
+        ],
+        [
+         "product",
+         [
+          "aminoglycoside phosphotransferase"
+         ]
+        ],
+        [
+         "note",
+         [
+          "confers resistance to kanamycin in bacteria or G418 (Geneticin®) in eukaryotes"
+         ]
+        ],
+        [
+         "transl_table",
+         [
+          1
+         ]
+        ],
+        [
+         "codon_start",
+         [
+          1
+         ]
+        ],
+        [
+         "gene",
+         [
+          "aph(3')-Ia"
+         ]
+        ],
+        [
+         "label",
+         [
+          "KanR"
+         ]
+        ]
+       ],
+       "type": "CDS"
+      },
+      "color": "#ccffcc",
+      "name": "KanR",
+      "qualifiers": [
+       [
+        "translation",
+        "MGKEKTHVSRPRLNSNMDADLYGYKWARDNVGQSGATIYRLYGKPDAPELFLKHGKGSVANDVTDEMVRLNWLTEFMPLPTIKHFIRTPDDAWLLTTAIPGKTAFQVLEEYPDSGENIVDALAVFLRRLHSIPVCNCPFNSDRVFRLAQAQSRMNNGLVDASDFDDERNGWPVEQVWKEMHKLLPFSPDSVVTHGDFSLDNLIFDEGKLIGCIDVGRVGIADRYQDLAILWNCLGEFSPSLQKRLFQKYGIDNPDMNKLQFHLMLDEFF"
+       ],
+       [
+        "product",
+        "aminoglycoside phosphotransferase"
+       ],
+       [
+        "note",
+        "confers resistance to kanamycin in bacteria or G418 (Geneticin®) in eukaryotes"
+       ],
+       [
+        "transl_table",
+        "1"
+       ],
+       [
+        "codon_start",
+        "1"
+       ],
+       [
+        "gene",
+        "aph(3')-Ia"
+       ],
+       [
+        "label",
+        "KanR"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        458,
+        1268
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "translation",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "MGKEKTHVSRPRLNSNMDADLYGYKWARDNVGQSGATIYRLYGKPDAPELFLKHGKGSVANDVTDEMVRLNWLTEFMPLPTIKHFIRTPDDAWLLTTAIPGKTAFQVLEEYPDSGENIVDALAVFLRRLHSIPVCNCPFNSDRVFRLAQAQSRMNNGLVDASDFDDERNGWPVEQVWKEMHKLLPFSPDSVVTHGDFSLDNLIFDEGKLIGCIDVGRVGIADRYQDLAILWNCLGEFSPSLQKRLFQKYGIDNPDMNKLQFHLMLDEFF*"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "product",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "<html><body>aminoglycoside phosphotransferase</body></html>"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 2,
+        "v": {
+         "text": "<html><body>confers resistance to kanamycin in bacteria or G418 (Geneticin®) in eukaryotes</body></html>"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "transl_table",
+        "kind": "Q",
+        "q": 3,
+        "v": {
+         "int": "1"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "codon_start",
+        "kind": "Q",
+        "q": 4,
+        "v": {
+         "int": "1"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "gene",
+        "kind": "Q",
+        "q": 5,
+        "v": {
+         "text": "<html><body><i>aph(3')-Ia</i></body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "KanR"
+       }
+      ],
+      "strand": 1,
+      "type": "CDS"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "1:signal sequence"
+       ],
+       [
+        "translation",
+        "MSIQHFRVALIPFFAAFCLPVFA,HPETLVKVKDAEDQLGARVGYIELDLNSGKILESFRPEERFPMMSTFKVLLCGAVLSRIDAGQEQLGRRIHYSQNDLVEYSPVTEKHLTDGMTVRELCSAAITMSDNTAANLLLTTIGGPKELTAFLHNMGDHVTRLDRWEPELNEAIPNDERDTTMPVAMATTLRKLLTGELLTLASRQQLIDWMEADKVAGPLLRSALPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGASLIKHW*"
+       ],
+       [
+        "same",
+        "β-lactamase"
+       ],
+       [
+        "same",
+        "confers resistance to ampicillin, carbenicillin, and related antibiotics"
+       ],
+       [
+        "same",
+        1
+       ],
+       [
+        "same",
+        1
+       ],
+       [
+        "same",
+        "bla"
+       ],
+       [
+        "same",
+        "AmpR"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         3405,
+         3474,
+         -1
+        ],
+        [
+         2613,
+         3405,
+         -1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "parts",
+         [
+          "1:signal sequence"
+         ]
+        ],
+        [
+         "translation",
+         [
+          "MSIQHFRVALIPFFAAFCLPVFA,HPETLVKVKDAEDQLGARVGYIELDLNSGKILESFRPEERFPMMSTFKVLLCGAVLSRIDAGQEQLGRRIHYSQNDLVEYSPVTEKHLTDGMTVRELCSAAITMSDNTAANLLLTTIGGPKELTAFLHNMGDHVTRLDRWEPELNEAIPNDERDTTMPVAMATTLRKLLTGELLTLASRQQLIDWMEADKVAGPLLRSALPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGASLIKHW*"
+         ]
+        ],
+        [
+         "product",
+         [
+          "β-lactamase"
+         ]
+        ],
+        [
+         "note",
+         [
+          "confers resistance to ampicillin, carbenicillin, and related antibiotics"
+         ]
+        ],
+        [
+         "transl_table",
+         [
+          1
+         ]
+        ],
+        [
+         "codon_start",
+         [
+          1
+         ]
+        ],
+        [
+         "gene",
+         [
+          "bla"
+         ]
+        ],
+        [
+         "label",
+         [
+          "AmpR"
+         ]
+        ]
+       ],
+       "type": "CDS"
+      },
+      "color": "#ccffcc",
+      "name": "AmpR",
+      "qualifiers": [
+       [
+        "parts",
+        "1:signal sequence"
+       ],
+       [
+        "translation",
+        "MSIQHFRVALIPFFAAFCLPVFAHPETLVKVKDAEDQLGARVGYIELDLNSGKILESFRPEERFPMMSTFKVLLCGAVLSRIDAGQEQLGRRIHYSQNDLVEYSPVTEKHLTDGMTVRELCSAAITMSDNTAANLLLTTIGGPKELTAFLHNMGDHVTRLDRWEPELNEAIPNDERDTTMPVAMATTLRKLLTGELLTLASRQQLIDWMEADKVAGPLLRSALPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGASLIKHW"
+       ],
+       [
+        "product",
+        "β-lactamase"
+       ],
+       [
+        "note",
+        "confers resistance to ampicillin, carbenicillin, and related antibiotics"
+       ],
+       [
+        "transl_table",
+        "1"
+       ],
+       [
+        "codon_start",
+        "1"
+       ],
+       [
+        "gene",
+        "bla"
+       ],
+       [
+        "label",
+        "AmpR"
+       ]
+      ],
+      "segment_groups": [
+       1,
+       1
+      ],
+      "segments": [
+       [
+        2613,
+        3405
+       ],
+       [
+        3405,
+        3474
+       ]
+      ],
+      "sources": [
+       {
+        "kind": "parts"
+       },
+       {
+        "bio_index": 0,
+        "key": "translation",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "MSIQHFRVALIPFFAAFCLPVFA,HPETLVKVKDAEDQLGARVGYIELDLNSGKILESFRPEERFPMMSTFKVLLCGAVLSRIDAGQEQLGRRIHYSQNDLVEYSPVTEKHLTDGMTVRELCSAAITMSDNTAANLLLTTIGGPKELTAFLHNMGDHVTRLDRWEPELNEAIPNDERDTTMPVAMATTLRKLLTGELLTLASRQQLIDWMEADKVAGPLLRSALPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGASLIKHW*"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "product",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "<html><body>β-lactamase</body></html>"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 2,
+        "v": {
+         "text": "<html><body>confers resistance to ampicillin, carbenicillin, and related antibiotics</body></html>"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "transl_table",
+        "kind": "Q",
+        "q": 3,
+        "v": {
+         "int": "1"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "codon_start",
+        "kind": "Q",
+        "q": 4,
+        "v": {
+         "int": "1"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "gene",
+        "kind": "Q",
+        "q": 5,
+        "v": {
+         "text": "<html><body><i>bla</i></body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "AmpR"
+       }
+      ],
+      "strand": -1,
+      "type": "CDS"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "yeast selectable marker conferring kanamycin resistance"
+       ],
+       [
+        "same",
+        "kanMX"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         114,
+         1471,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "yeast selectable marker conferring kanamycin resistance"
+         ]
+        ],
+        [
+         "label",
+         [
+          "kanMX"
+         ]
+        ]
+       ],
+       "type": "gene"
+      },
+      "color": "#ff7f50",
+      "name": "kanMX",
+      "qualifiers": [
+       [
+        "note",
+        "yeast selectable marker conferring kanamycin resistance"
+       ],
+       [
+        "label",
+        "kanMX"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        114,
+        1471
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>yeast selectable marker conferring kanamycin resistance</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "kanMX"
+       }
+      ],
+      "strand": 1,
+      "type": "gene"
+     }
+    ],
+    "meta": {
+     "date": "30-JUL-2020",
+     "division": "SYN",
+     "extras": {
+      "ConfirmedExperimentally": "0",
+      "Created": "2012.5.26",
+      "CustomMapLabel": "pFA6-kanMX4",
+      "DamMethylated": "1",
+      "DcmMethylated": "1",
+      "DownstreamModification": "FivePrimePhosphorylated",
+      "EcoKIMethylated": "1",
+      "LastModified": "2020.7.30",
+      "References": "Wach A, Brachat A, Pöhlmann R, Philippsen P. New heterologous modules for classical or PCR-based gene disruptions in Saccharomyces cerevisiae. Yeast 1994;10:1793-808. PubMed 7747518.",
+      "SequenceClass": "UNA",
+      "Strandedness": "double",
+      "TransformedInto": "Unspecified",
+      "Type": "Synthetic",
+      "UUID": "4bdbcd8e-3a32-4599-8c39-f269dcd552dc",
+      "UpstreamModification": "FivePrimePhosphorylated",
+      "UseCustomMapLabel": "1"
+     },
+     "organism": "Saccharomyces cerevisiae",
+     "sourceFormat": "snapgene"
+    },
+    "name": "pFA-KanMX4",
+    "primers": [],
+    "seq": "GAACGCGGCCGCCAGCTGAAGCTTCGTACGCTGCAGGTCGACGGATCCCCGGGTTAATTAAGGCGCGCCAGATCTGTTTAGCTTGCCTCGTCCCCGCCGGGTCACCCGGCCAGCGACATGGAGGCCCAGAATACCCTCCTTGACAGTCTTGACGTGCGCAGCTCAGGGGCATGATGTGACTGTCGCCCGTACATTTAGCCCATACATCCCCATGTATAATCATTTGCATCCATACATTTTGATGGCCGCACGGCGCGAAGCAAAAATTACGGCTCCTCGCTGCAGACCTGCGAGCAGGGAAACGCTCCCCTCACAGACGCGTTGAATTGTCCCCACGCCGCGCCCCTGTAGAGAAATATAAAAGGTTAGGATTTGCCACTGAGGTTCTTCTTTCATATACTTCCTTTTAAAATCTTGCTAGGATACAGTTCTCACATCACATCCGAACATAAACAACCATGGGTAAGGAAAAGACTCACGTTTCGAGGCCGCGATTAAATTCCAACATGGATGCTGATTTATATGGGTATAAATGGGCTCGCGATAATGTCGGGCAATCAGGTGCGACAATCTATCGATTGTATGGGAAGCCCGATGCGCCAGAGTTGTTTCTGAAACATGGCAAAGGTAGCGTTGCCAATGATGTTACAGATGAGATGGTCAGACTAAACTGGCTGACGGAATTTATGCCTCTTCCGACCATCAAGCATTTTATCCGTACTCCTGATGATGCATGGTTACTCACCACTGCGATCCCCGGCAAAACAGCATTCCAGGTATTAGAAGAATATCCTGATTCAGGTGAAAATATTGTTGATGCGCTGGCAGTGTTCCTGCGCCGGTTGCATTCGATTCCTGTTTGTAATTGTCCTTTTAACAGCGATCGCGTATTTCGTCTCGCTCAGGCGCAATCACGAATGAATAACGGTTTGGTTGATGCGAGTGATTTTGATGACGAGCGTAATGGCTGGCCTGTTGAACAAGTCTGGAAAGAAATGCATAAGCTTTTGCCATTCTCACCGGATTCAGTCGTCACTCATGGTGATTTCTCACTTGATAACCTTATTTTTGACGAGGGGAAATTAATAGGTTGTATTGATGTTGGACGAGTCGGAATCGCAGACCGATACCAGGATCTTGCCATCCTATGGAACTGCCTCGGTGAGTTTTCTCCTTCATTACAGAAACGGCTTTTTCAAAAATATGGTATTGATAATCCTGATATGAATAAATTGCAGTTTCATTTGATGCTCGATGAGTTTTTCTAATCAGTACTGACAATAAAAAGATTCTTGTTTTCAAGAACTTGTCATTTGTATAGTTTTTTTATATTGTAGTTGTTCTATTTTAATCAAATGTTAGCGTGATTTATATTTTTTTTCGCCTCGACATCATCTGCCCAGATGCGAAGTTAAGTGCGCAGAAAGTAATATCATGCGTCAATCGTATGTGAATGCTGGTCGCTATACTGCTGTCGATTCGATACTAACGCCGCCATCCAGTGTCGAAAACGAGCTCGAATTCATCGATGATATCAGATCCACTAGTGGCCTATGCGGCCGCGGATCTGCCGGTCTCCCTATAGTGAGTCGTATTAATTTCGATAAGCCAGGTTAACCTGCATTAATGAATCGGCCAACGCGCGGGGAGAGGCGGTTTGCGTATTGGGCGCTCTTCCGCTTCCTCGCTCACTGACTCGCTGCGCTCGGTCGTTCGGCTGCGGCGAGCGGTATCAGCTCACTCAAAGGCGGTAATACGGTTATCCACAGAATCAGGGGATAACGCAGGAAAGAACATGTGAGCAAAAGGCCAGCAAAAGGCCAGGAACCGTAAAAAGGCCGCGTTGCTGGCGTTTTTCCATAGGCTCCGCCCCCCTGACGAGCATCACAAAAATCGACGCTCAAGTCAGAGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGAAGCTCCCTCGTGCGCTCTCCTGTTCCGACCCTGCCGCTTACCGGATACCTGTCCGCCTTTCTCCCTTCGGGAAGCGTGGCGCTTTCTCAATGCTCACGCTGTAGGTATCTCAGTTCGGTGTAGGTCGTTCGCTCCAAGCTGGGCTGTGTGCACGAACCCCCCGTTCAGCCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGTAAGACACGACTTATCGCCACTGGCAGCAGCCACTGGTAACAGGATTAGCAGAGCGAGGTATGTAGGCGGTGCTACAGAGTTCTTGAAGTGGTGGCCTAACTACGGCTACACTAGAAGGACAGTATTTGGTATCTGCGCTCTGCTGAAGCCAGTTACCTTCGGAAAAAGAGTTGGTAGCTCTTGATCCGGCAAACAAACCACCGCTGGTAGCGGTGGTTTTTTTGTTTGCAAGCAGCAGATTACGCGCAGAAAAAAAGGATCTCAAGAAGATCCTTTGATCTTTTCTACGGGGTCTGACGCTCAGTGGAACGAAAACTCACGTTAAGGGATTTTGGTCATGAGATTATCAAAAAGGATCTTCACCTAGATCCTTTTAAATTAAAAATGAAGTTTTAAATCAATCTAAAGTATATATGAGTAAACTTGGTCTGACAGTTACCAATGCTTAATCAGTGAGGCACCTATCTCAGCGATCTGTCTATTTCGTTCATCCATAGTTGCCTGACTCCCCGTCGTGTAGATAACTACGATACGGGAGGGCTTACCATCTGGCCCCAGTGCTGCAATGATACCGCGAGACCCACGCTCACCGGCTCCAGATTTATCAGCAATAAACCAGCCAGCCGGAAGGGCCGAGCGCAGAAGTGGTCCTGCAACTTTATCCGCCTCCATCCAGTCTATTAATTGTTGCCGGGAAGCTAGAGTAAGTAGTTCGCCAGTTAATAGTTTGCGCAACGTTGTTGCCATTGCTACAGGCATCGTGGTGTCACGCTCGTCGTTTGGTATGGCTTCATTCAGCTCCGGTTCCCAACGATCAAGGCGAGTTACATGATCCCCCATGTTGTGCAAAAAAGCGGTTAGCTCCTTCGGTCCTCCGATCGTTGTCAGAAGTAAGTTGGCCGCAGTGTTATCACTCATGGTTATGGCAGCACTGCATAATTCTCTTACTGTCATGCCATCCGTAAGATGCTTTTCTGTGACTGGTGAGTACTCAACCAAGTCATTCTGAGAATAGTGTATGCGGCGACCGAGTTGCTCTTGCCCGGCGTCAATACGGGATAATACCGCGCCACATAGCAGAACTTTAAAAGTGCTCATCATTGGAAAACGTTCTTCGGGGCGAAAACTCTCAAGGATCTTACCGCTGTTGAGATCCAGTTCGATGTAACCCACTCGTGCACCCAACTGATCTTCAGCATCTTTTACTTTCACCAGCGTTTCTGGGTGAGCAAAAACAGGAAGGCAAAATGCCGCAAAAAAGGGAATAAGGGCGACACGGAAATGTTGAATACTCATACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGAAAAATAAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGACGTCTAAGAAACCATTATTATCATGACATTAACCTATAAAAATAGGCGTATCACGAGGCCCTTTCGTCTCGCGCGTTTCGGTGATGACGGTGAAAACCTCTGACACATGCAGCTCCCGGAGACGGTCACAGCTTGTCTGTAAGCGGATGCCGGGAGCAGACAAGCCCGTCAGGGCGCGTCAGCGGGTGTTGGCGGGTGTCGGGGCTGGCTTAACTATGCGGCATCAGAGCAGATTGTACTGAGAGTGCACCATATGGACATATTGTCGTTAGAACGCGGCTACAATTAATACATAACCTTATGTATCATACACATACGATTTAGGTGACACTATA",
+    "topology": "circular"
+   },
+   "raw": {
+    "cookie": [
+     1,
+     13,
+     11
+    ],
+    "dna": {
+     "flags": 31,
+     "length": 3941
+    },
+    "packets": [
+     [
+      9,
+      0,
+      14
+     ],
+     [
+      0,
+      19,
+      3942
+     ],
+     [
+      2,
+      3966,
+      9421
+     ],
+     [
+      3,
+      13392,
+      9828
+     ],
+     [
+      8,
+      23225,
+      289
+     ],
+     [
+      10,
+      23519,
+      4716
+     ],
+     [
+      5,
+      28240,
+      169
+     ],
+     [
+      6,
+      28414,
+      976
+     ],
+     [
+      13,
+      29395,
+      345
+     ]
+    ],
+    "truncated": null,
+    "xml": [
+     {
+      "offset": 23225,
+      "root": "AdditionalSequenceProperties",
+      "type": 8
+     },
+     {
+      "offset": 23519,
+      "root": "Features",
+      "type": 10
+     },
+     {
+      "offset": 28240,
+      "root": "Primers",
+      "type": 5
+     },
+     {
+      "offset": 28414,
+      "root": "Notes",
+      "type": 6
+     }
+    ]
+   }
+  },
+  "sample-d.dna": {
+   "biopython": {
+    "date": "2021-07-07",
+    "description": "Sample Sequence D",
+    "division": "UNC",
+    "feature_types": [
+     "misc_binding",
+     "promoter",
+     "misc_feature",
+     "misc_feature"
+    ],
+    "id": "Sample",
+    "name": "Sample",
+    "seq": "gcacactaagccttccatctattcggcttcttgctctgcaatgcctacccatagctgctggaagctaacgaggtaagtttcgcctgggatatgcgccccatagcacgtataacggtaactttctacgacctatcatctaactagaaatcacagtatacgaggaagctcgtcgaccatatggcacctaacggtagtggaaggcgccaatcacagatggttcactaacggtcttaagatcgaattacaatgctgtgaacttatagaggacgggagcaagcgtcgtccacccgcgtagggttagcgttaacacagtctttcagtcgttcgtctaggagaggaggctctttcacaaaacaaaccagatgtctttgggcacgttgaaattagcgggttgaggtgctctacgtccgacacctttgccagaggtgtaaaaagggattaccttaatcccgtgtgtgataccctgtagtacccacgacttaacaactagaggccggtgtataccagttacccgacaatgcaaatcgtattattgcggtagtatcgatcctccccgatgctcgatcttgtacagaagaaaagcccgaaaatttaatgaagcaaaataccctatctgcccaggaggatagaagccccatcaatgacttaaactccgacgattttacgggcggtctaccgctcacaggcaggtgaagacatcacatatgctccgtgtacgcatcggatccaagaaacttccgtccagctgtcataaacctggactttttgtatctggaggtgacttagccgatagcaacgaaatctcaattgagctggttctaaatctttcttttagacggagcatatgtgaagtagtaaaatcatctctaggttcacggaggtaatcgtcggtctgccaccctgactcggctattaggtggaggagcttttaagctctttacaacacctaagtctgcccatattatgcatggttttccgacacatttcctcctaatcgtag",
+    "topology": "linear"
+   },
+   "expected": {
+    "description": "Sample Sequence D",
+    "features": [
+     {
+      "alignment": [
+       [
+        "same",
+        "Random DNA-Binding Protein 1"
+       ],
+       [
+        "same",
+        "Sample feature B"
+       ],
+       [
+        "same",
+        "FeatureB"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         499,
+         700,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "bound_moiety",
+         [
+          "Random DNA-Binding Protein 1"
+         ]
+        ],
+        [
+         "note",
+         [
+          "Sample feature B"
+         ]
+        ],
+        [
+         "label",
+         [
+          "FeatureB"
+         ]
+        ]
+       ],
+       "type": "misc_binding"
+      },
+      "color": "#a6acb3",
+      "name": "FeatureB",
+      "qualifiers": [
+       [
+        "bound_moiety",
+        "Random DNA-Binding Protein 1"
+       ],
+       [
+        "note",
+        "Sample feature B"
+       ],
+       [
+        "label",
+        "FeatureB"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        499,
+        700
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "bound_moiety",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>Random DNA-Binding Protein 1</body></html>"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "<html><body>Sample feature B</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "FeatureB"
+       }
+      ],
+      "strand": 0,
+      "type": "misc_binding"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "Sample feature A"
+       ],
+       [
+        "same",
+        "FeatureA"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         49,
+         150,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "Sample feature A"
+         ]
+        ],
+        [
+         "label",
+         [
+          "FeatureA"
+         ]
+        ]
+       ],
+       "type": "promoter"
+      },
+      "color": "#ffffff",
+      "name": "FeatureA",
+      "qualifiers": [
+       [
+        "note",
+        "Sample feature A"
+       ],
+       [
+        "label",
+        "FeatureA"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        49,
+        150
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>Sample feature A</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "FeatureA"
+       }
+      ],
+      "strand": 1,
+      "type": "promoter"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "FeatureC"
+       ],
+       [
+        "same",
+        "Sample feature C, with explicit label"
+       ],
+       [
+        "same",
+        "Another note for sample feature C"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         700,
+         720,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "label",
+         [
+          "FeatureC"
+         ]
+        ],
+        [
+         "note",
+         [
+          "Sample feature C, with explicit label",
+          "Another note for sample feature C"
+         ]
+        ]
+       ],
+       "type": "misc_feature"
+      },
+      "color": "#a6acb3",
+      "name": "FeatureC",
+      "qualifiers": [
+       [
+        "label",
+        "FeatureC"
+       ],
+       [
+        "note",
+        "Sample feature C, with explicit label"
+       ],
+       [
+        "note",
+        "Another note for sample feature C"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        700,
+        720
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "label",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "FeatureC"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "<html><body>Sample feature C, with explicit label</body></html>"
+        }
+       },
+       {
+        "bio_index": 1,
+        "key": "note",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "<html><body>Another note for sample feature C</body></html>"
+        }
+       }
+      ],
+      "strand": 0,
+      "type": "misc_feature"
+     },
+     {
+      "alignment": [
+       [
+        "label-first",
+        "FeatureD"
+       ],
+       [
+        "same",
+        "SampleFeatureD"
+       ],
+       [
+        "same",
+        "Sample feature D, with a label different from the feature name"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         720,
+         740,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "label",
+         [
+          "SampleFeatureD"
+         ]
+        ],
+        [
+         "note",
+         [
+          "Sample feature D, with a label different from the feature name"
+         ]
+        ],
+        [
+         "name",
+         [
+          "FeatureD"
+         ]
+        ]
+       ],
+       "type": "misc_feature"
+      },
+      "color": "#a6acb3",
+      "name": "FeatureD",
+      "qualifiers": [
+       [
+        "label",
+        "FeatureD"
+       ],
+       [
+        "label",
+        "SampleFeatureD"
+       ],
+       [
+        "note",
+        "Sample feature D, with a label different from the feature name"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        720,
+        740
+       ]
+      ],
+      "sources": [
+       {
+        "how": "inserted",
+        "kind": "label",
+        "raw": "FeatureD"
+       },
+       {
+        "bio_index": 0,
+        "key": "label",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "SampleFeatureD"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "<html><body>Sample feature D, with a label different from the feature name</body></html>"
+        }
+       }
+      ],
+      "strand": 0,
+      "type": "misc_feature"
+     }
+    ],
+    "meta": {
+     "comments": [
+      "Sample Sequence D"
+     ],
+     "date": "07-JUL-2021",
+     "division": "UNA",
+     "extras": {
+      "Created": "2019.8.3",
+      "Created.UTC": "12:1:19",
+      "CreatedBy": "Damien Goutte-Gattat",
+      "DamMethylated": "0",
+      "DcmMethylated": "0",
+      "DownstreamModification": "Unmodified",
+      "EcoKIMethylated": "0",
+      "LastModified": "2021.7.7",
+      "LastModified.UTC": "9:36:44",
+      "SequenceClass": "UNA",
+      "Strandedness": "double",
+      "TransformedInto": "unspecified",
+      "Type": "Natural",
+      "UUID": "5ea05e55-2222-4f00-832b-9a9cbaa09de5",
+      "UpstreamModification": "Unmodified"
+     },
+     "sourceFormat": "snapgene"
+    },
+    "name": "sample-d",
+    "primers": [],
+    "seq": "GCACACTAAGCCTTCCATCTATTCGGCTTCTTGCTCTGCAATGCCTACCCATAGCTGCTGGAAGCTAACGAGGTAAGTTTCGCCTGGGATATGCGCCCCATAGCACGTATAACGGTAACTTTCTACGACCTATCATCTAACTAGAAATCACAGTATACGAGGAAGCTCGTCGACCATATGGCACCTAACGGTAGTGGAAGGCGCCAATCACAGATGGTTCACTAACGGTCTTAAGATCGAATTACAATGCTGTGAACTTATAGAGGACGGGAGCAAGCGTCGTCCACCCGCGTAGGGTTAGCGTTAACACAGTCTTTCAGTCGTTCGTCTAGGAGAGGAGGCTCTTTCACAAAACAAACCAGATGTCTTTGGGCACGTTGAAATTAGCGGGTTGAGGTGCTCTACGTCCGACACCTTTGCCAGAGGTGTAAAAAGGGATTACCTTAATCCCGTGTGTGATACCCTGTAGTACCCACGACTTAACAACTAGAGGCCGGTGTATACCAGTTACCCGACAATGCAAATCGTATTATTGCGGTAGTATCGATCCTCCCCGATGCTCGATCTTGTACAGAAGAAAAGCCCGAAAATTTAATGAAGCAAAATACCCTATCTGCCCAGGAGGATAGAAGCCCCATCAATGACTTAAACTCCGACGATTTTACGGGCGGTCTACCGCTCACAGGCAGGTGAAGACATCACATATGCTCCGTGTACGCATCGGATCCAAGAAACTTCCGTCCAGCTGTCATAAACCTGGACTTTTTGTATCTGGAGGTGACTTAGCCGATAGCAACGAAATCTCAATTGAGCTGGTTCTAAATCTTTCTTTTAGACGGAGCATATGTGAAGTAGTAAAATCATCTCTAGGTTCACGGAGGTAATCGTCGGTCTGCCACCCTGACTCGGCTATTAGGTGGAGGAGCTTTTAAGCTCTTTACAACACCTAAGTCTGCCCATATTATGCATGGTTTTCCGACACATTTCCTCCTAATCGTAG",
+    "topology": "linear"
+   },
+   "raw": {
+    "cookie": [
+     1,
+     14,
+     16
+    ],
+    "dna": {
+     "flags": 2,
+     "length": 1000
+    },
+    "packets": [
+     [
+      9,
+      0,
+      14
+     ],
+     [
+      0,
+      19,
+      1001
+     ],
+     [
+      2,
+      1025,
+      3539
+     ],
+     [
+      3,
+      4569,
+      8112
+     ],
+     [
+      17,
+      12686,
+      45
+     ],
+     [
+      8,
+      12736,
+      263
+     ],
+     [
+      10,
+      13004,
+      1574
+     ],
+     [
+      5,
+      14583,
+      217
+     ],
+     [
+      6,
+      14805,
+      468
+     ],
+     [
+      13,
+      15278,
+      345
+     ],
+     [
+      28,
+      15628,
+      51
+     ],
+     [
+      14,
+      15684,
+      41
+     ]
+    ],
+    "truncated": null,
+    "xml": [
+     {
+      "offset": 12736,
+      "root": "AdditionalSequenceProperties",
+      "type": 8
+     },
+     {
+      "offset": 13004,
+      "root": "Features",
+      "type": 10
+     },
+     {
+      "offset": 14583,
+      "root": "Primers",
+      "type": 5
+     },
+     {
+      "offset": 14805,
+      "root": "Notes",
+      "type": 6
+     }
+    ]
+   }
+  },
+  "sample-e.dna": {
+   "biopython": {
+    "date": "2019-08-03",
+    "description": "Sample Sequence E",
+    "division": "SYN",
+    "feature_types": [
+     "terminator",
+     "rep_origin"
+    ],
+    "id": "Sample",
+    "name": "Sample",
+    "seq": "gtcagcctgtctcttctgacagccacacagccattgcttgttaccaggattaacagcagcattccttcataaaagttatggtacccttttctttctgcgccggttcgtgcaaatgaccaatgcccacaagtgaagttcgtaataacgaccgagacctgggcgggaccgtatgtagttgatgatatgggctttaaccagctataggatctcgcgaccggtggaattccttcgtgaggattaaggtaaacgatgctcatgatgctgaggtgtgccatgacccagagtcgtatcgatccttatatgtgctatcactcttattatcattatactgattttccacgtggtggttgcaggtatcgctttctggcgagtatcaagttgctgctttatgatcggcgaactggcactcatagacggtctccctccaactcactagtacctggatcggaatcggcggctctgacatgtatcaggaagtgactgtgatcaaaactggcaaaagtgcaatataaatcgtcaccactgctgctcataagcgttcattcaacccgaggtagtaaggccgcagacaactcccaggcggagggtccaaccctgagtcagcgcgacacacaacagctcaacgctataaacctcggtcgttgacgctcggggggttaaagccgtgaagttctcaatacactctcttattccttcggctattaccaaattaaggtccatgccccgcgaactccttgaacgcaacctcgataaataaaaaacgattgaaggttacatgcgtaagggcctaaagataaaaacctccgataggcatgttatcggtcccttctacagggcgactagcgctgggagggatacgcaaacccggacaggaaaggtagctgaaagcaacgggtacggtagataaaatttgtccgcaagcagagctttgtacggtccgcccgatggtggaatcatatcgtttgctgaagtgctaacaccctccatctgactagctata",
+    "topology": "circular"
+   },
+   "expected": {
+    "description": "Sample Sequence E",
+    "features": [
+     {
+      "alignment": [
+       [
+        "same",
+        "FeatureB"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         399,
+         750,
+         -1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "label",
+         [
+          "FeatureB"
+         ]
+        ]
+       ],
+       "type": "terminator"
+      },
+      "color": "#ffffff",
+      "name": "FeatureB",
+      "qualifiers": [
+       [
+        "label",
+        "FeatureB"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        399,
+        750
+       ]
+      ],
+      "sources": [
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "FeatureB"
+       }
+      ],
+      "strand": -1,
+      "type": "terminator"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "Random origin of replication"
+       ],
+       [
+        "same",
+        "RIGHT"
+       ],
+       [
+        "same",
+        "FeatureA"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         160,
+         241,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "Random origin of replication"
+         ]
+        ],
+        [
+         "direction",
+         [
+          "RIGHT"
+         ]
+        ],
+        [
+         "label",
+         [
+          "FeatureA"
+         ]
+        ]
+       ],
+       "type": "rep_origin"
+      },
+      "color": "#ffff00",
+      "name": "FeatureA",
+      "qualifiers": [
+       [
+        "note",
+        "Random origin of replication"
+       ],
+       [
+        "direction",
+        "RIGHT"
+       ],
+       [
+        "label",
+        "FeatureA"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        160,
+        241
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>Random origin of replication</body></html>"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "direction",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "RIGHT"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "FeatureA"
+       }
+      ],
+      "strand": 1,
+      "type": "rep_origin"
+     }
+    ],
+    "meta": {
+     "comments": [
+      "Sample Sequence E"
+     ],
+     "date": "03-AUG-2019",
+     "division": "SYN",
+     "extras": {
+      "ConfirmedExperimentally": "0",
+      "Created": "2019.8.3",
+      "Created.UTC": "12:10:9",
+      "CreatedBy": "Damien Goutte-Gattat",
+      "DamMethylated": "1",
+      "DcmMethylated": "1",
+      "DownstreamModification": "FivePrimePhosphorylated",
+      "EcoKIMethylated": "1",
+      "LastModified": "2019.8.3",
+      "LastModified.UTC": "12:12:0",
+      "SequenceClass": "UNA",
+      "Strandedness": "double",
+      "TransformedInto": "unspecified",
+      "Type": "Synthetic",
+      "UUID": "a934c050-7faa-44e2-ad44-d772901b7b00",
+      "UpstreamModification": "FivePrimePhosphorylated"
+     },
+     "sourceFormat": "snapgene"
+    },
+    "name": "sample-e",
+    "primers": [],
+    "seq": "GTCAGCCTGTCTCTTCTGACAGCCACACAGCCATTGCTTGTTACCAGGATTAACAGCAGCATTCCTTCATAAAAGTTATGGTACCCTTTTCTTTCTGCGCCGGTTCGTGCAAATGACCAATGCCCACAAGTGAAGTTCGTAATAACGACCGAGACCTGGGCGGGACCGTATGTAGTTGATGATATGGGCTTTAACCAGCTATAGGATCTCGCGACCGGTGGAATTCCTTCGTGAGGATTAAGGTAAACGATGCTCATGATGCTGAGGTGTGCCATGACCCAGAGTCGTATCGATCCTTATATGTGCTATCACTCTTATTATCATTATACTGATTTTCCACGTGGTGGTTGCAGGTATCGCTTTCTGGCGAGTATCAAGTTGCTGCTTTATGATCGGCGAACTGGCACTCATAGACGGTCTCCCTCCAACTCACTAGTACCTGGATCGGAATCGGCGGCTCTGACATGTATCAGGAAGTGACTGTGATCAAAACTGGCAAAAGTGCAATATAAATCGTCACCACTGCTGCTCATAAGCGTTCATTCAACCCGAGGTAGTAAGGCCGCAGACAACTCCCAGGCGGAGGGTCCAACCCTGAGTCAGCGCGACACACAACAGCTCAACGCTATAAACCTCGGTCGTTGACGCTCGGGGGGTTAAAGCCGTGAAGTTCTCAATACACTCTCTTATTCCTTCGGCTATTACCAAATTAAGGTCCATGCCCCGCGAACTCCTTGAACGCAACCTCGATAAATAAAAAACGATTGAAGGTTACATGCGTAAGGGCCTAAAGATAAAAACCTCCGATAGGCATGTTATCGGTCCCTTCTACAGGGCGACTAGCGCTGGGAGGGATACGCAAACCCGGACAGGAAAGGTAGCTGAAAGCAACGGGTACGGTAGATAAAATTTGTCCGCAAGCAGAGCTTTGTACGGTCCGCCCGATGGTGGAATCATATCGTTTGCTGAAGTGCTAACACCCTCCATCTGACTAGCTATA",
+    "topology": "circular"
+   },
+   "raw": {
+    "cookie": [
+     1,
+     13,
+     12
+    ],
+    "dna": {
+     "flags": 31,
+     "length": 1000
+    },
+    "packets": [
+     [
+      9,
+      0,
+      14
+     ],
+     [
+      0,
+      19,
+      1001
+     ],
+     [
+      2,
+      1025,
+      3539
+     ],
+     [
+      3,
+      4569,
+      8200
+     ],
+     [
+      8,
+      12774,
+      289
+     ],
+     [
+      10,
+      13068,
+      663
+     ],
+     [
+      5,
+      13736,
+      151
+     ],
+     [
+      6,
+      13892,
+      523
+     ],
+     [
+      13,
+      14420,
+      345
+     ]
+    ],
+    "truncated": null,
+    "xml": [
+     {
+      "offset": 12774,
+      "root": "AdditionalSequenceProperties",
+      "type": 8
+     },
+     {
+      "offset": 13068,
+      "root": "Features",
+      "type": 10
+     },
+     {
+      "offset": 13736,
+      "root": "Primers",
+      "type": 5
+     },
+     {
+      "offset": 13892,
+      "root": "Notes",
+      "type": 6
+     }
+    ]
+   }
+  },
+  "sample-f.dna": {
+   "biopython": {
+    "date": "2023-01-22",
+    "description": "Sample Sequence F",
+    "division": "SYN",
+    "feature_types": [
+     "terminator",
+     "rep_origin",
+     "primer_bind"
+    ],
+    "id": "Sample",
+    "name": "Sample",
+    "seq": "gtcagcctgtctcttctgacagccacacagccattgcttgttaccaggattaacagcagcattccttcataaaagttatggtacccttttctttctgcgccggttcgtgcaaatgaccaatgcccacaagtgaagttcgtaataacgaccgagacctgggcgggaccgtatgtagttgatgatatgggctttaaccagctataggatctcgcgaccggtggaattccttcgtgaggattaaggtaaacgatgctcatgatgctgaggtgtgccatgacccagagtcgtatcgatccttatatgtgctatcactcttattatcattatactgattttccacgtggtggttgcaggtatcgctttctggcgagtatcaagttgctgctttatgatcggcgaactggcactcatagacggtctccctccaactcactagtacctggatcggaatcggcggctctgacatgtatcaggaagtgactgtgatcaaaactggcaaaagtgcaatataaatcgtcaccactgctgctcataagcgttcattcaacccgaggtagtaaggccgcagacaactcccaggcggagggtccaaccctgagtcagcgcgacacacaacagctcaacgctataaacctcggtcgttgacgctcggggggttaaagccgtgaagttctcaatacactctcttattccttcggctattaccaaattaaggtccatgccccgcgaactccttgaacgcaacctcgataaataaaaaacgattgaaggttacatgcgtaagggcctaaagataaaaacctccgataggcatgttatcggtcccttctacagggcgactagcgctgggagggatacgcaaacccggacaggaaaggtagctgaaagcaacgggtacggtagataaaatttgtccgcaagcagagctttgtacggtccgcccgatggtggaatcatatcgtttgctgaagtgctaacaccctccatctgactagctata",
+    "topology": "circular"
+   },
+   "expected": {
+    "description": "Sample Sequence F",
+    "features": [
+     {
+      "alignment": [
+       [
+        "same",
+        "1:subfeature1;3:subfeature3"
+       ],
+       [
+        "same",
+        "An example of a reverse-strand split feature"
+       ],
+       [
+        "same",
+        "FeatureB"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         634,
+         724,
+         -1
+        ],
+        [
+         516,
+         634,
+         -1
+        ],
+        [
+         399,
+         499,
+         -1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "parts",
+         [
+          "1:subfeature1;3:subfeature3"
+         ]
+        ],
+        [
+         "note",
+         [
+          "An example of a reverse-strand split feature"
+         ]
+        ],
+        [
+         "label",
+         [
+          "FeatureB"
+         ]
+        ]
+       ],
+       "type": "terminator"
+      },
+      "color": "#ffffff",
+      "name": "FeatureB",
+      "qualifiers": [
+       [
+        "parts",
+        "1:subfeature1;3:subfeature3"
+       ],
+       [
+        "note",
+        "An example of a reverse-strand split feature"
+       ],
+       [
+        "label",
+        "FeatureB"
+       ]
+      ],
+      "segment_groups": [
+       1,
+       1,
+       1
+      ],
+      "segments": [
+       [
+        399,
+        499
+       ],
+       [
+        516,
+        634
+       ],
+       [
+        634,
+        724
+       ]
+      ],
+      "sources": [
+       {
+        "kind": "parts"
+       },
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>An example of a reverse-strand split feature</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "FeatureB"
+       }
+      ],
+      "strand": -1,
+      "type": "terminator"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "2:subfeature2"
+       ],
+       [
+        "same",
+        "RIGHT"
+       ],
+       [
+        "same",
+        "An example of a split feature"
+       ],
+       [
+        "same",
+        "FeatureA"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         160,
+         180,
+         1
+        ],
+        [
+         187,
+         207,
+         1
+        ],
+        [
+         214,
+         241,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "parts",
+         [
+          "2:subfeature2"
+         ]
+        ],
+        [
+         "direction",
+         [
+          "RIGHT"
+         ]
+        ],
+        [
+         "note",
+         [
+          "An example of a split feature"
+         ]
+        ],
+        [
+         "label",
+         [
+          "FeatureA"
+         ]
+        ]
+       ],
+       "type": "rep_origin"
+      },
+      "color": "#ffff00",
+      "name": "FeatureA",
+      "qualifiers": [
+       [
+        "parts",
+        "2:subfeature2"
+       ],
+       [
+        "direction",
+        "RIGHT"
+       ],
+       [
+        "note",
+        "An example of a split feature"
+       ],
+       [
+        "label",
+        "FeatureA"
+       ]
+      ],
+      "segment_groups": [
+       1,
+       1,
+       1
+      ],
+      "segments": [
+       [
+        160,
+        180
+       ],
+       [
+        187,
+        207
+       ],
+       [
+        214,
+        241
+       ]
+      ],
+      "sources": [
+       {
+        "kind": "parts"
+       },
+       {
+        "bio_index": 0,
+        "key": "direction",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "RIGHT"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "text": "<html><body>An example of a split feature</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "FeatureA"
+       }
+      ],
+      "strand": 1,
+      "type": "rep_origin"
+     }
+    ],
+    "meta": {
+     "comments": [
+      "Sample Sequence F"
+     ],
+     "date": "22-JAN-2023",
+     "division": "SYN",
+     "extras": {
+      "ConfirmedExperimentally": "0",
+      "Created": "2019.8.3",
+      "Created.UTC": "12:10:9",
+      "CreatedBy": "Damien Goutte-Gattat",
+      "DamMethylated": "1",
+      "DcmMethylated": "1",
+      "DownstreamModification": "FivePrimePhosphorylated",
+      "EcoKIMethylated": "1",
+      "LastModified": "2023.1.22",
+      "LastModified.UTC": "18:36:35",
+      "SequenceClass": "UNA",
+      "Strandedness": "double",
+      "TransformedInto": "unspecified",
+      "Type": "Synthetic",
+      "UUID": "dd53f6bf-1e0c-4ab8-86b4-f154428b810d",
+      "UpstreamModification": "FivePrimePhosphorylated"
+     },
+     "sourceFormat": "snapgene"
+    },
+    "name": "sample-f",
+    "primers": [
+     {
+      "name": "Primer 1",
+      "sequence": "AAATAAAAAACGATTGAAGGTTACA"
+     }
+    ],
+    "seq": "GTCAGCCTGTCTCTTCTGACAGCCACACAGCCATTGCTTGTTACCAGGATTAACAGCAGCATTCCTTCATAAAAGTTATGGTACCCTTTTCTTTCTGCGCCGGTTCGTGCAAATGACCAATGCCCACAAGTGAAGTTCGTAATAACGACCGAGACCTGGGCGGGACCGTATGTAGTTGATGATATGGGCTTTAACCAGCTATAGGATCTCGCGACCGGTGGAATTCCTTCGTGAGGATTAAGGTAAACGATGCTCATGATGCTGAGGTGTGCCATGACCCAGAGTCGTATCGATCCTTATATGTGCTATCACTCTTATTATCATTATACTGATTTTCCACGTGGTGGTTGCAGGTATCGCTTTCTGGCGAGTATCAAGTTGCTGCTTTATGATCGGCGAACTGGCACTCATAGACGGTCTCCCTCCAACTCACTAGTACCTGGATCGGAATCGGCGGCTCTGACATGTATCAGGAAGTGACTGTGATCAAAACTGGCAAAAGTGCAATATAAATCGTCACCACTGCTGCTCATAAGCGTTCATTCAACCCGAGGTAGTAAGGCCGCAGACAACTCCCAGGCGGAGGGTCCAACCCTGAGTCAGCGCGACACACAACAGCTCAACGCTATAAACCTCGGTCGTTGACGCTCGGGGGGTTAAAGCCGTGAAGTTCTCAATACACTCTCTTATTCCTTCGGCTATTACCAAATTAAGGTCCATGCCCCGCGAACTCCTTGAACGCAACCTCGATAAATAAAAAACGATTGAAGGTTACATGCGTAAGGGCCTAAAGATAAAAACCTCCGATAGGCATGTTATCGGTCCCTTCTACAGGGCGACTAGCGCTGGGAGGGATACGCAAACCCGGACAGGAAAGGTAGCTGAAAGCAACGGGTACGGTAGATAAAATTTGTCCGCAAGCAGAGCTTTGTACGGTCCGCCCGATGGTGGAATCATATCGTTTGCTGAAGTGCTAACACCCTCCATCTGACTAGCTATA",
+    "topology": "circular"
+   },
+   "raw": {
+    "cookie": [
+     1,
+     15,
+     19
+    ],
+    "dna": {
+     "flags": 31,
+     "length": 1000
+    },
+    "packets": [
+     [
+      9,
+      0,
+      14
+     ],
+     [
+      0,
+      19,
+      1001
+     ],
+     [
+      2,
+      1025,
+      3539
+     ],
+     [
+      3,
+      4569,
+      8204
+     ],
+     [
+      17,
+      12778,
+      45
+     ],
+     [
+      8,
+      12828,
+      289
+     ],
+     [
+      10,
+      13122,
+      1237
+     ],
+     [
+      5,
+      14364,
+      813
+     ],
+     [
+      6,
+      15182,
+      525
+     ],
+     [
+      13,
+      15712,
+      345
+     ],
+     [
+      14,
+      16062,
+      41
+     ],
+     [
+      28,
+      16108,
+      51
+     ]
+    ],
+    "truncated": null,
+    "xml": [
+     {
+      "offset": 12828,
+      "root": "AdditionalSequenceProperties",
+      "type": 8
+     },
+     {
+      "offset": 13122,
+      "root": "Features",
+      "type": 10
+     },
+     {
+      "offset": 14364,
+      "root": "Primers",
+      "type": 5
+     },
+     {
+      "offset": 15182,
+      "root": "Notes",
+      "type": 6
+     }
+    ]
+   }
+  },
+  "sample-hybridization-params.dna": {
+   "biopython": {
+    "date": "2025-08-18",
+    "description": "<unknown description>",
+    "division": "SYN",
+    "feature_types": [
+     "CDS",
+     "misc_feature",
+     "misc_feature",
+     "misc_feature",
+     "misc_feature",
+     "primer_bind",
+     "primer_bind"
+    ],
+    "id": "<unknown id>",
+    "name": "<unknown name>",
+    "seq": "CCGACCCGGCCTATTCACAATGACACAACTAAACACTCAGCAAGTTAATTAAATTTGCAAGTGCAAACTAAGTTAATACGAAAATTACGCACTATCTTCGATAATGTGTGAGTAAATTTAATTAAACCCCTCCCTACAAGCCAACCAGGCCGGAATCGTCCTCACCGACACAACATCAACTGCATAACACACACTTCACTCAATTCACCCGCTTCAGCAATCACGACCCCACCAACCCAACTCCACTTCGTCACATAGAATAACATTAAACGATTAAGATACATAGGGAAATGGGAAACATGGCCTGCACATTTCCAGGAAAGAGGACACTCTCATGAAATGGAAAAGGTATAGTAAAATGGAAGTCATCGAGATGCTTATCCACCGAAACCATAGATGGTACGGCCTTGGCGTTTCAGAGCGTAGACAACATCAAGAGAAGTAACGGTCTTTCTTTTGGCGTGCTCAGTGTAGGTAACGGCATCACGAATAACATTCTCGAGGAAAAGCTTCAACACGGCACGCGTCTCGTCATAAACAAGGGCAGAAATACGCTTGACACCACCACGACGGGCAAGACGACGAATAGCAGGCTTGGTAATACCTTGGATGTTATCACGGAGGATTTTACGATGACGCTTGGCGCCACCTTTTCCCAATCCTTTTCCACCTTTACCACGTCCAGACATTGTAACGGAAGGAGAGTTGCGAAATGCTTGTTTTGTTTTTTTAGCTCGGCCGGAAGGATAAAAGTCACGAAGACAGAAACGACGAACAAAGGCCGGAGTCAGTTACACGCGATGGGTTGCGCTGTAGTTGTTCTTGACGTGTGTTCTGATGAAATGCAGCGGAGGTCTGCCCTTTATATACCTTCGCGACGCGTGGCTAGTATGACGTATTAAAGGGTTAGGGTTCTGATGGCCGCAAAATATATATACAGAGACCCTGCACGAGATCGCGACATATTCAACCGAAACGCGTCTCAGTTGTTAAAGATATAATGGCTCGTACTAAGCAAACCGCTCGCAAGTCCACTGGTGGTAAGGCACCTCGTAAGCAATTGGCGTCCAAGGCCGCTCGCAAGTCGGCTCCCCCCACGACTGGTGGTGTTAAGAAGCCTCATCGTTATCGTCCTGGTACTGTCGCACTTCGTGAGATTCGTCGTTACCAAAAGAGTACTGAGCTTTTGATCCGGAAGCTTCCTTTCCAACGTCTTGTCCGTGAGATTGCTCAAGACTTCAAGACCGATCTTCGTTTCCAATCCTCGGCAATTGGTGCTCTTCAAGAGGCTGTTGAGGCTTACTTGGTCTCCTTGTTCGAAGACACCAACTTGTGTGCCATTCACGGCAAGCGTGTCACAATCCAACCCAAGGACATGCAACTGGCTCGTCGTCTCCGTGGTGAGCGTTCTTAAGTATAAATTGCGAGTTGACGCAAATCAACGCGCCGTGTTGCTTCCTTCCTGTTATTGATCACGTCCGTCAGTCGTTCGTTTATTTTTGGGCGCTCAATTCCTTGTTTGCTTATGTGTACATTAGTAATGATTATAATACGTTTTAAAGGCGTGGAGCGGATGTGAGTGGAGACTGTAAGCTTGAGAGAGAAGGAGAGTAATGGTGCAGGGTATTGGAGGGAGAAGGTTCTGGGTGCGGTTGGTTATGGGTATACAGGTACAGCGGCGTTGAAAGAATGCGTACTAGGAAGAAGTCTTCAACGAATAATAAGCTCCATTAGCACATCTTTGAAGAATGAGCTTGCTTTTCTTTTTTAGTGGAATGAGAAGAGAGACTGAGTTCGGATTCGGAATAACAACATGAGGTTCATAGCGTTCGTAGAGACATCACATCAAGTGGGTGACCCTTAAGCCATCATCATCTCGTGTTCGGAGGAAGCGGATTCCTCAAAAATTTGGAGAAGCGAGTGGTCGGGGTACGCAGCTCTTGCTCTAATCGGTCGCGGAAACGCGAAGAAGACCGAAGATGAGACTCGTTTTGTAAAGGTAGGGTGGTATCAAACGCGTGCAAATAACTGGAAGACACGGTGTCCTCTTCCCCGTTGCTCGTTTCTTGTGCTCGTTTGTCTAGTCGCTTCCGGTACCGTGATTGCCAGCGACGCATGCACCGACCGACTAATCGAGATTTTTTGCGTTCATGAAACCGACTTCCCTGTGCAAACAAACTTGATGTGCGAAAAAATCGAAGCTGCCAAGCATCAAACATTCGCTTTTTCGTTCGAAGAGTAAGTTCCTGGTGCTTCGTTTCACTCACATTTTGTAGCAAAACGAGTCGTTGGTACTGGTAGTGCCACATAGATAACGCAGAACGTAACAAGCGCTCTGCGTATGCACTTTCAGCCAACAATGAAAGCGCGCGTATCCGTTCCGTACGATGAAACCAATGCAGAAACGCATCTGT",
+    "topology": "linear"
+   },
+   "expected": {
+    "description": "SJAG_03543.1 length:2414 includes:exons upstream:1000 downstream:1000",
+    "features": [
+     {
+      "alignment": [
+       [
+        "same",
+        1
+       ],
+       [
+        "same",
+        1
+       ],
+       [
+        "translation",
+        "MARTKQTARKSTGGKAPRKQLASKAARKSAPPTTGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAIGALQEAVEAYLVSLFEDTNLCAIHGKRVTIQPKDMQLARRLRGERS*"
+       ],
+       [
+        "same",
+        "hht2-ORF"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         1000,
+         1414,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "codon_start",
+         [
+          1
+         ]
+        ],
+        [
+         "transl_table",
+         [
+          1
+         ]
+        ],
+        [
+         "translation",
+         [
+          "MARTKQTARKSTGGKAPRKQLASKAARKSAPPTTGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAIGALQEAVEAYLVSLFEDTNLCAIHGKRVTIQPKDMQLARRLRGERS*"
+         ]
+        ],
+        [
+         "label",
+         [
+          "hht2-ORF"
+         ]
+        ]
+       ],
+       "type": "CDS"
+      },
+      "color": "#993366",
+      "name": "hht2-ORF",
+      "qualifiers": [
+       [
+        "codon_start",
+        "1"
+       ],
+       [
+        "transl_table",
+        "1"
+       ],
+       [
+        "translation",
+        "MARTKQTARKSTGGKAPRKQLASKAARKSAPPTTGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAIGALQEAVEAYLVSLFEDTNLCAIHGKRVTIQPKDMQLARRLRGERS"
+       ],
+       [
+        "label",
+        "hht2-ORF"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        1000,
+        1414
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "codon_start",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "int": "1"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "transl_table",
+        "kind": "Q",
+        "q": 1,
+        "v": {
+         "int": "1"
+        }
+       },
+       {
+        "bio_index": 0,
+        "key": "translation",
+        "kind": "Q",
+        "q": 2,
+        "v": {
+         "text": "MARTKQTARKSTGGKAPRKQLASKAARKSAPPTTGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAIGALQEAVEAYLVSLFEDTNLCAIHGKRVTIQPKDMQLARRLRGERS*"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "hht2-ORF"
+       }
+      ],
+      "strand": 1,
+      "type": "CDS"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "1000US"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         0,
+         1000,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "label",
+         [
+          "1000US"
+         ]
+        ]
+       ],
+       "type": "misc_feature"
+      },
+      "color": "#a6acb3",
+      "name": "1000US",
+      "qualifiers": [
+       [
+        "label",
+        "1000US"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        0,
+        1000
+       ]
+      ],
+      "sources": [
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "1000US"
+       }
+      ],
+      "strand": 1,
+      "type": "misc_feature"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "1000DS"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         1414,
+         2414,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "label",
+         [
+          "1000DS"
+         ]
+        ]
+       ],
+       "type": "misc_feature"
+      },
+      "color": "#a6acb3",
+      "name": "1000DS",
+      "qualifiers": [
+       [
+        "label",
+        "1000DS"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        1414,
+        2414
+       ]
+      ],
+      "sources": [
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "1000DS"
+       }
+      ],
+      "strand": 0,
+      "type": "misc_feature"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "tail for long reverse primer for tagging hht2"
+       ],
+       [
+        "same",
+        "hht2(postORF)"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         1414,
+         1494,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "tail for long reverse primer for tagging hht2"
+         ]
+        ],
+        [
+         "label",
+         [
+          "hht2(postORF)"
+         ]
+        ]
+       ],
+       "type": "misc_feature"
+      },
+      "color": "#008000",
+      "name": "hht2(postORF)",
+      "qualifiers": [
+       [
+        "note",
+        "tail for long reverse primer for tagging hht2"
+       ],
+       [
+        "label",
+        "hht2(postORF)"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        1414,
+        1494
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>tail for long reverse primer for tagging hht2</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "hht2(postORF)"
+       }
+      ],
+      "strand": 0,
+      "type": "misc_feature"
+     },
+     {
+      "alignment": [
+       [
+        "same",
+        "tail of long forward primer for tagging hht2"
+       ],
+       [
+        "same",
+        "hht2(Cter)"
+       ]
+      ],
+      "biopython": {
+       "parts": [
+        [
+         1331,
+         1411,
+         1
+        ]
+       ],
+       "qualifiers": [
+        [
+         "note",
+         [
+          "tail of long forward primer for tagging hht2"
+         ]
+        ],
+        [
+         "label",
+         [
+          "hht2(Cter)"
+         ]
+        ]
+       ],
+       "type": "misc_feature"
+      },
+      "color": "#008000",
+      "name": "hht2(Cter)",
+      "qualifiers": [
+       [
+        "note",
+        "tail of long forward primer for tagging hht2"
+       ],
+       [
+        "label",
+        "hht2(Cter)"
+       ]
+      ],
+      "segment_groups": [
+       1
+      ],
+      "segments": [
+       [
+        1331,
+        1411
+       ]
+      ],
+      "sources": [
+       {
+        "bio_index": 0,
+        "key": "note",
+        "kind": "Q",
+        "q": 0,
+        "v": {
+         "text": "<html><body>tail of long forward primer for tagging hht2</body></html>"
+        }
+       },
+       {
+        "how": "appended",
+        "kind": "label",
+        "raw": "hht2(Cter)"
+       }
+      ],
+      "strand": 0,
+      "type": "misc_feature"
+     }
+    ],
+    "meta": {
+     "date": "18-AUG-2025",
+     "division": "SYN",
+     "extras": {
+      "ConfirmedExperimentally": "0",
+      "Created": "2025.8.12",
+      "Created.UTC": "15:36:53",
+      "DamMethylated": "1",
+      "DcmMethylated": "1",
+      "DownstreamModification": "Unmodified",
+      "EcoKIMethylated": "1",
+      "LastModified": "2025.8.18",
+      "LastModified.UTC": "16:32:16",
+      "SequenceClass": "UNA",
+      "Strandedness": "double",
+      "TransformedInto": "unspecified",
+      "Type": "Synthetic",
+      "UUID": "1ce4f28a-e4e8-4b93-9254-4506f023f3a2",
+      "UpstreamModification": "Unmodified"
+     },
+     "sourceFormat": "snapgene"
+    },
+    "name": "sample-hybridization-params",
+    "primers": [
+     {
+      "name": "XhoI-hht2(US)-Fwd",
+      "sequence": "AAAAAACTCGAGGAAAAGCTTCAAC"
+     },
+     {
+      "name": "XmaI-hht2(Cter)-Rev",
+      "sequence": "AAAAAACCCGGGAGAACGCTCACCACG"
+     }
+    ],
+    "seq": "CCGACCCGGCCTATTCACAATGACACAACTAAACACTCAGCAAGTTAATTAAATTTGCAAGTGCAAACTAAGTTAATACGAAAATTACGCACTATCTTCGATAATGTGTGAGTAAATTTAATTAAACCCCTCCCTACAAGCCAACCAGGCCGGAATCGTCCTCACCGACACAACATCAACTGCATAACACACACTTCACTCAATTCACCCGCTTCAGCAATCACGACCCCACCAACCCAACTCCACTTCGTCACATAGAATAACATTAAACGATTAAGATACATAGGGAAATGGGAAACATGGCCTGCACATTTCCAGGAAAGAGGACACTCTCATGAAATGGAAAAGGTATAGTAAAATGGAAGTCATCGAGATGCTTATCCACCGAAACCATAGATGGTACGGCCTTGGCGTTTCAGAGCGTAGACAACATCAAGAGAAGTAACGGTCTTTCTTTTGGCGTGCTCAGTGTAGGTAACGGCATCACGAATAACATTCTCGAGGAAAAGCTTCAACACGGCACGCGTCTCGTCATAAACAAGGGCAGAAATACGCTTGACACCACCACGACGGGCAAGACGACGAATAGCAGGCTTGGTAATACCTTGGATGTTATCACGGAGGATTTTACGATGACGCTTGGCGCCACCTTTTCCCAATCCTTTTCCACCTTTACCACGTCCAGACATTGTAACGGAAGGAGAGTTGCGAAATGCTTGTTTTGTTTTTTTAGCTCGGCCGGAAGGATAAAAGTCACGAAGACAGAAACGACGAACAAAGGCCGGAGTCAGTTACACGCGATGGGTTGCGCTGTAGTTGTTCTTGACGTGTGTTCTGATGAAATGCAGCGGAGGTCTGCCCTTTATATACCTTCGCGACGCGTGGCTAGTATGACGTATTAAAGGGTTAGGGTTCTGATGGCCGCAAAATATATATACAGAGACCCTGCACGAGATCGCGACATATTCAACCGAAACGCGTCTCAGTTGTTAAAGATATAATGGCTCGTACTAAGCAAACCGCTCGCAAGTCCACTGGTGGTAAGGCACCTCGTAAGCAATTGGCGTCCAAGGCCGCTCGCAAGTCGGCTCCCCCCACGACTGGTGGTGTTAAGAAGCCTCATCGTTATCGTCCTGGTACTGTCGCACTTCGTGAGATTCGTCGTTACCAAAAGAGTACTGAGCTTTTGATCCGGAAGCTTCCTTTCCAACGTCTTGTCCGTGAGATTGCTCAAGACTTCAAGACCGATCTTCGTTTCCAATCCTCGGCAATTGGTGCTCTTCAAGAGGCTGTTGAGGCTTACTTGGTCTCCTTGTTCGAAGACACCAACTTGTGTGCCATTCACGGCAAGCGTGTCACAATCCAACCCAAGGACATGCAACTGGCTCGTCGTCTCCGTGGTGAGCGTTCTTAAGTATAAATTGCGAGTTGACGCAAATCAACGCGCCGTGTTGCTTCCTTCCTGTTATTGATCACGTCCGTCAGTCGTTCGTTTATTTTTGGGCGCTCAATTCCTTGTTTGCTTATGTGTACATTAGTAATGATTATAATACGTTTTAAAGGCGTGGAGCGGATGTGAGTGGAGACTGTAAGCTTGAGAGAGAAGGAGAGTAATGGTGCAGGGTATTGGAGGGAGAAGGTTCTGGGTGCGGTTGGTTATGGGTATACAGGTACAGCGGCGTTGAAAGAATGCGTACTAGGAAGAAGTCTTCAACGAATAATAAGCTCCATTAGCACATCTTTGAAGAATGAGCTTGCTTTTCTTTTTTAGTGGAATGAGAAGAGAGACTGAGTTCGGATTCGGAATAACAACATGAGGTTCATAGCGTTCGTAGAGACATCACATCAAGTGGGTGACCCTTAAGCCATCATCATCTCGTGTTCGGAGGAAGCGGATTCCTCAAAAATTTGGAGAAGCGAGTGGTCGGGGTACGCAGCTCTTGCTCTAATCGGTCGCGGAAACGCGAAGAAGACCGAAGATGAGACTCGTTTTGTAAAGGTAGGGTGGTATCAAACGCGTGCAAATAACTGGAAGACACGGTGTCCTCTTCCCCGTTGCTCGTTTCTTGTGCTCGTTTGTCTAGTCGCTTCCGGTACCGTGATTGCCAGCGACGCATGCACCGACCGACTAATCGAGATTTTTTGCGTTCATGAAACCGACTTCCCTGTGCAAACAAACTTGATGTGCGAAAAAATCGAAGCTGCCAAGCATCAAACATTCGCTTTTTCGTTCGAAGAGTAAGTTCCTGGTGCTTCGTTTCACTCACATTTTGTAGCAAAACGAGTCGTTGGTACTGGTAGTGCCACATAGATAACGCAGAACGTAACAAGCGCTCTGCGTATGCACTTTCAGCCAACAATGAAAGCGCGCGTATCCGTTCCGTACGATGAAACCAATGCAGAAACGCATCTGT",
+    "topology": "linear"
+   },
+   "raw": {
+    "cookie": [
+     1,
+     15,
+     19
+    ],
+    "dna": {
+     "flags": 30,
+     "length": 2414
+    },
+    "packets": [
+     [
+      9,
+      0,
+      14
+     ],
+     [
+      0,
+      19,
+      2415
+     ],
+     [
+      2,
+      2439,
+      6367
+     ],
+     [
+      3,
+      8811,
+      8946
+     ],
+     [
+      17,
+      17762,
+      45
+     ],
+     [
+      8,
+      17812,
+      263
+     ],
+     [
+      10,
+      18080,
+      1595
+     ],
+     [
+      5,
+      19680,
+      2068
+     ],
+     [
+      6,
+      21753,
+      420
+     ],
+     [
+      13,
+      22178,
+      345
+     ],
+     [
+      14,
+      22528,
+      136
+     ],
+     [
+      28,
+      22669,
+      51
+     ]
+    ],
+    "truncated": null,
+    "xml": [
+     {
+      "offset": 17812,
+      "root": "AdditionalSequenceProperties",
+      "type": 8
+     },
+     {
+      "offset": 18080,
+      "root": "Features",
+      "type": 10
+     },
+     {
+      "offset": 19680,
+      "root": "Primers",
+      "type": 5
+     },
+     {
+      "offset": 21753,
+      "root": "Notes",
+      "type": 6
+     }
+    ]
+   }
+  }
+ }
+}

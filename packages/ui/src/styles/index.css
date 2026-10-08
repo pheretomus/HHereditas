@@ -52,6 +52,34 @@ textarea {
   font-variant-ligatures: none;
 }
 
+/* Thin, quiet scrollbars. Chromium (WebView2) honours the standard properties; WKWebView on macOS
+   ignores them and keeps its native overlay scrollbars, which is what we want there. */
+:where(*) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hh-scrollbar-thumb) transparent;
+}
+
+/* WebKitGTK (Linux) only understands the legacy pseudo-elements. */
+:root.hh-platform-linux ::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+:root.hh-platform-linux ::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 6px;
+  background: var(--hh-scrollbar-thumb) padding-box;
+}
+
+:root.hh-platform-linux ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--hh-scrollbar-thumb-hover);
+}
+
+:root.hh-platform-linux ::-webkit-scrollbar-track,
+:root.hh-platform-linux ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

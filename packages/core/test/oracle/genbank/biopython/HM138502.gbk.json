@@ -1,0 +1,196 @@
+{
+ "file": "HM138502.gbk",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "HM138502",
+   "id": "HM138502.1",
+   "description": "Influenza A virus (A/California/07/2009(H1N1)) segment 6 neuraminidase (NA) gene, complete cds",
+   "seqDefined": true,
+   "seqLength": 1410,
+   "seqSha1": "777fb35f3883032e10e7ad915e409ab5a77d99e6",
+   "seq": "ATGAATCCAAACCAAAAGATAATAACCATTGGTTCGGTCTGTATGACAATTGGAATGGCTAACTTAATATTACAAATTGGAAACATAATCTCAATATGGATTAGCCACTCAATTCAACTTGGGAATCAAAATCAGATTGAAACATGCAATCAAAGCGTCATTACTTATGAAAACAACACTTGGGTAAATCAGACATATGTTAACATCAGCAACACCAACTTTGCTGCTGGACAGTCAGTGGTTTCCGTGAAATTAGCAGGCAATTCCTCTCTCTGCCCTGTTAGTGGATGGGCTATATACAGTAAAGACAACAGTGTAAGAATCGGTTCCAAGGGGGATGTGTTTGTCATAAGGGAACCATTCATATCATGCTCCCCCTTGGAATGCAGAACCTTCTTCTTGACTCAAGGGGCCTTGCTAAATGACAAACATTCCAATGGAACCATTAAAGACAGGAGCCCATATCGAACCCTAATGAGCTGTCCTATTGGTGAAGTTCCCTCTCCATACAACTCAAGATTTGAGTCAGTCGCTTGGTCAGCAAGTGCTTGTCATGATGGCATCAATTGGCTAACAATTGGAATTTCTGGCCCAGACAATGGGGCAGTGGCTGTGTTAAAGTACAACGGCATAATAACAGACACTATCAAGAGTTGGAGAAACAATATATTGAGAACACAAGAGTCTGAATGTGCATGTGTAAATGGTTCTTGCTTTACTGTAATGACCGATGGACCAAGTAATGGACAGGCCTCATACAAGATCTTCAGAATAGAAAAGGGAAAGATAGTCAAATCAGTCGAAATGAATGCCCCTAATTATCACTATGAGGAATGCTCCTGTTATCCTGATTCTAGTGAAATCACATGTGTGTGCAGGGATAACTGGCATGGCTCGAATCGACCGTGGGTGTCTTTCAACCAGAATCTGGAATATCAGATAGGATACATATGCAGTGGGATTTTCGGAGACAATCCACGCCCTAATGATAAGACAGGCAGTTGTGGTCCAGTATCGTCTAATGGAGCAAATGGAGTAAAAGGGTTTTCATTCAAATACGGCAATGGTGTTTGGATAGGGAGAACTAAAAGCATTAGTTCAAGAAACGGTTTTGAGATGATTTGGGATCCGAACGGATGGACTGGGACAGACAATAACTTCTCAATAAAGCAAGATATCGTAGGAATAAATGAGTGGTCAGGATATAGCGGGAGTTTTGTTCAGCATCCAGAACTAACAGGGCTGGATTGTATAAGACCTTGCTTCTGGGTTGAACTAATCAGAGGGCGACCCAAAGAGAACACAATCTGGACTAGCGGGAGCAGCATATCCTTTTGTGGTGTAAACAGTGACACTGTGGGTTGGTCTTGGCCAGACGGTGCTGAGTTGCCATTTACCATTGACAAGTAA",
+   "topology": "linear",
+   "moleculeType": "cRNA",
+   "division": "VRL",
+   "date": "22-APR-2010",
+   "accessions": [
+    "HM138502"
+   ],
+   "sequenceVersion": 1,
+   "gi": "295002854",
+   "keywords": [
+    ""
+   ],
+   "source": "Influenza A virus (A/California/07/2009(H1N1))",
+   "organism": "Influenza A virus (A/California/07/2009(H1N1))",
+   "taxonomy": [
+    "Viruses",
+    "ssRNA negative-strand viruses",
+    "Orthomyxoviridae",
+    "Influenzavirus A"
+   ],
+   "comment": "Swine influenza A (H1N1) virus isolated during human swine flu\noutbreak of 2009.",
+   "structuredComment": {
+    "GISAID_EpiFlu(TM)Data": {
+     "Isolate": "A/California/07/09",
+     "Subtype": "H1N1",
+     "Lineage": "swl"
+    }
+   },
+   "dbxrefs": [
+    "BioProject:PRJNA37813"
+   ],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       1410
+      ]
+     ],
+     "authors": "Starick,E.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (21-APR-2010) Friedrich-Loeffler-Institut, Suedufer 10, Greifswald-Insel Riems 17493, Germany",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 3,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1410,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Influenza A virus (A/California/07/2009(H1N1))"
+      ],
+      [
+       "mol_type",
+       "viral cRNA"
+      ],
+      [
+       "strain",
+       "A/California/07/2009"
+      ],
+      [
+       "serotype",
+       "H1N1"
+      ],
+      [
+       "host",
+       "Homo sapiens"
+      ],
+      [
+       "db_xref",
+       "taxon:641809"
+      ],
+      [
+       "segment",
+       "6"
+      ],
+      [
+       "country",
+       "USA"
+      ],
+      [
+       "collection_date",
+       "09-Apr-2009"
+      ],
+      [
+       "note",
+       "lineage: swl"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1410,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "NA"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1410,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "NA"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "neuraminidase"
+      ],
+      [
+       "protein_id",
+       "ADF58339.1"
+      ],
+      [
+       "db_xref",
+       "GI:295002855"
+      ],
+      [
+       "translation",
+       "MNPNQKIITIGSVCMTIGMANLILQIGNIISIWISHSIQLGNQNQIETCNQSVITYENNTWVNQTYVNISNTNFAAGQSVVSVKLAGNSSLCPVSGWAIYSKDNSVRIGSKGDVFVIREPFISCSPLECRTFFLTQGALLNDKHSNGTIKDRSPYRTLMSCPIGEVPSPYNSRFESVAWSASACHDGINWLTIGISGPDNGAVAVLKYNGIITDTIKSWRNNILRTQESECACVNGSCFTVMTDGPSNGQASYKIFRIEKGKIVKSVEMNAPNYHYEECSCYPDSSEITCVCRDNWHGSNRPWVSFNQNLEYQIGYICSGIFGDNPRPNDKTGSCGPVSSNGANGVKGFSFKYGNGVWIGRTKSISSRNGFEMIWDPNGWTGTDNNFSIKQDIVGINEWSGYSGSFVQHPELTGLDCIRPCFWVELIRGRPKENTIWTSGSSISFCGVNSDTVGWSWPDGAELPFTIDK"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

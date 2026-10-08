@@ -1,0 +1,77 @@
+LOCUS       PZ112255                1364 bp    mRNA    linear   PLN 01-JUL-2026
+DEFINITION  Viola inconspicua peptide asparaginyl ligase (PAL2) mRNA, partial
+            cds.
+ACCESSION   PZ112255
+VERSION     PZ112255.1
+KEYWORDS    .
+SOURCE      Viola inconspicua
+  ORGANISM  Viola inconspicua
+            Eukaryota; Viridiplantae; Streptophyta; Embryophyta; Tracheophyta;
+            Spermatophyta; Magnoliopsida; eudicotyledons; Gunneridae;
+            Pentapetalae; rosids; fabids; Malpighiales; Violaceae; Viola; Viola
+            subgen. Viola; Viola sect. Plagiostigma; Viola subsect. Patellares.
+REFERENCE   1  (bases 1 to 1364)
+  AUTHORS   Zhen,M., Liao,M., Zhao,Y., Ma,J., Hao,Y., Jiang,H., Lu,G.,
+            Liew,C.W., Chua,N., Chen,H. and Hu,G.
+  TITLE     Mining of natural diversity enables efficient and expressible
+            peptide asparaginyl ligases
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 1364)
+  AUTHORS   Hemu,X., Du,W. and Qi,S.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (27-FEB-2026) School of Traditional Chinese Pharmacy,
+            China Pharmaceutical University, No. 639 Longmian Avenue, Jiangning
+            District, Nanjing, Jiangsu 210000, China
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1364
+                     /organism="Viola inconspicua"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:591090"
+                     /geo_loc_name="China"
+     gene            <1..>1364
+                     /gene="PAL2"
+                     /note="VinPAL2"
+     CDS             <1..>1364
+                     /gene="PAL2"
+                     /note="PAL"
+                     /codon_start=1
+                     /product="peptide asparaginyl ligase"
+                     /protein_id="YFK61254.1"
+                     /translation="LRLPSEAAKFFHNDNSTNDDDSIGTRWAVLIAGSKGYHNYRHQA
+                     DVCHMYQILRKGGVKDENIIVFMYDDIAYNESNPHPGILINKPGGEDVYKGVPKDYTG
+                     EDINNVNFLAAILGNKSAIIGGSGKVLDTSPNDHIFIYYADHGAPGKIGMPSKPYLYA
+                     DDLVDTLKQKAATGTYKSMVFYVEACNAGSMFEGLLPEGTNIYAMAASNSTEGSWITY
+                     CPGTPDFPPEFDVCLGDLWSITFLEDCDAHNLRTETVHQQFELIKKKIAYASTVSQYG
+                     DIPISKDSLSVYMGTDPANDNRTFVDENSLRPPLKVIHQHDADLYHLWCKYNKAPEGS
+                     SKKIEAQKQLLELMSHRAHVDNSITLIGKLLFGVDKASKVLNTFRPVGQPLVDDWQCL
+                     KAMIRTFETHCGSLSEYGMKHTLSFANMCNAGIRKEQLAEAAAQACVTFPSNSYSSLA
+                     EGFSA"
+ORIGIN      
+        1 ctccggttgc cgtcagaagc tgctaagttc ttccataacg acaacagtac caatgatgat
+       61 gattccatcg gaactagatg ggccgtcctc atcgctggat ctaaaggata tcacaactat
+      121 cggcaccagg ctgatgtttg tcatatgtat caaatcttga ggaaaggagg agtgaaggat
+      181 gagaatataa ttgttttcat gtatgatgac attgcctaca acgagagtaa cccacatcct
+      241 ggaatcctca ttaacaagcc tggtggagaa gatgtctaca aaggagttcc taaggattat
+      301 actggtgaag atattaacaa cgtcaacttt ttagctgcta tccttggtaa caaatctgcc
+      361 attatcgggg gcagcggaaa agttttggat actagcccca acgatcatat cttcatatac
+      421 tacgctgatc atggagctcc tgggaaaata gggatgcctt cgaaacctta cctttatgct
+      481 gatgatctgg tggacacctt gaaacagaaa gctgctactg ggacatataa aagcatggtg
+      541 ttctatgtgg aagcatgcaa tgctgggagc atgtttgaag gtcttcttcc agaaggtacg
+      601 aatatctatg ctatggcagc ttcaaattcg acagaaggca gttggataac atactgccct
+      661 gggactcctg atttcccccc ggaatttgat gtctgtttgg gtgacctctg gagcattact
+      721 tttctggaag actgtgacgc acacaatttg cggactgaaa ctgtgcatca gcaatttgag
+      781 ctgattaaaa agaagattgc ttatgcttct actgtctctc aatatggtga cattcccatt
+      841 agcaaggaca gtctttctgt atatatggga acagatcctg caaatgataa ccgtaccttt
+      901 gtggatgaga actccttaag gccaccgcta aaagttattc accagcatga tgcagatctt
+      961 taccatctct ggtgtaagta caacaaggcc cctgaaggct cttccaagaa gattgaagct
+     1021 cagaagcagc ttcttgaact aatgtcgcat agagcgcatg tagacaacag catcacactg
+     1081 attgggaaac ttctatttgg tgtggacaag gcttcaaagg tgctgaatac atttcgtcct
+     1141 gttgggcaac ctcttgttga cgactggcag tgccttaaag caatgataag gactttcgag
+     1201 acgcactgtg gatctttgtc cgagtatggg atgaaacaca cactatcatt cgcaaacatg
+     1261 tgcaatgccg gaattcggaa ggaacagctg gctgaggcag cagcacaagc ttgtgtcacc
+     1321 tttccatcga actcatatag ctctcttgcc gaagggttca gtgc
+//
+

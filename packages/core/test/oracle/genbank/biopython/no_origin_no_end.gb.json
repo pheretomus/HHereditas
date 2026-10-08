@@ -1,0 +1,7 @@
+{
+ "file": "no_origin_no_end.gb",
+ "biopython": "1.88",
+ "error": "ValueError: Premature end of line during features table",
+ "warnings": [],
+ "records": []
+}

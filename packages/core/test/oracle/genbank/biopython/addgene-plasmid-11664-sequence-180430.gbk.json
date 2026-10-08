@@ -1,0 +1,1068 @@
+{
+ "file": "addgene-plasmid-11664-sequence-180430.gbk",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [
+  "it appears that '8569..276' is a feature that spans the origin, but the sequence topology is undefined; setting feature location to None."
+ ],
+ "records": [
+  {
+   "name": "Exported",
+   "id": ".",
+   "description": "3rd generation lentiviral transfer vector. pPRIME cloning plasmid with a CMV promoter controlling expression of dsRed and miR30-based shRNA targeting firefly luciferase",
+   "seqDefined": true,
+   "seqLength": 8596,
+   "seqSha1": "5e67dabe7bcdf1d97d54f9245aacbbdfa11fe2c3",
+   "seq": "CCTGGCTGACCGCCCAACGACCCCCGCCCATTGACGTCAATAATGACGTATGTTCCCATAGTAACGCCAATAGGGACTTTCCATTGACGTCAATGGGTGGAGTATTTACGGTAAACTACCCACTTGGCAGTACATCAAGTGTATCATATGCCAAGTACGCCCCCTATTGACGTCAATGACGGTAAATGGCCCGCCTGGCATTATGCCCAGTACATGACCTTATGGGACTTTCCTACTTGGCAGTACATCTACGTATTAGTCATCGCTATTACCATGGTGATGCGGTTTTGGCAGTACATCAATGGGCGTGGATAGCGGTTTGACTCACGGGGATTTCCAAGTCTCCACCCCATTGACGTCAATGGGAGTTTGTTTTGGCACCAAAATCAACGGGACTTTCCAAAATGTCGTAACAACTCCGCCCCATTGACGCAAATGGGCGGTAGGCGTGTACGGTGGGAGGTCTATATAAGCAGAGCTGGTTTAGTGAACCGTCAGATCCGCTAGCGCTACCGGGCCTGCAGGATGGACTCCTCCGAGGACGTCATCAAGGAGTTCATGCGCTTCAAGGTGCGCATGGAGGGCTCCGTGAACGGCCACGAGTTCGAGATCGAGGGCGAGGGCGAGGGCCGCCCCTACGAGGGCACCCAGACCGCCAAGCTGAAGGTGACCAAGGGCGGCCCCCTGCCCTTCGCCTGGGACATCCTGTCCCCCCAGTTCCAGTACGGCTCCAAGGTGTACGTGAAGCACCCCGCCGACATCCCCGACTACAAGAAGCTGTCCTTCCCCGAGGGCTTCAAGTGGGAGCGCGTGATGAACTTCGAGGACGGCGGCGTGGTGACCGTGACCCAGGACTCCTCCCTGCAGGACGGCTCCTTCATCTACAAGGTGAAGTTCATCGGCGTGAACTTCCCCTCCGACGGCCCCGTAATGCAGAAGAAGACTATGGGCTGGGAGGCCTCCACCGAGCGCCTGTACCCCCGCGACGGCGTGCTGAAGGGCGAGATCCACAAGGCCCTGAAGCTGAAGGACGGCGGCCACTACCTGGTGGAGTTCAAGTCCATCTACATGGCCAAGAAGCCCGTGCAGCTGCCCGGCTACTACTACGTGGACTCCAAGCTGGACATCACCTCCCACAACGAGGACTACACCATCGTGGAGCAGTACGAGCGCGCCGAGGGCCGCCACCACCTGTTCCTGTAGGCGGCCGCAAGCCTTGTTAAGTGCTCGCTTCGGCAGCACATATACTATGTTGAATGAGGCTTCAGTACTTTACAGAATCGTTGCCTGCACATCTTGGAAACACTTGCTGGGATTACTTCTTCAGGTTAACCCAACAGAAGGCTCGAGAAGGTATATTGCTGTTGACAGTGAGCGAGCTCCCGTGAATTGGAATCCTAGTGAAGCCACAGATGTAGGATTCCAATTCAGCGGGAGCCTGCCTACTGCCTCGGAATTCAAGGGGCTACTTTAGGAGCAATTATCTTGTTTACTAAAACTGAATACCTTGCTATCTCTTTGATACATTTTTACAAAGCTGAATTAAAATGGTATAAATTAAATCACTTTTTTCAATTGGAAGACTAATGCGTTTAAACACGCGGCGACGCGTTCGACCGAATAAATACCTGTGACGGAAGATCACTTCGCAGAATAAATAAATCCTGGTGTCCCTGTTGATACCGGGAAGCCCTGGGCCAACTTTTGGCGAAAATGAGACGTTGATCGGCACGTAAGAGGTTCCAACTTTCACCATAATGAAATAAGATCACTACCGGGCGTATTTTTTGAGTTGTCGAGATTTTCAGGAGCTAAGGAAGCTAAAATGGAGAAAAAAATCACTGGATATACCACCGTTGATATATCCCAATGGCATCGTAAAGAACATTTTGAGGCATTTCAGTCAGTTGCTCAATGTACCTATAACCAGACCGTTCAGCTGGATATTACGGCCTTTTTAAAGACCGTAAAGAAAAATAAGCACAAGTTTTATCCGGCCTTTATTCACATTCTTGCCCGCCTGATGAATGCTCATCCGGAATTACGTATGGCAATGAAAGACGGTGAGCTGGTGATATGGGATAGTGTTCACCCTTGTTACACCGTTTTCCATGAGCAAACTGAAACGTTTTCATCGCTCTGGAGTGAATACCACGACGATTTCCGGCAGTTTCTACACATATATTCGCAAGATGTGGCGTGTTACGGTGAAAACCTGGCCTATTTCCCTAAAGGGTTTATTGAGAATATGTTTTTCGTCTCAGCCAATCCCTGGGTGAGTTTCACCAGTTTTGATTTAAACGTGGCCAATATGGACAACTTCTTCGCCCCCGTTTTCACCATGGGCAAATATTATACGCAAGGCGACAAGGTGCTGATGCCGCTGGCGATTCAGGTTCATCATGCCGTTTGTGATGGCTTCCATGTCGGCAGAATGCTTAATGAATTACAACAGTACTGCGATGAGTGGCAGGGCGGGGCGTAATTTTTTTAAGGCAGTTATTGGTGCCCTTAAACGCCTGGTTGCTACGCCTGAATAAGTGATAATAAGCGGATGAATGGCAGAAATTCGGATCTCGCGCGTTTGGGCGGTGGCTCCCTGCCACGCGGCTCCGAACAGAAGCTGATCTCCGAAGAGGATCTGACATGTGTTTAAACTTAATTAAGTCGAGGTCGACGGTATCGATAAGCTCGCTTCACGAGATCATGTTTAAGGGTTCCGGTTCCACTAGGTACAATTCGATATCAAGCTTATCGATAATCAACCTCTGGATTACAAAATTTGTGAAAGATTGACTGGTATTCTTAACTATGTTGCTCCTTTTACGCTATGTGGATACGCTGCTTTAATGCCTTTGTATCATGCTATTGCTTCCCGTATGGCTTTCATTTTCTCCTCCTTGTATAAATCCTGGTTGCTGTCTCTTTATGAGGAGTTGTGGCCCGTTGTCAGGCAACGTGGCGTGGTGTGCACTGTGTTTGCTGACGCAACCCCCACTGGTTGGGGCATTGCCACCACCTGTCAGCTCCTTTCCGGGACTTTCGCTTTCCCCCTCCCTATTGCCACGGCGGAACTCATCGCCGCCTGCCTTGCCCGCTGCTGGACAGGGGCTCGGCTGTTGGGCACTGACAATTCCGTGGTGTTGTCGGGGAAATCATCGTCCTTTCCTTGGCTGCTCGCCTGTGTTGCCACCTGGATTCTGCGCGGGACGTCCTTCTGCTACGTCCCTTCGGCCCTCAATCCAGCGGACCTTCCTTCCCGCGGCCTGCTGCCGGCTCTGCGGCCTCTTCCGCGTCTTCGCCTTCGCCCTCAGACGAGTCGGATCTCCCTTTGGGCCGCCTCCCCGCATCGATACCGTCGACCTCGATCGAGACCTAGAAAAACATGGAGCAATCACAAGTAGCAATACAGCAGCTACCAATGCTGATTGTGCCTGGCTAGAAGCACAAGAGGAGGAGGAGGTGGGTTTTCCAGTCACACCTCAGGTACCTTTAAGACCAATGACTTACAAGGCAGCTGTAGATCTTAGCCACTTTTTAAAAGAAAAGGGGGGACTGGAAGGGCTAATTCACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTGGCAGAACTACACACCAGGGCCAGGGATCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCAAGAGAAGGTAGAAGAAGCCAATGAAGGAGAGAACACCCGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTATTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACATGGCCCGAGAGCTGCATCCGGACTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCAGCATGTGAGCAAAAGGCCAGCAAAAGGCCAGGAACCGTAAAAAGGCCGCGTTGCTGGCGTTTTTCCATAGGCTCCGCCCCCCTGACGAGCATCACAAAAATCGACGCTCAAGTCAGAGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGAAGCTCCCTCGTGCGCTCTCCTGTTCCGACCCTGCCGCTTACCGGATACCTGTCCGCCTTTCTCCCTTCGGGAAGCGTGGCGCTTTCTCATAGCTCACGCTGTAGGTATCTCAGTTCGGTGTAGGTCGTTCGCTCCAAGCTGGGCTGTGTGCACGAACCCCCCGTTCAGCCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGTAAGACACGACTTATCGCCACTGGCAGCAGCCACTGGTAACAGGATTAGCAGAGCGAGGTATGTAGGCGGTGCTACAGAGTTCTTGAAGTGGTGGCCTAACTACGGCTACACTAGAAGAACAGTATTTGGTATCTGCGCTCTGCTGAAGCCAGTTACCTTCGGAAAAAGAGTTGGTAGCTCTTGATCCGGCAAACAAACCACCGCTGGTAGCGGTGGTTTTTTTGTTTGCAAGCAGCAGATTACGCGCAGAAAAAAAGGATCTCAAGAAGATCCTTTGATCTTTTCTACGGGGTCTGACGCTCAGTGGAACGAAAACTCACGTTAAGGGATTTTGGTCATGAGATTATCAAAAAGGATCTTCACCTAGATCCTTTTAAATTAAAAATGAAGTTTTAAATCAATCTAAAGTATATATGAGTAAACTTGGTCTGACAGTTACCAATGCTTAATCAGTGAGGCACCTATCTCAGCGATCTGTCTATTTCGTTCATCCATAGTTGCCTGACTCCCCGTCGTGTAGATAACTACGATACGGGAGGGCTTACCATCTGGCCCCAGTGCTGCAATGATACCGCGAGACCCACGCTCACCGGCTCCAGATTTATCAGCAATAAACCAGCCAGCCGGAAGGGCCGAGCGCAGAAGTGGTCCTGCAACTTTATCCGCCTCCATCCAGTCTATTAATTGTTGCCGGGAAGCTAGAGTAAGTAGTTCGCCAGTTAATAGTTTGCGCAACGTTGTTGCCATTGCTACAGGCATCGTGGTGTCACGCTCGTCGTTTGGTATGGCTTCATTCAGCTCCGGTTCCCAACGATCAAGGCGAGTTACATGATCCCCCATGTTGTGCAAAAAAGCGGTTAGCTCCTTCGGTCCTCCGATCGTTGTCAGAAGTAAGTTGGCCGCAGTGTTATCACTCATGGTTATGGCAGCACTGCATAATTCTCTTACTGTCATGCCATCCGTAAGATGCTTTTCTGTGACTGGTGAGTACTCAACCAAGTCATTCTGAGAATAGTGTATGCGGCGACCGAGTTGCTCTTGCCCGGCGTCAATACGGGATAATACCGCGCCACATAGCAGAACTTTAAAAGTGCTCATCATTGGAAAACGTTCTTCGGGGCGAAAACTCTCAAGGATCTTACCGCTGTTGAGATCCAGTTCGATGTAACCCACTCGTGCACCCAACTGATCTTCAGCATCTTTTACTTTCACCAGCGTTTCTGGGTGAGCAAAAACAGGAAGGCAAAATGCCGCAAAAAAGGGAATAAGGGCGACACGGAAATGTTGAATACTCATACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGAAAAATAAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGACGTCGACGGATCGGGAGATCTCCCGATCCCCTATGGTGCACTCTCAGTACAATCTGCTCTGATGCCGCATAGTTAAGCCAGTATCTGCTCCCTGCTTGTGTGTTGGAGGTCGCTGAGTAGTGCGCGAGCAAAATTTAAGCTACAACAAGGCAAGGCTTGACCGACAATTGCATGAAGAATCTGCTTAGGGTTAGGCGTTTTGCGCTGCTTCGCGATGTACGGGCCAGATATACGCGTTGACATTGATTATTGACTAGTTATTAATAGTAATCAATTACGGGGTCATTAGTTCATAGCCCATATATGGAGTTCCGCGTTACATAACTTACGGTAAATGGCCCGCCTGGCTGACCGCCCAACGACCCCCGCCCATTGACGTCAATAATGACGTATGTTCCCATAGTAACGCCAATAGGGACTTTCCATTGACGTCAATGGGTGGAGTATTTACGGTAAACTGCCCACTTGGCAGTACATCAAGTGTATCATATGCCAAGTACGCCCCCTATTGACGTCAATGACGGTAAATGGCCCGCCTGGCATTATGCCCAGTACATGACCTTATGGGACTTTCCTACTTGGCAGTACATCTACGTATTAGTCATCGCTATTACCATGGTGATGCGGTTTTGGCAGTACATCAATGGGCGTGGATAGCGGTTTGACTCACGGGGATTTCCAAGTCTCCACCCCATTGACGTCAATGGGAGTTTGTTTTGGCACCAAAATCAACGGGACTTTCCAAAATGTCGTAACAACTCCGCCCCATTGACGCAAATGGGCGGTAGGCGTGTACGGTGGGAGGTCTATATAAGCAGCGCGTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCAGTGGCGCCCGAACAGGGACTTGAAAGCGAAAGGGAAACCAGAGGAGCTCTCTCGACGCAGGACTCGGCTTGCTGAAGCGCGCACGGCAAGAGGCGAGGGGCGGCGACTGGTGAGTACGCCAAAAATTTTGACTAGCGGAGGCTAGAAGGAGAGAGATGGGTGCGAGAGCGTCAGTATTAAGCGGGGGAGAATTAGATCGCGATGGGAAAAAATTCGGTTAAGGCCAGGGGGAAAGAAAAAATATAAATTAAAACATATAGTATGGGCAAGCAGGGAGCTAGAACGATTCGCAGTTAATCCTGGCCTGTTAGAAACATCAGAAGGCTGTAGACAAATACTGGGACAGCTACAACCATCCCTTCAGACAGGATCAGAAGAACTTAGATCATTATATAATACAGTAGCAACCCTCTATTGTGTGCATCAAAGGATAGAGATAAAAGACACCAAGGAAGCTTTAGACAAGATAGAGGAAGAGCAAAACAAAAGTAAGACCACCGCACAGCAAGCGGCCGGCCGCTGATCTTCAGACCTGGAGGAGGAGATATGAGGGACAATTGGAGAAGTGAATTATATAAATATAAAGTAGTAAAAATTGAACCATTAGGAGTAGCACCCACCAAGGCAAAGAGAAGAGTGGTGCAGAGAGAAAAAAGAGCAGTGGGAATAGGAGCTTTGTTCCTTGGGTTCTTGGGAGCAGCAGGAAGCACTATGGGCGCAGCGTCAATGACGCTGACGGTACAGGCCAGACAATTATTGTCTGGTATAGTGCAGCAGCAGAACAATTTGCTGAGGGCTATTGAGGCGCAACAGCATCTGTTGCAACTCACAGTCTGGGGCATCAAGCAGCTCCAGGCAAGAATCCTGGCTGTGGAAAGATACCTAAAGGATCAACAGCTCCTGGGGATTTGGGGTTGCTCTGGAAAACTCATTTGCACCACTGCTGTGCCTTGGAATGCTAGTTGGAGTAATAAATCTCTGGAACAGATTTGGAATCACACGACCTGGATGGAGTGGGACAGAGAAATTAACAATTACACAAGCTTAATACACTCCTTAATTGAAGAATCGCAAAACCAGCAAGAAAAGAATGAACAAGAATTATTGGAATTAGATAAATGGGCAAGTTTGTGGAATTGGTTTAACATAACAAATTGGCTGTGGTATATAAAATTATTCATAATGATAGTAGGAGGCTTGGTAGGTTTAAGAATAGTTTTTGCTGTACTTTCTATAGTGAATAGAGTTAGGCAGGGATATTCACCATTATCGTTTCAGACCCACCTCCCAACCCCGAGGGGACCCGACAGGCCCGAAGGAATAGAAGAAGAAGGTGGAGAGAGAGACAGAGACAGATCCATTCGATTAGTGAACGGATCGGCACTGCGTGCGCCAATTCTGCAGACAAATGGCAGTATTCATCCACAATTTTAAAAGAAAAGGGGGGATTGGGGGGTACAGTGCAGGGGAAAGAATAGTAGACATAATAGCAACAGACATACAAACTAAAGAATTACAAAAACAAATTACAAAAATTCAAAATTTTCGGGTTTATTACAGGGACAGCAGAGATCCAGTTTGGTTAGTACCGGGCCCGCTCTAGACGTATTACCGCCATGCATTAGTTATTAATAGTAATCAATTACGGGGTCATTAGTTCATAGCCCATATATGGAGTTCCGCGTTACATAACTTACGGTAAATGGCCCG",
+   "topology": "linear",
+   "moleculeType": "ds-DNA",
+   "division": "SYN",
+   "date": "18-MAY-2021",
+   "accessions": [
+    "."
+   ],
+   "sequenceVersion": null,
+   "gi": null,
+   "keywords": [
+    "pPRIME-CMV-dsRed-FF3"
+   ],
+   "source": "synthetic DNA construct",
+   "organism": "synthetic DNA construct",
+   "taxonomy": [],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       8596
+      ]
+     ],
+     "authors": "Stegmeier F, Hu G, Rickles RJ, Hannon GJ, Elledge SJ",
+     "consrtm": "",
+     "title": "A lentiviral microRNA-based system for single-copy polymerase II-regulated RNA interference in mammalian cells.",
+     "journal": "Proc Natl Acad Sci U S A. 2005 Sep 13. 102(37):13212-7.",
+     "medline": "",
+     "pubmed": "16141338",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       8596
+      ]
+     ],
+     "authors": ".",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Exported May 18, 2021 from SnapGene Server 1.1.58 http://www.snapgene.com",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 34,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 8596,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "synthetic DNA construct"
+      ],
+      [
+       "mol_type",
+       "other DNA"
+      ]
+     ]
+    },
+    {
+     "type": "promoter",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 276,
+        "end": 480,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "CMV promoter"
+      ],
+      [
+       "note",
+       "human cytomegalovirus (CMV) immediate early promoter"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 525,
+        "end": 1203,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "rapidly maturing tetrameric variant of DsRed fluorescent protein (Bevis and Glick, 2002)"
+      ],
+      [
+       "label",
+       "DsRed-Express"
+      ],
+      [
+       "note",
+       "mammalian codon-optimized"
+      ],
+      [
+       "translation",
+       "MDSSEDVIKEFMRFKVRMEGSVNGHEFEIEGEGEGRPYEGTQTAKLKVTKGGPLPFAWDILSPQFQYGSKVYVKHPADIPDYKKLSFPEGFKWERVMNFEDGGVVTVTQDSSLQDGSFIYKVKFIGVNFPSDGPVMQKKTMGWEASTERLYPRDGVLKGEIHKALKLKDGGHYLVEFKSIYMAKKPVQLPGYYYVDSKLDITSHNEDYTIVEQYERAEGRHHLFL"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 655,
+        "end": 674,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "mCherry-R"
+      ],
+      [
+       "note",
+       "mCherry, reverse primer"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 705,
+        "end": 726,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "DsRed1-N"
+      ],
+      [
+       "note",
+       "DsRed1, reverse primer"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 923,
+        "end": 943,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "mCherry-F"
+      ],
+      [
+       "note",
+       "mCherry, forward primer"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1117,
+        "end": 1141,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "DsRed1-C"
+      ],
+      [
+       "note",
+       "DsRed1, forward primer"
+      ]
+     ]
+    },
+    {
+     "type": "ncRNA",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1252,
+        "end": 1374,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "5' miR-30a"
+      ],
+      [
+       "note",
+       "sequence upstream of the 71-nt precursor of the human miR-30a microRNA (Zeng et al., 2002)"
+      ],
+      [
+       "ncRNA_class",
+       "miRNA"
+      ]
+     ]
+    },
+    {
+     "type": "ncRNA",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1400,
+        "end": 1415,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "miR-30a loop"
+      ],
+      [
+       "note",
+       "loop from the the 71-nt precursor of the human miR-30a microRNA (Zeng et al., 2002)"
+      ],
+      [
+       "ncRNA_class",
+       "miRNA"
+      ]
+     ]
+    },
+    {
+     "type": "ncRNA",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1442,
+        "end": 1569,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "3' miR-30a"
+      ],
+      [
+       "note",
+       "sequence downstream of the 71-nt precursor of the human miR-30a microRNA (Zeng et al., 2002)"
+      ],
+      [
+       "ncRNA_class",
+       "miRNA"
+      ]
+     ]
+    },
+    {
+     "type": "promoter",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1722,
+        "end": 1825,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "cat promoter"
+      ],
+      [
+       "note",
+       "promoter of the E. coli cat gene encoding chloramphenicol acetyltransferase"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1825,
+        "end": 2485,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "gene",
+       "cat"
+      ],
+      [
+       "product",
+       "chloramphenicol acetyltransferase"
+      ],
+      [
+       "label",
+       "CmR"
+      ],
+      [
+       "note",
+       "confers resistance to chloramphenicol"
+      ],
+      [
+       "translation",
+       "MEKKITGYTTVDISQWHRKEHFEAFQSVAQCTYNQTVQLDITAFLKTVKKNKHKFYPAFIHILARLMNAHPELRMAMKDGELVIWDSVHPCYTVFHEQTETFSSLWSEYHDDFRQFLHIYSQDVACYGENLAYFPKGFIENMFFVSANPWVSFTSFDLNVANMDNFFAPVFTMGKYYTQGDKVLMPLAIQVHHAVCDGFHVGRMLNELQQYCDEWQGGA"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 1891,
+        "end": 1911,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "CAT-R"
+      ],
+      [
+       "note",
+       "Chloramphenicol resistance gene, reverse primer"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2614,
+        "end": 2644,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "Myc (human c-Myc proto-oncogene) epitope tag"
+      ],
+      [
+       "label",
+       "Myc"
+      ],
+      [
+       "translation",
+       "EQKLISEEDL"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2668,
+        "end": 2685,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "KS primer"
+      ],
+      [
+       "note",
+       "common sequencing primer, one of multiple similar variants"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2759,
+        "end": 3348,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "WPRE"
+      ],
+      [
+       "note",
+       "woodchuck hepatitis virus posttranscriptional regulatory element"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 2812,
+        "end": 2833,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "WPRE-R"
+      ],
+      [
+       "note",
+       "WPRE, reverse primer"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 3230,
+        "end": 3242,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "Factor Xa recognition and cleavage site"
+      ],
+      [
+       "label",
+       "Factor Xa site"
+      ],
+      [
+       "translation",
+       "IEGR"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 3350,
+        "end": 3367,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "KS primer"
+      ],
+      [
+       "note",
+       "common sequencing primer, one of multiple similar variants"
+      ]
+     ]
+    },
+    {
+     "type": "LTR",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 3876,
+        "end": 4057,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "5' LTR (truncated)"
+      ],
+      [
+       "note",
+       "truncated 5' long terminal repeat (LTR) from HIV-1"
+      ]
+     ]
+    },
+    {
+     "type": "rep_origin",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4118,
+        "end": 4707,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "direction",
+       "LEFT"
+      ],
+      [
+       "label",
+       "ori"
+      ],
+      [
+       "note",
+       "high-copy-number ColE1/pMB1/pBR322/pUC origin of replication"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4198,
+        "end": 4218,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "pBR322ori-F"
+      ],
+      [
+       "note",
+       "pBR322 origin, forward primer"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4877,
+        "end": 5738,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "gene",
+       "bla"
+      ],
+      [
+       "product",
+       "beta-lactamase"
+      ],
+      [
+       "label",
+       "AmpR"
+      ],
+      [
+       "note",
+       "confers resistance to ampicillin, carbenicillin, and related antibiotics"
+      ],
+      [
+       "translation",
+       "MSIQHFRVALIPFFAAFCLPVFAHPETLVKVKDAEDQLGARVGYIELDLNSGKILESFRPEERFPMMSTFKVLLCGAVLSRIDAGQEQLGRRIHYSQNDLVEYSPVTEKHLTDGMTVRELCSAAITMSDNTAANLLLTTIGGPKELTAFLHNMGDHVTRLDRWEPELNEAIPNDERDTTMPVAMATTLRKLLTGELLTLASRQQLIDWMEADKVAGPLLRSALPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGASLIKHW"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 5500,
+        "end": 5520,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "Amp-R"
+      ],
+      [
+       "note",
+       "Ampicillin resistance gene, reverse primer"
+      ]
+     ]
+    },
+    {
+     "type": "promoter",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 5738,
+        "end": 5843,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "bla"
+      ],
+      [
+       "label",
+       "AmpR promoter"
+      ]
+     ]
+    },
+    {
+     "type": "primer_bind",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 5917,
+        "end": 5937,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "pRS-marker"
+      ],
+      [
+       "note",
+       "pRS vectors, use to sequence yeast selectable marker"
+      ]
+     ]
+    },
+    {
+     "type": "enhancer",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 6108,
+        "end": 6488,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "CMV enhancer"
+      ],
+      [
+       "note",
+       "human cytomegalovirus immediate early enhancer"
+      ]
+     ]
+    },
+    {
+     "type": "promoter",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 6489,
+        "end": 6688,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "CMV promoter"
+      ],
+      [
+       "note",
+       "human cytomegalovirus (CMV) immediate early promoter"
+      ]
+     ]
+    },
+    {
+     "type": "LTR",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 6705,
+        "end": 6886,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "5' LTR (truncated)"
+      ],
+      [
+       "note",
+       "truncated 5' long terminal repeat (LTR) from HIV-1"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 6932,
+        "end": 7058,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "HIV-1 Psi"
+      ],
+      [
+       "note",
+       "packaging signal of human immunodeficiency virus type 1"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 7554,
+        "end": 7788,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "RRE"
+      ],
+      [
+       "note",
+       "The Rev response element (RRE) of HIV-1 allows for Rev-dependent mRNA export from the nucleus to the cytoplasm."
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 7972,
+        "end": 8017,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "antigenic peptide corresponding to amino acids 655 to 669 of the HIV envelope protein gp41 (Lutje Hulsik et al., 2013)"
+      ],
+      [
+       "label",
+       "gp41 peptide"
+      ],
+      [
+       "note",
+       "recognized by the 2H10 single-chain llama nanobody"
+      ],
+      [
+       "translation",
+       "KNEQELLELDKWASL"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 8314,
+        "end": 8432,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "label",
+       "cPPT/CTS"
+      ],
+      [
+       "note",
+       "central polypurine tract and central termination sequence of HIV-1"
+      ]
+     ]
+    },
+    {
+     "type": "enhancer",
+     "location": null,
+     "qualifiers": [
+      [
+       "label",
+       "CMV enhancer"
+      ],
+      [
+       "note",
+       "human cytomegalovirus immediate early enhancer"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

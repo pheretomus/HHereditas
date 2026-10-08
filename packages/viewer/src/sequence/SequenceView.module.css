@@ -1,0 +1,374 @@
+/*
+ * Sequence view. Colours only come from --hh-* tokens. Font sizes of SVG text must match
+ * DEFAULT_METRICS (layout.ts) and the label fonts in measure.ts.
+ */
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--hh-bg-content);
+  color: var(--hh-seq-text);
+}
+
+/* Keyboard focus (Tab into the view): a quiet inset ring. Mouse focus shows the blinking caret only. */
+.root[data-keyboard-focus='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 2px var(--hh-focus-ring);
+}
+
+.scroller {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hh-separator-strong) transparent;
+  overscroll-behavior: contain;
+  cursor: text;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  contain: layout style;
+}
+
+.rowBackdrop,
+.rowContent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.rowBackdrop {
+  pointer-events: none;
+}
+
+/* ---- bases and numbers ---------------------------------------------------------------------- */
+
+.bases {
+  font-family: var(--hh-font-mono);
+  font-size: var(--hh-text-md); /* 13px = DEFAULT_METRICS.baseFontSize */
+  font-weight: var(--hh-weight-regular);
+  font-variant-ligatures: none;
+  font-feature-settings: 'calt' 0, 'liga' 0;
+  text-anchor: middle;
+  fill: var(--hh-seq-text);
+  white-space: pre;
+}
+
+.complement {
+  fill: var(--hh-seq-text-complement);
+}
+
+.number {
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+  text-anchor: end;
+  fill: var(--hh-seq-ruler);
+}
+
+/* ---- enzymes -------------------------------------------------------------------------------- */
+
+.leader {
+  fill: none;
+  stroke: var(--hh-enzyme-multi);
+  stroke-width: 1;
+  stroke-opacity: 0.5;
+  shape-rendering: crispEdges;
+}
+
+.enzymeLabel,
+.enzymeLabelUnique {
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-sm);
+  cursor: default;
+}
+
+.enzymeLabel {
+  font-weight: var(--hh-weight-regular);
+  fill: var(--hh-enzyme-multi);
+}
+
+.enzymeLabelUnique {
+  font-weight: var(--hh-weight-bold);
+  fill: var(--hh-enzyme-unique);
+}
+
+.enzymeHover .enzymeLabel,
+.enzymeHover .enzymeLabelUnique {
+  fill: var(--hh-accent);
+}
+
+.enzymeHover .leader {
+  stroke: var(--hh-accent);
+  stroke-opacity: 0.9;
+}
+
+.cut {
+  fill: none;
+  stroke: var(--hh-enzyme-cut);
+  stroke-width: 1;
+  stroke-linecap: square;
+  shape-rendering: crispEdges;
+  pointer-events: none;
+}
+
+/* ---- features ------------------------------------------------------------------------------- */
+
+.featureBar {
+  stroke-width: 1;
+  stroke-opacity: 0.55;
+  cursor: default;
+}
+
+.feature:hover .featureBar {
+  stroke-opacity: 0.95;
+}
+
+.featureBarHighlight,
+.feature:hover .featureBarHighlight {
+  stroke-width: 2;
+  stroke-opacity: 1;
+}
+
+.featureJoin {
+  stroke-width: 1.25;
+  stroke-opacity: 0.85;
+}
+
+.featureLabel,
+.featureLabelOutside {
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-sm);
+  cursor: default;
+}
+
+.featureLabel {
+  font-weight: var(--hh-weight-semibold);
+  pointer-events: none;
+}
+
+.featureLabelOutside {
+  font-weight: var(--hh-weight-medium);
+  fill: var(--hh-text-secondary);
+}
+
+.feature:hover .featureLabelOutside {
+  fill: var(--hh-text);
+}
+
+/* CDS translation: alternating codon shading in the feature colour, letters centred on codons. */
+.codonEven {
+  fill-opacity: 0.32;
+}
+
+.codonOdd {
+  fill-opacity: 0.14;
+}
+
+.aminoAcids {
+  font-family: var(--hh-font-mono);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-medium);
+  font-variant-ligatures: none;
+  text-anchor: middle;
+  fill: var(--hh-text);
+  pointer-events: none;
+}
+
+.stop {
+  fill: var(--hh-red);
+  font-weight: var(--hh-weight-bold);
+}
+
+/* ---- primers -------------------------------------------------------------------------------- */
+
+.primerFwd {
+  --hh-seq-primer: var(--hh-primer-fwd);
+}
+
+.primerRev {
+  --hh-seq-primer: var(--hh-primer-rev);
+}
+
+.primerBody {
+  fill: var(--hh-seq-primer);
+  fill-opacity: 0.12;
+  stroke: var(--hh-seq-primer);
+  stroke-opacity: 0.6;
+  stroke-width: 1;
+}
+
+.primerFwd:hover .primerBody,
+.primerRev:hover .primerBody {
+  fill-opacity: 0.2;
+  stroke-opacity: 0.9;
+}
+
+.primerBases {
+  font-family: var(--hh-font-mono);
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-medium);
+  font-variant-ligatures: none;
+  text-anchor: middle;
+  fill: var(--hh-seq-primer);
+  pointer-events: none;
+}
+
+.primerMismatchCell {
+  fill: var(--hh-red);
+  fill-opacity: 0.2;
+  pointer-events: none;
+}
+
+.primerMismatch {
+  fill: var(--hh-red);
+  font-weight: var(--hh-weight-bold);
+}
+
+.primerTail {
+  fill: none;
+  stroke: var(--hh-seq-primer);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.primerLabel {
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-semibold);
+  fill: var(--hh-seq-primer);
+}
+
+/* ---- ORFs ----------------------------------------------------------------------------------- */
+
+.orf {
+  fill: var(--hh-orf);
+}
+
+.orf:hover {
+  fill: var(--hh-indigo);
+}
+
+/* ---- overlays ------------------------------------------------------------------------------- */
+
+.selection {
+  fill: var(--hh-seq-selection);
+}
+
+.selectionInactive {
+  fill-opacity: 0.75;
+}
+
+.searchHit {
+  fill: var(--hh-seq-search-hit);
+}
+
+.band {
+  fill: var(--hh-seq-hover);
+}
+
+.caret {
+  position: absolute;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--hh-seq-caret);
+  pointer-events: none;
+}
+
+.caretBlink {
+  animation: caret-blink 1.06s step-end infinite;
+}
+
+.caretInactive {
+  opacity: 0.38;
+}
+
+@keyframes caret-blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caretBlink {
+    animation: none;
+  }
+}
+
+.hit {
+  cursor: default;
+}
+
+.hitArea {
+  fill: transparent;
+  cursor: default;
+}
+
+.emptyHint {
+  position: absolute;
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-md);
+  line-height: 17px;
+  color: var(--hh-text-tertiary);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Hidden text input: receives focus, typing, IME composition and clipboard events. */
+.input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 17px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  opacity: 0;
+  color: transparent;
+  background: transparent;
+  caret-color: transparent;
+  font-size: var(--hh-text-md);
+  white-space: pre;
+  pointer-events: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

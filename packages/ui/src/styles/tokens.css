@@ -57,6 +57,22 @@
   /* Space reserved for the macOS traffic lights when the title bar overlays the content. */
   --hh-traffic-light-inset: 0px;
 
+  /* ---- Controls ---- */
+  --hh-control-height-sm: 24px;
+  --hh-control-height-md: 28px;
+  --hh-icon-size: 16px;
+  /* Thinnest visible line: one device pixel on Retina-class screens (see the media query below). */
+  --hh-hairline: 1px;
+
+  /* ---- Layering ---- */
+  --hh-z-sheet: 40;
+  --hh-z-popover: 50;
+  --hh-z-tooltip: 60;
+
+  /* ---- Materials ---- */
+  /* Menus and popovers blur what is behind them (approximates macOS vibrancy). */
+  --hh-backdrop-blur: saturate(180%) blur(24px);
+
   /* ---- Motion ---- */
   --hh-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --hh-duration-fast: 120ms;
@@ -106,6 +122,20 @@
   --hh-shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
   --hh-shadow-popover: 0 8px 28px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
   --hh-shadow-sheet: 0 22px 70px rgba(0, 0, 0, 0.28), 0 0 0 0.5px rgba(0, 0, 0, 0.14);
+
+  /* Controls and materials */
+  --hh-bg-overlay: rgba(0, 0, 0, 0.1);              /* dims the window behind sheets and alerts */
+  --hh-bg-menu: rgba(246, 246, 246, 0.86);          /* translucent menus (with --hh-backdrop-blur) */
+  --hh-bg-field: #ffffff;                           /* text fields */
+  --hh-bg-well: rgba(0, 0, 0, 0.055);               /* segmented-control track, toolbar search field */
+  --hh-bg-thumb: #ffffff;                           /* selected segment of a segmented control */
+  --hh-knob: #ffffff;                               /* switch and slider knobs */
+  --hh-switch-off: rgba(0, 0, 0, 0.1);              /* switch / slider track when off */
+  --hh-shadow-thumb: 0 0.5px 1.5px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  --hh-shadow-knob: 0 1px 2.5px rgba(0, 0, 0, 0.24), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  --hh-shadow-tooltip: 0 2px 8px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.1);
+  --hh-scrollbar-thumb: rgba(0, 0, 0, 0.22);
+  --hh-scrollbar-thumb-hover: rgba(0, 0, 0, 0.38);
 
   /* ---- Sequence visualization ---- */
   --hh-seq-text: rgba(0, 0, 0, 0.86);
@@ -193,6 +223,19 @@
   --hh-shadow-popover: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
   --hh-shadow-sheet: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
 
+  --hh-bg-overlay: rgba(0, 0, 0, 0.32);
+  --hh-bg-menu: rgba(40, 40, 42, 0.86);
+  --hh-bg-field: rgba(255, 255, 255, 0.055);
+  --hh-bg-well: rgba(255, 255, 255, 0.08);
+  --hh-bg-thumb: #5c5c61;
+  --hh-knob: #ececee;
+  --hh-switch-off: rgba(255, 255, 255, 0.16);
+  --hh-shadow-thumb: 0 0.5px 1.5px rgba(0, 0, 0, 0.45), inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
+  --hh-shadow-knob: 0 1px 2.5px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(0, 0, 0, 0.2);
+  --hh-shadow-tooltip: 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
+  --hh-scrollbar-thumb: rgba(255, 255, 255, 0.24);
+  --hh-scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
+
   --hh-seq-text: rgba(255, 255, 255, 0.88);
   --hh-seq-text-complement: rgba(255, 255, 255, 0.42);
   --hh-seq-ruler: rgba(255, 255, 255, 0.45);
@@ -272,6 +315,18 @@
     --hh-shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
     --hh-shadow-popover: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
     --hh-shadow-sheet: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+    --hh-bg-overlay: rgba(0, 0, 0, 0.32);
+    --hh-bg-menu: rgba(40, 40, 42, 0.86);
+    --hh-bg-field: rgba(255, 255, 255, 0.055);
+    --hh-bg-well: rgba(255, 255, 255, 0.08);
+    --hh-bg-thumb: #5c5c61;
+    --hh-knob: #ececee;
+    --hh-switch-off: rgba(255, 255, 255, 0.16);
+    --hh-shadow-thumb: 0 0.5px 1.5px rgba(0, 0, 0, 0.45), inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
+    --hh-shadow-knob: 0 1px 2.5px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(0, 0, 0, 0.2);
+    --hh-shadow-tooltip: 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
+    --hh-scrollbar-thumb: rgba(255, 255, 255, 0.24);
+    --hh-scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
     --hh-seq-text: rgba(255, 255, 255, 0.88);
     --hh-seq-text-complement: rgba(255, 255, 255, 0.42);
     --hh-seq-ruler: rgba(255, 255, 255, 0.45);
@@ -312,4 +367,11 @@
 /* macOS: the window title bar overlays the content (titleBarStyle "Overlay" in tauri.conf.json). */
 :root.hh-platform-mac {
   --hh-traffic-light-inset: 78px;
+}
+
+/* Hairlines: half a CSS pixel is exactly one device pixel on 2x screens. */
+@media (min-resolution: 2dppx) {
+  :root {
+    --hh-hairline: 0.5px;
+  }
 }

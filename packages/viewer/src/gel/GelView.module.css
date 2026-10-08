@@ -1,0 +1,302 @@
+/*
+ * Virtual agarose gel. The slab stays dark in both themes (--hh-gel-* tokens); labels outside the
+ * slab use the theme's text colours. Colours derived below are local fallbacks for tokens that were
+ * requested from the design system (--hh-gel-well, --hh-gel-well-edge, --hh-gel-guide).
+ */
+/* Derived gel colours, shared by GelView and GelThumbnail. */
+.root,
+.thumbnail {
+  --gel-well: var(--hh-gel-well, color-mix(in srgb, var(--hh-gel-band) 5%, transparent));
+  --gel-well-edge: var(--hh-gel-well-edge, color-mix(in srgb, var(--hh-gel-band) 22%, transparent));
+  --gel-guide: var(--hh-gel-guide, color-mix(in srgb, var(--hh-gel-band) 34%, transparent));
+  --gel-sheen: color-mix(in srgb, var(--hh-gel-band) 5%, transparent);
+  --gel-edge: color-mix(in srgb, var(--hh-gel-band) 9%, transparent);
+  --gel-lane-hover: color-mix(in srgb, var(--hh-gel-band) 4.5%, transparent);
+  --gel-lane-selected: color-mix(in srgb, var(--hh-accent) 11%, transparent);
+  --gel-lane-selected-edge: color-mix(in srgb, var(--hh-accent) 55%, transparent);
+}
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  font-family: var(--hh-font-ui);
+  color: var(--hh-text);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.canvas {
+  position: relative;
+}
+
+/* ---- Slab ---- */
+
+.slab {
+  position: absolute;
+  border-radius: var(--hh-radius-lg);
+  background-color: var(--hh-gel-bg);
+  /* transilluminator sheen: a little brighter in the middle of the gel */
+  background-image: radial-gradient(120% 85% at 50% 40%, var(--gel-sheen), transparent 72%);
+  box-shadow: inset 0 0 0 1px var(--gel-edge), var(--hh-shadow-control);
+}
+
+.thumbSlab {
+  border-radius: var(--hh-radius-md);
+}
+
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* The blurred bands are drawn once into their own compositing layer; hover overlays do not repaint them. */
+.bandsLayer {
+  will-change: transform;
+}
+
+.well {
+  fill: var(--gel-well);
+  stroke: var(--gel-well-edge);
+  stroke-width: 1;
+}
+
+.band,
+.glow,
+.smear {
+  fill: var(--hh-gel-band);
+}
+
+/* ---- Lane highlights (under the bands) ---- */
+
+.laneHover {
+  fill: var(--gel-lane-hover);
+}
+
+.laneSelected {
+  fill: var(--gel-lane-selected);
+  stroke: var(--gel-lane-selected-edge);
+  stroke-width: 1;
+}
+
+/* ---- Hover feedback (over the bands) ---- */
+
+.guide {
+  stroke: var(--gel-guide);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--hh-gel-band);
+  stroke-opacity: 0.9;
+  stroke-width: 1.25;
+}
+
+/* ---- Ladder sizes (beside the slab, theme colours) ---- */
+
+.ladderLabel {
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-regular);
+  fill: var(--hh-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ladderLabelStrong {
+  font-weight: var(--hh-weight-semibold);
+  fill: var(--hh-text);
+}
+
+.ladderLabelActive {
+  fill: var(--hh-accent);
+}
+
+.leader {
+  fill: none;
+  stroke: var(--hh-text-tertiary);
+  stroke-width: 1;
+}
+
+.tick {
+  stroke: var(--hh-text-tertiary);
+  stroke-width: 1;
+  opacity: 0.75;
+}
+
+/* ---- Text on the gel ---- */
+
+.sizeLabel {
+  font-size: var(--hh-text-xs);
+  fill: var(--hh-gel-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sizeLabelActive {
+  fill: var(--hh-gel-band);
+}
+
+.caption {
+  font-size: var(--hh-text-xs);
+  fill: var(--hh-gel-text);
+  opacity: 0.5;
+}
+
+.empty {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  color: var(--hh-gel-text);
+  font-size: var(--hh-text-md);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ---- Lane labels ---- */
+
+.laneLabel {
+  position: absolute;
+  height: 15px;
+  line-height: 15px;
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-medium);
+  color: var(--hh-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--hh-duration-fast) var(--hh-ease);
+}
+
+.laneLabelCentered {
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.laneLabelDiagonal {
+  transform-origin: 0 100%;
+  transform: rotate(-45deg);
+}
+
+.laneLabelVertical {
+  transform-origin: 0 100%;
+  transform: rotate(-90deg);
+}
+
+.laneLabelHover {
+  color: var(--hh-text);
+}
+
+.laneLabelSelected {
+  color: var(--hh-accent);
+  font-weight: var(--hh-weight-semibold);
+}
+
+.laneLabelClickable {
+  cursor: pointer;
+}
+
+/* ---- Interaction ---- */
+
+.surface {
+  position: absolute;
+}
+
+.lane {
+  position: absolute;
+  top: 0;
+  border-radius: var(--hh-radius-sm);
+  outline: none;
+}
+
+.lane:focus-visible {
+  outline: 2px solid var(--hh-accent);
+  outline-offset: -2px;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+/* ---- Tooltip ---- */
+
+.tooltip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  min-width: 96px;
+  max-width: 260px;
+  padding: 6px 10px 7px;
+  border-radius: var(--hh-radius-md);
+  background: var(--hh-bg-elevated);
+  box-shadow: var(--hh-shadow-popover);
+  color: var(--hh-text);
+  font-size: var(--hh-text-sm);
+  line-height: 1.38;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.tipLane {
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-xs);
+  font-weight: var(--hh-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tipTitle {
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.tipDetail {
+  color: var(--hh-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tipLabels {
+  margin: 5px 0 0;
+  padding: 5px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--hh-separator);
+}
+
+.tipLabels li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tipMore {
+  color: var(--hh-text-tertiary);
+}
+
+.tipText {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---- Thumbnail ---- */
+
+.thumbnail {
+  position: relative;
+  flex: none;
+}

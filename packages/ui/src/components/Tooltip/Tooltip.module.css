@@ -1,0 +1,35 @@
+.content {
+  z-index: var(--hh-z-tooltip);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  max-width: 280px;
+  padding: 4px 8px;
+  border-radius: var(--hh-radius-sm);
+  background: var(--hh-bg-elevated);
+  box-shadow: var(--hh-shadow-tooltip);
+  color: var(--hh-text);
+  font-size: var(--hh-text-sm);
+  line-height: 1.35;
+  user-select: none;
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+  animation: appear var(--hh-duration-fast) var(--hh-ease);
+}
+
+.text {
+  min-width: 0;
+}
+
+.shortcut {
+  flex: none;
+  color: var(--hh-text-secondary);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}

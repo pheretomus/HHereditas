@@ -1,0 +1,77 @@
+LOCUS       PZ112288                1376 bp    mRNA    linear   PLN 01-JUL-2026
+DEFINITION  Viola yunnanensis asparaginyl endopeptidase (AEP6) mRNA, partial
+            cds.
+ACCESSION   PZ112288
+VERSION     PZ112288.1
+KEYWORDS    .
+SOURCE      Viola yunnanensis
+  ORGANISM  Viola yunnanensis
+            Eukaryota; Viridiplantae; Streptophyta; Embryophyta; Tracheophyta;
+            Spermatophyta; Magnoliopsida; eudicotyledons; Gunneridae;
+            Pentapetalae; rosids; fabids; Malpighiales; Violaceae; Viola; Viola
+            subgen. Viola; Viola sect. Plagiostigma; Viola subsect. Diffusae.
+REFERENCE   1  (bases 1 to 1376)
+  AUTHORS   Zhen,M., Liao,M., Zhao,Y., Ma,J., Hao,Y., Jiang,H., Lu,G.,
+            Liew,C.W., Chua,N., Chen,H. and Hu,G.
+  TITLE     Mining of natural diversity enables efficient and expressible
+            peptide asparaginyl ligases
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 1376)
+  AUTHORS   Hemu,X., Du,W. and Qi,S.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (27-FEB-2026) School of Traditional Chinese Pharmacy,
+            China Pharmaceutical University, No. 639 Longmian Avenue, Jiangning
+            District, Nanjing, Jiangsu 210000, China
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1376
+                     /organism="Viola yunnanensis"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:591108"
+                     /geo_loc_name="China"
+     gene            <1..>1376
+                     /gene="AEP6"
+                     /note="VyuAEP6"
+     CDS             <1..>1376
+                     /gene="AEP6"
+                     /note="AEP"
+                     /codon_start=1
+                     /product="asparaginyl endopeptidase"
+                     /protein_id="YFK61287.1"
+                     /translation="LRLPSLESESFDGNRNSDDVDSSAGTKWAVLIAGSKGYQNYRHQ
+                     ADVCHAYQILRKGGVKDENIIVFMYDDIAYNIRNPYPGTITNSPDKKDVYKGVPKDYT
+                     GEDVNVQNFLAVILGNKTAVTGGSGKVLDTGPNDLIFIYYTDHGYPGVLGMPTEPYLY
+                     ANDLIDTLKKKHASGTYEAMVFYVEACESASIFEGLLPDGLNIYVSTAAKAGEGSWVT
+                     YCPTQHPAVPAEYGTCVGDLYSVTWMEDCDVYNLRTQTLHQQYEMVKRKIAYASTVSQ
+                     FGDFPISKDSLSKYMGTDPANDKHRYVDEENSLRPHVEAVHQREADLYHFWDKYQKAS
+                     EGSRNKIDARKQLIEVMLHRMHVDDSMESIAKLLFGLGTKATEMMNTIRPAGQPLVSD
+                     WGCLKTMVRTYETHCGSLSEYGMKYTRFLANICNSGAQKEKMAEASAKVCLNFPSNPW
+                     SSLVKGFSA"
+ORIGIN      
+        1 ctccggttac cgtcgttaga atctgagtcg ttcgatggaa atcgtaacag tgacgatgtt
+       61 gattcttcag ctggaactaa atgggcggta ctgattgctg gatctaaagg ataccagaac
+      121 tacaggcacc aggctgatgt ttgccatgcg taccaaatct tgaggaaagg tggagtgaag
+      181 gatgaaaaca taatagtttt catgtacgat gacattgctt acaacattcg taacccatat
+      241 cctggaacta ttacaaacag tcctgataaa aaagatgttt acaaaggggt ccctaaggat
+      301 tatactggtg aagatgttaa tgttcaaaac tttttagctg ttatccttgg caacaaaact
+      361 gctgtgactg ggggcagtgg aaaagttttg gatactggcc ccaatgatct tatcttcatt
+      421 tactacactg atcatggtta tcctggagtg ttaggaatgc ctacggagcc atacctttat
+      481 gcaaatgatc tgattgatac cttaaaaaag aaacatgctt caggaaccta tgaagccatg
+      541 gttttctacg ttgaagcttg cgaatccgcg agcatatttg agggtctcct tccagatggt
+      601 ttgaatatct atgtatcgac agccgcaaaa gcaggagagg gcagctgggt aacgtactgt
+      661 cctacacagc atcctgctgt tcctgcagaa tacggtacct gtgtcggcga cttgtacagt
+      721 gtcacttgga tggaagattg tgatgtatat aatttgcgga cacagactct gcaccagcaa
+      781 tatgaaatgg tgaaaaggaa gattgcttat gcatcaacag tgtcgcaatt tggtgatttt
+      841 ccaattagca aggacagtct atctaaatat atggggacag atcctgcaaa tgacaagcac
+      901 cggtatgtgg atgaggagaa ctccttaagg ccacatgttg aagctgttca tcagcgcgaa
+      961 gcagatcttt accatttctg ggacaagtac cagaaggctt ctgaagggtc tcggaataag
+     1021 attgatgctc ggaagcagct tattgaagtg atgctgcaca ggatgcacgt agatgacagc
+     1081 atggaatcga tcgcgaaact cctgtttgga ttgggcacca aggccacaga gatgatgaac
+     1141 acaatccgtc ctgctgggca acctttagtt tccgattggg gctgccttaa aacaatggtg
+     1201 aggacgtatg agacacactg cggatcattg tcagagtatg ggatgaaata cacacgattc
+     1261 cttgccaaca tttgcaattc tggagctcag aaagaaaaaa tggcagaggc atcagcaaaa
+     1321 gtttgtctca actttccatc caatccatgg agctctcttg tcaaaggttt cagtgc
+//
+

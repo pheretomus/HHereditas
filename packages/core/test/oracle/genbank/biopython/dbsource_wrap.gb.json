@@ -1,0 +1,283 @@
+{
+ "file": "dbsource_wrap.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "SCX3_BUTOC",
+   "id": "P01485",
+   "description": "Neurotoxin III",
+   "seqDefined": true,
+   "seqLength": 64,
+   "seqSha1": "f7ead714e5425e3c375f8da536f6e38f4f205e12",
+   "seq": "VKDGYIVDDRNCTYFCGRNAYCNEECTKLKGESGYCQWASPYGNACYCYKVPDHVRTKGPGRCN",
+   "topology": "linear",
+   "moleculeType": "protein",
+   "division": "INV",
+   "date": "16-OCT-2001",
+   "accessions": [
+    "P01485"
+   ],
+   "sequenceVersion": null,
+   "gi": "134354",
+   "keywords": [
+    "Neurotoxin",
+    "Sodium channel inhibitor",
+    "Amidation"
+   ],
+   "source": "Tunisian scorpion",
+   "organism": "Buthus occitanus tunetanus",
+   "taxonomy": [
+    "Eukaryota",
+    "Metazoa",
+    "Arthropoda",
+    "Chelicerata",
+    "Arachnida",
+    "Scorpiones",
+    "Buthoidea",
+    "Buthidae",
+    "Buthus"
+   ],
+   "comment": "[FUNCTION] BINDS TO SODIUM CHANNELS AND INHIBITS THE INACTIVATION\nOF THE ACTIVATED CHANNELS, THEREBY BLOCKING NEURONAL TRANSMISSION.\n[SUBCELLULAR LOCATION] SECRETED.\n[SIMILARITY] BELONGS TO THE ALPHA/BETA-SCORPION TOXIN FAMILY.\nALPHA-TOXIN SUBFAMILY.",
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       64
+      ]
+     ],
+     "authors": "Vargas,O., Gregoire,J., Martin,M.-F., Bechis,G. and Rochat,H.",
+     "consrtm": "",
+     "title": "Neurotoxins from the venoms of two scorpions: Buthus occitanus tunetanus and Buthus occitanus mardochei",
+     "journal": "Toxicon 20, 79-79 (1982)",
+     "medline": "",
+     "pubmed": "",
+     "comment": "SEQUENCE."
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": "swissprot: locus SCX3_BUTOC, accession P01485; class: standard. created: Jul 21, 1986. sequence updated: Jul 21, 1986. annotation updated: Oct 16, 2001. xrefs: gi: gi: 69530 xrefs (non-sequence databases): HSSP P01484, InterPro IPR003614, InterPro IPR002061, InterPro IPR001219, Pfam PF00537, PRINTS PR00284, ProDom PD000908, SMART SM00505",
+   "featureCount": 7,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 64,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Buthus occitanus tunetanus"
+      ],
+      [
+       "db_xref",
+       "taxon:6871"
+      ]
+     ]
+    },
+    {
+     "type": "Protein",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 64,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "product",
+       "Neurotoxin III"
+      ]
+     ]
+    },
+    {
+     "type": "Bond",
+     "location": {
+      "operator": "bond",
+      "strand": null,
+      "parts": [
+       {
+        "start": 11,
+        "end": 12,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 62,
+        "end": 63,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bond_type",
+       "disulfide"
+      ],
+      [
+       "note",
+       "BY SIMILARITY."
+      ]
+     ]
+    },
+    {
+     "type": "Bond",
+     "location": {
+      "operator": "bond",
+      "strand": null,
+      "parts": [
+       {
+        "start": 15,
+        "end": 16,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 35,
+        "end": 36,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bond_type",
+       "disulfide"
+      ],
+      [
+       "note",
+       "BY SIMILARITY."
+      ]
+     ]
+    },
+    {
+     "type": "Bond",
+     "location": {
+      "operator": "bond",
+      "strand": null,
+      "parts": [
+       {
+        "start": 21,
+        "end": 22,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 45,
+        "end": 46,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bond_type",
+       "disulfide"
+      ],
+      [
+       "note",
+       "BY SIMILARITY."
+      ]
+     ]
+    },
+    {
+     "type": "Bond",
+     "location": {
+      "operator": "bond",
+      "strand": null,
+      "parts": [
+       {
+        "start": 25,
+        "end": 26,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 47,
+        "end": 48,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bond_type",
+       "disulfide"
+      ],
+      [
+       "note",
+       "BY SIMILARITY."
+      ]
+     ]
+    },
+    {
+     "type": "Site",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 63,
+        "end": 64,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "site_type",
+       "amidation"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

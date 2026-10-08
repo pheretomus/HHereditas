@@ -1,0 +1,102 @@
+.field {
+  --_h: var(--hh-control-height-md);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  height: var(--_h);
+  padding: 0 8px;
+  border-radius: var(--hh-radius-sm);
+  background: var(--hh-bg-field);
+  box-shadow:
+    inset 0 0 0 var(--hh-hairline) var(--hh-border-control),
+    0 0 0 0 transparent;
+  color: var(--hh-text);
+  cursor: text;
+  transition: box-shadow var(--hh-duration-fast) var(--hh-ease);
+}
+
+.sm {
+  --_h: var(--hh-control-height-sm);
+  padding: 0 7px;
+  border-radius: var(--hh-radius-xs);
+}
+
+.field:focus-within {
+  box-shadow:
+    inset 0 0 0 var(--hh-hairline) var(--hh-accent),
+    0 0 0 3px var(--hh-focus-ring);
+}
+
+.invalid,
+.invalid:focus-within {
+  box-shadow:
+    inset 0 0 0 1px var(--hh-red),
+    0 0 0 0 transparent;
+}
+
+.invalid:focus-within {
+  box-shadow:
+    inset 0 0 0 1px var(--hh-red),
+    0 0 0 3px color-mix(in srgb, var(--hh-red) 35%, transparent);
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: var(--hh-text-md);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.input::placeholder {
+  color: var(--hh-text-tertiary);
+  opacity: 1;
+}
+
+.input:disabled {
+  cursor: default;
+}
+
+.mono {
+  font-family: var(--hh-font-mono);
+  font-size: 12px;
+  font-variant-ligatures: none;
+  letter-spacing: 0.02em;
+}
+
+.leading,
+.trailing {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-md);
+}
+
+.leading :where(svg),
+.trailing :where(svg) {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+.trailing {
+  gap: 4px;
+  margin-right: -2px;
+}

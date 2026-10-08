@@ -1,0 +1,94 @@
+.root {
+  --_knob: 18px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 80px;
+  height: 24px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sm {
+  --_knob: 15px;
+  height: 20px;
+}
+
+.withTicks {
+  height: 30px;
+  align-items: flex-start;
+  padding-top: 4px;
+}
+
+.sm.withTicks {
+  height: 26px;
+  padding-top: 2px;
+}
+
+.track {
+  position: relative;
+  flex: 1 1 auto;
+  height: 4px;
+  margin-top: calc((var(--_knob) - 4px) / 2);
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--hh-switch-off);
+}
+
+.root:not(.withTicks) .track {
+  margin-top: 0;
+}
+
+.range {
+  position: absolute;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--hh-accent);
+}
+
+.root[data-disabled] .range {
+  background: var(--hh-text-tertiary);
+}
+
+.thumb {
+  display: block;
+  width: var(--_knob);
+  height: var(--_knob);
+  border-radius: 50%;
+  background: var(--hh-knob);
+  box-shadow: var(--hh-shadow-knob);
+  cursor: default;
+  transition: transform var(--hh-duration-fast) var(--hh-ease);
+}
+
+.thumb:active {
+  transform: scale(0.94);
+}
+
+.thumb:focus-visible {
+  outline: 3px solid var(--hh-focus-ring);
+  outline-offset: 1px;
+}
+
+.root[data-disabled] {
+  opacity: 0.5;
+}
+
+.ticks {
+  position: absolute;
+  right: calc(var(--_knob) / 2);
+  bottom: 0;
+  left: calc(var(--_knob) / 2);
+  height: 6px;
+}
+
+.tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 5px;
+  margin-left: -0.5px;
+  background: var(--hh-text-tertiary);
+}

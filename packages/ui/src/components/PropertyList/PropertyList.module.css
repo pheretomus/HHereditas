@@ -1,0 +1,97 @@
+.list {
+  display: grid;
+  grid-template-columns: var(--_label, 88px) minmax(0, 1fr);
+  row-gap: 2px;
+  column-gap: 10px;
+  margin: 0;
+  font-size: var(--hh-text-md);
+}
+
+.row {
+  display: contents;
+}
+
+.label {
+  min-width: 0;
+  padding: 3px 0;
+  overflow: hidden;
+  color: var(--hh-text-secondary);
+  line-height: 18px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 3px 0;
+  color: var(--hh-text);
+  line-height: 18px;
+}
+
+.valueText {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.mono .valueText {
+  font-family: var(--hh-font-mono);
+  font-size: 12px;
+  font-variant-ligatures: none;
+}
+
+.copy {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin: 0 -2px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--hh-radius-xs);
+  background: transparent;
+  color: var(--hh-text-tertiary);
+  opacity: 0;
+  cursor: default;
+  transition:
+    opacity var(--hh-duration-fast) var(--hh-ease),
+    background-color var(--hh-duration-fast) var(--hh-ease);
+}
+
+.copy :where(svg) {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2;
+}
+
+.value:hover .copy,
+.copy:focus-visible,
+.copied {
+  opacity: 1;
+}
+
+.copy:hover {
+  background: var(--hh-bg-hover);
+  color: var(--hh-text-secondary);
+}
+
+.copied {
+  color: var(--hh-green);
+}
+
+.copy:focus-visible {
+  outline: 2px solid var(--hh-focus-ring);
+  outline-offset: 0;
+}

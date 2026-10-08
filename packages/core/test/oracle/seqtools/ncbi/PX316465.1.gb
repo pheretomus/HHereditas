@@ -1,0 +1,60 @@
+LOCUS       PX316465                 434 bp    mRNA    linear   INV 01-OCT-2026
+DEFINITION  Somabrachys aegrota voucher DZBIS-M32-10-2023 elongation factor
+            1-alpha (EF1a) mRNA, partial cds.
+ACCESSION   PX316465
+VERSION     PX316465.1
+KEYWORDS    .
+SOURCE      Somabrachys aegrota
+  ORGANISM  Somabrachys aegrota
+            Eukaryota; Metazoa; Ecdysozoa; Arthropoda; Altocrustacea;
+            Allotriocarida; Hexapoda; Insecta; Pterygota; Neoptera; Eumetabola;
+            Endopterygota; Aparaglossata; Panorpida; Lepidoptera; Glossata;
+            Ditrysia; Zygaenoidea; Somabrachyidae; Somabrachys.
+REFERENCE   1  (bases 1 to 434)
+  AUTHORS   Guergah,A., Lebbouz,I. and Yela,J.L.
+  TITLE     Phylogenetic Position of Somabrachys aegrota (Somabrachyidae:
+            Zygaenoidea) from Algeria: Molecular Characterization within the
+            Limacodidae Group Using Mitochondrial and Nuclear Markers
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 434)
+  AUTHORS   Guergah,A.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (10-SEP-2025) Genetics, biotechnology and bioresource
+            development laboratory, Mohamed Khider University Biskra, BP 145
+            RP, Biskra, Biskra 07000, Algeria
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..434
+                     /organism="Somabrachys aegrota"
+                     /mol_type="mRNA"
+                     /specimen_voucher="DZBIS-M32-10-2023"
+                     /db_xref="taxon:287159"
+                     /sex="male"
+                     /geo_loc_name="Algeria: Oum El Bouaghi Province, Meskiana
+                     District, Maazoula Forest"
+                     /lat_lon="35.6764 N 7.6147 E"
+                     /collection_date="10-Oct-2023"
+                     /collected_by="Asma Guergah"
+     gene            <1..>434
+                     /gene="EF1a"
+     CDS             <1..>434
+                     /gene="EF1a"
+                     /codon_start=1
+                     /product="elongation factor 1-alpha"
+                     /protein_id="YAB96365.1"
+                     /translation="IKNMITGTSQADCAVLIVAAGTGEFEAGISKNGQTREHALLAFT
+                     LGVKQLIVGVNKMDSTEPPYSEPRFEEIKKEVSSYIKKIGYNPAAVAFVPISGWHGDN
+                     MLEPSTKMPWFKGWAVERKEGKADGKCLIEALDAILPPARPT"
+ORIGIN      
+        1 atcaagaaca tgataacagg tacttcccaa gctgactgcg ctgtgctaat cgttgctgca
+       61 ggtactggtg agtttgaagc tggtatttct aaaaacgggc agacccgtga acatgctctc
+      121 cttgctttta cccttggtgt caaacagctt attgtgggtg tcaacaaaat ggattctact
+      181 gaaccacctt acagcgagcc acgtttcgaa gaaattaaaa aggaggtatc ttcatacatc
+      241 aagaaaattg gttacaatcc tgcagcagtc gctttcgtgc ccatttctgg ttggcacgga
+      301 gacaacatgt tggagccgtc aactaaaatg ccttggttca aggggtgggc agttgagcgc
+      361 aaagaaggaa aggcagatgg aaaatgcctc attgaagcct tggatgcaat tttaccacct
+      421 gctcgtccta ctga
+//
+

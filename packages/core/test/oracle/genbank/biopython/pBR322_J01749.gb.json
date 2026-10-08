@@ -1,0 +1,1772 @@
+{
+ "file": "pBR322_J01749.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "SYNPBR322",
+   "id": "J01749.1",
+   "description": "Cloning vector pBR322, complete sequence",
+   "seqDefined": true,
+   "seqLength": 4361,
+   "seqSha1": "aa8300e5663ef4e2db3a3acd55ec67713a379a60",
+   "seq": "TTCTCATGTTTGACAGCTTATCATCGATAAGCTTTAATGCGGTAGTTTATCACAGTTAAATTGCTAACGCAGTCAGGCACCGTGTATGAAATCTAACAATGCGCTCATCGTCATCCTCGGCACCGTCACCCTGGATGCTGTAGGCATAGGCTTGGTTATGCCGGTACTGCCGGGCCTCTTGCGGGATATCGTCCATTCCGACAGCATCGCCAGTCACTATGGCGTGCTGCTAGCGCTATATGCGTTGATGCAATTTCTATGCGCACCCGTTCTCGGAGCACTGTCCGACCGCTTTGGCCGCCGCCCAGTCCTGCTCGCTTCGCTACTTGGAGCCACTATCGACTACGCGATCATGGCGACCACACCCGTCCTGTGGATCCTCTACGCCGGACGCATCGTGGCCGGCATCACCGGCGCCACAGGTGCGGTTGCTGGCGCCTATATCGCCGACATCACCGATGGGGAAGATCGGGCTCGCCACTTCGGGCTCATGAGCGCTTGTTTCGGCGTGGGTATGGTGGCAGGCCCCGTGGCCGGGGGACTGTTGGGCGCCATCTCCTTGCATGCACCATTCCTTGCGGCGGCGGTGCTCAACGGCCTCAACCTACTACTGGGCTGCTTCCTAATGCAGGAGTCGCATAAGGGAGAGCGTCGACCGATGCCCTTGAGAGCCTTCAACCCAGTCAGCTCCTTCCGGTGGGCGCGGGGCATGACTATCGTCGCCGCACTTATGACTGTCTTCTTTATCATGCAACTCGTAGGACAGGTGCCGGCAGCGCTCTGGGTCATTTTCGGCGAGGACCGCTTTCGCTGGAGCGCGACGATGATCGGCCTGTCGCTTGCGGTATTCGGAATCTTGCACGCCCTCGCTCAAGCCTTCGTCACTGGTCCCGCCACCAAACGTTTCGGCGAGAAGCAGGCCATTATCGCCGGCATGGCGGCCGACGCGCTGGGCTACGTCTTGCTGGCGTTCGCGACGCGAGGCTGGATGGCCTTCCCCATTATGATTCTTCTCGCTTCCGGCGGCATCGGGATGCCCGCGTTGCAGGCCATGCTGTCCAGGCAGGTAGATGACGACCATCAGGGACAGCTTCAAGGATCGCTCGCGGCTCTTACCAGCCTAACTTCGATCACTGGACCGCTGATCGTCACGGCGATTTATGCCGCCTCGGCGAGCACATGGAACGGGTTGGCATGGATTGTAGGCGCCGCCCTATACCTTGTCTGCCTCCCCGCGTTGCGTCGCGGTGCATGGAGCCGGGCCACCTCGACCTGAATGGAAGCCGGCGGCACCTCGCTAACGGATTCACCACTCCAAGAATTGGAGCCAATCAATTCTTGCGGAGAACTGTGAATGCGCAAACCAACCCTTGGCAGAACATATCCATCGCGTCCGCCATCTCCAGCAGCCGCACGCGGCGCATCTCGGGCAGCGTTGGGTCCTGGCCACGGGTGCGCATGATCGTGCTCCTGTCGTTGAGGACCCGGCTAGGCTGGCGGGGTTGCCTTACTGGTTAGCAGAATGAATCACCGATACGCGAGCGAACGTGAAGCGACTGCTGCTGCAAAACGTCTGCGACCTGAGCAACAACATGAATGGTCTTCGGTTTCCGTGTTTCGTAAAGTCTGGAAACGCGGAAGTCAGCGCCCTGCACCATTATGTTCCGGATCTGCATCGCAGGATGCTGCTGGCTACCCTGTGGAACACCTACATCTGTATTAACGAAGCGCTGGCATTGACCCTGAGTGATTTTTCTCTGGTCCCGCCGCATCCATACCGCCAGTTGTTTACCCTCACAACGTTCCAGTAACCGGGCATGTTCATCATCAGTAACCCGTATCGTGAGCATCCTCTCTCGTTTCATCGGTATCATTACCCCCATGAACAGAAATCCCCCTTACACGGAGGCATCAGTGACCAAACAGGAAAAAACCGCCCTTAACATGGCCCGCTTTATCAGAAGCCAGACATTAACGCTTCTGGAGAAACTCAACGAGCTGGACGCGGATGAACAGGCAGACATCTGTGAATCGCTTCACGACCACGCTGATGAGCTTTACCGCAGCTGCCTCGCGCGTTTCGGTGATGACGGTGAAAACCTCTGACACATGCAGCTCCCGGAGACGGTCACAGCTTGTCTGTAAGCGGATGCCGGGAGCAGACAAGCCCGTCAGGGCGCGTCAGCGGGTGTTGGCGGGTGTCGGGGCGCAGCCATGACCCAGTCACGTAGCGATAGCGGAGTGTATACTGGCTTAACTATGCGGCATCAGAGCAGATTGTACTGAGAGTGCACCATATGCGGTGTGAAATACCGCACAGATGCGTAAGGAGAAAATACCGCATCAGGCGCTCTTCCGCTTCCTCGCTCACTGACTCGCTGCGCTCGGTCGTTCGGCTGCGGCGAGCGGTATCAGCTCACTCAAAGGCGGTAATACGGTTATCCACAGAATCAGGGGATAACGCAGGAAAGAACATGTGAGCAAAAGGCCAGCAAAAGGCCAGGAACCGTAAAAAGGCCGCGTTGCTGGCGTTTTTCCATAGGCTCCGCCCCCCTGACGAGCATCACAAAAATCGACGCTCAAGTCAGAGGTGGCGAAACCCGACAGGACTATAAAGATACCAGGCGTTTCCCCCTGGAAGCTCCCTCGTGCGCTCTCCTGTTCCGACCCTGCCGCTTACCGGATACCTGTCCGCCTTTCTCCCTTCGGGAAGCGTGGCGCTTTCTCATAGCTCACGCTGTAGGTATCTCAGTTCGGTGTAGGTCGTTCGCTCCAAGCTGGGCTGTGTGCACGAACCCCCCGTTCAGCCCGACCGCTGCGCCTTATCCGGTAACTATCGTCTTGAGTCCAACCCGGTAAGACACGACTTATCGCCACTGGCAGCAGCCACTGGTAACAGGATTAGCAGAGCGAGGTATGTAGGCGGTGCTACAGAGTTCTTGAAGTGGTGGCCTAACTACGGCTACACTAGAAGGACAGTATTTGGTATCTGCGCTCTGCTGAAGCCAGTTACCTTCGGAAAAAGAGTTGGTAGCTCTTGATCCGGCAAACAAACCACCGCTGGTAGCGGTGGTTTTTTTGTTTGCAAGCAGCAGATTACGCGCAGAAAAAAAGGATCTCAAGAAGATCCTTTGATCTTTTCTACGGGGTCTGACGCTCAGTGGAACGAAAACTCACGTTAAGGGATTTTGGTCATGAGATTATCAAAAAGGATCTTCACCTAGATCCTTTTAAATTAAAAATGAAGTTTTAAATCAATCTAAAGTATATATGAGTAAACTTGGTCTGACAGTTACCAATGCTTAATCAGTGAGGCACCTATCTCAGCGATCTGTCTATTTCGTTCATCCATAGTTGCCTGACTCCCCGTCGTGTAGATAACTACGATACGGGAGGGCTTACCATCTGGCCCCAGTGCTGCAATGATACCGCGAGACCCACGCTCACCGGCTCCAGATTTATCAGCAATAAACCAGCCAGCCGGAAGGGCCGAGCGCAGAAGTGGTCCTGCAACTTTATCCGCCTCCATCCAGTCTATTAATTGTTGCCGGGAAGCTAGAGTAAGTAGTTCGCCAGTTAATAGTTTGCGCAACGTTGTTGCCATTGCTGCAGGCATCGTGGTGTCACGCTCGTCGTTTGGTATGGCTTCATTCAGCTCCGGTTCCCAACGATCAAGGCGAGTTACATGATCCCCCATGTTGTGCAAAAAAGCGGTTAGCTCCTTCGGTCCTCCGATCGTTGTCAGAAGTAAGTTGGCCGCAGTGTTATCACTCATGGTTATGGCAGCACTGCATAATTCTCTTACTGTCATGCCATCCGTAAGATGCTTTTCTGTGACTGGTGAGTACTCAACCAAGTCATTCTGAGAATAGTGTATGCGGCGACCGAGTTGCTCTTGCCCGGCGTCAACACGGGATAATACCGCGCCACATAGCAGAACTTTAAAAGTGCTCATCATTGGAAAACGTTCTTCGGGGCGAAAACTCTCAAGGATCTTACCGCTGTTGAGATCCAGTTCGATGTAACCCACTCGTGCACCCAACTGATCTTCAGCATCTTTTACTTTCACCAGCGTTTCTGGGTGAGCAAAAACAGGAAGGCAAAATGCCGCAAAAAAGGGAATAAGGGCGACACGGAAATGTTGAATACTCATACTCTTCCTTTTTCAATATTATTGAAGCATTTATCAGGGTTATTGTCTCATGAGCGGATACATATTTGAATGTATTTAGAAAAATAAACAAATAGGGGTTCCGCGCACATTTCCCCGAAAAGTGCCACCTGACGTCTAAGAAACCATTATTATCATGACATTAACCTATAAAAATAGGCGTATCACGAGGCCCTTTCGTCTTCAAGAA",
+   "topology": "circular",
+   "moleculeType": "DNA",
+   "division": "SYN",
+   "date": "30-SEP-2008",
+   "accessions": [
+    "J01749",
+    "K00005",
+    "L08654",
+    "M10282",
+    "M10283",
+    "M10286",
+    "M10356",
+    "M10784",
+    "M10785",
+    "M10786",
+    "M33694",
+    "V01119"
+   ],
+   "sequenceVersion": 1,
+   "gi": null,
+   "keywords": [
+    "ampicillin resistance",
+    "beta-lactamase",
+    "cloning vector",
+    "drug resistance protein",
+    "origin of replication",
+    "plasmid",
+    "tetracycline resistance"
+   ],
+   "source": "Cloning vector pBR322",
+   "organism": "Cloning vector pBR322",
+   "taxonomy": [
+    "other sequences",
+    "artificial sequences",
+    "vectors"
+   ],
+   "comment": "On or before Apr 4, 2002 this sequence version replaced L08654.1,\ngi:58257.\nThe circular sequence is numbered such that 0 is the middle of the\nunique EcoRI site and the count increases first through the tet\ngenes, the pMB1 material, and finally through the Tn3 region.\nPlasmid pBR322 contains ampicillin and tetracycline resistance\ngenes.  The ampicillin resistance gene (amp-r) is a penicillin\nbeta-lactamase. Promoters P1 and P3 are for the beta-lactamase\ngene. P3 is the natural promoter, and P1 is artificially created by\nthe ligation of two different DNA fragments to create pBR322. P2 is\nin the same region as P1, but it is on the opposite strand and\ninitiates transcription in the direction of the tetracycline\nresistance gene.\nMutational studies in the primosome assembly sites indicate four\ntypes of mutations:  Class I having no effect on the activities\nelicited by the DNA site and the bases involved are probably\nspacers; Class II requiring higher Mg-2+ concentrations than the\nwild-type to be fully activated as factor Y ATPase effectors; Class\nIII co-inactivating both the ATPase effector and DNA replication\ntemplate activity of the site, indicating that they probably\nrepresent essential contact points between factor Y and the DNA;\nClass IV having a replication template activity intermediate that\nof class III and class II mutant DNAs.\nSpecific sites within or near the origins of replication are\nrecognized by dnaA protein.  Without dnaA binding to the origin of\nreplication chromosomal replication is not possible (15). pBR322\nDNA contains two separate regions on opposite strands and close to\nthe origin of replication which, when in single-stranded form, can\nact as effectors for the ATPase activity of E.coli replication\nfactor Y (5).  Small fragments of DNA containing these sites when\ncloned in an f1 phage vector act as origins of DNA replication\nallowing the formation of complementary double-stranded DNA in\nrifampicin-resistant, dna(B,G,C)-dependent fashion in vitro (5).\nThe biological activity of echinomycin is thought to be related to\nthe formation of complexes by intercalating with cellular DNA (20).\nComplete source information:\nPlasmid pBR322 from E.coli (2),(1),(3),(6),(11),(8),(5),(7),(12),\n(13),(10),(9),(14),(18),(19),(15),(20),(16); pBR322 DNA in pXf3\n(4).\nThe following data and their annotation were supplied by Will\nGilbert under the auspices of the Curator Program.\n CROSSREFERENCE\n               #parent\n                 GenBank(50):pSC101C, GenBank(50):Trn3\n               #offspring\n                 VecBase(3):pBR325, VecBase(3):pBR327,\nVecBase(3):pBR328,\n                 VecBase(3):pAT153, VecBase(3):pUC7,\nVecBase(3):pJRD158,\n                 VecBase(3):PiVX, VecBase(3):PiAN7,\nVecBase(3):pSP64,\n                 VecBase(3):pSP65, VecBase(3):pGEM1,\nVecBase(3):pGEM2,\n                 VecBase(3):pGEM3, VecBase(3):pGEM4,\nVecBase(3):pKK223,\n                 VecBase(3):pLBU3, VecBase(3):pTrS3,\nVecBase(3):pRSVNeo,\n                 VecBase(3):pSV2Cat, VecBase(3):M13mp9,\nVecBase(3):pHC79,\n                 VecBase(3):pV34, VecBase(3):pKTH601,\nVecBase(3):pKTH604,\n                 VecBase(3):pKTH605, VecBase(3):pKTH606,\nVecBase(3):YEp24,\n                 VecBase(3):YIp5, VecBase(3):YRp17,\nVecBase(3):pSP18,\n            VecBase(3):pSP19,\n                 VecBase(3):pSP6T3, VecBase(3):pSP6T719,\nVecBase(3):pT712,\n                 VecBase(3):pT713, VecBase(3):pT7T318,\nVecBase(3):pT7T319,\n                 VecBase(3):pT7T3A18, VecBase(3):pT7T3A19,\nVecBase(3):pEX1,\n                 VecBase(3):pEX2, VecBase(3):pEX3,\nVecBase(3):pCKSP6,\n                 VecBase(3):pACYC177, VecBase(3):pKO1,\nVecBase(3):pKO2,\n            VecBase(3):pKM1,\n                 VecBase(3):pKM2, VecBase(3):pMBL1,\nVecBase(3):pMBL604,\n                 VecBase(3):pMC1511, VecBase(3):pMC1871,\nVecBase(3):pAA37X,\n                 VecBase(3):pUR278, VecBase(3):pUR288,\nVecBase(3):pUR289,\n                 VecBase(3):pUR290, VecBase(3):pUR291,\nVecBase(3):pUR292,\n                 VecBase(3):pUR222.",
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       3
+      ],
+      [
+       3258,
+       4361
+      ]
+     ],
+     "authors": "Sutcliffe,J.G.",
+     "consrtm": "",
+     "title": "Nucleotide sequence of the ampicillin resistance gene of Escherichia coli plasmid pBR322",
+     "journal": "Proc. Natl. Acad. Sci. U.S.A. 75 (8), 3737-3741 (1978)",
+     "medline": "",
+     "pubmed": "358200",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       4361
+      ]
+     ],
+     "authors": "Sutcliffe,J.G.",
+     "consrtm": "",
+     "title": "Complete nucleotide sequence of the Escherichia coli plasmid pBR322",
+     "journal": "Cold Spring Harb. Symp. Quant. Biol. 43 (Pt 1), 77-90 (1979)",
+     "medline": "",
+     "pubmed": "383387",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       1499,
+       2300
+      ]
+     ],
+     "authors": "Reed,R.R., Young,R.A., Steitz,J.A., Grindley,N.D. and Guyer,M.S.",
+     "consrtm": "",
+     "title": "Transposition of the Escherichia coli insertion element gamma generates a five-base-pair repeat",
+     "journal": "Proc. Natl. Acad. Sci. U.S.A. 76 (10), 4882-4886 (1979)",
+     "medline": "",
+     "pubmed": "388421",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       2206,
+       2265
+      ]
+     ],
+     "authors": "Covarrubias,L., Cervantes,L., Covarrubias,A., Soberon,X., Vichido,I., Blanco,A., Kupersztoch-Portnoy,Y.M. and Bolivar,F.",
+     "consrtm": "",
+     "title": "Construction and characterization of new cloning vehicles. V. Mobilization and coding properties of pBR322 and several deletion derivatives including pBR327 and pBR328",
+     "journal": "Gene 13 (1), 25-35 (1981)",
+     "medline": "",
+     "pubmed": "6263753",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       1999,
+       2500
+      ]
+     ],
+     "authors": "Marians,K.J., Soeller,W. and Zipursky,S.L.",
+     "consrtm": "",
+     "title": "Maximal limits of the Escherichia coli replication factor Y effector site sequences in pBR322 DNA",
+     "journal": "J. Biol. Chem. 257 (10), 5656-5662 (1982)",
+     "medline": "",
+     "pubmed": "6279609",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       80
+      ],
+      [
+       4150,
+       4229
+      ],
+      [
+       4348,
+       4361
+      ]
+     ],
+     "authors": "Brosius,J., Cate,R.L. and Perlmutter,A.P.",
+     "consrtm": "",
+     "title": "Precise location of two promoters for the beta-lactamase gene of pBR322. S1 mapping of ribonucleic acid isolated from Escherichia coli or synthesized in vitro",
+     "journal": "J. Biol. Chem. 257 (15), 9205-9210 (1982)",
+     "medline": "",
+     "pubmed": "6178738",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       4240,
+       4343
+      ]
+     ],
+     "authors": "Van Dyke,M.W., Hertzberg,R.P. and Dervan,P.B.",
+     "consrtm": "",
+     "title": "Map of distamycin, netropsin, and actinomycin binding sites on heterogeneous DNA: DNA cleavage-inhibition patterns with methidiumpropyl-EDTA.Fe(II)",
+     "journal": "Proc. Natl. Acad. Sci. U.S.A. 79 (18), 5470-5474 (1982)",
+     "medline": "",
+     "pubmed": "6291045",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       583,
+       709
+      ]
+     ],
+     "authors": "Peden,K.W. and Nathans,D.",
+     "consrtm": "",
+     "title": "Local mutagenesis within deletion loops of DNA heteroduplexes",
+     "journal": "Proc. Natl. Acad. Sci. U.S.A. 79 (23), 7214-7217 (1982)",
+     "medline": "",
+     "pubmed": "6760191",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       372,
+       649
+      ]
+     ],
+     "authors": "Peden,K.W.",
+     "consrtm": "",
+     "title": "Revised sequence of the tetracycline-resistance gene of pBR322",
+     "journal": "Gene 22 (2-3), 277-280 (1983)",
+     "medline": "",
+     "pubmed": "6307828",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       131,
+       181
+      ]
+     ],
+     "authors": "Watabe,H., Iino,T., Kaneko,T., Shibata,T. and Ando,T.",
+     "consrtm": "",
+     "title": "A new class of site-specific endodeoxyribonucleases. Endo.Sce I isolated from a eukaryote, Saccharomyces cerevisiae",
+     "journal": "J. Biol. Chem. 258 (8), 4663-4665 (1983)",
+     "medline": "",
+     "pubmed": "6300094",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       367,
+       581
+      ]
+     ],
+     "authors": "Livneh,Z.",
+     "consrtm": "",
+     "title": "Directed mutagenesis method for analysis of mutagen specificity: application to ultraviolet-induced mutagenesis",
+     "journal": "Proc. Natl. Acad. Sci. U.S.A. 80 (1), 237-241 (1983)",
+     "medline": "",
+     "pubmed": "6337373",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       2626,
+       2682
+      ],
+      [
+       2780,
+       2828
+      ]
+     ],
+     "authors": "Mascharak,P.K., Sugiura,Y., Kuwahara,J., Suzuki,T. and Lippard,S.J.",
+     "consrtm": "",
+     "title": "Alteration and activation of sequence-specific cleavage of DNA by bleomycin in the presence of the antitumor drug cis-diamminedichloroplatinum(II)",
+     "journal": "Proc. Natl. Acad. Sci. U.S.A. 80 (22), 6795-6798 (1983)",
+     "medline": "",
+     "pubmed": "6196777",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       4275,
+       4336
+      ]
+     ],
+     "authors": "Schultz,P.G. and Dervan,P.B.",
+     "consrtm": "",
+     "title": "Sequence-specific double-strand cleavage of DNA by penta-N-methylpyrrolecarboxamide-EDTA X Fe(II)",
+     "journal": "Proc. Natl. Acad. Sci. U.S.A. 80 (22), 6834-6837 (1983)",
+     "medline": "",
+     "pubmed": "6417654",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       517,
+       528
+      ]
+     ],
+     "authors": "Sutcliffe,J.G.",
+     "consrtm": "",
+     "title": "",
+     "journal": "Unpublished",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       2394,
+       2495
+      ]
+     ],
+     "authors": "Fuller,R.S., Funnell,B.E. and Kornberg,A.",
+     "consrtm": "",
+     "title": "The dnaA protein complex with the E. coli chromosomal replication origin (oriC) and other DNA sites",
+     "journal": "Cell 38 (3), 889-900 (1984)",
+     "medline": "",
+     "pubmed": "6091903",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       2728,
+       2731
+      ]
+     ],
+     "authors": "Lathe,R., Kieny,M.P., Skory,S. and Lecocq,J.P.",
+     "consrtm": "",
+     "title": "Linker tailing: unphosphorylated linker oligonucleotides for joining DNA termini",
+     "journal": "DNA 3 (2), 173-182 (1984)",
+     "medline": "",
+     "pubmed": "6327214",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       2728,
+       2730
+      ]
+     ],
+     "authors": "Heusterspreute,M. and Davison,J.",
+     "consrtm": "",
+     "title": "Restriction site bank vectors. II. DNA sequence analysis of plasmid pJRD158",
+     "journal": "DNA 3 (3), 259-268 (1984)",
+     "medline": "",
+     "pubmed": "6086259",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       2112,
+       2186
+      ],
+      [
+       2347,
+       2415
+      ]
+     ],
+     "authors": "Abarzua,P., Soeller,W. and Marians,K.J.",
+     "consrtm": "",
+     "title": "Mutational analysis of primosome assembly sites. I. Distinct classes of mutants in the pBR322 Escherichia coli factor Y DNA effector sequences",
+     "journal": "J. Biol. Chem. 259 (22), 14286-14292 (1984)",
+     "medline": "",
+     "pubmed": "6209275",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       2347,
+       2415
+      ]
+     ],
+     "authors": "Soeller,W., Abarzua,P. and Marians,K.J.",
+     "consrtm": "",
+     "title": "Mutational analysis of primosome assembly sites. II. Role of secondary structure in the formation of active sites",
+     "journal": "J. Biol. Chem. 259 (22), 14293-14300 (1984)",
+     "medline": "",
+     "pubmed": "6150042",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       4361
+      ]
+     ],
+     "authors": "Van Dyke,M.M. and Dervan,P.B.",
+     "consrtm": "",
+     "title": "Echinomycin binding sites on DNA",
+     "journal": "Science 225 (4667), 1122-1127 (1984)",
+     "medline": "",
+     "pubmed": "6089341",
+     "comment": ""
+    },
+    {
+     "location": [],
+     "authors": "Pouwels,P.H., Enger-Valk,B.E. and Brammar,W.J.",
+     "consrtm": "",
+     "title": "",
+     "journal": "(in) CLONING VECTORS. Elsevier Scientific Publishing, Amsterdam (1985)",
+     "medline": "",
+     "pubmed": "",
+     "comment": "Vector I-A-iv-1"
+    },
+    {
+     "location": [
+      [
+       0,
+       4361
+      ]
+     ],
+     "authors": "Watson,N.",
+     "consrtm": "",
+     "title": "A new revision of the sequence of plasmid pBR322",
+     "journal": "Gene 70 (2), 399-403 (1988)",
+     "medline": "",
+     "pubmed": "3063608",
+     "comment": ""
+    },
+    {
+     "location": [],
+     "authors": "Gilbert,W.",
+     "consrtm": "",
+     "title": "Obtained from VecBase 3.0",
+     "journal": "Unpublished",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 50,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 4361,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Cloning vector pBR322"
+      ],
+      [
+       "mol_type",
+       "other DNA"
+      ],
+      [
+       "db_xref",
+       "taxon:47470"
+      ],
+      [
+       "tissue_lib",
+       "ATCC 31344, ATCC 37017"
+      ],
+      [
+       "focus",
+       ""
+      ]
+     ]
+    },
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1762,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Plasmid pSC101"
+      ],
+      [
+       "mol_type",
+       "other DNA"
+      ],
+      [
+       "db_xref",
+       "taxon:2625"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 23,
+        "end": 27,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "regulatory",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 26,
+        "end": 33,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "regulatory_class",
+       "promoter"
+      ],
+      [
+       "note",
+       "promoter P1 (6)"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 38,
+        "end": 42,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "regulatory",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 42,
+        "end": 49,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "regulatory_class",
+       "promoter"
+      ],
+      [
+       "note",
+       "promoter P2 (6)"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 52,
+        "end": 56,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 66,
+        "end": 70,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 79,
+        "end": 83,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 85,
+        "end": 1276,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "tet"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 85,
+        "end": 1276,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "tet"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "transl_table",
+       "11"
+      ],
+      [
+       "product",
+       "tetracycline resistance protein"
+      ],
+      [
+       "protein_id",
+       "AAB59735.1"
+      ],
+      [
+       "translation",
+       "MKSNNALIVILGTVTLDAVGIGLVMPVLPGLLRDIVHSDSIASHYGVLLALYALMQFLCAPVLGALSDRFGRRPVLLASLLGATIDYAIMATTPVLWILYAGRIVAGITGATGAVAGAYIADITDGEDRARHFGLMSACFGVGMVAGPVAGGLLGAISLHAPFLAAAVLNGLNLLLGCFLMQESHKGERRPMPLRAFNPVSSFRWARGMTIVAALMTVFFIMQLVGQVPAALWVIFGEDRFRWSATMIGLSLAVFGILHALAQAFVTGPATKRFGEKQAIIAGMAADALGYVLLAFATRGWMAFPIMILLASGGIGMPALQAMLSRQVDDDHQGQLQGSLAALTSLTSITGPLIVTAIYAASASTWNGLAWIVGAALYLVCLPALRRGAWSRATST"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 140,
+        "end": 142,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "Endo.Sce I cleavage site coordinated with site at base 146 (10)"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 145,
+        "end": 147,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "tet"
+      ],
+      [
+       "note",
+       "Endo.Sce I cleavage site coordinated with site at base 142 (10)"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 410,
+        "end": 414,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "tet"
+      ],
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_difference",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 425,
+        "end": 426,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "tet"
+      ],
+      [
+       "note",
+       "conflict"
+      ],
+      [
+       "citation",
+       "[11]"
+      ],
+      [
+       "replace",
+       ""
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 468,
+        "end": 472,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "tet"
+      ],
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "old_sequence",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 525,
+        "end": 528,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "tet"
+      ],
+      [
+       "citation",
+       "[17]"
+      ]
+     ]
+    },
+    {
+     "type": "repeat_region",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 1514,
+        "end": 1519,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "gamma-delta insertion target sequence"
+      ],
+      [
+       "rpt_type",
+       "direct"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1635,
+        "end": 1762,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "from pSC101 (bp 1860-1986)"
+      ]
+     ]
+    },
+    {
+     "type": "repeat_region",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 1787,
+        "end": 1792,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "gamma-delta insertion target sequence"
+      ],
+      [
+       "rpt_type",
+       "direct"
+      ]
+     ]
+    },
+    {
+     "type": "misc_difference",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1890,
+        "end": 1892,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "conflict"
+      ],
+      [
+       "citation",
+       "[23]"
+      ],
+      [
+       "replace",
+       "att"
+      ]
+     ]
+    },
+    {
+     "type": "old_sequence",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1891,
+        "end": 1893,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "citation",
+       "[2]"
+      ],
+      [
+       "citation",
+       "[22]"
+      ]
+     ]
+    },
+    {
+     "type": "regulatory",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1904,
+        "end": 1910,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "regulatory_class",
+       "ribosome_binding_site"
+      ]
+     ]
+    },
+    {
+     "type": "regulatory",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1904,
+        "end": 1909,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "regulatory_class",
+       "ribosome_binding_site"
+      ],
+      [
+       "note",
+       "Shine-Dalgarno sequence"
+      ]
+     ]
+    },
+    {
+     "type": "misc_difference",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1912,
+        "end": 1914,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "conflict"
+      ],
+      [
+       "citation",
+       "[23]"
+      ],
+      [
+       "replace",
+       "caa"
+      ]
+     ]
+    },
+    {
+     "type": "old_sequence",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1913,
+        "end": 1915,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "citation",
+       "[17]"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1914,
+        "end": 2106,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "transl_table",
+       "11"
+      ],
+      [
+       "product",
+       "ROP protein"
+      ],
+      [
+       "protein_id",
+       "AAB59736.1"
+      ],
+      [
+       "translation",
+       "MTKQEKTALNMARFIRSQTLTLLEKLNELDADEQADICESLHDHADELYRSCLARFGDDGENL"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2010,
+        "end": 2167,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "H-strand Y effector site"
+      ],
+      [
+       "citation",
+       "[5]"
+      ]
+     ]
+    },
+    {
+     "type": "repeat_region",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 2244,
+        "end": 2249,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "gamma-delta insertion target sequence"
+      ],
+      [
+       "rpt_type",
+       "direct"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 2350,
+        "end": 2414,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "L-strand Y effector site"
+      ],
+      [
+       "citation",
+       "[5]"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2438,
+        "end": 2447,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "dnaA"
+      ]
+     ]
+    },
+    {
+     "type": "rep_origin",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2534,
+        "end": 2535,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": []
+    },
+    {
+     "type": "old_sequence",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2728,
+        "end": 2730,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "revision according to (17)"
+      ],
+      [
+       "citation",
+       "[2]"
+      ],
+      [
+       "citation",
+       "[17]"
+      ],
+      [
+       "replace",
+       "at"
+      ]
+     ]
+    },
+    {
+     "type": "old_sequence",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2728,
+        "end": 2729,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "citation",
+       "[17]"
+      ]
+     ]
+    },
+    {
+     "type": "old_sequence",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2729,
+        "end": 2730,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "revision according to (16)"
+      ],
+      [
+       "citation",
+       "[2]"
+      ],
+      [
+       "citation",
+       "[16]"
+      ],
+      [
+       "citation",
+       "[17]"
+      ],
+      [
+       "replace",
+       "t"
+      ]
+     ]
+    },
+    {
+     "type": "mobile_element",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 3147,
+        "end": 4361,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "mobile_element_type",
+       "transposon:Tn3"
+      ]
+     ]
+    },
+    {
+     "type": "repeat_region",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 3147,
+        "end": 3185,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "note",
+       "corresponds to one of the 38bp repeats found in Tn3 (bp 1-38 and complement (4920-4957))"
+      ],
+      [
+       "rpt_type",
+       "inverted"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 3292,
+        "end": 4153,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "bla"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 3292,
+        "end": 4153,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "bla"
+      ],
+      [
+       "note",
+       "E-286"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "transl_table",
+       "11"
+      ],
+      [
+       "product",
+       "beta-lactamase"
+      ],
+      [
+       "protein_id",
+       "AAB59737.1"
+      ],
+      [
+       "translation",
+       "MSIQHFRVALIPFFAAFCLPVFAHPETLVKVKDAEDQLGARVGYIELDLNSGKILESFRPEERFPMMSTFKVLLCGAVLSRVDAGQEQLGRRIHYSQNDLVEYSPVTEKHLTDGMTVRELCSAAITMSDNTAANLLLTTIGGPKELTAFLHNMGDHVTRLDRWEPELNEAIPNDERDTTMPAAMATTLRKLLTGELLTLASRQQLIDWMEADKVAGPLLRSALPAGWFIADKSGAGERGSRGIIAALGPDGKPSRIVVIYTTGSQATMDERNRQIAEIGASLIKHW"
+      ]
+     ]
+    },
+    {
+     "type": "sig_peptide",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4084,
+        "end": 4153,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "bla"
+      ]
+     ]
+    },
+    {
+     "type": "mat_peptide",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 3295,
+        "end": 4084,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "bla"
+      ],
+      [
+       "product",
+       "beta-lactamase"
+      ]
+     ]
+    },
+    {
+     "type": "regulatory",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4160,
+        "end": 4165,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "regulatory_class",
+       "ribosome_binding_site"
+      ],
+      [
+       "note",
+       "Shine-Dalgarno sequence"
+      ]
+     ]
+    },
+    {
+     "type": "regulatory",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4187,
+        "end": 4194,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "regulatory_class",
+       "promoter"
+      ],
+      [
+       "note",
+       "promoter P3 (6)"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4267,
+        "end": 4271,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4279,
+        "end": 4283,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4284,
+        "end": 4288,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4295,
+        "end": 4299,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4310,
+        "end": 4314,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4316,
+        "end": 4320,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    },
+    {
+     "type": "misc_binding",
+     "location": {
+      "operator": null,
+      "strand": -1,
+      "parts": [
+       {
+        "start": 4330,
+        "end": 4334,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "bound_moiety",
+       "echinomycin"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

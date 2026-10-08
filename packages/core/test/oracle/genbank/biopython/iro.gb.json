@@ -1,0 +1,232 @@
+{
+ "file": "iro.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "IRO125195",
+   "id": "AL109817.1",
+   "description": "Homo sapiens mRNA full length insert cDNA clone EUROIMAGE 125195",
+   "seqDefined": true,
+   "seqLength": 1326,
+   "seqSha1": "ecfe938632b0a55b87fb95779e906b68f15a8113",
+   "seq": "CACAGGCCCAGAGCCACTCCTGCCTACAGGTTCTGAGGGCTCAGGGGACCTCCTGGGCCCTCAGGCTCTTTAGCTGAGAATAAGGGCCCTGAGGGAACTACCTGCTTCTCACATCCCCGGGTCTCTGACCATCTGCTGTGTGCCCCGACCCCCCCTACCCTGCTCCTCCACCAAGCCTGATGCCAAGGGCTATAAACCACTGGCCCAACAGAAGCTTGGTTCCCAGAGAACTGGTCCCTGCCTGGGACATGCTCCTTGCTACAGCCCCTTGTGGGAGCTCAGAGGGCATGGCTGCTCCCCCTACGGTCCCTCGCCCAGTGGTTCTGTCTCTTTATGGCAGGAAGCAATGAGGCTCCCCAAGAACACACCTGAGGAAAAGGACAGGTGAGCCTGGAGGGCCGGCCGCACCGTGGGCCTCTGTGTCTGGGGAGTTGGTGGCCAGGATCCCGAGTACCTGGGTGCTGTGACGGGGCGTGGTTGGCCTGGGCGTGCTGGGTGTTTGGGAATGACTTCCCATCGCCCGCTTCTGCAGCCTGCTCAGCCCTGTTGGGGTGCAGTGTGTCCACTGCCTGCCTGTGTGTGCCGCTGTGCTCAGGCTCTCCTCTTGCTCCTTTCAGGCGCACGGCGGCCCTACAGGAGGGTCTGAGGCGGGCAGTCTCTGTGCCGCTGACGCTGGCGGAGACGGTGGCCTCGCTGTGGCCGGCCCTGCAGGAACTGGCCCGGTGTGGGAACCTGGCCTGCCGGTCAGACCTCCAGGTAGGGGGGCCCGGGGGACCCCAGGCCTCCTGCCGCAAAGCAGGAAGCAGCTGTTGGGGCTGAGTTGCTGGAGAGCACGGTGGTTGGCTGGGCTGAGCCAGGTAGGGAGACCTCACTTCACGGGCAGTTCCCGGGGCTTTGGCCTCCTCCAACAGGGCCGGGGTGTCCGCTGCCTTCTAAGATCTCGCTCACGGCGGCACCACAGACGGAGACCCAAATGTGTCTGCAGAGCCCACCCTGACCACTGTATAAGTGTATACTCCCCCAAGACCCCTTGTATCACCCCCACTGTCGTGTTCTAGAAAACACCTATGTCAGCCCAGGCACAATGGTTCTCGCCTGTGGTCCCAGCACTTTGGGAGGCTGAGGCGGGAGGATCACTTGAATAGAGGAGGTCGAGACCAGCCTGGGCAACATAGTGGGACCCTGGCTGTACAATAGATACATATGAGCCAGGCACGGTGGTGCCTGTGGTCCCAGCTCCCTGCCCAGCCAGCCTCCTGTCTCCAGAGAAGTTCTCCATTAAAAAATAATTTAGCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+   "topology": null,
+   "moleculeType": "mRNA",
+   "division": "PRI",
+   "date": "11-AUG-1999",
+   "accessions": [
+    "AL109817"
+   ],
+   "sequenceVersion": 1,
+   "gi": "5731880",
+   "keywords": [
+    "FLI_CDNA"
+   ],
+   "source": "human",
+   "organism": "Homo sapiens",
+   "taxonomy": [
+    "Eukaryota",
+    "Metazoa",
+    "Chordata",
+    "Craniata",
+    "Vertebrata",
+    "Mammalia",
+    "Eutheria",
+    "Primates",
+    "Catarrhini",
+    "Hominidae",
+    "Homo"
+   ],
+   "comment": "EURO-IMAGE Consortium Contact: Auffray C\nCNRS UPR 420 - Genetique Moleculaire et Biologie du Developement\nIFR 1221 - Rue Guy Moquet 19, Batiment G - BP 8\n94801 Villejuif  Cedex, FRANCE\nTel: ++33-1-49 58 34 98\nFax: ++33-1-49 58 35 09\ne-mail: auffray@infobiogen.fr\nThis clone is available royalty-free through IMAGE Consortium\nDistributors.\nIMPORTANT: This sequence represents the full insert of this IMAGE\ncDNA clone. No attempt has been made to verify whether this\ncorresponds to the full-length of the original mRNA from which it\nwas derived.",
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       1326
+      ]
+     ],
+     "authors": "Auffray,C., Ansorge,W., Ballabio,A., Estivill,X., Gibson,K., Lehrach,H., Poustka,A. and Lundeberg,J.",
+     "consrtm": "",
+     "title": "The European IMAGE consortium for integrated Molecular analysis of human gene transcripts",
+     "journal": "Unpublished",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       1326
+      ]
+     ],
+     "authors": "Carim,L., Estivill,X., Sumoy,L. and Escarceller,M.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (11-AUG-1999) Dept. Genetica Molecular, Institut de Recerca Oncologica (IRO), Hospital Duran i Reynals, Autovia de Castelldefels Km 2,7 L'Hospitalet de Llobregat, 08907 Barcelona, Catalunya, SPAIN. Tel: ++34-93-260-7775 Fax: ++34-93-260-7776 WWW site: http://www.iro.es e-mail enquiries: lsumoy@iro.es, mescarceller@iro.es",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 5,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1326,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Homo sapiens"
+      ],
+      [
+       "db_xref",
+       "taxon:9606"
+      ],
+      [
+       "chromosome",
+       "21"
+      ],
+      [
+       "clone",
+       "IMAGE cDNA clone 125195"
+      ],
+      [
+       "clone_lib",
+       "Soares fetal liver spleen 1NFLS"
+      ],
+      [
+       "note",
+       "contains Alu repeat; likely to be be derived from unprocessed nuclear RNA or genomic DNA; encodes putative exons identical to FTCD; formimino transferase cyclodeaminase; formimino transferase (EC 2.1.2.5) /formimino tetrahydro folate cyclodeaminase (EC 4.3.1.4)"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 340,
+        "end": 756,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "FTCD"
+      ]
+     ]
+    },
+    {
+     "type": "exon",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 340,
+        "end": 384,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "FTCD"
+      ],
+      [
+       "number",
+       "1"
+      ]
+     ]
+    },
+    {
+     "type": "intron",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 384,
+        "end": 617,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "FTCD"
+      ],
+      [
+       "number",
+       "1"
+      ]
+     ]
+    },
+    {
+     "type": "exon",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 617,
+        "end": 756,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "FTCD"
+      ],
+      [
+       "number",
+       "2"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

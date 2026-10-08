@@ -1,0 +1,94 @@
+.banner {
+  --_tone: var(--hh-accent);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: var(--hh-radius-md);
+  background: color-mix(in srgb, var(--_tone) 10%, var(--hh-bg-content));
+  box-shadow: inset 0 0 0 var(--hh-hairline) color-mix(in srgb, var(--_tone) 28%, transparent);
+  color: var(--hh-text);
+  font-size: var(--hh-text-md);
+  line-height: 18px;
+}
+
+.info {
+  --_tone: var(--hh-accent);
+}
+
+.success {
+  --_tone: var(--hh-green);
+}
+
+.warning {
+  --_tone: var(--hh-orange);
+}
+
+.error {
+  --_tone: var(--hh-red);
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+  padding-top: 1px;
+  color: var(--_tone);
+}
+
+.icon :where(svg) {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.9;
+}
+
+.text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  column-gap: 6px;
+  min-width: 0;
+}
+
+.title {
+  font-weight: var(--hh-weight-semibold);
+}
+
+.message {
+  color: var(--hh-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin: -3px 0;
+}
+
+.dismiss {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin: 0 -2px 0 2px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--hh-radius-xs);
+  background: transparent;
+  color: var(--hh-text-tertiary);
+  cursor: default;
+}
+
+.dismiss:hover {
+  background: var(--hh-bg-hover);
+  color: var(--hh-text-secondary);
+}
+
+.dismiss :where(svg) {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2.2;
+}

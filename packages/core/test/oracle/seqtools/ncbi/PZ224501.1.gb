@@ -1,0 +1,67 @@
+LOCUS       PZ224501                1589 bp    mRNA    linear   PLN 01-JUL-2026
+DEFINITION  Anisonema acinus multiple inositol-polyphosphate phosphatase 1
+            mRNA, partial cds.
+ACCESSION   PZ224501
+VERSION     PZ224501.1
+KEYWORDS    .
+SOURCE      Anisonema acinus
+  ORGANISM  Anisonema acinus
+            Eukaryota; Discoba; Euglenozoa; Euglenida; Spirocuta; Anisonemea;
+            Anisonemida; Anisonematidae; Anisonema.
+REFERENCE   1  (bases 1 to 1589)
+  AUTHORS   Xu,G., Tang,L. and Sun,C.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (29-MAR-2026) Chengdu Medical College, Scientific
+            Research Center, 783 Xindu avenue, Chengdu, Sichuan 610500, China
+COMMENT     ##Assembly-Data-START##
+            Assembly Method       :: Trinity v. 2.15.2
+            Sequencing Technology :: Illumina
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1589
+                     /organism="Anisonema acinus"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:186754"
+     CDS             292..>1589
+                     /note="MINPP1"
+                     /codon_start=1
+                     /product="multiple inositol-polyphosphate phosphatase 1"
+                     /protein_id="YFL07093.1"
+                     /translation="MRWVPLNAEQDHATSDDIFRNLGSTSPYHQADDLFPETHGYENV
+                     PKQCRIKQAHILHRHGSRYPATGAGLLDAKLGLAQKLGNLQAQGDYGFLHSWKDQLGE
+                     NALVHLGAQELFDSGVKYYYEYAQLLEQSKQKPVLRTTSQSRMIDSARYWALGFFGWD
+                     MADKAHIEVLTETLLQNNTLAPYMTCPNVFSPKALRILEWRAKAFGNAQKRLQENVKG
+                     VSFSKSDIITMIGLCGYETVSQGYSDFCKIFTKQDYEEYEYDQDLTFQSVFGFMSIGG
+                     RAMGIGWVTEFLSRLKGSGFHGPQTTQNSTLDSNPTYFPMHQPLYVDFTHDVVILTIL
+                     TALNFRQIGDDLPGDHMNPNRRYRASRVTPFGARLVFEVMECDDDNGTTDYIRAKLND
+                     AVVPLDGNQGCEGRRDGLCKLSDYMNFLEHHAYSMSNYDLL"
+ORIGIN      
+        1 ggtatcaacg cagagtacat ggggcggcat gtgggtgcat tgccggctac tgtttacgct
+       61 tcacccctct ccagcgtcat gaagctgttt gtcgctcttt tggccacggt gtcggtatgc
+      121 tgggctcgcg gcacgccgac cgatccgtgg aacaatgtca ctggcacgtc gtcgcaaacc
+      181 ttccccacgg acgttgggtt ccagggttct gtcaagtatg gcgcgccgcc ctttctcgcg
+      241 caggcggacc agctcaaaac gagcaaaccg aaccacaatt ctcctgtgga gatgcgctgg
+      301 gtgccgctga acgctgagca ggaccatgcg acatccgatg acattttccg gaacctgggt
+      361 tccacgtcgc cgtatcacca ggccgacgac ctgtttcccg agacgcacgg ctacgagaat
+      421 gtgccgaagc agtgtcgcat caagcaggcg cacatcctcc accgccatgg ctcgcgctac
+      481 ccagcgacgg gagccggctt gctggatgcc aagcttggac tggcccagaa gctcggcaat
+      541 ctccaggcgc agggagacta cgggttcctg cactcctgga aggaccagct tggcgagaat
+      601 gctctcgtgc acctcggtgc gcaggaactt tttgactcgg gtgtcaagta ctactacgag
+      661 tatgcccagt tgctggagca gtcgaagcaa aagcccgtcc tccgtacgac gtcgcagagc
+      721 cgcatgatcg attcggcgcg ttactgggca cttgggtttt tcggctggga catggccgat
+      781 aaggcgcaca tcgaggtcct taccgagacg ctcctgcaga acaacacgct ggcgccgtac
+      841 atgacttgcc cgaacgtgtt ctcgcccaag gcgttgcgca tcctcgagtg gcgcgccaag
+      901 gcgtttggca atgcccagaa gcgtctgcaa gagaacgtga aaggtgtgtc gttctccaag
+      961 tcggacatta tcacgatgat cggtctgtgt ggctacgaga cggtgtcgca gggctactca
+     1021 gacttttgta agatctttac caagcaggac tacgaggagt acgaatacga ccaggacctc
+     1081 acgttccaaa gcgtgtttgg ctttatgagc attggtggcc gcgctatggg catcggctgg
+     1141 gtgacggagt tcctctcgcg cctcaagggg tcgggcttcc acgggccgca gacgacgcag
+     1201 aactcgacac tggacagcaa cccgacctac ttccccatgc accagccgct gtacgtggac
+     1261 tttacgcacg atgttgtgat cctgacgatc ctcaccgcgc tcaactttag gcagatcggc
+     1321 gacgacctgc ccggcgacca catgaacccg aaccgccgat accgcgcgag ccgtgttacg
+     1381 ccattcggcg cgcgcctcgt gttcgaggta atggaatgcg acgatgataa cggcaccacg
+     1441 gactacatcc gtgcgaagct gaatgatgcc gtcgtgccac ttgacggcaa ccaaggctgt
+     1501 gagggccgtc gagatggatt gtgcaagctg agcgattaca tgaacttcct ggagcaccac
+     1561 gcctatagca tgtccaacta cgacctgct
+//
+

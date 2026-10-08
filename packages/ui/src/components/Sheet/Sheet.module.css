@@ -1,0 +1,112 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--hh-z-sheet);
+  background: var(--hh-bg-overlay);
+  animation: fadeIn var(--hh-duration) var(--hh-ease);
+}
+
+.overlay[data-state='closed'] {
+  animation: fadeOut var(--hh-duration-fast) var(--hh-ease) forwards;
+}
+
+/* Clips the sheet at the bottom edge of the toolbar so it appears to slide out from under it. */
+.viewport {
+  position: fixed;
+  top: var(--hh-toolbar-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--hh-z-sheet);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: hidden;
+  padding: 0 24px 24px;
+  pointer-events: none;
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 0 0 var(--hh-radius-xl) var(--hh-radius-xl);
+  background: var(--hh-bg-window);
+  box-shadow: var(--hh-shadow-sheet);
+  color: var(--hh-text);
+  font-size: var(--hh-text-md);
+  outline: none;
+  pointer-events: auto;
+  animation: slideIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.sheet[data-state='closed'] {
+  animation: slideOut 160ms var(--hh-ease) forwards;
+}
+
+.header {
+  padding: 20px 20px 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-bold);
+  line-height: 1.3;
+}
+
+.description {
+  margin: 4px 0 0;
+  color: var(--hh-text-secondary);
+  line-height: 1.4;
+}
+
+.body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 4px;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--hh-space-2);
+  padding: 16px 20px 20px;
+}
+
+.footerStart {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--hh-space-2);
+  min-width: 0;
+}
+
+.footerButton {
+  min-width: 84px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes slideOut {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}

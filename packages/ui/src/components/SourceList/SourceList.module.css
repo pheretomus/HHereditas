@@ -1,0 +1,176 @@
+.root {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: none;
+  font-size: var(--hh-text-md);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* The focus ring is drawn on the active row instead of around the whole list. */
+.root:focus-visible {
+  outline: none;
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+}
+
+/* ---- section headers ---- */
+.header {
+  position: absolute;
+  right: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px 0 8px;
+  border-radius: var(--hh-radius-sm);
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-bold);
+  cursor: default;
+}
+
+.headerTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerCount {
+  flex: none;
+  color: var(--hh-text-tertiary);
+  font-weight: var(--hh-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.chevron {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.25;
+  color: var(--hh-text-tertiary);
+  opacity: 0;
+  transition:
+    transform var(--hh-duration-fast) var(--hh-ease),
+    opacity var(--hh-duration-fast) var(--hh-ease);
+}
+
+.header[aria-expanded='true'] .chevron {
+  transform: rotate(90deg);
+}
+
+/* Like macOS: the disclosure chevron appears on hover; it stays visible while collapsed. */
+.headerCollapsible:hover .chevron,
+.header[aria-expanded='false'] .chevron,
+.root:focus-visible .header[data-active] .chevron {
+  opacity: 1;
+}
+
+.headerCollapsible:hover {
+  color: var(--hh-text);
+}
+
+/* ---- items ---- */
+.item {
+  position: absolute;
+  right: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 8px;
+  border-radius: var(--hh-radius-sm);
+  color: var(--hh-text);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--hh-accent);
+}
+
+.icon :where(svg) {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+.label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.secondary {
+  flex: none;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.trailing {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.item[aria-disabled='true'] {
+  color: var(--hh-text-disabled);
+}
+
+/* Unemphasized selection (list not focused, or window inactive). */
+.item[aria-selected='true'] {
+  background: var(--hh-bg-selected);
+}
+
+/* Emphasized selection: accent fill while the list has focus. */
+.root[data-emphasis='auto']:focus-within .item[aria-selected='true'],
+.root[data-emphasis='on'] .item[aria-selected='true'] {
+  background: var(--hh-bg-selected-strong);
+  color: var(--hh-accent-contrast);
+}
+
+.root[data-emphasis='auto']:focus-within .item[aria-selected='true'] :is(.icon, .secondary, .trailing),
+.root[data-emphasis='on'] .item[aria-selected='true'] :is(.icon, .secondary, .trailing) {
+  color: inherit;
+}
+
+.root[data-emphasis='auto']:focus-within .item[aria-selected='true'] .secondary,
+.root[data-emphasis='on'] .item[aria-selected='true'] .secondary {
+  opacity: 0.78;
+}
+
+/* Keyboard focus ring on the active row. */
+.root:focus-visible .item[data-active],
+.root:focus-visible .header[data-active] {
+  box-shadow: 0 0 0 3px var(--hh-focus-ring);
+}
+
+.empty {
+  position: absolute;
+  right: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+}

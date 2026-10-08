@@ -1,0 +1,351 @@
+{
+ "file": "bad_origin_wrap.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [
+  "Attempting to fix invalid location '6801..100' as it looks like incorrect origin wrapping. Please fix input file, this could have unintended behavior.",
+  "Attempting to fix invalid location '6801..100' as it looks like incorrect origin wrapping. Please fix input file, this could have unintended behavior.",
+  "Attempting to fix invalid location '6801..100' as it looks like incorrect origin wrapping. Please fix input file, this could have unintended behavior.",
+  "Attempting to fix invalid location '<6801..100' as it looks like incorrect origin wrapping. Please fix input file, this could have unintended behavior.",
+  "Attempting to fix invalid location '<6801..100' as it looks like incorrect origin wrapping. Please fix input file, this could have unintended behavior."
+ ],
+ "records": [
+  {
+   "name": "XX_123456",
+   "id": "XX_123456.1",
+   "description": "Faked circular genome, not really Mesorhizobium loti",
+   "seqDefined": false,
+   "seqLength": 7000,
+   "seqSha1": null,
+   "seq": null,
+   "topology": "circular",
+   "moleculeType": "DNA",
+   "division": "BCT",
+   "date": "01-APR-2018",
+   "accessions": [
+    "XX_123456"
+   ],
+   "sequenceVersion": 1,
+   "gi": "12345678",
+   "keywords": [
+    ""
+   ],
+   "source": "Mesorhizobium loti",
+   "organism": "Mesorhizobium loti",
+   "taxonomy": [
+    "Bacteria",
+    "Proteobacteria",
+    "alpha subdivision",
+    "Rhizobiaceae group",
+    "Phyllobacteriaceae",
+    "Mesorhizobium"
+   ],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [],
+     "authors": "Kaneko,T., Nakamura,Y., Sato,S., Asamizu,E., Kato,T., Sasamoto,S., Watanabe,A., Idesawa,K., Ishikawa,A., Kawashima,K., Kimura,T., Kishida,Y., Kiyokawa,C., Kohara,M., Matsumoto,M., Matsuno,A., Mochizuki,Y., Nakayama,S., Nakazaki,N., Shimpo,S., Sugimoto,M., Takeuchi,C., Yamada,M. and Tabata,S.",
+     "consrtm": "",
+     "title": "Complete genome structure of the nitrogen-fixing symbiotic bacterium Mesorhizobium loti",
+     "journal": "DNA Res. 7, 331-338 (2000)",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       7000
+      ]
+     ],
+     "authors": "Kaneko,T.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (05-DEC-2000) Takakazu Kaneko, Kazusa DNA Research Institute, The First Laboratory for Plant Gene Research; Yana 1532-3, Kisarazu, Chiba 292-0812, Japan (E-mail:kaneko@kazusa.or.jp, URL:http://www.kazusa.or.jp/rhizobase/, Tel:81-438-52-3935, Fax:81-438-52-3934)",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": "join(ABCD0123456789.1:1..7000)",
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 6,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 7000,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Mesorhizobium loti"
+      ],
+      [
+       "strain",
+       "MAFF303099"
+      ],
+      [
+       "db_xref",
+       "taxon:381"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 6800,
+        "end": 7000,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 100,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "fake"
+      ],
+      [
+       "note",
+       "Bad location, should be a join wrapping origin"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 5399,
+        "end": 5600,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 5699,
+        "end": 6100,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 6800,
+        "end": 7000,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 100,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "white"
+      ],
+      [
+       "note",
+       "compound location, spanning origin"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 5399,
+        "end": 5600,
+        "strand": 1,
+        "ref": null,
+        "startKind": "before",
+        "endKind": "exact"
+       },
+       {
+        "start": 5699,
+        "end": 6100,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 6800,
+        "end": 7000,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 100,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "white"
+      ],
+      [
+       "note",
+       "compound, inexact, location, spanning origin"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 5399,
+        "end": 5600,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 5699,
+        "end": 6100,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 6800,
+        "end": 7000,
+        "strand": 1,
+        "ref": null,
+        "startKind": "before",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 100,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "white"
+      ],
+      [
+       "note",
+       "compound location, with inexact feature spanning origin"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": null,
+      "parts": [
+       {
+        "start": 5399,
+        "end": 5600,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 5699,
+        "end": 6100,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 100,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 6800,
+        "end": 7000,
+        "strand": -1,
+        "ref": null,
+        "startKind": "before",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "white"
+      ],
+      [
+       "note",
+       "compound location, with inexact feature spanning origin"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

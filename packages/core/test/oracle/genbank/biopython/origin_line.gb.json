@@ -1,0 +1,129 @@
+{
+ "file": "origin_line.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "NC_002678",
+   "id": "NC_002678.1",
+   "description": "Mesorhizobium loti, complete genome (edited)",
+   "seqDefined": true,
+   "seqLength": 180,
+   "seqSha1": "cfaeefbf168c9aa43502d33608e3f940620e40d6",
+   "seq": "TTAATTAACTGTCTTCGATTGCGTTTAATTGACGGTTTTCGATTAAAAGCGGTACCGGGGTTTGGGAGGTACTATGGCGGCAGGAATGCTGGGCGATCTGGTTGGCAAGATCCTCGACAAGATATCGGGCACCAGTTTGCTGGCGACCGGGCTTTTGCTGCTGACTGCCTTTGTCAGCGC",
+   "topology": "circular",
+   "moleculeType": "DNA",
+   "division": "BCT",
+   "date": "28-MAR-2001",
+   "accessions": [
+    "NC_002678"
+   ],
+   "sequenceVersion": 1,
+   "gi": "13470324",
+   "keywords": [
+    ""
+   ],
+   "source": "Mesorhizobium loti",
+   "organism": "Mesorhizobium loti",
+   "taxonomy": [
+    "Bacteria",
+    "Proteobacteria",
+    "alpha subdivision",
+    "Rhizobiaceae group",
+    "Phyllobacteriaceae",
+    "Mesorhizobium"
+   ],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [],
+     "authors": "Kaneko,T., Nakamura,Y., Sato,S., Asamizu,E., Kato,T., Sasamoto,S., Watanabe,A., Idesawa,K., Ishikawa,A., Kawashima,K., Kimura,T., Kishida,Y., Kiyokawa,C., Kohara,M., Matsumoto,M., Matsuno,A., Mochizuki,Y., Nakayama,S., Nakazaki,N., Shimpo,S., Sugimoto,M., Takeuchi,C., Yamada,M. and Tabata,S.",
+     "consrtm": "",
+     "title": "Complete genome structure of the nitrogen-fixing symbiotic bacterium Mesorhizobium loti",
+     "journal": "DNA Res. 7, 331-338 (2000)",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       180
+      ]
+     ],
+     "authors": "Kaneko,T.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (05-DEC-2000) Takakazu Kaneko, Kazusa DNA Research Institute, The First Laboratory for Plant Gene Research; Yana 1532-3, Kisarazu, Chiba 292-0812, Japan (E-mail:kaneko@kazusa.or.jp, URL:http://www.kazusa.or.jp/rhizobase/, Tel:81-438-52-3935, Fax:81-438-52-3934)",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 2,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 180,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Mesorhizobium loti"
+      ],
+      [
+       "strain",
+       "MAFF303099"
+      ],
+      [
+       "db_xref",
+       "taxon:381"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 19,
+        "end": 120,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "fake"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

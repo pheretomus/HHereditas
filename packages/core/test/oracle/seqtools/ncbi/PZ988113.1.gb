@@ -1,0 +1,73 @@
+LOCUS       PZ988113                1175 bp    mRNA    linear   INV 26-SEP-2026
+DEFINITION  Protegira songi voucher JY-2025 olfactory receptor 51 mRNA, partial
+            cds.
+ACCESSION   PZ988113
+VERSION     PZ988113.1
+KEYWORDS    .
+SOURCE      Protegira songi
+  ORGANISM  Protegira songi
+            Eukaryota; Metazoa; Ecdysozoa; Arthropoda; Altocrustacea;
+            Allotriocarida; Hexapoda; Insecta; Pterygota; Neoptera; Eumetabola;
+            Endopterygota; Aparaglossata; Panorpida; Lepidoptera; Glossata;
+            Ditrysia; Noctuoidea; Noctuidae; Noctuinae; Hadenini; Protegira.
+REFERENCE   1  (bases 1 to 1175)
+  AUTHORS   Huang,X.
+  TITLE     Molecular insights into the larval olfactory system in Protegira
+            songi (Lepidoptera: Noctuidae) from developmental and tissue
+            transcriptome analysis
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 1175)
+  AUTHORS   Huang,X.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (07-SEP-2026) College of Biology and Environmental
+            Sciences, Jishou University, South Renmin Road, No. 120, Jishou
+            416000, China
+COMMENT     ##Assembly-Data-START##
+            Assembly Method       :: Trinity v. Aug-2025
+            Sequencing Technology :: Illumina
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1175
+                     /organism="Protegira songi"
+                     /mol_type="mRNA"
+                     /isolation_source="leaves"
+                     /host="Eucommia ulmoides"
+                     /specimen_voucher="JY-2025"
+                     /db_xref="taxon:1986470"
+                     /geo_loc_name="China: Hunan, Jiangya County"
+                     /collection_date="07-Jul-2025"
+     CDS             1..>1175
+                     /codon_start=1
+                     /product="olfactory receptor 51"
+                     /protein_id="YGX13896.1"
+                     /translation="MLEQYEKCLKRVNSYLRFLGLSLGSSEKNKTFLERMLSNWIYLF
+                     HSFTLNIEVIAQFLWVREAIIAGKSFVEITRLIPCLITCFISNFKTLCIIYYMRYNNE
+                     FIKNMKGLLMNQMDMDEEGNHFKKKIIDTQVAMLVTISRRTIYLILSGLFMFASAPVF
+                     IIVPEYFRTHEVNLIMPFIAYYPFDEFGVWTYPLVYLHQVWTAIVAIFMVYGPDCFFF
+                     TCCTFVQIQFAWLTYDMQRIVNEDTHTCDNVKFKKLVVRHIELMRCVNLLEEMFSKSI
+                     LVNAVTSSLIICLTGFNVLVVDNVVMMASFASLLIFGIMQIFLYCYYGDSIMRSSMAI
+                     GDAIYNSNWYNVGVPERRGFLIVLSRAQKPCELTASGFFSINLRAFTSILSSSWSYFA
+                     "
+ORIGIN      
+        1 atgctcgaac aatatgaaaa atgtttaaaa agagtgaatt cgtatttgag gtttttaggt
+       61 ttgagtctag gtagcagtga aaagaacaaa actttcttag aacgtatgct aagtaactgg
+      121 atttatttat ttcactcctt tacattgaat atagaagtta ttgctcaatt tttatgggtc
+      181 cgggaagcca ttatagctgg caaaagtttt gtggaaataa cccgattgat tccttgcctt
+      241 ataacttgct ttataagtaa tttcaaaacg ctttgtatca tatactatat gcgttataat
+      301 aacgaattca ttaaaaatat gaaaggactg cttatgaatc aaatggacat ggatgaagaa
+      361 ggaaatcact ttaaaaagaa aattattgat acgcaagttg cgatgctggt caccatctcg
+      421 agaaggacaa tctatttgat tttatcgggt ttgtttatgt ttgcatcggc acctgtgttt
+      481 ataatcgttc cggagtattt caggacccat gaagtcaacc tgattatgcc atttatagcg
+      541 tattatccat tcgatgaatt cggcgtttgg acatatcctt tggtttactt acatcaggtg
+      601 tggacagcta ttgtcgccat atttatggtg tatggtcccg attgtttctt cttcacttgt
+      661 tgtacctttg ttcaaattca gtttgcatgg cttacctatg acatgcagag aattgtgaat
+      721 gaagacacgc atacatgtga taatgtgaaa ttcaaaaagt tggttgttcg tcatatcgaa
+      781 ttgatgagat gcgtcaattt attggaggaa atgttttcga aatcaatatt agtcaacgct
+      841 gttactagtt cattgattat ttgtttgact ggatttaacg ttttggttgt cgacaatgtt
+      901 gtgatgatgg catctttcgc atcattatta attttcggca taatgcaaat atttctgtat
+      961 tgttattatg gtgatagtat tatgagatct agcatggcta taggtgacgc catttacaac
+     1021 agcaattggt acaatgtagg agtgccagag aggagaggat tcctcattgt tttgtcaaga
+     1081 gcccaaaaac cctgtgagct aacagcaagt ggattcttca gtattaattt gcgagctttt
+     1141 acaagtatat taagctcgtc gtggtcttac ttcgc
+//
+

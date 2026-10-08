@@ -1,0 +1,79 @@
+LOCUS       PV942047                1774 bp    mRNA    linear   VRT 22-JUL-2026
+DEFINITION  Channa striata Secretogranin 2a mRNA, partial cds.
+ACCESSION   PV942047
+VERSION     PV942047.1
+KEYWORDS    .
+SOURCE      Channa striata (snakehead murrel)
+  ORGANISM  Channa striata
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Actinopterygii; Neopterygii; Teleostei; Neoteleostei;
+            Acanthomorphata; Anabantaria; Anabantiformes; Channoidei;
+            Channidae; Channa.
+REFERENCE   1  (bases 1 to 1774)
+  AUTHORS   Sheetal,V.M., Asgolkar,P., Priyanka,S.S., Rasal,K.D., Sonwane,A.,
+            Brahmane,M.P., Sharma,R., Nayak,S.K. and Goswami,M.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (11-JUL-2025) FGBD, CIFE, Varsova, Mumbai, Maharashtra
+            400061, India
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1774
+                     /organism="Channa striata"
+                     /mol_type="mRNA"
+                     /db_xref="taxon:64152"
+                     /sex="female"
+                     /tissue_type="brain"
+                     /geo_loc_name="India"
+                     /collection_date="23-Jan-2025"
+                     /collected_by="Sheetal V M"
+                     /note="extrachromosomal"
+     CDS             <1..>1774
+                     /codon_start=3
+                     /product="Secretogranin 2a"
+                     /protein_id="YFY41588.1"
+                     /translation="LLFMLLFLSSSGVHGASFREHRLRGSESDSQRANVRQAPNADML
+                     KALEYIESLRQRTDSDSQPHTPLSAGFDTSHVDDAEKLRAMLRLNSNPMQSKDMEEEE
+                     GENGRDDKSEELLQAVLSTLQQTEKDSKPDALRPGVEGAGPKDGRFLRVQQKQQGITP
+                     HKKLPLMFEDEEEGEGDEQEEDERPDLEHESPFKRTNENVEEKYTPQNLATLQSVFDE
+                     LDKPTGAKATHKRQDDEGDVEEGDEEDDEDMFNVRNAAYDDIGGDFTDWGPLQEQDDE
+                     EEEEEEEDRDNKHEVDRGLDYLDDNGEEANEDDEEDESYLVKRSKDADDVANLVDYYL
+                     LKVLEKTEEEEQKREIKEEEEQEERAERRVAQMQYRDNIDPRAIYQLIQISQKYQIPP
+                     EDLMDMFKTGQLSNRDKSRKLYQLARAQNKLAQISAKKTHKYPETRFYNRRLPERQKS
+                     PEELRTEEILNILGLGGTEDPAPIRKQKQYKSSLSRLHTLPAGRSGESAPTQRRLPST
+                     LKDGDDDTANEDELAAYLAAQMLARYPNPAYSRNVASQKRDDAAQSATGSFEQAIQDY
+                     FDQMDSDKSPNEKRQTEDEDRGDDT"
+ORIGIN      
+        1 acctcctctt tatgctcctc ttcctcagtt cctctggcgt tcacggggca tcgttcagag
+       61 agcacagact taggggaagt gaatcagact cccagagagc aaacgtccgc caggctccga
+      121 atgctgacat gctcaaagcc ttggagtaca tcgagagcct ccgtcagaga accgactcgg
+      181 actcccagcc ccacacgccc ctctctgcag ggtttgatac cagccacgtg gacgacgctg
+      241 agaagctgcg cgccatgctg aggctgaact ctaaccctat gcagagtaag gatatggaag
+      301 aagaggaagg ggagaacgga agggacgaca agagcgaaga gctgctccag gctgtgctca
+      361 gcactctgca gcagacagag aaagactcaa agccagatgc acttcgccct ggtgtggaag
+      421 gagcaggccc aaaggatggg aggttcctca gggtgcagca gaagcaacaa ggtatcacac
+      481 ctcacaagaa gctgccgctg atgtttgagg acgaagaaga gggtgagggg gatgagcaag
+      541 aggaggatga acgaccagat ttggagcacg agagcccctt caaacgcacg aacgagaacg
+      601 tggaggagaa gtacacgcct cagaatctgg caactctgca gtctgtgttt gacgaactgg
+      661 acaagccgac cggcgccaag gccacgcata aacggcaaga cgacgagggg gacgtggagg
+      721 agggtgacga ggaagacgat gaggacatgt ttaatgtgcg gaatgcggca tatgacgaca
+      781 tcggtgggga tttcaccgac tggggtccac tacaggagca agatgacgaa gaggaggagg
+      841 aggaggagga ggacagggac aacaaacacg aggtcgacag aggacttgat tatcttgacg
+      901 acaacggcga agaagcaaat gaggatgatg aagaggacga aagctactta gtcaagaggt
+      961 caaaggatgc agatgatgtt gccaacctag tggactatta ccttctgaag gtgctggaga
+     1021 aaacagaaga ggaagagcag aaacgagaga taaaggagga ggaggagcag gaggagagag
+     1081 cggagaggag ggtggctcag atgcaataca gagacaacat agatccacgg gccatctacc
+     1141 agctcattca gatctcccag aaataccaga tcccacccga agacctgatg gacatgttca
+     1201 aaaccggaca actgtccaat cgagacaagt cacgaaaact ctatcaatta gccagagcac
+     1261 aaaacaagct cgctcagata tctgcaaaga agacacacaa gtatccagaa actagattct
+     1321 acaacaggcg cctgcctgaa agacaaaagt ccccagaaga gctgaggaca gaagaaatcc
+     1381 tcaacatcct ggggttaggg ggcacggagg atccggctcc catcaggaag cagaagcagt
+     1441 acaaaagctc gttgtcacga cttcacactc tgcctgcagg gcgttcgggg gaatccgctc
+     1501 ccacgcagcg gcgccttccc agcacattaa aggacgggga tgacgacacc gccaacgagg
+     1561 atgaactggc agcgtatctg gcagctcaga tgctggcacg gtatccaaac cccgcgtaca
+     1621 gcaggaacgt ggcgagccag aaacgggatg acgccgctca gagcgccacg ggctctttcg
+     1681 aacaggccat ccaggattat tttgatcaaa tggactcaga taaaagcccg aatgaaaaga
+     1741 gacagactga ggatgaggac cggggcgacg acac
+//
+

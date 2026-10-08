@@ -1,0 +1,66 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.field {
+  flex: 1 1 auto;
+}
+
+.field input {
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-md);
+  white-space: nowrap;
+}
+
+/* NSStepper: two stacked half-height arrow buttons sharing one bordered capsule. */
+.stepper {
+  display: inline-flex;
+  flex: none;
+  flex-direction: column;
+  width: 15px;
+  height: 24px;
+  overflow: hidden;
+  border-radius: var(--hh-radius-xs);
+  background: var(--hh-bg-control);
+  box-shadow: var(--hh-shadow-control);
+  color: var(--hh-text-secondary);
+}
+
+.stepper.sm {
+  height: 22px;
+}
+
+.stepButton {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.stepButton + .stepButton {
+  box-shadow: inset 0 var(--hh-hairline) 0 var(--hh-separator);
+}
+
+.stepButton:active {
+  background: var(--hh-bg-control-active);
+  color: var(--hh-text);
+}
+
+.stepButton :where(svg) {
+  width: 10px;
+  height: 10px;
+  stroke-width: 2.6;
+}
+
+.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}

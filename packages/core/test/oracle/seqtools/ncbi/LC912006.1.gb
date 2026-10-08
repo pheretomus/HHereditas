@@ -1,0 +1,48 @@
+LOCUS       LC912006                 352 bp    DNA     linear   BCT 01-OCT-2026
+DEFINITION  Orientia tsutsugamushi NgMt25-042m_Kawa6 gene for 56-kDa type
+            specific antigen, partial cds.
+ACCESSION   LC912006
+VERSION     LC912006.1
+KEYWORDS    .
+SOURCE      Orientia tsutsugamushi
+  ORGANISM  Orientia tsutsugamushi
+            Bacteria; Pseudomonadati; Pseudomonadota; Alphaproteobacteria;
+            Rickettsiales; Rickettsiaceae; Rickettsieae; Orientia.
+REFERENCE   1
+  AUTHORS   Ogawa,M.
+  TITLE     Scrub typhus due to a novel strain of Orientia tsutsugamushi
+            transmitted by Leptotrombidium akamushi
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 352)
+  AUTHORS   Ogawa,M. and Hashimoto,Y.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (15-JAN-2026) Contact:Motohiko Ogawa National Institute
+            of Infectious Diseases, Department of Bacteriology I; 1-23-1
+            Toyama, Shinjyuku-ku, Tokyo 162-8640, Japan
+FEATURES             Location/Qualifiers
+     source          1..352
+                     /organism="Orientia tsutsugamushi"
+                     /mol_type="genomic DNA"
+                     /isolate="NgMt25-042m_Kawa6"
+                     /host="Leptotrombidium akamushi"
+                     /db_xref="taxon:784"
+                     /geo_loc_name="Japan:Niigata, Nagaoka"
+                     /collection_date="2025-07"
+                     /note="Karp-like"
+     CDS             <1..>352
+                     /codon_start=3
+                     /transl_table=11
+                     /product="56-kDa type specific antigen"
+                     /protein_id="BHO60289.1"
+                     /translation="LSLPFSASAIELGDEGGLECGPYAKVGVVGGMITGVESTRLDPA
+                     DAGGKKQLPLTTSMPFGGTLAAGMTIAPGFRAELGVMYLANVKAEVESGKTGSDADIR
+                     SGADSPMPQRYKIKL"
+ORIGIN      
+        1 cattgtcatt gccgttttca gctagtgcga tagaattggg ggatgaagga ggattagagt
+       61 gtggtcctta tgctaaagtt ggagtcgttg gaggaatgat tactggcgta gaatctactc
+      121 gcttggatcc agctgatgct ggtggcaaaa aacaattgcc attaacaacc tcgatgccat
+      181 ttggtggtac attagctgca ggtatgacaa tcgcgccagg atttagagca gagctagggg
+      241 ttatgtacct tgcgaatgta aaagcagagg tggaatcagg taaaactggc tctgatgctg
+      301 atattagatc tggtgcagat tctcctatgc ctcagcggta taagatcaag ct
+//
+

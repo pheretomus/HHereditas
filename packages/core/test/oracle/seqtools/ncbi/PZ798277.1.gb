@@ -1,0 +1,51 @@
+LOCUS       PZ798277                 447 bp    DNA     linear   PLN 01-OCT-2026
+DEFINITION  Penicillium polonicum isolate Zhao11213 beta-tubulin (tub2) gene,
+            partial cds.
+ACCESSION   PZ798277
+VERSION     PZ798277.1
+KEYWORDS    .
+SOURCE      Penicillium polonicum
+  ORGANISM  Penicillium polonicum
+            Eukaryota; Fungi; Dikarya; Ascomycota; Pezizomycotina;
+            Eurotiomycetes; Eurotiomycetidae; Eurotiales; Aspergillaceae;
+            Penicillium.
+REFERENCE   1  (bases 1 to 447)
+  AUTHORS   Liang,R. and Zhao,G.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (23-JUL-2026) College of Biological Sciences and
+            Technology, Beijing Forestry University, 35 Qinghua East Road,
+            Beijing 100083, China
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..447
+                     /organism="Penicillium polonicum"
+                     /mol_type="genomic DNA"
+                     /isolate="Zhao11213"
+                     /db_xref="taxon:60169"
+                     /geo_loc_name="China: Xinjiang"
+                     /collection_date="2020"
+     gene            <54..>447
+                     /gene="tub2"
+     mRNA            join(<54..95,153..207,276..>447)
+                     /gene="tub2"
+                     /product="beta-tubulin"
+     CDS             join(<54..95,153..207,276..>447)
+                     /gene="tub2"
+                     /codon_start=2
+                     /product="beta-tubulin"
+                     /protein_id="YGO08975.1"
+                     /translation="QTISGEHGLDGDGQYNGTSDLQLERMNVYFNHASGDKYVPRAVL
+                     VDLEPGTMDAVRSGPFGKLFRPDNFVFGQSGAGNNWAKGHSPLRG"
+ORIGIN      
+        1 ttttttcttc ttcgcgttgg gtatcaattg acaggttact aactcgatta caggcaaacc
+       61 atctctggcg agcacggtct cgatggcgat ggacagtaag ttttaatggt gatgtgggtt
+      121 tccggtagat cacacgtctg atatcttgct aggtacaatg gtacctccga cctccagctc
+      181 gagcgtatga acgtctactt caaccatgtg agtccaatca ctggaaaccg aataatcgtg
+      241 catcatctga tcagatgttt ttctttgata tctaggccag cggtgacaag tacgttcccc
+      301 gtgccgttct cgtcgatttg gagcctggta ccatggacgc tgtccgctcc ggtcctttcg
+      361 gcaagctttt ccgccccgac aacttcgtct tcggtcagtc cggtgctggt aacaactggg
+      421 ccaagggtca ctcccctttg aggggta
+//
+

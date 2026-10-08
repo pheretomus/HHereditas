@@ -1,0 +1,52 @@
+LOCUS       PZ522600                 531 bp    mRNA    linear   VRT 07-SEP-2026
+DEFINITION  Caranx ignobilis isolate Alp3_partial_Gt alkaline phosphatase
+            (alp3) mRNA, partial cds.
+ACCESSION   PZ522600
+VERSION     PZ522600.1
+KEYWORDS    .
+SOURCE      Caranx ignobilis (giant trevally)
+  ORGANISM  Caranx ignobilis
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Actinopterygii; Neopterygii; Teleostei; Neoteleostei;
+            Acanthomorphata; Carangaria; Carangiformes; Carangidae; Caranx.
+REFERENCE   1  (bases 1 to 531)
+  AUTHORS   Meenakshi,L., Anas Hussain,J., Smruthi,H., Nayan Thara,A.C.,
+            Chandrasekar,S., Biju Sam,K. and Ambarish,P.G.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (11-JUN-2026) MBFNHD, Central Marine Fisheries Research
+            Institute, Post Box No. 1603, Ernakulam North P.O, Cochin, Kerala
+            682018, India
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..531
+                     /organism="Caranx ignobilis"
+                     /mol_type="mRNA"
+                     /isolate="Alp3_partial_Gt"
+                     /db_xref="taxon:376895"
+                     /geo_loc_name="India: Kerala"
+                     /collection_date="2026"
+     gene            <1..>531
+                     /gene="alp3"
+     CDS             <1..>531
+                     /gene="alp3"
+                     /codon_start=2
+                     /product="alkaline phosphatase"
+                     /protein_id="YGO69127.1"
+                     /translation="KYMTPRGTKDPEYPRDYSSRGKRKDGRDLIKEWQSLKTGKVAHY
+                     VWNKTDFDAVDPEKTDYLMALFEPGDLRFEVERDPSMDPSIVETTEKAIRILQKNPKG
+                     FFLLVEGGRIDQAHHAGRAFMALHEAVAFDYAIAKGLELTKEDETLTVVMADHSHPFT
+                     FNGYPFRGQSILGKSPL"
+ORIGIN      
+        1 gaagtacatg acccccaggg gcaccaagga cccagaatac cccagggatt actcctccag
+       61 gggcaaaaga aaagacgggc gcgacctcat caaagagtgg cagagcctga agactggaaa
+      121 ggtagcccac tatgtgtgga ataaaaccga cttcgatgct gttgaccctg agaaaaccga
+      181 ctacctcatg gctctctttg aacctggcga tctgcgcttt gaggtggaga gggaccccag
+      241 catggacccg tccatcgtcg agaccacgga aaaggccatc cgcatcctgc agaaaaaccc
+      301 taaaggcttc ttcctgctag tggagggtgg gcgtattgac caggctcatc acgccggccg
+      361 ggcattcatg gcgctccacg aggcggtggc cttcgactac gccatcgcca agggcctgga
+      421 actcaccaag gaggacgaga ctctcaccgt agtgatggcc gaccactccc acccctttac
+      481 cttcaacgga tacccgttcc gtgggcaaag cattctgggt aaatcacctc t
+//
+

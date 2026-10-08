@@ -1,0 +1,70 @@
+LOCUS       LC951861                 932 bp    DNA     linear   VRT 01-OCT-2026
+DEFINITION  Pseudoblennius marmoratus CBM:ZF:20629 mitochondrial COX1 gene for
+            cytochrome c oxidase subunit 1, partial cds.
+ACCESSION   LC951861
+VERSION     LC951861.1
+KEYWORDS    .
+SOURCE      mitochondrion Pseudoblennius marmoratus
+  ORGANISM  Pseudoblennius marmoratus
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Actinopterygii; Neopterygii; Teleostei; Neoteleostei;
+            Acanthomorphata; Eupercaria; Perciformes; Cottioidei; Cottales;
+            Cottidae; Pseudoblennius.
+REFERENCE   1
+  AUTHORS   Miya,M. and Fukuchi,T.
+  TITLE     Mitochondrial COX1 gene for cytochrome c oxidase subunit 1, partial
+            cds
+  JOURNAL   Unpublished
+REFERENCE   2  (bases 1 to 932)
+  AUTHORS   Miya,M., Sado,T. and Fukuchi,T.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (29-SEP-2026) Contact:Tetsuya Sado National Institute for
+            Environmental Studies, NIES Lake Biwa Branch Office; 5-34
+            Yanagasaki, Otsu, Shiga 520-0022, Japan URL
+            :https://www.nies.go.jp/biwakobranch/
+FEATURES             Location/Qualifiers
+     source          1..932
+                     /organism="Pseudoblennius marmoratus"
+                     /organelle="mitochondrion"
+                     /mol_type="genomic DNA"
+                     /specimen_voucher="CBM:ZF:20629"
+                     /db_xref="taxon:1802969"
+                     /geo_loc_name="Japan:Chiba, Minami-boso, Tomiura"
+                     /collection_date="2020-08-05"
+                     /PCR_primers="fwd_name: L-5698-Asn, fwd_seq:
+                     aggcctcgatcctacaaagktttagttaac, rev_name: H-6855-CO1,
+                     rev_seq: agtcagctgaakacttttac"
+                     /note="Japanese common name:aya-anahaze"
+     gene            1..>932
+                     /gene="COX1"
+     CDS             1..>932
+                     /gene="COX1"
+                     /codon_start=1
+                     /transl_table=2
+                     /product="cytochrome c oxidase subunit 1"
+                     /protein_id="BIP52140.1"
+                     /translation="MATTRWLFSTNHKDIGTLYLAFGAWAGMVGTALSLLIRAELSQP
+                     GALLGDDQIYNVIVTAHAFVMIFFMVMPTMIGGFGNWLIPLMIGAPDMAFPRMNNMSF
+                     WLLPPSFLLLLASSGVEAGAGTGWTVYPPLAGNLAHAGASVDLTIFSLHLAGISSILG
+                     AINFITTIINMKPPAISQYQTPLFVWSVLITAVLLLLSLPVLAAGITMLLTDRNLNTA
+                     FFDPAGGGDPILYQHLFWFFGHPEVYILILPGFGMVSHIVAYYSGKKEPFGYMGMVWA
+                     MMAIGLLGFIVWAHHMFTVGMDVDTRAYFTSATM"
+ORIGIN      
+        1 gtggccacca cacgatgact cttttcgacc aatcacaaag acattggcac cctgtaccta
+       61 gcatttggtg cttgggccgg aatagtaggc acagccctaa gcctcctaat tcgagctgaa
+      121 ttaagccaac ccggcgccct tctaggggac gaccaaattt acaacgtaat tgttacagcc
+      181 catgccttcg taatgatctt ctttatagta atgccaacca tgattggggg ttttggaaac
+      241 tgactcatcc ccttaatgat cggggccccc gacatagcat ttcctcgcat gaacaacatg
+      301 agcttctgac tactccctcc ctctttctta ctgctccttg cctcttccgg ggtagaggca
+      361 ggggccggga ccggatgaac agtctaccca ccccttgcag gaaacctggc ccacgccgga
+      421 gcctctgttg atctaacaat cttctctctt catctggcag gaatctcctc tattctcgga
+      481 gcaatcaact ttattacaac cattattaac atgaaacccc ctgctatctc ccaataccag
+      541 acgccccttt tcgtgtgatc cgtcctcatc acggcagtac tgctccttct ctccctgccc
+      601 gttctcgctg ccggcatcac aatacttctg acagaccgaa accttaacac cgcctttttt
+      661 gaccctgcag gcggcgggga ccccattctt taccagcacc tcttttgatt ctttgggcac
+      721 cctgaagtat acatcctcat tcttccaggc tttggtatgg tctcccacat tgtagcctac
+      781 tactcaggta aaaaagaacc ttttgggtat ataggcatgg tatgagctat gatggccatt
+      841 ggccttctag ggtttatcgt gtgagctcac cacatgttta ccgtcgggat agacgtcgac
+      901 actcgggcct acttcacttc tgccacaatg at
+//
+

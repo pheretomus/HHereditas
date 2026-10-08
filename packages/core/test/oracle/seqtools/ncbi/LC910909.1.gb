@@ -1,0 +1,68 @@
+LOCUS       LC910909                 568 bp    DNA     linear   INV 01-OCT-2026
+DEFINITION  Hemicorallium osmanthogemmum KBF-OA-00437 mitochondrial ND6, COI
+            genes for NADH dehydrogenase subunit 6, cytochrome c oxidase
+            subunit I, partial cds.
+ACCESSION   LC910909
+VERSION     LC910909.1
+KEYWORDS    .
+SOURCE      mitochondrion Hemicorallium osmanthogemmum
+  ORGANISM  Hemicorallium osmanthogemmum
+            Eukaryota; Metazoa; Cnidaria; Anthozoa; Octocorallia;
+            Scleralcyonacea; Coralliidae; Hemicorallium.
+REFERENCE   1
+  AUTHORS   Koido,T.
+  TITLE     A new species of Hemicorallium (Anthozoa, Octocorallia,
+            Coralliidae), along with a revised identification key to species of
+            the genus
+  JOURNAL   Zookeys 1277, 339-354 (2026)
+   PUBMED   42058284
+  REMARK    DOI:10.3897/zookeys.1277.184620
+REFERENCE   2  (bases 1 to 568)
+  AUTHORS   Koido,T.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (08-JAN-2026) Contact:Tatsuki Koido Kuroshio Biological
+            Research Foundation, Research Division; Nishidomari-560-i, hata,
+            Otsuki, Kochi 7880333, Japan
+FEATURES             Location/Qualifiers
+     source          1..568
+                     /organism="Hemicorallium osmanthogemmum"
+                     /organelle="mitochondrion"
+                     /mol_type="genomic DNA"
+                     /isolate="KBF-OA-00437"
+                     /type_material="paratype of Hemicorallium osmanthogemmum"
+                     /db_xref="taxon:3898375"
+                     /tissue_type="coenenchyme"
+                     /geo_loc_name="Japan:Kochi, Tosashimizu, Off Cape
+                     Ashizuri"
+                     /collection_date="2016-07"
+     gene            complement(<1..65)
+                     /gene="ND6"
+     CDS             complement(<1..65)
+                     /gene="ND6"
+                     /codon_start=1
+                     /transl_table=4
+                     /product="NADH dehydrogenase subunit 6"
+                     /protein_id="BHO52297.1"
+                     /translation="MNSLFIIISLGILGASFMVIST"
+     gene            490..>568
+                     /gene="COI"
+     CDS             490..>568
+                     /gene="COI"
+                     /codon_start=1
+                     /transl_table=4
+                     /product="cytochrome c oxidase subunit I"
+                     /protein_id="BHO52298.1"
+                     /translation="MNKYLTRWLFSTNHKDIGTLYLLFGA"
+ORIGIN      
+        1 gtagatataa ccataaaact agctccaagt attcccaggg atattattat aaataaacta
+       61 ttcattgaag ttagtctcca gcagtccggt atcagagaat atgtcgccaa catgcacact
+      121 tacctgatgc accccggggt gatgccaagc ctctacaaca gaagaaaggg ctgggggact
+      181 tataaatgcg ccaacaatat ctccattcag caggacataa ttaccaacag tataaatatc
+      241 cggaagatta agaggctgaa tactcaggac agctccaccc tctgtaaaca tgagtaaaca
+      301 tacccggggc cgggcagtaa atggcgccgg tagacgcgta aaccctaact atagatatat
+      361 ttataataaa cataaacaaa acgattatag gtagggctaa aagatagccc acctgtctta
+      421 gtagaaattg cagaaagagt tcgcgacagg tcttcttacc tactctagac aactttgtct
+      481 agagtaagca tgaataaata tcttacacgt tggctatttt ctactaatca taaggatatc
+      541 ggcactctat atttactatt tggagcat
+//
+

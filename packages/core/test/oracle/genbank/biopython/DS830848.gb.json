@@ -1,0 +1,130 @@
+{
+ "file": "DS830848.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "DS830848",
+   "id": "DS830848.1",
+   "description": "Ixodes scapularis 1108462666300 genomic scaffold, whole genome shotgun sequence",
+   "seqDefined": false,
+   "seqLength": 1311,
+   "seqSha1": null,
+   "seq": null,
+   "topology": "linear",
+   "moleculeType": "DNA",
+   "division": "CON",
+   "date": "13-NOV-2008",
+   "accessions": [
+    "DS830848",
+    "ABJB010000000"
+   ],
+   "sequenceVersion": 1,
+   "gi": "183757675",
+   "keywords": [
+    "WGS"
+   ],
+   "source": "Ixodes scapularis (black-legged tick)",
+   "organism": "Ixodes scapularis",
+   "taxonomy": [
+    "Eukaryota",
+    "Metazoa",
+    "Ecdysozoa",
+    "Arthropoda",
+    "Chelicerata",
+    "Arachnida",
+    "Acari",
+    "Parasitiformes",
+    "Ixodida",
+    "Ixodoidea",
+    "Ixodidae",
+    "Ixodinae",
+    "Ixodes"
+   ],
+   "comment": "\nThis Wikel tick colony was established in 1996 using field\ncollected ticks from New York, Oklahoma and a Lyme Disease endemic\narea of Connecticut.  This colony has been continuously in-bred\nsince establishment and has not been supplemented with field\ncollected material.  The colony is known to be a competent vector\nof various Borrelia and Babesia isolates. Genomic DNA was prepared\nfrom embryonated eggs.\nThe Ixodes scapularis Genome Project (IGP) is a community-based\neffort initiated in early 2004 to sequence the I. scapularis\ngenome.  The IGP is funded by the National Institute of Allergy and\nInfectious Diseases (NIAID)/National Institute of Health as part of\nthe NIAID-funded Microbial Sequencing Centers (MSCs) at The J.\nCraig Venter Institute (http://www.jcvi.org) and The Broad\nInstitute (http://www.broad.mit.edu/).  The genome sequencing was\nperformed at both MSCs and the assembly at JCVI. The sum of all\nreads equals 6X based on an estimated genome size of 2.1 Gbp, while\nthe coverage on assembled contigs is 3.8X.  The scaffolds are\ncomprised of 570637 contigs; the other 570958 contigs in the 01\nversion of this project represent degenerate contigs that were not\nincorporated into scaffolds.  The annotation for this assembly will\nbe produced jointly by the MSCs and VectorBase\n(http://www.vectorbase.org).  Data release and use follow NIAID\nguidelines\n(http://www.niaid.nih.gov/dmid/genomes/mscs/data_release.htm).\nVectorBase (www.vectorbase.org), a NIAID Bioinformatics Resource\nCenter, is responsible for the long-term curation of the assembled\ngenome sequence  and its annotation.  For more information, contact\ninfo@vectorbase.org.\nAssembly name: JCVI_ISG_i3_1.0\nCoverage: 3.8x on assembled contigs; 6x based on an estimated\ngenome size of 2.1 Gbp\nAnnotation was added to the scaffolds in December 2008.",
+   "structuredComment": null,
+   "dbxrefs": [
+    "BioProject:PRJNA16232",
+    "BioSample:SAMN03004382"
+   ],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       1311
+      ]
+     ],
+     "authors": "Caler,E., Hannick,L.I., Bidwell,S., Joardar,V., Thiagarajan,M., Amedeo,P., Galinsky,K.J., Schobel,S., Inman,J., Hostetler,J., Miller,J., Hammond,M., Megy,K., Lawson,D., Kodira,C., Sutton,G., Meyer,J., Hill,C.A., Birren,B., Nene,V., Collins,F., Alarcon-Chaidez,F., Wikel,S. and Strausberg,R.",
+     "consrtm": "Ixodes scapularis Genome Project Consortium",
+     "title": "Annotation of Ixodes scapularis",
+     "journal": "Unpublished",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       1311
+      ]
+     ],
+     "authors": "Nene,V.",
+     "consrtm": "Ixodes scapularis Genome Project Consortium",
+     "title": "Direct Submission",
+     "journal": "Submitted (18-MAR-2008) J. Craig Venter Institute, 9704 Medical Center Drive, Rockville, MD 20850, USA",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": "join(ABJB010667125.1:1..1311)",
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 1,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1311,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Ixodes scapularis"
+      ],
+      [
+       "mol_type",
+       "genomic DNA"
+      ],
+      [
+       "strain",
+       "Wikel colony"
+      ],
+      [
+       "db_xref",
+       "taxon:6945"
+      ],
+      [
+       "dev_stage",
+       "embryonated eggs"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

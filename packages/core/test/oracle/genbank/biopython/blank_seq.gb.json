@@ -1,0 +1,229 @@
+{
+ "file": "blank_seq.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "NP_001832",
+   "id": "NP_001832.1",
+   "description": "cannabinoid receptor 2 (macrophage) [Homo sapiens]",
+   "seqDefined": true,
+   "seqLength": 360,
+   "seqSha1": "b4eceb9111ccd273a29e7bc721d5114bd8751d57",
+   "seq": "MEECWVTEIANGSKDGLDSNPMKDYMILSGPQKTAVAVLCTLLGLLSALENVAVLYLILSSHQLRRKPSYLFIGSLAGADFLASVVFACSFVNFHVFHGVDSKAVFLLKIGSVTMTFTASVGSLLLTAIDRYLCLRYPPSYKALLTRGRALVTLGIMWVLSALVSYLPLMGWTCCPRPCSELFPLIPNDYLLSWLLFIAFLFSGIIYTYGHVLWKAHQHVASLSGHQDRQVPGMARMRLDVRLAKTLGLVLAVLLICWFPVLALMAHSLATTLSDQVKKAFAFCSMLCLINSMVNPVIYALRSGEIRSSAHHCLAHWKKCVRGLGSEAKEEAPRSSVTETEADGKITPWPDSRDLDLSDC",
+   "topology": "linear",
+   "moleculeType": "protein",
+   "division": "PRI",
+   "date": "18-DEC-2001",
+   "accessions": [
+    "NP_001832"
+   ],
+   "sequenceVersion": 1,
+   "gi": "4502929",
+   "keywords": [
+    ""
+   ],
+   "source": "human",
+   "organism": "Homo sapiens",
+   "taxonomy": [
+    "Eukaryota",
+    "Metazoa",
+    "Chordata",
+    "Craniata",
+    "Vertebrata",
+    "Euteleostomi",
+    "Mammalia",
+    "Eutheria",
+    "Primates",
+    "Catarrhini",
+    "Hominidae",
+    "Homo"
+   ],
+   "comment": "REVIEWED REFSEQ: This record has been curated by NCBI staff. The\nreference sequence was derived from X74328.1.\nSummary: The cannabinoid delta-9-tetrahydrocannabinol is the\nprincipal psychoactive ingredient of marijuana. The proteins\nencoded by this gene and the cannabinoid receptor 1 (brain) (CNR1)\ngene have the characteristics of a guanine nucleotide-binding\nprotein (G-protein)-coupled receptor for cannabinoids. They inhibit\nadenylate cyclase activity in a dose-dependent, stereoselective,\nand pertussis toxin-sensitive manner. These proteins have been\nfound to be involved in the cannabinoid-induced CNS effects\n(including alterations in mood and cognition) experienced by users\nof marijuana. The cannabinoid receptors are members of family 1 of\nthe G-protein-coupled receptors.",
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       360
+      ]
+     ],
+     "authors": "Munro,S., Thomas,K.L. and Abu-Shaar,M.",
+     "consrtm": "",
+     "title": "Molecular characterization of a peripheral receptor for cannabinoids",
+     "journal": "Nature 365 (6441), 61-65 (1993)",
+     "medline": "93368659",
+     "pubmed": "7689702",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       360
+      ]
+     ],
+     "authors": "Galiegue,S., Mary,S., Marchand,J., Dussossoy,D., Carriere,D., Carayon,P., Bouaboula,M., Shire,D., Le Fur,G. and Casellas,P.",
+     "consrtm": "",
+     "title": "Expression of central and peripheral cannabinoid receptors in human immune tissues and leukocyte subpopulations",
+     "journal": "Eur. J. Biochem. 232 (1), 54-61 (1995)",
+     "medline": "96048028",
+     "pubmed": "7556170",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       360
+      ]
+     ],
+     "authors": "Shire,D., Calandra,B., Rinaldi-Carmona,M., Oustric,D., Pessegue,B., Bonnin-Cabanne,O., Le Fur,G., Caput,D. and Ferrara,P.",
+     "consrtm": "",
+     "title": "Molecular cloning, expression and function of the murine CB2 peripheral cannabinoid receptor",
+     "journal": "Biochim. Biophys. Acta 1307 (2), 132-136 (1996)",
+     "medline": "96283804",
+     "pubmed": "8679694",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": "REFSEQ: accession NM_001841.1",
+   "featureCount": 4,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 360,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Homo sapiens"
+      ],
+      [
+       "db_xref",
+       "taxon:9606"
+      ],
+      [
+       "chromosome",
+       "1"
+      ],
+      [
+       "map",
+       "1p36.11"
+      ]
+     ]
+    },
+    {
+     "type": "Protein",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 360,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "product",
+       "cannabinoid receptor 2 (macrophage)"
+      ]
+     ]
+    },
+    {
+     "type": "Region",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 49,
+        "end": 299,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "region_name",
+       "7 transmembrane receptor (rhodopsin family)"
+      ],
+      [
+       "db_xref",
+       "CDD:pfam00001"
+      ],
+      [
+       "note",
+       "7tm_1"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": null,
+      "parts": [
+       {
+        "start": 0,
+        "end": 360,
+        "strand": null,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "pseudo",
+       ""
+      ],
+      [
+       "gene",
+       "CNR2"
+      ],
+      [
+       "db_xref",
+       "LocusID:1269"
+      ],
+      [
+       "db_xref",
+       "MIM:605051"
+      ],
+      [
+       "coded_by",
+       "NM_001841.1:127..1209"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

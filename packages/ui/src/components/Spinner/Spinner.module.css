@@ -1,0 +1,29 @@
+.spinner {
+  display: inline-flex;
+  flex: none;
+  color: var(--hh-text-secondary);
+}
+
+.svg {
+  display: block;
+  animation: spin 0.8s steps(8, end) infinite;
+}
+
+.spoke {
+  stroke: currentColor;
+  stroke-width: 2.4px;
+  stroke-linecap: round;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The global reduced-motion rule stops animations; an activity indicator must keep moving. */
+@media (prefers-reduced-motion: reduce) {
+  .svg {
+    animation-duration: 1.6s !important;
+  }
+}

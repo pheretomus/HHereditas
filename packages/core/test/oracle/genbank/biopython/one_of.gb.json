@@ -1,0 +1,384 @@
+{
+ "file": "one_of.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "HSTMPO1",
+   "id": "U18266.1",
+   "description": "Human thymopoietin (TMPO) gene, exon 1",
+   "seqDefined": true,
+   "seqLength": 2509,
+   "seqSha1": "091481b61a79bce3c5486abd7894712859cc83c9",
+   "seq": "GAATTCAGATAGAATGTAGACAAGAGGGATGGTGAGGAAAACCTACGGCAAGCAGCTCTATAATTTCTGGAAAGTGACCAGGAGGCTCGTGGATGATGGCAGGAAGGAGAGTAGAAAGTGATTTAGCCAGAAGATATGAACTTCAAATATTTTTGAAGCAGAAAAGAGCAGAAATGGTTTGGAAGTAGCAATCAGGACCAAAGAGACCACCCAAACTCAATAGCCCAACCTCTTAGCCTTAGGGTATGCAGAATCTGAAAAGTGTAATCTCAATTTTGGAGCTCTACAGCAGTAAATCTGCAAGTAACCACCTGTAGCTAATGTCCAGGGATTAAAAAAAAGATAATGAAAATGTTTTTGCCCAGGAAACATTAATTTCAGGCGTATCTAGAATGCAGTTCTTGCATTATACGTACTGGGTTACCAGTCATTGCAAAGTCATGGTCCTTTGCCTCTCAGCTCAGTTCCCCTTCTGAAGATAAAAACATTTGCCTATGTGTCCAGGGAAGCTGTGAGGACAAAAAACCAAGCAACTTTTACAAGGGATCATAAAAACCTACCTAACAACTTGCTAATTAAAACCTGATTTTTAATTTGCATTATTGAGCTTAATACCATTGCTTAAATGTATGTGAATACTGAGATTTTTATAAAGGAATTAGTTACCTCTAGGAAAATAATTATCACTAAAAGAAATAATATCGCAATTTGAATAAAAGTAAGTCGCTTAAATCATAGGAAACATTTTTAGTGAAGGCGTTTGTTTTAAATGTATTCTAACCTAGCAATGTAGAAAGCAGGCAAACATTTAAAAAAAATTTAACCAGTTTCTAAAACATAGTTTGGAGCTCAGATTCTGGGGAAATGATTAACACACCCTACATCCAAGGTCTCCTTTCCTTTCTAGAAAGAAAGCATCTTTAAACATACATATTCATCAGAAATACAAATATTTGTCATCAGTGATACTAATTTCCAGGCAAACATTTTAATTGCAGTCAATGTATTAGATTCTACCAGGTTTTAATTTGGATCGGTAATACGGGTTTGATTAGGGTTCTAGGCCTAATTATAGGTCACTAGTCTTCCTTTAGGATTATGTACCATCTGTTATTTTAAATTGACCATTGAGGGGGTTCCCAAGGGTTCTCCTTCGTTTTGTTATCAAACGTTAGGTTTAGGATTCTTGCGGGTGGTGGGATCCAAAGCCAGAGACGGTTTCAACAAAAATGCAAGCGCGAATTTGTCTTGCGTCTGAACGCACTGTTCAAATTAAACAATTTAGACATGCCCCAACTATGACACTAAGAAGTGAATGGTATAGTACACTTTTGTCACAAATTCAAGGGTAATTTAAGTGCCCGATGGTAGAGGTCTGGCTTCCCCTGGGTTTCTGGAACAAAAGAAGCGTTCGCGAGGAGAGGGGTAACTCCCCGCCCTCCCCCTCCCAAAGTAAATCAAATCAAGGAATATGAGTGCCTGCAGACAAGCCTCGCTTCTTTTCTTCCCCTTCAGGGCTAGCGTTTGGGGAAGGCAAGGCTGCGGCTACTCTTGGAGCTTCAGTGTCCCGGGAGGAAGAAAGGCCCAGCCAAGGGTCCTCACACTGGCGTGGAATTCGGCGCGTTCGTAGGCGATCGACCCCAGAGACGAAAGCTGCTTCTCAAGCTGGGGGAGGGAGAGGAAACGGCGCACAAAAGCAGTACGACCTGTCCCTTATCGGCGTCTAAGGGGAAGGGTGGAGAAAACGAAAACAGAAGCGGGCCGGGAGCCTCGGCTCCCGCCCCAGCGCCTTTTAAACTGCGTTTCTACCTCCTCTCGCTCAGCGCGGCGGCTAATGGAACCCGCGCGAGCCGTCTCGCCAATCACCGCCGCGCTTCCTCCCGTCGCCCGCCAATGGCGGCGCGCGTTCTTGGGGCGTGGGCGAAGCAGGCTGCTCGCCTCCTGCCTGTAGTGTGTGGGCTGGGGTTGGTGCGAGCTTCCAGCTTGGCCGCAGTTGGTTCGTAGTTCGGCTCTGGGGTCTTTTGTGTCCGGGTCTGGCTTGGCTTTGTGTCCGCGAGTTTTTGTTCCGCTCCGCAGCGCTCTTCCCGGGCAGGAGCCGTGAGGCTCGGAGGCGGCAGCGCGGTCCCCGGCCAGGAGCAAGCGCGCCGGCGTGAGCGGCGGCGGCAAAGGCTGTGGGGAGGGGGCTTCGCAGATCCCCGAGATGCCGGAGTTCCTGGAAGACCCCTCGGTCCTGACAAAAGACAAGTTGAAGAGTGAGTTGGTCGCCAACAATGTGACGCTGCCGGCCGGGGAGCAGCGCAAAGACGTGTACGTCCAGCTCTACCTGCAGCACCTCACGGCTCGCAACCGGCCGCCGCTCCCCGCCGGCACCAACAGCAAGGGGCCCCCGGACTTCTCCAGTGACGAAGAGCGCGAGCCCACCCCGGTCCTCGGCTCTGGGGCCGCCGCCGCGGGCCGGAGCCGAGCAGCCGTCGGCAGGGTAAGGACGCGGGGCCGGGGCTACAAAGGC",
+   "topology": null,
+   "moleculeType": "DNA",
+   "division": "PRI",
+   "date": "01-JUL-1995",
+   "accessions": [
+    "U18266"
+   ],
+   "sequenceVersion": 1,
+   "gi": "885676",
+   "keywords": [
+    ""
+   ],
+   "source": "human",
+   "organism": "Homo sapiens",
+   "taxonomy": [
+    "Eukaryota",
+    "Metazoa",
+    "Chordata",
+    "Craniata",
+    "Vertebrata",
+    "Euteleostomi",
+    "Mammalia",
+    "Eutheria",
+    "Primates",
+    "Catarrhini",
+    "Hominidae",
+    "Homo"
+   ],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       2509
+      ]
+     ],
+     "authors": "Harris,C.A., Andryuk,P.J., Cline,S.W., Siekierka,J.J. and Goldstein,G.",
+     "consrtm": "",
+     "title": "Structure and mapping of the human thymopoietin (TMPO) gene and relationship of TMPO beta to rat lamin-associated polypeptide 2",
+     "journal": "Unpublished",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    },
+    {
+     "location": [
+      [
+       0,
+       2509
+      ]
+     ],
+     "authors": "Harris,C.A.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (07-DEC-1994) Crafford A. Harris, Immunobiology Research Institute, Route 22 East, Annandale, NJ 08801-0999, USA",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": "1 of 6",
+   "dbSource": null,
+   "featureCount": 6,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 2509,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Homo sapiens"
+      ],
+      [
+       "db_xref",
+       "taxon:9606"
+      ],
+      [
+       "chromosome",
+       "12"
+      ],
+      [
+       "map",
+       "12q22; 64% (% distance from centromere to telomere)"
+      ],
+      [
+       "clone",
+       "P1.516 (DMPC-HFFno.1B-0943F)"
+      ],
+      [
+       "clone_lib",
+       "DuPont Merck Hum Fibroblast P1 Library no.1 Series B (compressed) (Genome Systems Inc)"
+      ]
+     ]
+    },
+    {
+     "type": "5'UTR",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1887,
+        "end": 2200,
+        "strand": 1,
+        "ref": null,
+        "startKind": "oneof",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "TMPO"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1887,
+        "end": 2509,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 270,
+        "strand": 1,
+        "ref": "U18267.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 309,
+        "strand": 1,
+        "ref": "U18268.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 6905,
+        "strand": 1,
+        "ref": "U18270.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 128,
+        "strand": 1,
+        "ref": "U18269.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 3234,
+        "strand": 1,
+        "ref": "U18271.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "TMPO"
+      ]
+     ]
+    },
+    {
+     "type": "exon",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 1887,
+        "end": 2479,
+        "strand": 1,
+        "ref": null,
+        "startKind": "oneof",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "TMPO"
+      ],
+      [
+       "number",
+       "1"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2200,
+        "end": 2479,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 119,
+        "end": 246,
+        "strand": 1,
+        "ref": "U18267.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 129,
+        "end": 288,
+        "strand": 1,
+        "ref": "U18268.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 4690,
+        "end": 4788,
+        "strand": 1,
+        "ref": "U18270.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 81,
+        "end": 128,
+        "strand": 1,
+        "ref": "U18269.1",
+        "startKind": "exact",
+        "endKind": "after"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "TMPO"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "thymopoietin beta"
+      ],
+      [
+       "protein_id",
+       "AAB60434.1"
+      ],
+      [
+       "db_xref",
+       "GI:885684"
+      ],
+      [
+       "translation",
+       "MPEFLEDPSVLTKDKLKSELVANNVTLPAGEQRKDVYVQLYLQHLTARNRPPLPAGTNSKGPPDFSSDEEREPTPVLGSGAAAAGRSRAAVGRKATKKTDKPRQEDKDDLDVTELTNEDLLDQLVKYGVNPGPIVGTTRKLYEKKLLKLREQGTESRSSTPLPTISSSAENTRQNGSNDSDRYSDNEEDSKIELKLEKREPLKGRAKTPVTLKQRRVEHNQSYSQAGITETEWTSGS"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 2200,
+        "end": 2479,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 119,
+        "end": 246,
+        "strand": 1,
+        "ref": "U18267.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 129,
+        "end": 288,
+        "strand": 1,
+        "ref": "U18268.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 38,
+        "end": 1558,
+        "strand": 1,
+        "ref": "U18270.1",
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "TMPO"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "thymopoietin alpha"
+      ],
+      [
+       "protein_id",
+       "AAB60433.1"
+      ],
+      [
+       "db_xref",
+       "GI:885683"
+      ],
+      [
+       "translation",
+       "MPEFLEDPSVLTKDKLKSELVANNVTLPAGEQRKDVYVQLYLQHLTARNRPPLPAGTNSKGPPDFSSDEEREPTPVLGSGAAAAGRSRAAVGRKATKKTDKPRQEDKDDLDVTELTNEDLLDQLVKYGVNPGPIVGTTRKLYEKKLLKLREQGTESRSSTPLPTISSSAENTRQNGSNDSDRYSDNEEGKKKEHKKVKSTRDIVPFSELGTTPSGGGFFQGISFPEISTRPPLGSTELQAAKKVHTSKGDLPREPLVATNLPGRGQLQKLASERNLFISCKSSHDRCLEKSSSSSSQPEHSAMLVSTAASPSLIKETTTGYYKDIVENICGREKSGIQPLCPERSHISDQSPLSSKRKALEESESSQLISPPLAQAIRDYVNSLLVQGGVGSLPGTSNSMPPLDVENIQKRIDQSKFQETEFLSPPRKVPRLSEKSVEERDSGSFVAFQNIPGSELMSSFAKTVVSHSLTTLGLEVAKQSQHDKIDASELSFPFHESILKVIEEEWQQVDRQLPSLACKYPVSSREATQILSVPKVDDEILGFISEATPLGGIQAASTESCNQQLDLALCRAYEAAASALQIATHTAFVAKAMQADISEAAQILSSDPSRTHQALGILSKTYDAASYICEAAFDEVKMAAHTMGNATVGRRYLWLKDCKINLASKNKLASTPFKGGTLFGGEVCKVIKKRGNKH"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

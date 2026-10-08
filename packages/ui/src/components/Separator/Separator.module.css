@@ -1,0 +1,20 @@
+.separator {
+  flex: none;
+  background: var(--hh-separator);
+}
+
+.strong {
+  background: var(--hh-separator-strong);
+}
+
+.separator[data-orientation='horizontal'] {
+  height: var(--hh-hairline);
+  width: auto;
+  align-self: stretch;
+}
+
+.separator[data-orientation='vertical'] {
+  width: var(--hh-hairline);
+  height: auto;
+  align-self: stretch;
+}

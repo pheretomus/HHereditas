@@ -1,0 +1,225 @@
+{
+ "file": "EU851978.gbk",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [],
+ "records": [
+  {
+   "name": "EU851978",
+   "id": "EU851978.1",
+   "description": "Influenza A virus (A/Wisconsin/36/2007(H1N1)) segment 4 hemagglutinin (HA) gene, complete cds",
+   "seqDefined": true,
+   "seqLength": 1698,
+   "seqSha1": "968ed354e70af08f32a7889cc600fa00bc81d07e",
+   "seq": "ATGAAAGTAAAACTACTGGTCCTGTTATGCACATTCACAGCTACATATGCAGACACAATATGTATAGGCTACCATGCTAACAACTCGACCGACACTGTTGACACAGTACTTGAAAAGAATGTGACAGTGACACACTCTGTCAACCTGCTTGAGAACAGTCACAATGGAAAACTATGTCTATTAAAAGGAATAGCCCCACTACAATTGGGTAACTGCAGCGTTGCCGGGTGGATCTTAGGAAACCCAGAATGCGAATTACTGATTTCCAAGGAGTCATGGTCCTACATTGTAGAAAAACCAAATCCTGAGAATGGAACATGTTACCCAGGGCATTTCGCTGACTATGAGGAACTGAGGGAGCAATTGAGTTCAGTATCTTCATTTGAGAGGTTCGAAATATTCCCCAAAGAAAGCTCATGGCCCAACCACACCGTAACCGGAGTGTCAGCATCATGCTCCCATAATGGGGAAAGTAGTTTTTACAGAAATTTGCTATGGCTGACGGGGAAGAATGGTTTGTACCCAAACCTGAGCAAGTCCTATGCAAACAACAAAGAAAAAGAAGTCCTTGTACTATGGGGTGTTCATCACCCGCCAAACATAGGTGGCCAAAAGGCCCTCTATCATACAGAAAATGCTTATGTTTCTGTAGTGTCTTCACATTATAGCAGAAAATTCACCCCAGAAATAGCCAAAAGACCCAAAGTAAGAGATCAAGAAGGAAGAATCAACTACTACTGGACTCTGCTTGAACCCGGGGATACAATAATATTTGAGGCAAATGGAAATCTAATAGCGCCAAGATATGCTTTCGCACTGAGTAGAGGCTTTGGATCAGGAATCATCAACTCAAATGCACCAATGGATAAATGTGATGCGAAGTGCCAAACACCTCAGGGAGCTATAAACAGCAGTCTTCCTTTCCAGAACGTACACCCAGTCACAATAGGAGAGTGTCCAAAGTATGTCAGGAGTGCAAAATTAAGGATGGTTACAGGACTAAGGAACATCCCATCCATTCAATCCAGAGGTTTGTTTGGAGCCATTGCCGGTTTCATTGAAGGGGGGTGGACTGGAATGGTAGATGGTTGGTATGGTTATCATCATCAGAATGAGCAAGGATCTGGCTATGCTGCAGATCAAAAAAGCACACAAAATGCCATTAATGGAATTACAAACAAGGTGAATTCTGTAATTGAGAAAATGAACACTCAATTCACAGCCGTGGGCAAAGAATTCAACAAATTGGAAAGAAGGATGGAAAACTTGAATAAAAAAGTTGATGATGGGTTTATAGACATCTGGACATATAATGCAGAACTGTTGGTTCTACTGGAAAATGAAAGGACTTTGGATTTCCATGACTCCAATGTGAAGAATCTGTATGAGAAAGTAAAAAGCCAGTTAAAGAATAATGCTAAAGAAATAGGAAATGGGTGTTTTGAATTCTATCACAAGTGTAACGATGAATGCATGGAGAGTGTAAAGAATGGAACTTATGACTATCCAAAATATTCCGAAGAATCAAAGTTAAACAGGGAGAAAATTGATGGAGTGAAATTGGAATCAATGGGAGTCTATCAGATTCTGGCGATCTACTCAACAGTCGCCAGTTCTCTGGTTCTTTTGGTCTCCCTGGGGGCAATCAGCTTCTGGATGTGTTCCAATGGGTCTTTGCAGTGTAGAATATGCATCTAA",
+   "topology": "linear",
+   "moleculeType": "cRNA",
+   "division": "VRL",
+   "date": "24-OCT-2008",
+   "accessions": [
+    "EU851978"
+   ],
+   "sequenceVersion": 1,
+   "gi": "193084886",
+   "keywords": [
+    ""
+   ],
+   "source": "Influenza A virus (A/Wisconsin/36/2007(H1N1))",
+   "organism": "Influenza A virus (A/Wisconsin/36/2007(H1N1))",
+   "taxonomy": [
+    "Viruses",
+    "ssRNA viruses",
+    "ssRNA negative-strand viruses",
+    "Orthomyxoviridae",
+    "Influenzavirus A"
+   ],
+   "comment": null,
+   "structuredComment": {
+    "FluData": {
+     "LabID": "2008704957",
+     "Antigen_Character": "A/Solomon Islands/03/2006-like (H1N1)",
+     "Passage_Details": "SPFCK3E1",
+     "Empty_structured": "",
+     "Drug Sensitivity": "adamantane-sensitive, oseltamivir-sensitive",
+     "LANL Accession": "ISDN306605"
+    }
+   },
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       1698
+      ]
+     ],
+     "authors": "Garten,R., Barnes,J., Myrick,A., Smith,C., Xu,X. and Klimov,A.",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": "Submitted (25-JUN-2008) NCIRD/Influenza Division/VSDB, Centers for Disease Control and Prevention, 1600 Clifton Road, NE, MS-G16, Atlanta, GA 30333, USA",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 4,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1698,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "Influenza A virus (A/Wisconsin/36/2007(H1N1))"
+      ],
+      [
+       "mol_type",
+       "viral cRNA"
+      ],
+      [
+       "strain",
+       "A/Wisconsin/36/2007"
+      ],
+      [
+       "serotype",
+       "H1N1"
+      ],
+      [
+       "isolate",
+       "2008704957"
+      ],
+      [
+       "host",
+       "Homo sapiens"
+      ],
+      [
+       "db_xref",
+       "taxon:535875"
+      ],
+      [
+       "segment",
+       "4"
+      ],
+      [
+       "country",
+       "USA"
+      ],
+      [
+       "collection_date",
+       "30-Dec-2007"
+      ]
+     ]
+    },
+    {
+     "type": "gene",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1698,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "HA"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1698,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "HA"
+      ],
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "product",
+       "hemagglutinin"
+      ],
+      [
+       "protein_id",
+       "ACF10333.1"
+      ],
+      [
+       "db_xref",
+       "GI:193084887"
+      ],
+      [
+       "translation",
+       "MKVKLLVLLCTFTATYADTICIGYHANNSTDTVDTVLEKNVTVTHSVNLLENSHNGKLCLLKGIAPLQLGNCSVAGWILGNPECELLISKESWSYIVEKPNPENGTCYPGHFADYEELREQLSSVSSFERFEIFPKESSWPNHTVTGVSASCSHNGESSFYRNLLWLTGKNGLYPNLSKSYANNKEKEVLVLWGVHHPPNIGGQKALYHTENAYVSVVSSHYSRKFTPEIAKRPKVRDQEGRINYYWTLLEPGDTIIFEANGNLIAPRYAFALSRGFGSGIINSNAPMDKCDAKCQTPQGAINSSLPFQNVHPVTIGECPKYVRSAKLRMVTGLRNIPSIQSRGLFGAIAGFIEGGWTGMVDGWYGYHHQNEQGSGYAADQKSTQNAINGITNKVNSVIEKMNTQFTAVGKEFNKLERRMENLNKKVDDGFIDIWTYNAELLVLLENERTLDFHDSNVKNLYEKVKSQLKNNAKEIGNGCFEFYHKCNDECMESVKNGTYDYPKYSEESKLNREKIDGVKLESMGVYQILAIYSTVASSLVLLVSLGAISFWMCSNGSLQCRICI"
+      ]
+     ]
+    },
+    {
+     "type": "misc_feature",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 1698,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "gene",
+       "HA"
+      ],
+      [
+       "note",
+       "ISDN306605"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

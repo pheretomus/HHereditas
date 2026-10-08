@@ -1,0 +1,95 @@
+.trigger {
+  --_h: var(--hh-control-height-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  height: var(--_h);
+  margin: 0;
+  padding: 0 4px 0 10px;
+  border: 0;
+  border-radius: var(--hh-radius-sm);
+  background: var(--hh-bg-control);
+  box-shadow: var(--hh-shadow-control);
+  color: var(--hh-text);
+  font-size: var(--hh-text-md);
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background-color var(--hh-duration-fast) var(--hh-ease);
+}
+
+.sm {
+  --_h: var(--hh-control-height-sm);
+  padding: 0 3px 0 8px;
+}
+
+.trigger:hover:not(:disabled) {
+  background: var(--hh-bg-control-hover);
+}
+
+.trigger[data-state='open'] {
+  background: var(--hh-bg-control-active);
+}
+
+.trigger:disabled {
+  opacity: 0.45;
+}
+
+.trigger:focus-visible {
+  outline: 3px solid var(--hh-focus-ring);
+  outline-offset: 1px;
+}
+
+.value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  padding: 1px 0;
+  text-overflow: ellipsis;
+}
+
+.trigger[data-placeholder] .value {
+  color: var(--hh-text-tertiary);
+}
+
+/* The accent capsule with up/down chevrons (Big Sur and later pop-up buttons). */
+.indicator {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--hh-radius-xs);
+  background: var(--hh-accent);
+  color: var(--hh-accent-contrast);
+}
+
+.sm .indicator {
+  width: 16px;
+  height: 16px;
+}
+
+.indicator :where(svg) {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.4;
+}
+
+.trigger:disabled .indicator {
+  background: var(--hh-text-tertiary);
+}
+
+.content {
+  min-width: var(--radix-select-trigger-width);
+  max-height: var(--radix-select-content-available-height);
+}
+
+.viewport {
+  padding: 0;
+}

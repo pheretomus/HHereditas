@@ -1,0 +1,91 @@
+LOCUS       PX283147                2114 bp    mRNA    linear   INV 01-OCT-2026
+DEFINITION  Chilo infuscatellus ATP-binding cassette subfamily H member 1
+            (ABCH1) mRNA, partial cds.
+ACCESSION   PX283147
+VERSION     PX283147.1
+KEYWORDS    .
+SOURCE      Chilo infuscatellus
+  ORGANISM  Chilo infuscatellus
+            Eukaryota; Metazoa; Ecdysozoa; Arthropoda; Altocrustacea;
+            Allotriocarida; Hexapoda; Insecta; Pterygota; Neoptera; Eumetabola;
+            Endopterygota; Aparaglossata; Panorpida; Lepidoptera; Glossata;
+            Ditrysia; Pyraloidea; Crambidae; Crambinae; Chilo.
+REFERENCE   1  (bases 1 to 2114)
+  AUTHORS   Wang,C.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (05-SEP-2025) College Of Agricultural, Guangxi
+            University, Xixiangtang District, Nanning City, Guangxi Zhuang
+            Autonomous Region 530004, China
+COMMENT     ##Assembly-Data-START##
+            Assembly Method       :: StringTie v. 2.2.3
+            Sequencing Technology :: Illumina
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..2114
+                     /organism="Chilo infuscatellus"
+                     /mol_type="mRNA"
+                     /isolate="CiABCH"
+                     /db_xref="taxon:236790"
+                     /geo_loc_name="China: Nanning City, Guangxi Zhuang
+                     Autonomous Region"
+                     /collection_date="2025"
+     gene            1..>2114
+                     /gene="ABCH1"
+                     /note="CiABCH1"
+     CDS             1..>2114
+                     /gene="ABCH1"
+                     /codon_start=1
+                     /product="ATP-binding cassette subfamily H member 1"
+                     /protein_id="YAA49300.1"
+                     /translation="MMSNGNLSIHQKQQQAVCVRHAFKHYGSKKRPNHVLSNLNMTVS
+                     KGMIYGLLGASGCGKTTLLSCIVGRRSLSSGEIWVLGGKPATKDSGVPGKRVGYMPQE
+                     IALYREFTIKETMMYFGWIFDMKTREIDERLKFLLEFLDLPSANRMVKNLSGGQQRRV
+                     SFAVALIHDPELLILDEPTVGVDPLLRQSIWMHLVRITSSGDKTVIITTHYIEEARQA
+                     HCIGLMRNGKLLSEESPQALLTIYNCISLEDVFLTLSREQVGQTVVESNVPGCGFGLN
+                     KMLKREEAPYATEDEHVVGLNFQAINQSEEVLFIENEFASNRYLPIKMMEAVTNNECN
+                     AYGNCFNLTSRGKIKALIQKNFLRMWRNIGVMLFIFVLPVMQVILFCLAIGRDPTELK
+                     VAIVNDDVQLVKGKCMFDSSCSMKNLSCRYLSHLTEHTNQIYYANLSAAQDAVKQGHV
+                     WGVLFFNENYSDSLVARFALAETADEETVHQSEIQVWLDMSNQQIGLMLNRDILYAYR
+                     DFAQDLLDRCKYNPKLGDIPIEFLTPIYGNKDPSFTDFVAPGVILTIVFFLAVALTSS
+                     ALIIERMEGLLDRSWVAGVSSYEILFSHVVTQFVVMCGQTKLVLLFMILVFGVENNGN
+                     IIYVIMLTLLQGLCGMCFGFVISAACELERNAIQLALGSFYPTLLLSGVVWPIEAMPL
+                     ILRYVSYCLPLTLATNSLRSILT"
+ORIGIN      
+        1 atgatgtcca atgggaactt gtcaatacac cagaagcaac agcaagcggt gtgcgtgcgc
+       61 cacgctttca aacactatgg ctccaagaag cgacccaacc acgtgctcag taacttgaac
+      121 atgacggttt ccaaaggcat gatatatggc ctactgggag catctggctg cgggaaaacc
+      181 acactacttt cctgcatcgt ggggcgacgg tccctcagca gtggcgagat atgggttcta
+      241 ggaggcaaac cggcgactaa ggattctggt gtgcccggta aacgtgtggg ttatatgcct
+      301 caagagatag cgttatatag agagttcacc atcaaagaga ccatgatgta ctttggctgg
+      361 attttcgaca tgaagaccag ggagatcgac gagcggctca aattccttct ggaattcctc
+      421 gacttgccta gcgcaaatag aatggtgaag aaccttagtg gtggccaaca gcgtcgagtg
+      481 tcgttcgccg tggccttaat tcatgacccg gaactattga tcctggacga gcctactgtg
+      541 ggcgtggatc cgctgctgcg ccaatcaatc tggatgcact tggtgcgcat caccagttcg
+      601 ggggacaaga cggtaattat taccacccat tacattgaag aggcgcgcca agcacattgc
+      661 atcggtttaa tgaggaatgg taagctgctt tcggaggagt ctcctcaggc gctgctcact
+      721 atatacaact gtatatcgct ggaagacgtc tttctcacgc tgtctaggga gcaagtcggt
+      781 cagaccgttg tagaatcgaa tgtacccggt tgtggtttcg ggctgaacaa gatgttgaag
+      841 cgcgaggagg ctccatacgc gacggaggac gagcacgtgg tcggactcaa cttccaggcc
+      901 attaatcaaa gcgaggaggt ccttttcata gagaacgaat tcgcctccaa tagatacctg
+      961 cctatcaaga tgatggaggc agtgactaat aatgagtgca acgcctatgg aaattgcttt
+     1021 aacctgacgt cacgtggcaa gataaaagcc ctgatccaaa agaattttct acggatgtgg
+     1081 cgcaacatcg gtgtgatgct gttcattttc gttctgccag tcatgcaggt catcctgttc
+     1141 tgtcttgcca tagggcgaga cccaactgaa ttgaaagtgg ctatagtaaa tgatgacgta
+     1201 caacttgtga aggggaaatg catgttcgac tcttcttgct caatgaaaaa tttgtcgtgt
+     1261 cgctacctca gtcacctgac tgagcacaca aaccaaatat actacgctaa cctcagcgcc
+     1321 gcgcaggacg cggtaaagca aggacacgtc tggggtgtcc tgttcttcaa tgagaactat
+     1381 tctgattcac ttgtcgcgag atttgcgtta gccgaaactg ctgatgagga gactgtgcat
+     1441 cagtcagaaa tccaggtgtg gctcgacatg tcgaaccagc agatcgggct catgctcaat
+     1501 cgagacatac tgtacgccta cagggacttc gcacaggatc tgctagatcg atgtaaatat
+     1561 aatcctaagt tgggcgacat ccccatcgag ttcctgaccc ccatctatgg caataaggat
+     1621 ccctcgttta cggacttcgt cgcacctggt gttatcctca caatcgtgtt tttcctggcc
+     1681 gtcgctctaa cctcatcggc tctaattatt gagcgtatgg aaggtcttct tgaccgttca
+     1741 tgggtggcag gcgtctcctc gtacgagatc ctgttttctc atgtggtgac gcaattcgtg
+     1801 gtgatgtgtg gccagaccaa gctcgtgctg ttattcatga ttctcgtgtt cggtgtagag
+     1861 aacaatggga acatcatcta cgtaatcatg cttactctac tgcagggtct atgcggtatg
+     1921 tgctttggct tcgtgatatc cgcggcgtgt gagctggaac gaaacgcaat tcaattggca
+     1981 ctgggctcgt tctaccccac gctgctgctc agcggtgttg tctggcctat cgaagcgatg
+     2041 ccactgattc tacgctacgt atcctactgt ctccctctaa cactcgccac taacagcctt
+     2101 agatcaattc tcac
+//
+

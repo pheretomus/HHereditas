@@ -1,0 +1,25 @@
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font: inherit;
+  vertical-align: middle;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--hh-radius-xs);
+  background: var(--hh-bg-control);
+  box-shadow: var(--hh-shadow-control);
+  color: var(--hh-text-secondary);
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+}

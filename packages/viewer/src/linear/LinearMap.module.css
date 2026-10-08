@@ -1,0 +1,335 @@
+/*
+ * Linear map. Colours come only from --hh-* tokens; SVG colours are set here or via
+ * style={{ fill }} (WebKit does not resolve var() in SVG presentation attributes).
+ */
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+  overflow: hidden;
+  background: var(--hh-bg-content);
+  color: var(--hh-text);
+  font-family: var(--hh-font-ui);
+  -webkit-user-select: none;
+  user-select: none;
+  outline: none;
+}
+
+.root:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--hh-focus-ring);
+}
+
+.scroller {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.svg {
+  display: block;
+  touch-action: none;
+  font-family: var(--hh-font-ui);
+  text-rendering: geometricPrecision;
+}
+
+.svg * {
+  pointer-events: none;
+}
+
+.dragging {
+  cursor: col-resize;
+}
+
+/* ---- Backbone ---------------------------------------------------------------------- */
+
+.strand {
+  fill: none;
+  stroke: var(--hh-seq-backbone);
+  stroke-width: 1.5;
+}
+
+.continuation {
+  fill: none;
+  stroke: var(--hh-text-tertiary);
+  stroke-width: 1.5;
+}
+
+.letters {
+  font-family: var(--hh-font-mono);
+  font-variant-ligatures: none;
+  fill: var(--hh-seq-text);
+}
+
+.lettersComplement {
+  fill: var(--hh-seq-text-complement);
+}
+
+/* ---- Ruler ------------------------------------------------------------------------- */
+
+.tickMajor {
+  fill: none;
+  stroke: var(--hh-seq-ruler);
+  stroke-width: 1;
+}
+
+.tickMinor {
+  fill: none;
+  stroke: var(--hh-seq-ruler);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.tickLabel {
+  fill: var(--hh-text-secondary);
+  font-size: var(--hh-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Features ---------------------------------------------------------------------- */
+
+.feature {
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.connector {
+  fill: none;
+  stroke: var(--hh-seq-backbone);
+  stroke-width: 1.25;
+}
+
+.featureLabel {
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-medium);
+}
+
+.featureLabelBeside {
+  fill: var(--hh-text-secondary);
+}
+
+/* ---- ORFs and primers ---------------------------------------------------------------- */
+
+.orf {
+  fill: var(--hh-orf);
+}
+
+.primerFwd {
+  fill: var(--hh-primer-fwd);
+}
+
+.primerRev {
+  fill: var(--hh-primer-rev);
+}
+
+.primerTail {
+  fill: none;
+  stroke-width: 1.25;
+  stroke-dasharray: 2.5 1.5;
+}
+
+.primerTailFwd {
+  stroke: var(--hh-primer-fwd);
+}
+
+.primerTailRev {
+  stroke: var(--hh-primer-rev);
+}
+
+.primerLabel {
+  font-size: var(--hh-text-xs);
+  font-weight: var(--hh-weight-medium);
+}
+
+/* ---- Enzymes ----------------------------------------------------------------------- */
+
+.leader {
+  fill: none;
+  stroke: var(--hh-separator-strong);
+  stroke-width: 1;
+}
+
+.cutTick {
+  fill: none;
+  stroke: var(--hh-seq-backbone);
+  stroke-width: 1.25;
+}
+
+.cutStaggered {
+  fill: none;
+  stroke: var(--hh-enzyme-cut);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.enzymeLabel {
+  font-size: var(--hh-text-sm);
+  fill: var(--hh-enzyme-multi);
+}
+
+.enzymeLabelUnique {
+  fill: var(--hh-enzyme-unique);
+  font-weight: var(--hh-weight-semibold);
+}
+
+.enzymeHot {
+  fill: var(--hh-accent);
+}
+
+.leaderHot {
+  fill: none;
+  stroke: var(--hh-accent);
+  stroke-width: 1;
+}
+
+/* ---- Selection, caret, highlight -------------------------------------------------------- */
+
+.selection {
+  fill: var(--hh-seq-selection);
+}
+
+.selectionEdge {
+  fill: none;
+  stroke: var(--hh-seq-selection-edge);
+  stroke-width: 1;
+}
+
+.caret {
+  fill: none;
+  stroke: var(--hh-seq-caret);
+  stroke-width: 1.5;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--hh-accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.hoverRing {
+  fill: none;
+  stroke: var(--hh-text-secondary);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+/* ---- Tooltip ------------------------------------------------------------------------- */
+
+.tooltip {
+  position: absolute;
+  z-index: 3;
+  max-width: 300px;
+  padding: 7px 10px 8px;
+  border-radius: var(--hh-radius-md);
+  background: var(--hh-bg-elevated);
+  box-shadow: var(--hh-shadow-popover);
+  color: var(--hh-text);
+  font-size: var(--hh-text-sm);
+  line-height: 1.4;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: tooltipIn var(--hh-duration-fast) var(--hh-ease);
+}
+
+@keyframes tooltipIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tooltipTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tooltipSwatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 0.5px var(--hh-separator-strong);
+}
+
+.tooltipMeta {
+  color: var(--hh-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Overview scrollbar (shown while zoomed in) ----------------------------------------- */
+
+.scrollbar {
+  position: absolute;
+  bottom: 3px;
+  height: 11px;
+  z-index: 2;
+}
+
+.scrollbar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--hh-bg-subtle);
+  transition: background var(--hh-duration-fast) var(--hh-ease);
+}
+
+.thumb {
+  position: absolute;
+  top: 3px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--hh-text-tertiary);
+  transition:
+    top var(--hh-duration-fast) var(--hh-ease),
+    height var(--hh-duration-fast) var(--hh-ease),
+    background var(--hh-duration-fast) var(--hh-ease);
+}
+
+.scrollbar:hover::before {
+  background: var(--hh-bg-hover);
+}
+
+.scrollbar:hover .thumb,
+.thumbActive {
+  top: 2px;
+  height: 7px;
+  background: var(--hh-text-secondary);
+}
+
+/* ---- Empty state --------------------------------------------------------------------- */
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-md);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,81 @@
+LOCUS       PZ507395                1747 bp    mRNA    linear   INV 01-SEP-2026
+DEFINITION  Apis mellifera lamarckii isolate A acetylcholinesterase-2 (AChE-2)
+            mRNA, partial cds.
+ACCESSION   PZ507395
+VERSION     PZ507395.1
+KEYWORDS    .
+SOURCE      Apis mellifera lamarckii (Egyptian honeybee)
+  ORGANISM  Apis mellifera lamarckii
+            Eukaryota; Metazoa; Ecdysozoa; Arthropoda; Altocrustacea;
+            Allotriocarida; Hexapoda; Insecta; Pterygota; Neoptera; Eumetabola;
+            Endopterygota; Hymenoptera; Apocrita; Aculeata; Apoidea;
+            Anthophila; Apidae; Apis.
+REFERENCE   1  (bases 1 to 1747)
+  AUTHORS   Ashour,Z., Abdel-Ghany,W., Hasanein,M., Abou-Yousef,H.,
+            Abdel-Halim,K. and Ali,M.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (06-JUN-2026) Department of Plant Protection, Faculty of
+            Agriculture, Ain Shams University, Hadayek Shobra, Cairo 11241,
+            Egypt
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1747
+                     /organism="Apis mellifera lamarckii"
+                     /mol_type="mRNA"
+                     /isolate="A"
+                     /db_xref="taxon:293688"
+                     /geo_loc_name="Egypt"
+                     /collection_date="2025"
+     gene            <1..>1747
+                     /gene="AChE-2"
+     CDS             <1..>1747
+                     /gene="AChE-2"
+                     /codon_start=3
+                     /product="acetylcholinesterase-2"
+                     /protein_id="YGM68821.1"
+                     /translation="VPSSQRGNVHNDPLVVETTSGLVRGFPRTVLDKEVHVFYGIPFA
+                     KPPIGPLRFRKPLPIEPWHGVSNATVLPNSCYQERYEYFPGFPGEEMWNPNTNISEDC
+                     LYPNIWVPQKYKSRHKGDGSPGGNGGPRNGLLPLLVWIYGGGFTSGTATLDVYNADTL
+                     AATSNVTSTSMQYRVGAFGFLYPNKHFTNSEEAPGNMGLWDQALALKWPRDNAEAFGG
+                     DPESITIFGESAGGSSVSLHLISPATRGLVRRGILQSGTLNAPWSYTSGEKANEVATI
+                     LVDDCGCNSTMPNENPARAMACTRSVDAKTISVQQWNSYWGIPSFPSAPTIDGIFLPK
+                     HPLDLSREADFKDTEIPIGFNENEGTYFILYDFNDIFEKDQASFLERERFLGIIFNIF
+                     KNMSQIKREAITFQYTDWEEVYNGYIYQKMVADVVGDYFFICPSIHFAQLFADRGTKV
+                     YYYFFTQRTSTNLWGEWMGVLHGNEVKYVFGHPPNKSLKYSDKERDLSSRTILYFSEF
+                     AYLGKPTKEDSKWPSYSRDEPKYFIFDAEKTGLGLGPRTTYCAFWNEFLPKSKGIPDP
+                     APNTCKATTSSVSAG"
+ORIGIN      
+        1 cagttccctc ctcgcagagg ggcaacgtgc acaacgaccc cctggtcgtg gagacgacca
+       61 gcggcctcgt gcgcggtttc ccccgcaccg tgttggacaa ggaggtgcac gtgttctacg
+      121 ggataccgtt cgccaaaccc ccgatcggcc ccctccgttt caggaaaccg ttgccgatcg
+      181 agccgtggca cggcgtgtca aacgcgaccg tgttgccgaa cagttgctac caggagagat
+      241 acgagtattt ccccgggttc ccgggcgagg agatgtggaa cccgaacacc aacatatccg
+      301 aggactgttt gtacccaaac atatgggtgc cacagaagta caaatcaagg cacaagggag
+      361 acggttcgcc gggtggcaac gggggtccca ggaacggttt gctcccttta ctggtgtgga
+      421 tctacggggg tgggttcaca agcggcacgg caaccctgga cgtgtacaac gcggacactt
+      481 tggcggctac gagcaacgtt acttcaacat cgatgcagta cagggtgggc gcgttcggtt
+      541 tcctctatcc aaacaaacac ttcacgaaca gcgaggaggc gccggggaac atgggtcttt
+      601 gggatcaggc gctcgcgctc aaatggccaa gggacaacgc cgaggcgttc ggcggggatc
+      661 cggagtcaat cacgatattc ggcgagtcgg cggggggcag ctccgtctcc ctgcacctca
+      721 tctcgcccgc aacgagggga ctggtgcgcc gcggcatact gcagagcggc accctcaacg
+      781 ctccctggag ttacacaagc ggggagaagg cgaacgaggt cgcgacgata ctggtcgacg
+      841 attgcggatg caactcgacc atgccaaacg agaacccggc cagggcaatg gcgtgtacaa
+      901 ggtccgtgga cgcgaagacc atatccgttc aacagtggaa cagttattgg gggattccaa
+      961 gcttcccctc ggcgcccacc atcgacggta tcttccttcc caagcatcct ctcgatctgt
+     1021 caagggaagc ggacttcaag gacacagaga taccaatcgg cttcaacgag aacgagggaa
+     1081 cttatttcat cctttacgac ttcaacgata ttttcgagaa ggaccaggcc agtttcttgg
+     1141 aacgagaaag attccttggt attatcttca acatcttcaa gaacatgtct caaatcaaac
+     1201 gagaagccat tactttccag tacacggatt gggaggaggt gtacaacggg tacatttacc
+     1261 aaaaaatggt cgcggacgtg gttggcgact acttcttcat ctgtccctcg atccacttcg
+     1321 cccaattgtt cgccgatcgt ggcacaaagg tctactacta cttcttcacg caaaggacga
+     1381 gcaccaatct atggggcgag tggatgggcg tattgcacgg caacgaggtc aagtacgtgt
+     1441 tcggccatcc cccaaacaag tctctcaagt acagcgacaa ggaacgagac ctgtcatcaa
+     1501 ggacaatact ctacttctcc gaattcgcct atttgggaaa accaacgaaa gaagactcca
+     1561 aatggccatc gtattcgaga gacgaaccaa aatacttcat cttcgatgcg gagaagactg
+     1621 gacttggctt agggccacgt accacgtatt gtgctttctg gaacgaattt ctaccaaagt
+     1681 caaaaggaat accagatcca gcgcccaata cctgcaaggc aacaacctcg agcgtgtcgg
+     1741 ccggtaa
+//
+

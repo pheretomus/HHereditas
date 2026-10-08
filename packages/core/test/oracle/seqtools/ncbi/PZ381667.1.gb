@@ -1,0 +1,69 @@
+LOCUS       PZ381667                1493 bp    mRNA    linear   PLN 04-AUG-2026
+DEFINITION  Hordeum vulgare var. coeleste cultivar Dulihuang cytochrome P450
+            90A1 mRNA, partial cds.
+ACCESSION   PZ381667
+VERSION     PZ381667.1
+KEYWORDS    .
+SOURCE      Hordeum vulgare var. coeleste
+  ORGANISM  Hordeum vulgare var. coeleste
+            Eukaryota; Viridiplantae; Streptophyta; Embryophyta; Tracheophyta;
+            Spermatophyta; Magnoliopsida; Liliopsida; Poales; Poaceae; BOP
+            clade; Pooideae; Triticodae; Triticeae; Hordeinae; Hordeum.
+REFERENCE   1  (bases 1 to 1493)
+  AUTHORS   Feng,Y. and Zhao,Y.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (08-MAY-2026) School of Ecological and Environmental
+            Engineering, Qinghai University, No. 251 Ningda Road, Xining,
+            Qinghai 810016, China
+COMMENT     ##Assembly-Data-START##
+            Sequencing Technology :: Sanger dideoxy sequencing
+            ##Assembly-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1493
+                     /organism="Hordeum vulgare var. coeleste"
+                     /mol_type="mRNA"
+                     /cultivar="Dulihuang"
+                     /db_xref="taxon:2881371"
+                     /geo_loc_name="China: Qinghai, Xining"
+                     /collection_date="Jan-2021"
+     CDS             1..>1493
+                     /codon_start=1
+                     /product="cytochrome P450 90A1"
+                     /protein_id="YGB76583.1"
+                     /translation="MDAGALQLAATAVAIVAVALVCRWFLVACAARGRKQRPRLPPGS
+                     TGLPLIGETLRLISAYKTPDPEPFIDERVARHGGVFTTHIFGERTVFSADPAFNRLLL
+                     AAEGRAVSCSYPSSITTLLGARSLLLTRGTAHKRLHSLTLTRLGRPASQPLLAHIDRL
+                     VLATMRQWEPTATVRLLDEAKKITFNLTVKQLVSIEPGPWTESLRCEYVKLIDGFFSI
+                     PFPFASFLPFTTYGQALKSRKKVAGALREVIRRRMEERGEENGVKEEMDGKREKKDMV
+                     EELLEADGGSFSEEEMVDFCLSLLVAGYETTSVLMTVAVKFLTETPAALAQLKEEHEN
+                     MTKMKGENQPLEWSDYKSMNFTQCVINETLRVANIISGVFRRANTDIHFKGYTIPKGC
+                     KIFASFRAVHLNNEHYENARTFDPWRWQSNNKLQNEVGANLFTPFGGGPRLCPGYELA
+                     RVVISVFLHHLVMRFSWEAAEEDRLLFFPTTRTLKGYPINLTRRSSLS"
+ORIGIN      
+        1 atggacgccg gcgcgctcca gctcgctgcc accgccgttg ccatcgtcgc cgtcgcgttg
+       61 gtctgcagat ggttccttgt ggcgtgcgcg gcccggggcc ggaagcagag gccgcggctt
+      121 ccgccgggca gcacggggct gcccctgatc ggcgagacgc tgcggctgat ctccgcgtac
+      181 aagacgcccg acccggagcc cttcattgac gagcgcgtgg cgcggcacgg tggcgtgttc
+      241 accacccaca tcttcggcga gcgcaccgtc ttctccgctg acccggcctt caaccgcctc
+      301 ctcctcgccg ccgagggccg ggcagtcagc tgcagctatc cttcctccat caccacgctc
+      361 ctcggcgcgc gctccctgct cctcacgcgg ggcaccgccc acaagcgcct ccattcgctc
+      421 accctcaccc gccttggacg ccccgcgtcg cagcccctgc tcgcgcacat cgaccgcctc
+      481 gtgctcgcca ccatgcgcca gtgggagccc accgccaccg tgcgtctcct cgacgaggcg
+      541 aagaagatca ccttcaacct caccgtcaaa cagctcgtca gcatcgagcc cgggccctgg
+      601 accgagagcc tccgctgtga atacgtcaag ctcatcgatg gcttcttctc catccccttc
+      661 cctttcgcct cgttcctccc cttcaccacc tacggccagg ccctcaagtc gaggaagaag
+      721 gtggccggag cgttgaggga ggtgataagg aggaggatgg aggagagagg agaggagaat
+      781 ggggtgaagg aggagatgga cggaaagagg gagaagaagg acatggtgga ggagcttctt
+      841 gaggcggatg gtgggagctt ctcggaggag gagatggtgg acttctgcct gtccctgctt
+      901 gttgctgggt acgagaccac ctccgtcctc atgacggtgg ccgtcaagtt cctcaccgag
+      961 acgccggcgg cgctggcaca actcaaggaa gagcatgaaa acatgacaaa gatgaaaggt
+     1021 gaaaatcaac ccctagagtg gagcgattac aagtcaatga acttcaccca atgtgtgata
+     1081 aatgagacac ttcgtgtggc caacataatc agtggggtat ttaggcgagc aaatactgat
+     1141 attcatttta aaggttacac tatcccgaag ggctgcaaaa tcttcgcttc gttccgagct
+     1201 gtgcacctca acaatgaaca ctatgagaac gcccggacgt ttgacccatg gagatggcag
+     1261 agcaacaaca aacttcagaa tgaggtaggg gccaacttat ttactccctt tggcggtgga
+     1321 cctcggttgt gccctggcta cgagcttgct cgggtcgtga tatctgtttt cctccatcat
+     1381 cttgtgatgc gctttagctg ggaagcggcc gaggaagata ggcttctctt ctttcccacc
+     1441 actcgaaccc tcaaaggata tccaatcaat ctcacgcgac gatcgagtct gtc
+//
+

@@ -1,0 +1,176 @@
+{
+ "file": "bad_origin_wrap_CDS.gb",
+ "biopython": "1.88",
+ "error": null,
+ "warnings": [
+  "Attempting to fix invalid location '238..50' as it looks like incorrect origin wrapping. Please fix input file, this could have unintended behavior.",
+  "Attempting to fix invalid location '242..45' as it looks like incorrect origin wrapping. Please fix input file, this could have unintended behavior."
+ ],
+ "records": [
+  {
+   "name": "Exported",
+   "id": ".",
+   "description": "Not really pLK0.1 puro, example for testing only",
+   "seqDefined": true,
+   "seqLength": 256,
+   "seqSha1": "8565271126d4937259051e858fd1892e5c305079",
+   "seq": "GGGGTTGGGGTTGCGCCTTTTCCAAGGCAGCCCTGGGTTTTATAGGGCATATGGCTGCTCTGGGCGTGGTTCCGGGAAACGCAGCGGCGCCGACCCTGGTTGTCGCACATTCTTCACGTCCGTTCGCAGCGTCACCCGGATCTTCGCCGCTCTGCTCCGCCCCTAAACTAAAGAATTACAAAAACAAATTACAAAAATTCAAAATTTTCGGGTTTATTACAGGGACAGCAGAGATCCTTATATGCCGCGGCTCGAG",
+   "topology": "circular",
+   "moleculeType": "ds-DNA",
+   "division": "SYN",
+   "date": "24-AUG-2018",
+   "accessions": [
+    "."
+   ],
+   "sequenceVersion": null,
+   "gi": null,
+   "keywords": [
+    "pLKO.1 puro"
+   ],
+   "source": "synthetic DNA construct",
+   "organism": "synthetic DNA construct",
+   "taxonomy": [],
+   "comment": null,
+   "structuredComment": null,
+   "dbxrefs": [],
+   "references": [
+    {
+     "location": [
+      [
+       0,
+       256
+      ]
+     ],
+     "authors": ".",
+     "consrtm": "",
+     "title": ".",
+     "journal": ".",
+     "medline": "",
+     "pubmed": ".",
+     "comment": ""
+    },
+    {
+     "location": [],
+     "authors": ".",
+     "consrtm": "",
+     "title": "Direct Submission",
+     "journal": ".",
+     "medline": "",
+     "pubmed": "",
+     "comment": ""
+    }
+   ],
+   "contig": null,
+   "segment": null,
+   "dbSource": null,
+   "featureCount": 3,
+   "features": [
+    {
+     "type": "source",
+     "location": {
+      "operator": null,
+      "strand": 1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 256,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "organism",
+       "synthetic DNA construct"
+      ],
+      [
+       "mol_type",
+       "other DNA"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": -1,
+      "parts": [
+       {
+        "start": 0,
+        "end": 50,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 237,
+        "end": 256,
+        "strand": -1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "label",
+       "Reverse spanning CDS"
+      ],
+      [
+       "translation",
+       "MPYKTQGCLGKGATPTPSSRGI"
+      ]
+     ]
+    },
+    {
+     "type": "CDS",
+     "location": {
+      "operator": "join",
+      "strand": 1,
+      "parts": [
+       {
+        "start": 241,
+        "end": 256,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       },
+       {
+        "start": 0,
+        "end": 45,
+        "strand": 1,
+        "ref": null,
+        "startKind": "exact",
+        "endKind": "exact"
+       }
+      ]
+     },
+     "qualifiers": [
+      [
+       "codon_start",
+       "1"
+      ],
+      [
+       "label",
+       "Forward spanning CDS"
+      ],
+      [
+       "translation",
+       "MPRLEGVGVAPFPRQPWVL"
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

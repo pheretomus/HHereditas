@@ -1,0 +1,50 @@
+.content {
+  z-index: var(--hh-z-popover);
+  max-width: min(420px, calc(100vw - 16px));
+  max-height: var(--radix-popover-content-available-height);
+  overflow: visible;
+  border-radius: var(--hh-radius-lg);
+  background: var(--hh-bg-elevated);
+  box-shadow: var(--hh-shadow-popover);
+  color: var(--hh-text);
+  font-size: var(--hh-text-md);
+  outline: none;
+  transform-origin: var(--radix-popover-content-transform-origin);
+  animation: appear var(--hh-duration-fast) var(--hh-ease);
+}
+
+.pad-none {
+  padding: 0;
+}
+
+.pad-sm {
+  padding: var(--hh-space-2);
+}
+
+.pad-md {
+  padding: 14px;
+}
+
+.arrow {
+  display: block;
+  overflow: visible;
+  /* Tuck the arrow's base under the panel edge so the panel outline does not show through. */
+  transform: translateY(-1px);
+}
+
+.arrowFill {
+  fill: var(--hh-bg-elevated);
+}
+
+.arrowEdge {
+  fill: none;
+  stroke: var(--hh-separator-strong);
+  stroke-width: 0.5px;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}

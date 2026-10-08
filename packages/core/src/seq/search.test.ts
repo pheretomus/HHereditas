@@ -1,0 +1,426 @@
+import { describe, expect, it } from 'vitest';
+import {
+  ECOLI_GENBANK,
+  HAS_ECOLI,
+  loadOracle,
+  randomString,
+  readGenbankSequence,
+  seededRandom,
+} from '../../test/oracle/seqtools/oracle';
+import type { SearchHit, Topology } from '../types';
+import { iupacMatches, reverseComplement } from './alphabet';
+import { findOrfs } from './orf';
+import { sliceRange } from './range';
+import { searchProtein, searchSequence } from './search';
+import type { ProteinSearchHit, SearchOptions } from './search';
+import { TranslationError, translate } from './translate';
+
+interface OracleHit {
+  start: number;
+  end: number;
+  strand: 1 | -1;
+  mismatches: number;
+  frame?: 0 | 1 | 2;
+}
+interface ProteinCase {
+  seq: string;
+  topology: Topology;
+  peptide: string;
+  table: number;
+  expected: OracleHit[];
+}
+interface SearchOracle {
+  cases: { seq: string; topology: Topology; query: string; options: Required<SearchOptions>; expected: OracleHit[] }[];
+  proteinCases: ProteinCase[];
+  /** Peptides with U (matches TGA) and O (matches TAG). */
+  recodedProteinCases: ProteinCase[];
+}
+
+const oracle = loadOracle<SearchOracle>('search.json');
+
+function hit(o: OracleHit): SearchHit {
+  return { range: { start: o.start, end: o.end }, strand: o.strand, mismatches: o.mismatches };
+}
+function proteinHit(o: OracleHit): ProteinSearchHit {
+  return { ...hit(o), frame: o.frame as 0 | 1 | 2 };
+}
+function hitAt(start: number, end: number, strand: 1 | -1, frame: 0 | 1 | 2): ProteinSearchHit {
+  return { range: { start, end }, strand, mismatches: 0, frame };
+}
+/** Compact hit list: 'start-end' + strand sign + mismatches, e.g. '2-8+0'. */
+const short = (hits: SearchHit[]) =>
+  hits.map((h) => `${h.range.start}-${h.range.end}${h.strand === 1 ? '+' : '-'}${h.mismatches}`);
+
+describe('searchSequence vs brute-force reference (search.json)', () => {
+  it(`${oracle.cases.length} random cases (IUPAC, mismatches, strands, wrap, palindromes)`, () => {
+    let hits = 0;
+    for (const c of oracle.cases) {
+      const got = searchSequence(c.seq, c.topology, c.query, c.options);
+      expect(got, JSON.stringify({ ...c, expected: undefined })).toEqual(c.expected.map(hit));
+      hits += got.length;
+    }
+    expect(hits).toBeGreaterThan(1000);
+  });
+});
+
+describe('searchProtein vs brute-force reference with Biopython translation (search.json)', () => {
+  it(`${oracle.proteinCases.length} random cases (6 frames, wildcards, tables, wrap)`, () => {
+    let hits = 0;
+    for (const c of oracle.proteinCases) {
+      const got = searchProtein(c.seq, c.topology, c.peptide, { table: c.table });
+      expect(got, JSON.stringify({ ...c, expected: undefined })).toEqual(c.expected.map(proteinHit));
+      hits += got.length;
+    }
+    expect(hits).toBeGreaterThan(100);
+  });
+
+  it(`${oracle.recodedProteinCases.length} cases with U (TGA), O (TAG) and '*' at context-dependent stops`, () => {
+    let recodedHits = 0;
+    let contextStopHits = 0;
+    for (const c of oracle.recodedProteinCases) {
+      const got = searchProtein(c.seq, c.topology, c.peptide, { table: c.table });
+      expect(got, JSON.stringify({ ...c, expected: undefined })).toEqual(c.expected.map(proteinHit));
+      if (/[UO]/.test(c.peptide)) recodedHits += got.length;
+      if ([27, 28, 31].includes(c.table) && c.peptide.includes('*')) contextStopHits += got.length;
+    }
+    expect(recodedHits).toBeGreaterThan(100);
+    expect(contextStopHits).toBeGreaterThan(50);
+  });
+});
+
+describe('searchSequence', () => {
+  it('finds exact, overlapping hits on the top strand', () => {
+    expect(short(searchSequence('AAAA', 'linear', 'AA'))).toEqual(['0-2+0', '1-3+0', '2-4+0']);
+    expect(short(searchSequence('CCGAGTCC', 'linear', 'GAG', { strands: 'top' }))).toEqual(['2-5+0']);
+  });
+
+  it('finds the reverse complement as a strand -1 hit', () => {
+    // CTC is the reverse complement of GAG
+    expect(short(searchSequence('CCCTCCC', 'linear', 'GAG'))).toEqual(['2-5-0']);
+    expect(short(searchSequence('CCCTCCC', 'linear', 'GAG', { strands: 'top' }))).toEqual([]);
+    expect(short(searchSequence('CCCTCCC', 'linear', 'GAG', { strands: 'bottom' }))).toEqual(['2-5-0']);
+  });
+
+  it('reports palindromic queries once', () => {
+    expect(short(searchSequence('TTGAATTCTT', 'linear', 'GAATTC'))).toEqual(['2-8+0']);
+    expect(short(searchSequence('TTGAATTCTT', 'linear', 'GAATTC', { strands: 'bottom' }))).toEqual(['2-8-0']);
+    expect(short(searchSequence('TTGAATCTT', 'linear', 'GANTC'))).toEqual(['2-7+0']); // IUPAC palindrome (HinfI)
+    expect(short(searchSequence('TTGAATTCTT', 'linear', 'GANTTC'))).toEqual(['2-8+0', '2-8-0']); // revcomp GAANTC
+    // with mismatches the palindrome is still reported once per window
+    const fuzzy = searchSequence('TTGAATTCTT', 'linear', 'GAATTC', { maxMismatches: 1 });
+    expect(fuzzy.every((h) => h.strand === 1)).toBe(true);
+  });
+
+  it('finds hits across the origin of circular molecules only', () => {
+    expect(short(searchSequence('TCCCCCCGAA', 'linear', 'GAAT'))).toEqual([]);
+    expect(short(searchSequence('TCCCCCCGAA', 'circular', 'GAAT'))).toEqual(['7-11+0']);
+    expect(short(searchSequence('TCCCCCCGAA', 'circular', 'ATTC'))).toEqual(['7-11-0']);
+    expect(short(searchSequence('ACGT', 'circular', 'GTAC'))).toEqual(['2-6+0']); // GTAC is its own revcomp
+  });
+
+  it('positions 0 and L: hits at the very start and end', () => {
+    expect(short(searchSequence('GGCCCCCCAA', 'linear', 'GG', { strands: 'top' }))).toEqual(['0-2+0']);
+    expect(short(searchSequence('GGCCCCCCAA', 'linear', 'AA', { strands: 'top' }))).toEqual(['8-10+0']);
+    expect(short(searchSequence('GGCCCCCCAA', 'circular', 'AAG', { strands: 'top' }))).toEqual(['8-11+0']);
+  });
+
+  it('matches IUPAC codes in the query; ambiguous sequence bases need a covering query code', () => {
+    expect(short(searchSequence('GGACCGGTCC', 'linear', 'GGNCC', { strands: 'top' }))).toEqual(['0-5+0', '5-10+0']);
+    expect(short(searchSequence('GGACC', 'linear', 'GGRCC', { strands: 'top' }))).toEqual(['0-5+0']);
+    expect(short(searchSequence('GGCCC', 'linear', 'GGRCC', { strands: 'top' }))).toEqual([]);
+    expect(short(searchSequence('GGNCC', 'linear', 'GGACC', { strands: 'top' }))).toEqual([]);
+    expect(short(searchSequence('GGNCC', 'linear', 'GGNCC', { strands: 'top' }))).toEqual(['0-5+0']);
+    expect(short(searchSequence('GGRCC', 'linear', 'GGDCC', { strands: 'top' }))).toEqual(['0-5+0']); // R ⊆ D
+    expect(short(searchSequence('GGNCC', 'linear', 'GGACC', { strands: 'top', maxMismatches: 1 }))).toEqual(['0-5+1']);
+  });
+
+  it('iupac: false compares letters literally', () => {
+    expect(short(searchSequence('GGACC', 'linear', 'GGNCC', { strands: 'top', iupac: false }))).toEqual([]);
+    expect(short(searchSequence('GGNCC', 'linear', 'GGNCC', { strands: 'top', iupac: false }))).toEqual(['0-5+0']);
+    expect(short(searchSequence('GGRCC', 'linear', 'GGDCC', { strands: 'top', iupac: false }))).toEqual([]);
+  });
+
+  it('counts mismatches up to maxMismatches', () => {
+    const s = 'AAAAACGTACGTAAAAA';
+    expect(short(searchSequence(s, 'linear', 'ACGTACGT', { strands: 'top' }))).toEqual(['4-12+0']);
+    expect(short(searchSequence(s, 'linear', 'ACGTTCGT', { strands: 'top' }))).toEqual([]);
+    expect(short(searchSequence(s, 'linear', 'ACGTTCGT', { strands: 'top', maxMismatches: 1 }))).toEqual(['4-12+1']);
+    expect(short(searchSequence(s, 'linear', 'TCGTTCGA', { strands: 'top', maxMismatches: 3 }))).toEqual(['4-12+3']);
+    expect(short(searchSequence(s, 'linear', 'TCGTTCGA', { strands: 'top', maxMismatches: 2 }))).toEqual([]);
+  });
+
+  it('is case-insensitive and reads U as T', () => {
+    expect(short(searchSequence('ccgagtcc', 'linear', 'gag', { strands: 'top' }))).toEqual(['2-5+0']);
+    expect(short(searchSequence('CCGAGUCC', 'linear', 'AGT', { strands: 'top' }))).toEqual(['3-6+0']);
+    expect(short(searchSequence('CCGAGTCC', 'linear', 'AGU', { strands: 'top' }))).toEqual(['3-6+0']);
+  });
+
+  it('never matches non-IUPAC characters of the sequence', () => {
+    expect(short(searchSequence('AC-GT', 'linear', 'ACNGT', { strands: 'top' }))).toEqual([]);
+    expect(short(searchSequence('AC-GT', 'linear', 'ACNGT', { strands: 'top', maxMismatches: 1 }))).toEqual(['0-5+1']);
+  });
+
+  it('handles empty, too long and invalid queries', () => {
+    expect(searchSequence('ACGT', 'linear', '')).toEqual([]);
+    expect(searchSequence('', 'circular', 'A')).toEqual([]);
+    expect(searchSequence('ACG', 'linear', 'ACGT')).toEqual([]);
+    expect(searchSequence('ACG', 'circular', 'ACGA')).toEqual([]);
+    expect(short(searchSequence('ACG', 'circular', 'ACG', { strands: 'top' }))).toEqual(['0-3+0']);
+    expect(short(searchSequence('A', 'circular', 'A'))).toEqual(['0-1+0']);
+    expect(() => searchSequence('ACGT', 'linear', 'ACX')).toThrow(RangeError);
+    expect(() => searchSequence('ACGT', 'linear', 'A😀')).toThrow(/'😀' at index 1/);
+    expect(() => searchSequence('ACGT', 'linear', 'Aı')).toThrow(/'ı' at index 1/);
+    expect(() => searchSequence('ACGT', 'linear', 'AC GT')).toThrow(RangeError);
+    expect(() => searchSequence('ACGT', 'linear', 'AC', { maxMismatches: 4 })).toThrow(RangeError);
+    expect(() => searchSequence('ACGT', 'linear', 'AC', { maxMismatches: 1.5 })).toThrow(RangeError);
+    expect(() => searchSequence('ACGT', 'linear', 'AC', { strands: 'x' as 'top' })).toThrow(RangeError);
+  });
+});
+
+describe('searchSequence invariants (seeded random)', () => {
+  const rand = seededRandom(2718);
+  const cases = Array.from({ length: 120 }, () => {
+    const L = 1 + Math.floor(rand() * 300);
+    const seq = randomString(rand, rand() < 0.2 ? 'ACGTN' : 'ACGT', L);
+    const m = 1 + Math.floor(rand() * 10);
+    const query = randomString(rand, rand() < 0.3 ? 'ACGTRYN' : 'ACGT', m);
+    const k = Math.floor(rand() * 4);
+    return { seq, query, k };
+  });
+
+  it('every hit has the reported number of mismatches (naive recount with iupacMatches)', () => {
+    for (const { seq, query, k } of cases) {
+      for (const topology of ['linear', 'circular'] as const) {
+        for (const h of searchSequence(seq, topology, query, { maxMismatches: k })) {
+          const window = sliceRange(seq, h.range);
+          const pattern = h.strand === 1 ? query : reverseComplement(query);
+          let mm = 0;
+          for (let i = 0; i < pattern.length; i++) if (!iupacMatches(pattern[i], window[i])) mm++;
+          expect(mm).toBe(h.mismatches);
+          expect(mm).toBeLessThanOrEqual(k);
+        }
+      }
+    }
+  });
+
+  it('hits with k mismatches are a subset of hits with k + 1', () => {
+    for (const { seq, query, k } of cases.slice(0, 60)) {
+      if (k === 3) continue;
+      const windows = (mm: number) =>
+        new Set(short(searchSequence(seq, 'circular', query, { maxMismatches: mm })).map((s) => s.slice(0, -1)));
+      const a = windows(k);
+      const b = windows(k + 1);
+      for (const h of a) expect(b.has(h)).toBe(true);
+    }
+  });
+
+  it('rotating a circular sequence rotates the hits', () => {
+    for (const { seq, query, k } of cases.slice(0, 60)) {
+      const L = seq.length;
+      const r = Math.floor(rand() * L);
+      const rotated = seq.slice(r) + seq.slice(0, r);
+      const key = (h: SearchHit, shift: number) =>
+        `${(((h.range.start + shift) % L) + L) % L}:${h.strand}:${h.mismatches}`;
+      const a = searchSequence(seq, 'circular', query, { maxMismatches: k }).map((h) => key(h, -r)).sort();
+      const b = searchSequence(rotated, 'circular', query, { maxMismatches: k }).map((h) => key(h, 0)).sort();
+      expect(b).toEqual(a);
+    }
+  });
+
+  it('searching the reverse complement of the query swaps strands (non-palindromic queries)', () => {
+    for (const { seq, query, k } of cases) {
+      if (reverseComplement(query) === query) continue;
+      const a = searchSequence(seq, 'linear', query, { maxMismatches: k }).map(
+        (h) => `${h.range.start}:${h.strand}:${h.mismatches}`,
+      );
+      const b = searchSequence(seq, 'linear', reverseComplement(query), { maxMismatches: k })
+        .map((h) => `${h.range.start}:${-h.strand}:${h.mismatches}`)
+        .sort();
+      expect(b).toEqual([...a].sort());
+    }
+  });
+
+  it('results are sorted by start then strand', () => {
+    for (const { seq, query, k } of cases) {
+      const hits = searchSequence(seq, 'circular', query, { maxMismatches: k });
+      for (let i = 1; i < hits.length; i++) {
+        const order = hits[i - 1].range.start - hits[i].range.start || hits[i].strand - hits[i - 1].strand;
+        expect(order).toBeLessThan(0);
+      }
+    }
+  });
+});
+
+describe('searchProtein', () => {
+  it('finds a peptide on the top strand in any frame', () => {
+    const s = 'CCATGGCTTGGTAACC'; // frame 2: ATG GCT TGG TAA -> M A W *
+    expect(searchProtein(s, 'linear', 'MAW')).toEqual([hitAt(2, 11, 1, 2)]);
+    expect(searchProtein(s, 'linear', 'MAW*')).toEqual([hitAt(2, 14, 1, 2)]);
+    expect(searchProtein(s, 'linear', 'maw')).toHaveLength(1);
+  });
+
+  it('finds a peptide on the bottom strand; frame counts from the end', () => {
+    const fwd = 'CCATGGCTTGGTAACC';
+    const rc = reverseComplement(fwd); // L = 16; peptide encoded at rc-local 2..11 -> top [5, 14)
+    expect(searchProtein(rc, 'linear', 'MAW')).toEqual([hitAt(5, 14, -1, 2)]);
+    expect(translate(reverseComplement(sliceRange(rc, { start: 5, end: 14 })))).toBe('MAW');
+  });
+
+  it('finds peptides encoded across the origin', () => {
+    const s = 'GCTTGGCCCCATG'; // ...ATG | GCT TGG
+    expect(searchProtein(s, 'linear', 'MAW')).toEqual([]);
+    expect(searchProtein(s, 'circular', 'MAW')).toEqual([hitAt(10, 19, 1, 1)]);
+  });
+
+  it('supports X, B, Z and J in the peptide', () => {
+    const s = 'ATGGATGAAATT'; // M D E I
+    expect(searchProtein(s, 'linear', 'MXEI')).toHaveLength(1);
+    expect(searchProtein(s, 'linear', 'MBZJ')).toHaveLength(1);
+    expect(searchProtein(s, 'linear', 'MBZX')).toHaveLength(1);
+    expect(searchProtein(s, 'linear', 'MZ')).toHaveLength(0);
+    expect(searchProtein('ATGTAA', 'linear', 'MX')).toHaveLength(0); // X does not match a stop
+    expect(searchProtein('ATGTAA', 'linear', 'M*')).toHaveLength(1);
+  });
+
+  it('uses the selected genetic code', () => {
+    expect(searchProtein('ATGTGA', 'linear', 'MW')).toEqual([]);
+    expect(searchProtein('ATGTGA', 'linear', 'MW', { table: 2 })).toHaveLength(1);
+    expect(searchProtein('ATGTGA', 'linear', 'MW', { table: 27 })).toHaveLength(1); // context stop read as W
+  });
+
+  it('matches translated ambiguity letters literally', () => {
+    expect(searchProtein('ATGGCN', 'linear', 'MA')).toHaveLength(1); // GCN -> A
+    expect(searchProtein('ATGRAY', 'linear', 'MB')).toHaveLength(1); // RAY -> B
+    expect(searchProtein('ATGRAY', 'linear', 'MD')).toHaveLength(0);
+    expect(searchProtein('ATGRAY', 'linear', 'MX')).toHaveLength(1);
+  });
+
+  it('handles empty/too long peptides and rejects invalid input', () => {
+    expect(searchProtein('ATG', 'linear', '')).toEqual([]);
+    expect(searchProtein('A', 'circular', 'M')).toEqual([]);
+    expect(searchProtein('', 'linear', 'M')).toEqual([]);
+    expect(searchProtein('ATG', 'circular', 'M')).toEqual([hitAt(0, 3, 1, 0)]);
+    expect(searchProtein('ATG', 'linear', 'MM')).toEqual([]);
+    expect(searchProtein('ATGATG', 'circular', 'MMM')).toEqual([]);
+    expect(() => searchProtein('ATG', 'linear', 'M1')).toThrow(RangeError);
+    expect(() => searchProtein('ATG', 'linear', 'M', { table: 7 })).toThrow(RangeError);
+    expect(() => searchProtein('ATGX', 'linear', 'M')).toThrow(TranslationError);
+  });
+
+  // Review regression: U and O were accepted but could never match (no table translates a codon to
+  // U or O), so selenoprotein peptides silently gave no hits.
+  it('peptide U (selenocysteine) matches a TGA codon, O (pyrrolysine) a TAG codon', () => {
+    expect(searchProtein('ATGTGAAAA', 'linear', 'MUK')).toEqual([hitAt(0, 9, 1, 0)]);
+    const mrna = 'ATGTGAAAATAA'; // Met-Sec(TGA)-Lys-stop, as in a selenoprotein mRNA
+    expect(searchProtein(mrna, 'linear', 'M*K')).toEqual([hitAt(0, 9, 1, 0)]);
+    expect(searchProtein(mrna, 'linear', 'MUK')).toEqual([hitAt(0, 9, 1, 0)]);
+    expect(searchProtein(mrna, 'linear', 'muk')).toEqual([hitAt(0, 9, 1, 0)]);
+    expect(searchProtein(mrna, 'linear', 'MUK*')).toEqual([hitAt(0, 12, 1, 0)]);
+    expect(searchProtein('CCATGTAGAAA', 'linear', 'MOK')).toEqual([hitAt(2, 11, 1, 2)]);
+    // only the recoded stop codon: U is not TAA/TAG, O is not TGA/TAA, and ambiguous codons do not match
+    expect(searchProtein('ATGTAAAAA', 'linear', 'MUK')).toEqual([]);
+    expect(searchProtein('ATGTAGAAA', 'linear', 'MUK')).toEqual([]);
+    expect(searchProtein('ATGTGAAAA', 'linear', 'MOK')).toEqual([]);
+    expect(searchProtein('ATGTGRAAA', 'linear', 'MUK')).toEqual([]);
+    expect(searchProtein('ATGTGAAAA', 'linear', 'MXK')).toEqual([]); // X is any residue, not a stop
+    // whatever the table makes of TGA (W in table 2, C in table 10), U still matches it
+    for (const table of [2, 10, 25]) expect(searchProtein('ATGTGAAAA', 'linear', 'MUK', { table })).toHaveLength(1);
+    expect(searchProtein('ATGTGAAAA', 'linear', 'MWK', { table: 2 })).toHaveLength(1);
+    // RNA, the bottom strand and the origin
+    expect(searchProtein('AUGUGAAAA', 'linear', 'MUK')).toEqual([hitAt(0, 9, 1, 0)]);
+    expect(searchProtein(reverseComplement('GGATGTGAAAA'), 'linear', 'MUK')).toEqual([hitAt(0, 9, -1, 2)]);
+    expect(searchProtein('GAAAACCATGT', 'circular', 'MUK')).toEqual([hitAt(7, 16, 1, 1)]);
+  });
+
+  // Same root cause as U / O: matching translated residues only, '*' could never match in tables 27,
+  // 28 and 31, whose stop codons are context-dependent and translate to an amino acid.
+  it("'*' matches every stop codon of the table, context-dependent ones included", () => {
+    expect(searchProtein('ATGTGA', 'linear', 'M*', { table: 27 })).toEqual([hitAt(0, 6, 1, 0)]); // TGA: W or stop
+    expect(searchProtein('ATGTGA', 'linear', 'MW', { table: 27 })).toEqual([hitAt(0, 6, 1, 0)]);
+    expect(searchProtein('ATGTGA', 'linear', 'MX', { table: 27 })).toEqual([hitAt(0, 6, 1, 0)]); // X: W
+    expect(searchProtein('ATGTAA', 'linear', 'M*', { table: 27 })).toEqual([]); // TAA is only Q in table 27
+    expect(searchProtein('ATGTAA', 'linear', 'M*', { table: 31 })).toEqual([hitAt(0, 6, 1, 0)]); // E or stop
+    expect(searchProtein('ATGTAA', 'linear', 'ME', { table: 31 })).toEqual([hitAt(0, 6, 1, 0)]);
+    expect(searchProtein('ATGTAR', 'linear', 'M*', { table: 28 })).toEqual([hitAt(0, 6, 1, 0)]); // TAA, TAG: Q or stop
+    expect(searchProtein('ATGTAR', 'linear', 'MQ', { table: 28 })).toEqual([hitAt(0, 6, 1, 0)]);
+    expect(searchProtein('ATGTRA', 'linear', 'M*', { table: 27 })).toEqual([]); // TAA (Q) or TGA (W or stop)
+    // tables without context-dependent stops are unchanged
+    expect(searchProtein('ATGTAA', 'linear', 'M*')).toEqual([hitAt(0, 6, 1, 0)]);
+    expect(searchProtein('ATGTAR', 'linear', 'M*')).toEqual([hitAt(0, 6, 1, 0)]);
+    expect(searchProtein('ATGTAN', 'linear', 'M*')).toEqual([]); // TAN may be Tyr
+    expect(searchProtein('ATGTAA', 'linear', 'MX')).toEqual([]);
+  });
+
+  // Review regression: String.prototype.toUpperCase maps some non-ASCII letters to ASCII ones
+  // ('ı' -> 'I', 'ſ' -> 'S'), so they were accepted as amino acids.
+  it('rejects non-ASCII letters that upper-case to amino-acid letters', () => {
+    expect(() => searchProtein('ATGATT', 'linear', 'Mı')).toThrow(RangeError); // dotless i
+    expect(() => searchProtein('ATGTCT', 'linear', 'Mſ')).toThrow(RangeError); // long s
+    expect(() => searchProtein('ATGTCTTCT', 'linear', 'Mß')).toThrow(/'ß' at index 1/);
+    expect(() => searchProtein('ATGTTTATT', 'linear', 'Mﬁ')).toThrow(RangeError);
+    expect(() => searchProtein('ATGTTT', 'linear', 'M😀')).toThrow(/'😀' at index 1/);
+  });
+
+  it('every hit translates back to the peptide (seeded random)', () => {
+    const rand = seededRandom(424242);
+    for (let n = 0; n < 60; n++) {
+      const seq = randomString(rand, 'ACGT', 30 + Math.floor(rand() * 300));
+      const topology = rand() < 0.5 ? 'circular' : 'linear';
+      const peptide = randomString(rand, 'ACDEFGHIKLMNPQRSTVWY', 1 + Math.floor(rand() * 2));
+      for (const h of searchProtein(seq, topology, peptide)) {
+        const nt = sliceRange(seq, h.range);
+        expect(translate(h.strand === 1 ? nt : reverseComplement(nt))).toBe(peptide);
+        const L = seq.length;
+        expect(h.frame).toBe(h.strand === 1 ? h.range.start % 3 : (((L - h.range.end) % L) + L) % L % 3);
+      }
+    }
+  });
+});
+
+describe.skipIf(!HAS_ECOLI)('search performance on the E. coli genome (4.6 Mb)', () => {
+  const genome = HAS_ECOLI ? readGenbankSequence(ECOLI_GENBANK) : '';
+
+  it('exact search of a 20-mer on both strands in < 300 ms', () => {
+    const query = genome.slice(1_000_000, 1_000_020);
+    const t0 = performance.now();
+    const hits = searchSequence(genome, 'circular', query);
+    const ms = performance.now() - t0;
+    expect(ms).toBeLessThan(300);
+    expect(hits.some((h) => h.range.start === 1_000_000 && h.strand === 1 && h.mismatches === 0)).toBe(true);
+  });
+
+  it('exact IUPAC search (EcoRI-like GAATTC / degenerate GGNCC) in < 300 ms', () => {
+    const t0 = performance.now();
+    const ecoRI = searchSequence(genome, 'circular', 'GAATTC');
+    const t1 = performance.now();
+    const degenerate = searchSequence(genome, 'circular', 'GGNCC');
+    const t2 = performance.now();
+    expect(t1 - t0).toBeLessThan(300);
+    expect(t2 - t1).toBeLessThan(300);
+    expect(ecoRI.every((h) => h.strand === 1)).toBe(true); // palindrome reported once
+    expect(ecoRI.length).toBeGreaterThan(100);
+    expect(degenerate.length).toBeGreaterThan(1000);
+  });
+
+  it('2-mismatch search of a 20-mer on both strands in < 3 s', () => {
+    const query = genome.slice(2_000_000, 2_000_020);
+    const t0 = performance.now();
+    const hits = searchSequence(genome, 'circular', query, { maxMismatches: 2 });
+    const ms = performance.now() - t0;
+    expect(ms).toBeLessThan(3000);
+    expect(hits.find((h) => h.range.start === 2_000_000 && h.strand === 1)?.mismatches).toBe(0);
+  });
+
+  it('finds the start of LacZ by translated search', () => {
+    const lacZ = findOrfs(genome, 'circular', { minAaLength: 1000 }).find(
+      (o) => o.strand === -1 && o.range.end === 366305,
+    );
+    expect(lacZ).toBeDefined();
+    if (!lacZ) return;
+    const protein = translate(reverseComplement(sliceRange(genome, lacZ.range)));
+    const t0 = performance.now();
+    const hits = searchProtein(genome, 'circular', protein.slice(0, 20));
+    expect(performance.now() - t0).toBeLessThan(3000);
+    expect(hits).toEqual([hitAt(366305 - 60, 366305, -1, lacZ.frame)]);
+  });
+});
