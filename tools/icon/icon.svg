@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2F6BFF"/>
+      <stop offset="1" stop-color="#1A2F86"/>
+    </linearGradient>
+    <radialGradient id="sheen" cx="0.5" cy="0.12" r="0.75">
+      <stop offset="0" stop-color="rgba(255,255,255,0.28)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000" flood-opacity="0.32"/>
+    </filter>
+    <filter id="arcShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#06103a" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#bg)"/>
+    <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#sheen)"/>
+  </g>
+  <g>
+    <line x1="512.00" y1="327.00" x2="512.00" y2="351.00" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"/>
+    <line x1="559.88" y1="333.30" x2="556.78" y2="344.89" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="604.50" y1="351.79" x2="598.50" y2="362.18" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="642.81" y1="381.19" x2="634.33" y2="389.67" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="672.21" y1="419.50" x2="661.82" y2="425.50" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="690.70" y1="464.12" x2="679.11" y2="467.22" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="697.00" y1="512.00" x2="673.00" y2="512.00" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"/>
+    <line x1="690.70" y1="559.88" x2="679.11" y2="556.78" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="672.21" y1="604.50" x2="661.82" y2="598.50" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="642.81" y1="642.81" x2="634.33" y2="634.33" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="604.50" y1="672.21" x2="598.50" y2="661.82" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="559.88" y1="690.70" x2="556.78" y2="679.11" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="512.00" y1="697.00" x2="512.00" y2="673.00" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"/>
+    <line x1="464.12" y1="690.70" x2="467.22" y2="679.11" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="419.50" y1="672.21" x2="425.50" y2="661.82" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="381.19" y1="642.81" x2="389.67" y2="634.33" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="351.79" y1="604.50" x2="362.18" y2="598.50" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="333.30" y1="559.88" x2="344.89" y2="556.78" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="327.00" y1="512.00" x2="351.00" y2="512.00" stroke="rgba(255,255,255,0.55)" stroke-width="7" stroke-linecap="round"/>
+    <line x1="333.30" y1="464.12" x2="344.89" y2="467.22" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="351.79" y1="419.50" x2="362.18" y2="425.50" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="381.19" y1="381.19" x2="389.67" y2="389.67" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="419.50" y1="351.79" x2="425.50" y2="362.18" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="464.12" y1="333.30" x2="467.22" y2="344.89" stroke="rgba(255,255,255,0.28)" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="512" cy="512" r="236" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="14"/>
+    <g filter="url(#arcShadow)">
+      <path d="M 278.02 387.59 A 265 265 0 0 1 678.77 306.06 L 686.32 296.73 L 697.97 366.70 L 634.72 360.46 L 642.27 351.13 A 207 207 0 0 0 329.23 414.82 Z" fill="#F5B841"/>
+      <path d="M 754.09 404.21 A 265 265 0 0 1 752.17 623.99 L 763.05 629.07 L 697.97 657.30 L 688.73 594.41 L 699.61 599.48 A 207 207 0 0 0 701.10 427.81 Z" fill="#5BBF6A"/>
+      <path d="M 675.15 720.82 A 265 265 0 0 1 367.67 734.25 L 361.13 744.31 L 342.24 675.94 L 405.80 675.54 L 399.26 685.60 A 207 207 0 0 0 639.44 675.12 Z" fill="#5AC8FA"/>
+      <path d="M 282.50 644.50 A 265 265 0 0 1 247.04 507.38 L 235.04 507.17 L 283.01 454.91 L 317.03 508.60 L 305.03 508.39 A 207 207 0 0 0 332.73 615.50 Z" fill="#FF6B5E"/>
+    </g>
+    <text x="512" y="546" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-weight="700" font-size="104" fill="#ffffff" letter-spacing="-2">HH</text>
+  </g>
+</svg>

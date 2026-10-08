@@ -46,6 +46,9 @@
     "category": "Utility",
     "shortDescription": "Free DNA sequence viewer and cloning designer",
     "longDescription": "HHereditas is a free, offline plasmid map viewer and molecular cloning design tool.",
-    "copyright": ""
+    "copyright": "",
+    "macOS": {
+      "minimumSystemVersion": "13.0"
+    }
   }
 }

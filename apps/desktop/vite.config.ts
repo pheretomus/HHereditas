@@ -16,8 +16,8 @@ export default defineConfig({
   },
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
   build: {
-    // WebView2 (Windows) is Chromium-based; WKWebView on macOS 12+ ships Safari 15+.
-    target: ['es2022', 'chrome105', 'safari15'],
+    // WebView2 (Windows) is evergreen Chromium; macOS 13+ ships Safari 16.4+ (needed for CSS color-mix).
+    target: ['es2022', 'chrome111', 'safari16.4'],
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
   test: {
