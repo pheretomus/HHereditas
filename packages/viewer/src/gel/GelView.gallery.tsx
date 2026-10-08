@@ -183,6 +183,42 @@ const TWELVE_LANES: GelLane[] = [
   ladder('l2', '100 bp', HUNDRED_BP),
 ];
 
+/** Real-world lane names are long: they are rotated, truncated, and complete in a tooltip. */
+const LONG_LABEL_LANES: GelLane[] = [
+  ladder('ll', 'GeneRuler 1 kb Plus (0.5 µg)', ONE_KB_PLUS),
+  sample('c3', 'pUC19-mCherry clone 3 · EcoRI + HindIII', [{ size: 2660, label: 'Vector backbone' }, { size: 711, label: 'mCherry insert' }]),
+  sample('c7', 'pUC19-mCherry clone 7 · EcoRI + HindIII', [{ size: 2660, label: 'Vector backbone' }]),
+  sample('c12', 'pUC19-mCherry clone 12 · EcoRI + HindIII (partial digest?)', [
+    { size: 3371, amount: 0.4, label: 'Cut once' },
+    { size: 2660, label: 'Vector backbone' },
+    { size: 711, label: 'mCherry insert' },
+  ]),
+  sample('u12', 'Undigested clone 12 (supercoiled control)', [
+    { size: 3371, form: 'supercoiled', label: 'Supercoiled' },
+    { size: 3371, form: 'nicked', amount: 0.3, label: 'Open circular (nicked)' },
+  ]),
+  sample('gapdh', 'GAPDH qPCR amplicon, 35 cycles, no-RT control', []),
+];
+
+/** A 48-well colony-PCR screen: a 1 kb ladder, 46 colonies and a 100 bp ladder. */
+function colonyScreen(): GelLane[] {
+  const rnd = mulberry32(48);
+  const lanes: GelLane[] = [ladder('m1', '1 kb Plus', ONE_KB_PLUS, 1.5)];
+  for (let i = 1; i <= 46; i++) {
+    const r = rnd();
+    const fragments: Fragment[] =
+      r < 0.62
+        ? [{ size: 1250, amount: 0.6 + rnd() * 0.6, label: 'Insert (1,250 bp)' }]
+        : r < 0.88
+          ? [{ size: 312, amount: 0.8 + rnd() * 0.6, label: 'Empty vector (312 bp)' }]
+          : [];
+    fragments.push({ size: 52, amount: 2 + rnd() * 3, label: 'Primer dimer' });
+    lanes.push(sample(`col${i}`, `Colony ${i}`, fragments, 1.5));
+  }
+  lanes.push(ladder('m2', '100 bp', HUNDRED_BP, 1.5));
+  return lanes;
+}
+
 // λ DNA / BstEII: 14 fragments from 8.5 kb to 117 bp (a classic marker).
 const LAMBDA_BSTEII = [8454, 7242, 6369, 5686, 4822, 4324, 3675, 2323, 1929, 1371, 1264, 702, 224, 117];
 
@@ -304,6 +340,11 @@ function Interactive({
   );
 }
 
+function ColonyScreenStory() {
+  const lanes = useMemo(colonyScreen, []);
+  return <Interactive lanes={lanes} agarosePercent={1.5} status />;
+}
+
 function GenomeStory() {
   const lanes = useMemo(genomeLanes, []);
   return <Interactive lanes={lanes} status />;
@@ -342,6 +383,8 @@ export default {
   ),
   'twelve-lanes': () => <Interactive lanes={TWELVE_LANES} initialSelection="pbr-hinfi" />,
   'twelve-lanes-sizes': () => <Interactive lanes={TWELVE_LANES} showSizes="all" />,
+  'long-labels': () => <Interactive lanes={LONG_LABEL_LANES} showSizes="all" initialSelection="c12" status />,
+  'many-lanes': () => <ColonyScreenStory />,
   'dense-ladder': () => (
     <Interactive
       lanes={[

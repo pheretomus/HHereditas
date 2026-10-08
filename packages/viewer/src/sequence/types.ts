@@ -31,7 +31,9 @@ export interface FeatureClickInfo {
  * An edit the user asked for. The view never changes the record itself: the app applies the
  * edit (e.g. with the core `insertBases` / `deleteRange` / `replaceRange`) and passes the new
  * record back. Ranges follow the types.ts conventions (they may wrap the origin on circular
- * records, end > length); `bases` are clean upper-case IUPAC letters.
+ * records, end > length). `bases` are clean upper-case IUPAC letters of the record's alphabet
+ * (DNA; U instead of T for RNA records; one-letter amino acids and * for protein records).
+ * On circular records an insertion at gap 0 is the same as one at gap L (the core appends it).
  */
 export type SequenceEdit =
   | { kind: 'insert'; gap: number; bases: string }

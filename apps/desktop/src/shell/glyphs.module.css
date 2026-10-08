@@ -1,0 +1,43 @@
+.feature {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+
+.feature path {
+  stroke-width: 0.75px;
+  stroke-linejoin: round;
+}
+
+.primer {
+  display: block;
+  flex: none;
+}
+
+.primer path {
+  fill: none;
+  stroke: var(--hh-primer-fwd);
+  stroke-width: 1.75px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.document {
+  display: block;
+  flex: none;
+}
+
+.track {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.arc {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3px;
+  stroke-linecap: round;
+}

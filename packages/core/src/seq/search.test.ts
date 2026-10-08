@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   ECOLI_GENBANK,
@@ -9,11 +10,12 @@ import {
 } from '../../test/oracle/seqtools/oracle';
 import type { SearchHit, Topology } from '../types';
 import { iupacMatches, reverseComplement } from './alphabet';
+import { makeFeature, makeRecord } from './features';
 import { findOrfs } from './orf';
 import { sliceRange } from './range';
 import { searchProtein, searchSequence } from './search';
 import type { ProteinSearchHit, SearchOptions } from './search';
-import { TranslationError, translate } from './translate';
+import { TranslationError, translate, translateFeature } from './translate';
 
 interface OracleHit {
   start: number;
@@ -361,6 +363,83 @@ describe('searchProtein', () => {
     expect(() => searchProtein('ATGTTT', 'linear', 'M😀')).toThrow(/'😀' at index 1/);
   });
 
+  // Review regression: every peptide letter, the first included, was matched against the codon's
+  // internal translation only, so the N-terminal Met of a protein whose gene starts with an
+  // alternative start codon (GTG, TTG, ATT, ...) never matched: 10.7% of E. coli genes could not be
+  // found by their own N-terminal peptide, and translateFeature -> searchProtein did not round-trip.
+  describe('review: nTerminal, the initiator Met of an alternative start codon', () => {
+    // E. coli lacI (U00096.3 complement(366428..367510), UniProt P03023): the first 42 nt
+    const lacI5 = 'GTGAAACCAGTAACGTTATACGATGTCGCAGAGTATGCCGGT';
+    const t11 = [{ key: 'transl_table', value: '11' }];
+
+    it('finds E. coli lacI (GTG start) by the N-terminal peptide translateFeature gives', () => {
+      const cds = makeFeature({ type: 'CDS', strand: 1, segments: [{ start: 0, end: 42 }], qualifiers: t11 });
+      const protein = translateFeature(makeRecord({ seq: lacI5 }), cds);
+      expect(protein).toBe('MKPVTLYDVAEYAG'); // NCBI /translation and UniProt P03023 start like this
+      expect(searchProtein(lacI5, 'linear', protein, { table: 11, nTerminal: true })).toEqual([hitAt(0, 42, 1, 0)]);
+      // the bottom strand, and a gene that crosses the origin of a circular molecule
+      expect(searchProtein(reverseComplement(`C${lacI5}`), 'linear', protein, { table: 11, nTerminal: true })).toEqual([
+        hitAt(0, 42, -1, 1),
+      ]);
+      const wrapped = lacI5.slice(20) + lacI5.slice(0, 20); // the gene starts at 22 and wraps
+      expect(searchProtein(wrapped, 'circular', protein, { table: 11, nTerminal: true })).toEqual([
+        hitAt(22, 64, 1, 1),
+      ]);
+    });
+
+    it('default (nTerminal false): every letter matches the internal translation, as documented', () => {
+      expect(searchProtein(lacI5, 'linear', 'MKPVTLYDVAEYAG', { table: 11 })).toEqual([]);
+      expect(searchProtein(lacI5, 'linear', 'VKPVTLYDVAEYAG', { table: 11 })).toEqual([hitAt(0, 42, 1, 0)]);
+      // with nTerminal the internal reading of the first codon still matches
+      expect(searchProtein(lacI5, 'linear', 'VKPVTLYDVAEYAG', { table: 11, nTerminal: true })).toEqual([
+        hitAt(0, 42, 1, 0),
+      ]);
+    });
+
+    it('applies to the first letter only, and only for start codons of the selected table', () => {
+      expect(searchProtein('GTGAAA', 'linear', 'MK', { table: 11, nTerminal: true })).toHaveLength(1);
+      expect(searchProtein('GTGAAA', 'linear', 'MK', { table: 1, nTerminal: true })).toEqual([]); // GTG: no start in table 1
+      expect(searchProtein('TTGAAA', 'linear', 'MK', { table: 1, nTerminal: true })).toHaveLength(1);
+      expect(searchProtein('ATTAAA', 'linear', 'MK', { table: 2, nTerminal: true })).toHaveLength(1);
+      expect(searchProtein('AAAGTG', 'linear', 'KM', { table: 11, nTerminal: true })).toEqual([]); // internal M
+      expect(searchProtein('AAAGTG', 'linear', 'KV', { table: 11, nTerminal: true })).toHaveLength(1);
+      // ambiguous initiators, read like translate(..., { cds: true }): NTG = ATG/CTG/GTG/TTG are all
+      // table-11 starts (M); GTN mixes GTG with non-starts (X), so M does not match it
+      expect(searchProtein('NTGAAA', 'linear', 'MK', { table: 11, nTerminal: true })).toHaveLength(1);
+      expect(searchProtein('GTNAAA', 'linear', 'MK', { table: 11, nTerminal: true })).toEqual([]);
+      expect(searchProtein('GTNAAA', 'linear', 'XK', { table: 11, nTerminal: true })).toHaveLength(1);
+      // U, O and '*' are unaffected
+      expect(searchProtein('TGAAAA', 'linear', 'UK', { table: 11, nTerminal: true })).toHaveLength(1);
+      expect(searchProtein('TAAAAA', 'linear', 'MK', { table: 11, nTerminal: true })).toEqual([]);
+      expect(searchProtein('TAAAAA', 'linear', '*K', { table: 11, nTerminal: true })).toHaveLength(1);
+    });
+
+    it('every hit translates back to the peptide with the first codon read as an initiator (seeded random)', () => {
+      const rand = seededRandom(31337);
+      let altStartHits = 0;
+      for (let n = 0; n < 80; n++) {
+        const seq = randomString(rand, rand() < 0.2 ? 'ACGTNRY' : 'ACGT', 30 + Math.floor(rand() * 300));
+        const topology = rand() < 0.5 ? 'circular' : 'linear';
+        const table = [1, 2, 4, 11, 13][n % 5];
+        const peptide = `M${randomString(rand, 'ACDEFGHIKLMNPQRSTVWY', Math.floor(rand() * 2))}`;
+        const plain = searchProtein(seq, topology, peptide, { table });
+        const hits = searchProtein(seq, topology, peptide, { table, nTerminal: true });
+        for (const h of plain) expect(hits).toContainEqual(h); // nTerminal only adds hits
+        for (const h of hits) {
+          const nt = sliceRange(seq, h.range);
+          const own = h.strand === 1 ? nt : reverseComplement(nt);
+          expect(translate(own, { table, cds: true }).replace(/\*$/, '')).toBe(peptide);
+          if (!own.startsWith('ATG')) altStartHits++;
+        }
+      }
+      expect(altStartHits).toBeGreaterThan(20);
+    });
+
+    it('validates the option', () => {
+      expect(() => searchProtein('ATG', 'linear', 'M', { nTerminal: 'yes' as unknown as boolean })).toThrow(RangeError);
+    });
+  });
+
   it('every hit translates back to the peptide (seeded random)', () => {
     const rand = seededRandom(424242);
     for (let n = 0; n < 60; n++) {
@@ -374,6 +453,50 @@ describe('searchProtein', () => {
         expect(h.frame).toBe(h.strand === 1 ? h.range.start % 3 : (((L - h.range.end) % L) + L) % L % 3);
       }
     }
+  });
+});
+
+describe.skipIf(!HAS_ECOLI)('review: nTerminal on every complete single-segment CDS of E. coli U00096.3', () => {
+  it('finds each gene by the N-terminal peptide translateFeature gives (GTG, TTG, ATT, CTG starts included)', () => {
+    const genome = readGenbankSequence(ECOLI_GENBANK);
+    const rec = makeRecord({ seq: genome, topology: 'circular' });
+    const L = genome.length;
+    // CDS key lines with a plain 5'- and 3'-complete location a..b or complement(a..b)
+    const cdsLine = /^ {5}CDS {13}(complement\()?(\d+)\.\.(\d+)\)?$/gm;
+    const table11 = [{ key: 'transl_table', value: '11' }];
+    let genes = 0;
+    let nonAtg = 0;
+    const missedWithOption: string[] = [];
+    const missedByDefault = new Set<string>();
+    const nonAtgGenes = new Set<string>();
+    for (const m of readFileSync(ECOLI_GENBANK, 'latin1').matchAll(cdsLine)) {
+      const strand = m[1] ? -1 : 1;
+      const start = Number(m[2]) - 1;
+      const end = Number(m[3]);
+      const cds = makeFeature({ type: 'CDS', strand, segments: [{ start, end }], qualifiers: table11 });
+      const peptide = translateFeature(rec, cds).replace(/\*$/, '').slice(0, 12);
+      if (peptide.length < 4) continue;
+      const w = 3 * peptide.length;
+      const at = strand === 1 ? start : end - w; // top-strand start of the coding bases of the peptide
+      const lo = Math.max(0, at - 30);
+      const hi = Math.min(L, at + w + 30);
+      const region = genome.slice(lo, hi);
+      const isHere = (hits: ProteinSearchHit[]) => hits.some((h) => h.range.start === at - lo && h.strand === strand);
+      const label = `${m[0].trim()}`;
+      genes++;
+      const firstCodon = strand === 1 ? genome.slice(start, start + 3) : reverseComplement(genome.slice(end - 3, end));
+      if (firstCodon !== 'ATG') {
+        nonAtg++;
+        nonAtgGenes.add(label);
+      }
+      if (!isHere(searchProtein(region, 'linear', peptide, { table: 11, nTerminal: true }))) missedWithOption.push(label);
+      if (!isHere(searchProtein(region, 'linear', peptide, { table: 11 }))) missedByDefault.add(label);
+    }
+    expect(genes).toBeGreaterThan(4000);
+    expect(nonAtg).toBeGreaterThan(300); // ~10% of E. coli genes start with GTG, TTG, ATT or CTG
+    expect(missedWithOption).toEqual([]);
+    // by default exactly the genes with an alternative start codon are missed
+    expect(missedByDefault).toEqual(nonAtgGenes);
   });
 });
 

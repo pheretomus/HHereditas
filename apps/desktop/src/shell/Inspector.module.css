@@ -1,0 +1,182 @@
+.inspector {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 12px;
+  background: var(--hh-bg-inspector);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hint {
+  margin: 0;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+  line-height: 1.4;
+}
+
+.inlineHint {
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+}
+
+.placeholderValue {
+  color: var(--hh-text-tertiary);
+}
+
+/* ---- feature form ---- */
+.form {
+  display: grid;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 8px;
+}
+
+.formLabel {
+  overflow: hidden;
+  color: var(--hh-text-secondary);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.control {
+  display: flex;
+  min-width: 0;
+}
+
+.typeDot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  margin: 3px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--hh-hairline) var(--hh-separator-strong);
+}
+
+.location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.locationSwatch {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.qualifiers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  box-shadow: inset 0 var(--hh-hairline) 0 var(--hh-separator);
+}
+
+.subheading {
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-semibold);
+}
+
+/* ---- analysis ---- */
+.analysisBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blockHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scope {
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+}
+
+.composition {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.bar {
+  display: flex;
+  gap: 1.5px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.segment {
+  flex: 1 1 0;
+  min-width: 2px;
+}
+
+.legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.legendDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.legendBase {
+  color: var(--hh-text);
+  font-weight: var(--hh-weight-semibold);
+}
+
+.baseA {
+  background: var(--hh-green);
+}
+
+.baseC {
+  background: var(--hh-blue);
+}
+
+.baseG {
+  background: var(--hh-orange);
+}
+
+.baseT {
+  background: var(--hh-red);
+}
+
+.baseOther {
+  background: var(--hh-gray);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

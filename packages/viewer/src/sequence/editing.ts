@@ -7,7 +7,7 @@
  * place; `affinity` says where such a caret is drawn: 'upstream' at the end of the previous
  * row (the end of the last row for the origin), 'downstream' at the start of the next row.
  */
-import type { Range, Topology } from '@hhereditas/core';
+import type { MoleculeType, Range, Topology } from '@hhereditas/core';
 import { mod, normalizeDna, normalizeRange, sliceRange } from '@hhereditas/core';
 import type { SequenceSelection } from '../selection';
 import { caretAt, hasSelectedBases, selectBetween, selectionAnchor } from '../selection';
@@ -21,6 +21,8 @@ export interface EditingContext {
   topology: Topology;
   basesPerRow: number;
   editable: boolean;
+  /** Alphabet of typed / pasted text (default 'DNA'). */
+  molecule?: MoleculeType;
 }
 
 export interface KeyInput {
@@ -169,23 +171,47 @@ export function copyText(seq: string, sel: SequenceSelection | null | undefined)
   return sliceRange(seq, sel.range);
 }
 
+/** One-letter amino-acid codes accepted in protein records (IUPAC, plus * for stop). */
+const PROTEIN_CODES = /^[ACDEFGHIKLMNPQRSTVWYBZJUOX*]$/;
+
 /**
- * Clean typed or pasted text into bases with normalizeDna (whitespace, digits and separators
- * are dropped, U -> T, upper case). FASTA header / comment lines are ignored. Any other
- * character makes the whole input invalid.
+ * Clean typed or pasted text into residues. DNA: normalizeDna (whitespace, digits and
+ * separators are dropped, U -> T, upper case); RNA: the same with T -> U; protein: upper-cased
+ * one-letter codes. FASTA header / comment lines are ignored. `invalid` lists the characters
+ * that are not of the alphabet: callers reject the whole input when it is not empty.
  */
-export function cleanSequenceInput(text: string): { bases: string; invalid: string[] } {
+export function cleanSequenceInput(text: string, molecule: MoleculeType = 'DNA'): { bases: string; invalid: string[] } {
   const body = /^\s*[>;]/.test(text)
     ? text
         .split(/\r?\n/)
         .filter((line) => !/^\s*[>;]/.test(line))
         .join('\n')
     : text;
+  if (molecule === 'protein') {
+    const out: string[] = [];
+    const invalid = new Set<string>();
+    for (const raw of body) {
+      if (/[\s\d]/.test(raw)) continue;
+      const ch = raw.toUpperCase();
+      if (PROTEIN_CODES.test(ch)) out.push(ch);
+      else invalid.add(raw);
+    }
+    return { bases: out.join(''), invalid: [...invalid] };
+  }
   const { seq, invalid } = normalizeDna(body);
-  return { bases: seq, invalid };
+  return { bases: molecule === 'RNA' ? seq.replace(/T/g, 'U') : seq, invalid };
 }
 
-/** Where the caret goes after an edit (core semantics of insertBases / deleteRange / replaceRange). */
+/**
+ * Where the caret goes after an edit, in the coordinates of the edited sequence (core semantics
+ * of insertBases / deleteRange / replaceRange): right after inserted or replacing bases, at the
+ * deletion point after a deletion.
+ *
+ * Circular records: gap 0 is gap L and the core appends an insertion there at the end, keeping
+ * the origin; the caret then sits at the origin drawn at the end of the last row ('upstream'),
+ * right after the new bases. A deletion that removes the first base makes the first base after
+ * it the new origin (caret at the start of the first row).
+ */
 export function selectionAfterEdit(
   edit: SequenceEdit,
   ctx: EditingContext,
@@ -196,16 +222,18 @@ export function selectionAfterEdit(
     case 'insert': {
       const n = edit.bases.length;
       if (ctx.topology === 'circular') {
-        const newL = L + n;
-        // gap 0 == gap L: the core appends at L; the caret stays at the origin on the side it was drawn
-        if (L === 0 || edit.gap === L) return { selection: caretAt(0), affinity: 'upstream' };
-        if (edit.gap === 0) return { selection: caretAt(0), affinity: 'downstream' };
-        return { selection: caretAt(mod(edit.gap + n, newL)), affinity: 'downstream' };
+        if (L === 0 || edit.gap <= 0 || edit.gap >= L) return { selection: caretAt(0), affinity: 'upstream' };
+        return { selection: caretAt(edit.gap + n), affinity: 'downstream' };
       }
       return { selection: caretAt(edit.gap + n), affinity: 'downstream' };
     }
     case 'delete': {
-      if (circular && edit.range.end > L) return { selection: caretAt(0), affinity: 'downstream' };
+      if (circular) {
+        if (edit.range.end > L || edit.range.start <= 0) return { selection: caretAt(0), affinity: 'downstream' };
+        const newL = L - (edit.range.end - edit.range.start);
+        // deleting up to the end of the sequence leaves the caret at the origin, at the end of the last row
+        if (edit.range.start >= newL) return { selection: caretAt(0), affinity: newL > 0 ? 'upstream' : 'downstream' };
+      }
       return { selection: caretAt(edit.range.start), affinity: 'downstream' };
     }
     case 'replace': {
@@ -249,7 +277,7 @@ export function textIntent(
   affinity: CaretAffinity = 'downstream',
 ): TextIntent {
   if (!ctx.editable) return { type: 'none' };
-  const { bases, invalid } = cleanSequenceInput(text);
+  const { bases, invalid } = cleanSequenceInput(text, ctx.molecule);
   if (invalid.length > 0) return { type: 'invalid', text };
   if (bases === '') return { type: 'none' };
   return insertIntent(bases, sel, ctx, affinity);

@@ -1,33 +1,30 @@
 /**
- * Geometry of the linear map, as pure functions (no DOM), so it can be unit tested and
- * memoized.
+ * Geometry of the linear map, as pure functions (no DOM), so it can be unit tested and memoized.
  *
  * Two stages:
- *  1. Static tracks (per record / data set, zoom independent): features, ORFs and primers are
- *     packed into lanes in bp space. Forward-strand items go above the backbone and reverse
- *     ones below; strand-less features go above.
- *  2. The view model (per frame): everything visible at the current viewport, in px, culled
- *     to the window. Sub-pixel features are aggregated into per-lane density, small ones are
- *     batched into one path per colour, labels are fitted (inside the bar, else beside it,
- *     else truncated, else dropped), enzyme labels are staggered into rows.
+ *  1. Static tracks (per record and data set, independent of zoom): features, ORFs and primers
+ *     are packed into lanes in bp space, so nothing jumps between rows while zooming or panning.
+ *     Forward-strand items go above the backbone and reverse-strand ones below it, mirroring
+ *     the two strands (strand-less features go above). The strand can then be read at a glance
+ *     even where arrow heads are too small to see, and each side stacks only its own lanes.
+ *  2. The view model (per frame): what is visible in the current viewport, in px. Everything
+ *     is culled to the window; features narrower than a pixel or two either stay visible as
+ *     slim solid bars (when they stand alone) or merge into a density band coloured by the
+ *     dominant feature type (when crowded); labels go inside bars when they fit, else beside
+ *     them, else just outside them (above for the top side, below for the bottom side), else
+ *     truncated inside, else they are left to the hover card. A shared occupancy model keeps
+ *     every label clear of bars and of other labels. Enzyme labels are staggered into rows.
  *
- * Vertical order, from the top: enzyme labels, primers, ORFs, features, BACKBONE + ruler,
- * features, ORFs, primers. Features sit next to the backbone because they are the hero;
- * analysis overlays (ORFs, primers) sit outside them.
+ * Vertical order, from the top: enzyme labels, primers, ORFs, features, BACKBONE (two strands)
+ * and ruler, features, ORFs, primers. Features sit next to the backbone because they are the
+ * hero; analysis overlays (ORFs, primers) sit outside them.
  */
-import type {
-  Feature,
-  Orf,
-  Primer,
-  PrimerBindingSite,
-  Range,
-  SeqRecord,
-  Topology,
-} from '@hhereditas/core';
-import { complement, featureExtent, mod, normalizeRange, splitAtOrigin } from '@hhereditas/core';
+import type { Feature, Orf, Primer, PrimerBindingSite, Range, SeqRecord, Topology } from '@hhereditas/core';
+import { complement, featureExtent, normalizeRange, splitAtOrigin } from '@hhereditas/core';
 import { featureFill } from '../common/colors';
-import type { CutMarker } from './enzymeLabels';
-import { placeEnzymeLabels } from './enzymeLabels';
+import type { CutMarker, PlacedLabel } from './enzymeLabels';
+import { placeEnzymeLabels, rowsUsed } from './enzymeLabels';
+import { LabelSpace } from './labelSpace';
 import type { Lane, LaneInterval } from './lanes';
 import { buildLanes, packLanes, visibleSpan } from './lanes';
 import type { ArrowEnd } from './shapes';
@@ -36,22 +33,23 @@ import type { TextMeasurer } from './textMeasure';
 import { truncateToWidth } from './textMeasure';
 import type { RulerTicks } from './ticks';
 import { formatTick, rulerTicks } from './ticks';
-import type { MapTarget } from './types';
 import type { LinearScale } from './viewport';
 import { LETTER_PX_PER_BASE } from './viewport';
 
 /** Sizes in px. Font sizes mirror the --hh-text-* tokens used by the stylesheet. */
 export const METRICS = {
   padX: 24,
-  padTop: 18,
-  padBottom: 22,
+  padTop: 16,
+  padBottom: 20,
   enzymeRowHeight: 15,
   enzymeLabelPad: 3,
-  enzymeGap: 10,
+  enzymeGap: 8,
   featureLaneHeight: 22,
   featureBarHeight: 16,
   featureHead: 7,
   featureRadius: 3.5,
+  /** Free band beyond the outermost feature lane, where labels of its small features go. */
+  featureLabelBand: 13,
   orfLaneHeight: 11,
   orfThickness: 3,
   orfHead: 7,
@@ -61,7 +59,8 @@ export const METRICS = {
   primerHead: 8,
   primerBarb: 4,
   primerFont: 10,
-  groupGap: 4,
+  primerWeight: 500,
+  groupGap: 6,
   backboneGap: 9,
   strandGap: 4,
   letterBand: 30,
@@ -72,27 +71,54 @@ export const METRICS = {
   /** Weight of unique-cutter labels (matches .enzymeLabelUnique). */
   enzymeUniqueWeight: 600,
   tickFont: 10,
-  maxEnzymeRows: 5,
+  maxEnzymeRows: 6,
   maxLanes: 24,
 } as const;
 
-/** Below this on-screen width (px) a feature is drawn as density. */
+/** Below this on-screen width (px) a feature is "tiny": a slim solid bar, or density when crowded. */
 export const DENSITY_PX = 1.5;
-/** Below this width (px) a feature is a plain rectangle (no arrow head, no inside label). */
+/** Below this width (px) a feature is a plain rectangle (no arrow head, no label inside). */
 export const SMALL_PX = 5;
+/** Width (px) of a lone tiny feature. */
+export const MIN_BAR_PX = 2;
+/** Primers are drawn at least this wide (px) so their arrow head stays readable. */
+export const PRIMER_MIN_PX = 10;
+/** Tiny features closer than this (px) to another tiny feature are drawn as density. */
+const ISOLATION_PX = 3;
+/**
+ * Lone tiny features get labels only while few tiny features are in view: on a plasmid they
+ * are worth naming, at whole-genome zoom they are a random sample of thousands of genes.
+ */
+const MAX_LABELLED_TINY = 150;
 /** Glyphs are clipped this far outside the visible area. */
 const CLIP = 40;
 /** Width (px) of density bins. */
 const BIN_PX = 2;
-/** Horizontal padding inside bars around a label, and between a bar and a label beside it. */
+/** Space between a label inside a bar and the bar's ends. */
 const INSIDE_PAD = 5;
+/** Space between a bar and its own label beside it. */
 const BESIDE_GAP = 4;
+/** Space between a label and anything that is not its own bar. */
+const NEIGHBOUR_GAP = 10;
+/** Space between a bar and its label outside it (above / below). */
+const OUTWARD_GAP = 1.5;
+/** Labels keep this far from the edges of the map. */
+const EDGE = 6;
+/** A truncated label needs at least this much room (px), and keeps at least MIN_TRUNCATED_CHARS characters. */
+const MIN_TRUNCATED_PX = 30;
+const MIN_TRUNCATED_CHARS = 4;
+/** How far cut marks reach beyond the strands (px); leaders stop there. */
+export const CUT_OVERSHOOT = 3;
+/**
+ * With more cuts than this in view, labels would be a random sample of a solid band of cut
+ * marks: only unique cutters compete for labels then (zooming in brings the others back).
+ */
+export const MAX_LABELLED_CUTS = 1500;
 /** Density opacity levels (quantized coverage). */
-const DENSITY_LEVELS = [0.35, 0.55, 0.75, 1] as const;
-/** Fallback colour for density made of mixed feature types. */
-const DENSITY_MIXED = 'var(--hh-feature-misc)';
+const DENSITY_LEVELS = [0.5, 0.68, 0.84, 1] as const;
 
 export type Side = 'above' | 'below';
+const SIDES: readonly Side[] = ['above', 'below'];
 
 // ---------------------------------------------------------------------------
 // Static tracks
@@ -110,7 +136,7 @@ export interface FeatureEntry extends TrackEntryBase {
   /** Index in record.features. */
   index: number;
   fill: string;
-  /** Normalized segments (multi-segment features are drawn as exons joined by a line). */
+  /** Normalized segments (multi-segment features are drawn as blocks joined by a line). */
   segments: Range[];
 }
 
@@ -124,7 +150,7 @@ export interface PrimerEntry extends TrackEntryBase {
   /** Normalized annealed region (may wrap the origin). */
   annealed: Range;
   /**
-   * The non-annealing 5' tail, drawn raised beyond the annealed region: left of it for forward
+   * The non-annealing 5' tail, drawn raised beside the annealed region: left of it for forward
    * primers, right of it for reverse ones. Clipped to [0, L] (it never wraps the origin).
    */
   tail: Range | null;
@@ -271,7 +297,7 @@ export interface VerticalInput {
 }
 
 export interface BandTops {
-  /** Top y of each lane row, lane 0 = closest to the backbone. */
+  /** Top y of each lane, lane 0 = closest to the backbone. */
   above: number[];
   below: number[];
 }
@@ -279,7 +305,7 @@ export interface BandTops {
 export interface VerticalLayout {
   height: number;
   enzymeRows: number;
-  /** Top of the topmost enzyme row; row r (0 = lowest) spans enzymeRowTop(r) .. +rowHeight. */
+  /** Top of the topmost enzyme row; row r (0 = lowest) spans enzymeRowTop(r) .. + rowHeight. */
   enzymeTop: number;
   enzymeBottom: number;
   features: BandTops;
@@ -297,12 +323,17 @@ export function enzymeRowTop(v: VerticalLayout, row: number): number {
   return v.enzymeBottom - (row + 1) * METRICS.enzymeRowHeight;
 }
 
-/** Height of the lanes of a band kind. */
+/** Height of the lanes of a track kind. */
 export function laneHeight(kind: 'features' | 'orfs' | 'primers'): number {
   return kind === 'features' ? METRICS.featureLaneHeight : kind === 'orfs' ? METRICS.orfLaneHeight : METRICS.primerLaneHeight;
 }
 
-/** Distance between the strand lines for a zoom level: opens smoothly from 5 to 8 px/base. */
+/** Top y of the bar drawn in a feature lane. */
+export function featureBarTop(v: VerticalLayout, side: Side, lane: number): number {
+  return v.features[side][lane] + (METRICS.featureLaneHeight - METRICS.featureBarHeight) / 2;
+}
+
+/** Distance between the strand lines for a zoom level: opens smoothly from 5 to 8 px per base. */
 export function strandGapFor(pxPerBp: number): number {
   const lo = LETTER_PX_PER_BASE - 3;
   const t = Math.min(1, Math.max(0, (pxPerBp - lo) / (LETTER_PX_PER_BASE - lo)));
@@ -317,20 +348,28 @@ export function computeVerticalLayout(input: VerticalInput): VerticalLayout {
   y += input.enzymeRows * m.enzymeRowHeight;
   const enzymeBottom = y;
   if (input.enzymeRows > 0) y += m.enzymeGap;
+  const aboveStart = y;
 
+  // Above the backbone, outermost group first. Lane 0 of each group is the one nearest the backbone.
+  let pendingGap = false;
   const stackAbove = (count: number, h: number): number[] => {
+    if (count === 0) return [];
+    if (pendingGap) y += m.groupGap;
     const tops: number[] = [];
     for (let k = 0; k < count; k++) tops.push(y + (count - 1 - k) * h);
     y += count * h;
-    if (count > 0) y += m.groupGap;
+    pendingGap = true;
     return tops;
   };
   const primersAbove = stackAbove(input.primers.above, m.primerLaneHeight);
   const orfsAbove = stackAbove(input.orfs.above, m.orfLaneHeight);
+  if (input.features.above > 0) {
+    // the free band for labels of the outermost lane also separates features from the overlays
+    y += m.featureLabelBand;
+    pendingGap = false;
+  }
   const featuresAbove = stackAbove(input.features.above, m.featureLaneHeight);
-  const anyAbove = input.primers.above + input.orfs.above + input.features.above > 0;
-  const bodyTop = anyAbove ? enzymeBottom + (input.enzymeRows > 0 ? m.enzymeGap : 0) - 2 : y - 6;
-  if (anyAbove) y -= m.groupGap;
+  const anyAbove = y > aboveStart;
   y += m.backboneGap;
 
   const topStrandY = y;
@@ -339,18 +378,25 @@ export function computeVerticalLayout(input: VerticalInput): VerticalLayout {
   y += m.rulerHeight;
   const rulerBottom = y;
 
+  pendingGap = false;
   const stackBelow = (count: number, h: number): number[] => {
+    if (count === 0) return [];
+    if (pendingGap) y += m.groupGap;
     const tops: number[] = [];
     for (let k = 0; k < count; k++) tops.push(y + k * h);
     y += count * h;
-    if (count > 0) y += m.groupGap;
+    pendingGap = true;
     return tops;
   };
+  const belowStart = y;
   const featuresBelow = stackBelow(input.features.below, m.featureLaneHeight);
+  if (input.features.below > 0) {
+    y += m.featureLabelBand;
+    pendingGap = false;
+  }
   const orfsBelow = stackBelow(input.orfs.below, m.orfLaneHeight);
   const primersBelow = stackBelow(input.primers.below, m.primerLaneHeight);
-  const anyBelow = input.primers.below + input.orfs.below + input.features.below > 0;
-  if (anyBelow) y -= m.groupGap;
+  const anyBelow = y > belowStart;
   const bodyBottom = anyBelow ? y + 2 : rulerBottom - 4;
   y += m.padBottom;
 
@@ -365,9 +411,14 @@ export function computeVerticalLayout(input: VerticalInput): VerticalLayout {
     topStrandY,
     bottomStrandY,
     rulerBottom,
-    bodyTop,
+    bodyTop: anyAbove ? aboveStart - 2 : topStrandY - 10,
     bodyBottom,
   };
+}
+
+/** Vertical offset of the map content in a pane: centred, a little above the middle. */
+export function contentOffsetY(paneHeight: number, contentHeight: number): number {
+  return Math.max(0, Math.round((paneHeight - contentHeight) * 0.46));
 }
 
 // ---------------------------------------------------------------------------
@@ -396,9 +447,12 @@ export interface FeatureGlyph {
   fill: string;
 }
 
+/** 'inside' a bar, 'beside' it in its lane, or 'outside' it (above / below, away from the backbone). */
+export type LabelPlacement = 'inside' | 'beside' | 'outside';
+
 export interface FeatureLabel extends TextBox {
   entry: number;
-  inside: boolean;
+  placement: LabelPlacement;
 }
 
 export interface FillPath {
@@ -431,6 +485,7 @@ export interface PrimerLabel extends TextBox {
 export interface EnzymeLabel extends TextBox {
   marker: number;
   unique: boolean;
+  /** Leader from the label to the backbone. */
   leader: string;
 }
 
@@ -462,6 +517,8 @@ export interface ViewInput {
   /** Enzyme label rows to use (reserved, see enzymeRowsToReserve). */
   enzymeRows: number;
   measure: TextMeasurer;
+  /** Features whose labels are placed first (highlighted / selected ones). */
+  pinnedFeatureIds?: ReadonlySet<string>;
 }
 
 export interface ViewModel {
@@ -471,7 +528,7 @@ export interface ViewModel {
   v: VerticalLayout;
   seqLength: number;
   topology: Topology;
-  /** bp range covered by the svg width (may extend beyond the record). */
+  /** bp range covered by the drawing (the visible window plus a margin; may extend beyond the record). */
   bpFrom: number;
   bpTo: number;
   letters: LettersModel | null;
@@ -486,14 +543,31 @@ export interface ViewModel {
   orfs: { glyphs: OrfGlyph[]; small: string };
   primers: { glyphs: PrimerGlyph[]; labels: PrimerLabel[] };
   enzymes: {
-    /** Cut ticks across the backbone (low zoom) or staggered cut paths (letter zoom). */
+    /** Cut marks across the backbone: labelled cuts, and cuts whose label did not fit. */
     ticks: string;
+    ticksUnlabelled: string;
+    /** Staggered cuts between the strands (letter zoom). */
     staggered: string;
     leaders: string;
     labels: EnzymeLabel[];
     /** Indices (into markers) of the visible markers, for hit-testing. */
     visible: number[];
   };
+}
+
+const labelWidthCache = new WeakMap<readonly CutMarker[], { measure: TextMeasurer; widths: Float64Array }>();
+
+/** Width (px) of each marker's label box (padding included), measured once per marker set. */
+function enzymeLabelWidths(markers: readonly CutMarker[], measure: TextMeasurer): Float64Array {
+  const hit = labelWidthCache.get(markers);
+  if (hit && hit.measure === measure) return hit.widths;
+  const widths = new Float64Array(markers.length);
+  for (let i = 0; i < markers.length; i++) {
+    const mk = markers[i];
+    widths[i] = METRICS.enzymeLabelPad + measure(mk.label, METRICS.enzymeFont, mk.unique ? METRICS.enzymeUniqueWeight : 400);
+  }
+  labelWidthCache.set(markers, { measure, widths });
+  return widths;
 }
 
 /** Rows to reserve for enzyme labels: what the whole-record view needs, capped. Stable while panning. */
@@ -507,16 +581,12 @@ export function enzymeRowsToReserve(
   maxRows: number = METRICS.maxEnzymeRows,
 ): number {
   if (markers.length === 0 || seqLength <= 0) return 0;
+  // so many cuts that zoomed-in views will need every row
+  if (markers.length > MAX_LABELLED_CUTS) return maxRows;
   const k = plotWidth / seqLength;
-  const boxes = markers.map((m) => ({
-    x: plotLeft + m.pos * k,
-    width: METRICS.enzymeLabelPad + measure(m.label, METRICS.enzymeFont, m.unique ? METRICS.enzymeUniqueWeight : 400),
-    priority: m.unique ? 1 : 0,
-  }));
-  const placed = placeEnzymeLabels(boxes, { maxRows, minX: 2, maxX: width - 2 });
-  let rows = 1;
-  for (const p of placed) if (p && p.row + 1 > rows) rows = p.row + 1;
-  return rows;
+  const widths = enzymeLabelWidths(markers, measure);
+  const boxes = markers.map((mk, i) => ({ x: plotLeft + mk.pos * k, width: widths[i], priority: mk.unique ? 1 : 0 }));
+  return Math.max(1, rowsUsed(placeEnzymeLabels(boxes, { maxRows, minX: EDGE, maxX: width - EDGE })));
 }
 
 /** [top strand extent, bottom strand extent] in bp, honouring single-stranded ends. */
@@ -559,7 +629,7 @@ function piecesOf(r: Range, seqLength: number): Range[] {
 /**
  * Shape of one lane item of a feature: the bar(s) and, for multi-segment features, the line
  * joining them. Also returns the widest visible body (the part of a bar without its arrow head)
- * where an inside label can go.
+ * where a label can go inside.
  */
 export function featurePieceShape(
   entry: FeatureEntry,
@@ -641,7 +711,7 @@ export function featurePieceShape(
       const b = Math.min(width + CLIP, scale.x(subPieces[k].start));
       if (b > a) c += hlinePath(a, b, cy);
     }
-    // a piece that starts/ends inside an intron (the join continues across the origin)
+    // a piece that starts / ends inside an intron (the join continues across the origin)
     const first = scale.x(subPieces[0].start);
     const pieceStart = scale.x(piece.start);
     if (first > pieceStart + 0.5) c += hlinePath(Math.max(-CLIP, pieceStart), Math.min(width + CLIP, first), cy);
@@ -653,9 +723,49 @@ export function featurePieceShape(
   return { d, connector, bodyL: bestL, bodyR: bestR };
 }
 
-/** Visible px width of a feature piece. */
+/** Visible px width of [start, end). */
 function visibleWidth(start: number, end: number, scale: LinearScale, width: number): number {
   return Math.max(0, Math.min(width, scale.x(end)) - Math.max(0, scale.x(start)));
+}
+
+/**
+ * Whether a lane item carries the item's label. A range that wraps the origin is drawn as two
+ * pieces; only the one with more visible width is labelled.
+ */
+function isLabelPiece(extent: Range, piece: 0 | 1 | 2, L: number, scale: LinearScale, width: number): boolean {
+  if (piece === 0) return true;
+  const tail = visibleWidth(extent.start, L, scale, width);
+  const head = visibleWidth(0, extent.end - L, scale, width);
+  return piece === 1 ? tail >= head : head > tail;
+}
+
+/** Occupancy row of a feature lane (`lane === count` is the free band beyond the outermost lane). */
+function featureRowKey(side: Side, lane: number): string {
+  return `f:${side}:${lane}`;
+}
+
+interface FeatureLabelCandidate {
+  ref: number;
+  piece: 0 | 1 | 2;
+  side: Side;
+  lane: number;
+  /** Drawn bar extent (px). */
+  x0: number;
+  x1: number;
+  /** Room for a label inside the bar (px, visible part); empty when bodyR <= bodyL. */
+  bodyL: number;
+  bodyR: number;
+  barTop: number;
+  priority: number;
+}
+
+function appendPath(map: Map<string, string>, key: string, d: string): void {
+  map.set(key, (map.get(key) ?? '') + d);
+}
+
+/** Density level (index into DENSITY_LEVELS) of a coverage fraction. */
+function densityLevel(coverage: number): number {
+  return Math.min(DENSITY_LEVELS.length - 1, Math.max(0, Math.ceil(Math.min(1, coverage) * DENSITY_LEVELS.length) - 1));
 }
 
 function layoutFeatures(
@@ -663,24 +773,39 @@ function layoutFeatures(
   v: VerticalLayout,
   ctx: LaneContext,
   out: ViewModel['features'],
+  space: LabelSpace,
+  pinned: ReadonlySet<string> | undefined,
 ): void {
   const { scale, width, bpFrom, bpTo, measure, seqLength: L } = ctx;
   const m = METRICS;
+  const barH = m.featureBarHeight;
   const nBins = Math.max(1, Math.ceil(width / BIN_PX));
   const smallByFill = new Map<string, string>();
+  const densityByKey = new Map<string, { fill: string; level: number; d: string }>();
+  const fills: string[] = [];
+  const fillIndex = new Map<string, number>();
+  const indexOfFill = (fill: string): number => {
+    let i = fillIndex.get(fill);
+    if (i === undefined) {
+      i = fills.length;
+      fills.push(fill);
+      fillIndex.set(fill, i);
+    }
+    return i;
+  };
+  const candidates: FeatureLabelCandidate[] = [];
+  const tinyCandidates: FeatureLabelCandidate[] = [];
+  let tinyCount = 0;
 
-  for (const side of ['above', 'below'] as const) {
+  for (const side of SIDES) {
     const lanes = set[side];
     for (let lane = 0; lane < lanes.length; lane++) {
       const { items } = lanes[lane];
       const [i0, i1] = visibleSpan(lanes[lane], bpFrom, bpTo);
       if (i0 >= i1) continue;
-      const rowTop = v.features[side][lane];
-      const top = rowTop + (m.featureLaneHeight - m.featureBarHeight) / 2;
-      const cy = top + m.featureBarHeight / 2;
-      let occupied = -Infinity;
-      let bins: Float32Array | null = null;
-      let densityFill: string | null = null;
+      const top = featureBarTop(v, side, lane);
+      const row = space.row(featureRowKey(side, lane));
+      const tiny: Array<{ x0: number; x1: number; ref: number; piece: 0 | 1 | 2 }> = [];
 
       for (let i = i0; i < i1; i++) {
         const it = items[i];
@@ -689,120 +814,187 @@ function layoutFeatures(
         const x0 = scale.x(it.start);
         const x1 = scale.x(it.end);
         const w = x1 - x0;
-
         if (w < DENSITY_PX) {
-          bins ??= new Float32Array(nBins);
-          const a = Math.max(0, x0);
-          const b = Math.min(width, x1);
-          for (let bin = Math.floor(a / BIN_PX); bin < nBins && bin * BIN_PX < b; bin++) {
-            const overlap = Math.min(b, (bin + 1) * BIN_PX) - Math.max(a, bin * BIN_PX);
-            if (overlap > 0) bins[bin] += overlap / BIN_PX;
-          }
-          densityFill = densityFill === null ? entry.fill : densityFill === entry.fill ? densityFill : DENSITY_MIXED;
-          occupied = Math.max(occupied, x1);
+          tiny.push({ x0, x1, ref: it.ref, piece: it.piece });
           continue;
         }
-
-        const next = i + 1 < items.length ? scale.x(items[i + 1].start) : Infinity;
-        const name = entry.feature.name;
-        const isLabelPiece =
-          it.piece === 0 ||
-          (() => {
-            // label only the piece with the larger visible width
-            const other = it.piece === 1 ? { start: 0, end: entry.extent.end - L } : { start: entry.extent.start, end: L };
-            const mine = visibleWidth(it.start, it.end, scale, width);
-            const theirs = visibleWidth(other.start, other.end, scale, width);
-            return mine > theirs || (mine === theirs && it.piece === 1);
-          })();
-
-        let bodyL = Math.max(0, x0);
-        let bodyR = Math.min(width, x1);
+        let bodyL = 0;
+        let bodyR = 0;
         if (w < SMALL_PX) {
-          const xa = Math.max(-CLIP, x0);
-          const xb = Math.min(width + CLIP, x1);
-          smallByFill.set(entry.fill, (smallByFill.get(entry.fill) ?? '') + rectPath(xa, top, xb - xa, m.featureBarHeight));
-          bodyR = bodyL; // no room inside
+          appendPath(smallByFill, entry.fill, rectPath(x0, top, w, barH));
         } else {
           const shape = featurePieceShape(entry, it, top, ctx);
           out.glyphs.push({ key: `${entry.feature.id}:${it.piece}`, entry: it.ref, d: shape.d, connector: shape.connector, fill: entry.fill });
           bodyL = shape.bodyL;
           bodyR = shape.bodyR;
         }
-
-        let labelRight = -Infinity;
-        if (isLabelPiece && name) {
-          const tw = measure(name, m.labelFont, m.labelWeight);
-          const avail = bodyR - bodyL - 2 * INSIDE_PAD;
-          const th = m.labelFont;
-          const box = (text: string, x: number, anchor: TextBox['anchor'], textW: number, inside: boolean): FeatureLabel => {
-            const left = anchor === 'start' ? x : anchor === 'end' ? x - textW : x - textW / 2;
-            return {
-              key: `${entry.feature.id}:${it.piece}:label`,
-              entry: it.ref,
-              text,
-              x,
-              y: cy,
-              anchor,
-              inside,
-              left,
-              right: left + textW,
-              top: cy - th / 2 - 1,
-              bottom: cy + th / 2 + 1,
-            };
-          };
-          if (tw <= avail) {
-            out.labels.push(box(name, (bodyL + bodyR) / 2, 'middle', tw, true));
-          } else {
-            const rx0 = x1 + BESIDE_GAP;
-            const lx1 = x0 - BESIDE_GAP;
-            if (x1 >= 0 && rx0 + tw + BESIDE_GAP <= next && rx0 + tw <= width - 2) {
-              out.labels.push(box(name, rx0, 'start', tw, false));
-              labelRight = rx0 + tw;
-            } else if (x0 <= width && lx1 - tw >= occupied + BESIDE_GAP && lx1 - tw >= 2) {
-              out.labels.push(box(name, lx1, 'end', tw, false));
-            } else if (avail >= 22) {
-              const text = truncateToWidth(name, avail, (s) => measure(s, m.labelFont, m.labelWeight));
-              if (text) out.labels.push(box(text, (bodyL + bodyR) / 2, 'middle', measure(text, m.labelFont, m.labelWeight), true));
-            }
-          }
+        row.add(Math.max(-CLIP, x0), Math.min(width + CLIP, x1));
+        if (isLabelPiece(entry.extent, it.piece, L, scale, width)) {
+          const vis = Math.min(width, x1) - Math.max(0, x0);
+          candidates.push({
+            ref: it.ref,
+            piece: it.piece,
+            side,
+            lane,
+            x0,
+            x1,
+            bodyL,
+            bodyR,
+            barTop: top,
+            priority: (pinned?.has(entry.feature.id) ? 1e9 : 0) + vis,
+          });
         }
-        occupied = Math.max(occupied, x1, labelRight);
       }
 
-      if (bins) {
-        const fill = densityFill ?? DENSITY_MIXED;
-        const paths = DENSITY_LEVELS.map(() => '');
+      if (tiny.length === 0) continue;
+      tinyCount += tiny.length;
+      // Lone tiny features stay visible as slim solid bars; crowded ones become density.
+      let cov: Float32Array | null = null;
+      let dom: Int32Array | null = null;
+      let domAmount: Float32Array | null = null;
+      let prevEnd = -Infinity;
+      for (let k = 0; k < tiny.length; k++) {
+        const t = tiny[k];
+        const nextStart = k + 1 < tiny.length ? tiny[k + 1].x0 : Infinity;
+        const isolated = t.x0 - prevEnd >= ISOLATION_PX && nextStart - t.x1 >= ISOLATION_PX;
+        prevEnd = Math.max(prevEnd, t.x1);
+        const entry = set.entries[t.ref];
+        if (isolated) {
+          const c = (t.x0 + t.x1) / 2;
+          const a = c - MIN_BAR_PX / 2;
+          appendPath(smallByFill, entry.fill, rectPath(a, top, MIN_BAR_PX, barH));
+          row.add(a, a + MIN_BAR_PX);
+          if (isLabelPiece(entry.extent, t.piece, L, scale, width)) {
+            tinyCandidates.push({
+              ref: t.ref,
+              piece: t.piece,
+              side,
+              lane,
+              x0: a,
+              x1: a + MIN_BAR_PX,
+              bodyL: 0,
+              bodyR: 0,
+              barTop: top,
+              priority: pinned?.has(entry.feature.id) ? 1e9 : 0,
+            });
+          }
+          continue;
+        }
+        cov ??= new Float32Array(nBins);
+        dom ??= new Int32Array(nBins).fill(-1);
+        domAmount ??= new Float32Array(nBins);
+        const a = Math.max(0, t.x0);
+        const b = Math.min(width, Math.max(t.x1, t.x0 + 0.25));
+        const fi = indexOfFill(entry.fill);
+        for (let bin = Math.max(0, Math.floor(a / BIN_PX)); bin < nBins && bin * BIN_PX < b; bin++) {
+          const overlap = Math.min(b, (bin + 1) * BIN_PX) - Math.max(a, bin * BIN_PX);
+          if (overlap <= 0) continue;
+          const f = overlap / BIN_PX;
+          cov[bin] += f;
+          if (f > domAmount[bin]) {
+            domAmount[bin] = f;
+            dom[bin] = fi;
+          }
+        }
+        row.add(a, b);
+      }
+      if (cov && dom) {
         let b = 0;
         while (b < nBins) {
-          const cov = bins[b];
-          if (cov <= 0.001) {
+          if (cov[b] <= 0.001 || dom[b] < 0) {
             b++;
             continue;
           }
-          const level = Math.min(DENSITY_LEVELS.length - 1, Math.max(0, Math.ceil(Math.min(1, cov) * DENSITY_LEVELS.length) - 1));
+          const level = densityLevel(cov[b]);
+          const fi = dom[b];
           let e = b + 1;
-          while (e < nBins && bins[e] > 0.001) {
-            const l2 = Math.min(DENSITY_LEVELS.length - 1, Math.max(0, Math.ceil(Math.min(1, bins[e]) * DENSITY_LEVELS.length) - 1));
-            if (l2 !== level) break;
-            e++;
-          }
-          paths[level] += rectPath(b * BIN_PX, top, (e - b) * BIN_PX, m.featureBarHeight);
+          while (e < nBins && cov[e] > 0.001 && dom[e] === fi && densityLevel(cov[e]) === level) e++;
+          const key = `${fi}:${level}`;
+          const path = densityByKey.get(key) ?? { fill: fills[fi], level, d: '' };
+          path.d += rectPath(b * BIN_PX, top, (e - b) * BIN_PX, barH);
+          densityByKey.set(key, path);
           b = e;
         }
-        paths.forEach((d, level) => {
-          if (d) out.density.push({ key: `${side}:${lane}:${level}`, d, fill, opacity: DENSITY_LEVELS[level] });
-        });
       }
     }
   }
+
   for (const [fill, d] of smallByFill) out.small.push({ key: `small:${fill}`, d, fill, opacity: 1 });
+  for (const [key, p] of densityByKey) out.density.push({ key: `density:${key}`, d: p.d, fill: p.fill, opacity: DENSITY_LEVELS[p.level] });
+
+  // Labels, most important first: pinned features, then the widest bars.
+  for (const c of tinyCandidates) if (tinyCount <= MAX_LABELLED_TINY || c.priority > 0) candidates.push(c);
+  candidates.sort((a, b) => b.priority - a.priority || a.x0 - b.x0);
+  const font = m.labelFont;
+  const weight = m.labelWeight;
+  const widthOf = (s: string) => measure(s, font, weight);
+  for (const c of candidates) {
+    const entry = set.entries[c.ref];
+    const name = entry.feature.name;
+    if (!name) continue;
+    const tw = widthOf(name);
+    const cy = c.barTop + barH / 2;
+    const key = `${entry.feature.id}:${c.piece}:label`;
+    const push = (text: string, left: number, textW: number, y: number, placement: LabelPlacement) => {
+      out.labels.push({
+        key,
+        entry: c.ref,
+        text,
+        x: left + textW / 2,
+        y,
+        anchor: 'middle',
+        left,
+        right: left + textW,
+        top: y - font / 2 - 1,
+        bottom: y + font / 2 + 1,
+        placement,
+      });
+    };
+    const room = c.bodyR - c.bodyL - 2 * INSIDE_PAD;
+    if (tw <= room) {
+      push(name, (c.bodyL + c.bodyR) / 2 - tw / 2, tw, cy, 'inside');
+      continue;
+    }
+    const row = space.row(featureRowKey(c.side, c.lane));
+    // beside, right of the bar, then left of it
+    const rl = c.x1 + BESIDE_GAP;
+    if (rl >= EDGE && rl + tw <= width - EDGE && row.isFree(rl, rl + tw + NEIGHBOUR_GAP)) {
+      push(name, rl, tw, cy, 'beside');
+      row.add(rl, rl + tw);
+      continue;
+    }
+    const ll = c.x0 - BESIDE_GAP - tw;
+    if (ll >= EDGE && ll + tw <= width - EDGE && row.isFree(ll - NEIGHBOUR_GAP, ll + tw)) {
+      push(name, ll, tw, cy, 'beside');
+      row.add(ll, ll + tw);
+      continue;
+    }
+    // outside: above the bar (top side) or below it (bottom side), centred on its visible part
+    const outer = space.row(featureRowKey(c.side, c.lane + 1));
+    const centre = (Math.max(0, c.x0) + Math.min(width, c.x1)) / 2;
+    const ol = Math.min(width - EDGE - tw, Math.max(EDGE, centre - tw / 2));
+    const oy = c.side === 'above' ? c.barTop - OUTWARD_GAP - font / 2 - 1 : c.barTop + barH + OUTWARD_GAP + font / 2 + 1;
+    if (ol >= EDGE && outer.isFree(ol - NEIGHBOUR_GAP, ol + tw + NEIGHBOUR_GAP)) {
+      push(name, ol, tw, oy, 'outside');
+      outer.add(ol, ol + tw);
+      continue;
+    }
+    if (room >= MIN_TRUNCATED_PX) {
+      const text = truncateToWidth(name, room, widthOf);
+      // "fro…" says little: keep a truncated label only if enough of the name survives
+      if (text && text.length - 1 >= Math.min(MIN_TRUNCATED_CHARS, name.length - 1)) {
+        const w = widthOf(text);
+        push(text, (c.bodyL + c.bodyR) / 2 - w / 2, w, cy, 'inside');
+      }
+    }
+  }
 }
 
 function layoutOrfs(set: TrackSet<OrfEntry>, v: VerticalLayout, ctx: LaneContext, out: ViewModel['orfs']): void {
-  const { scale, width, bpFrom, bpTo } = ctx;
+  const { scale, width, bpFrom, bpTo, seqLength: L } = ctx;
   const m = METRICS;
   let small = '';
-  for (const side of ['above', 'below'] as const) {
+  for (const side of SIDES) {
     const lanes = set[side];
     for (let lane = 0; lane < lanes.length; lane++) {
       const [i0, i1] = visibleSpan(lanes[lane], bpFrom, bpTo);
@@ -814,11 +1006,11 @@ function layoutOrfs(set: TrackSet<OrfEntry>, v: VerticalLayout, ctx: LaneContext
         const x0 = Math.max(-CLIP, scale.x(it.start));
         const x1 = Math.min(width + CLIP, scale.x(it.end));
         if (x1 - x0 < SMALL_PX) {
-          small += rectPath(x0, cy - m.orfThickness / 2, Math.max(1, x1 - x0), m.orfThickness);
+          const w = Math.max(1, x1 - x0);
+          small += rectPath((x0 + x1) / 2 - w / 2, cy - m.orfThickness / 2, w, m.orfThickness);
           continue;
         }
         const dir = entry.orf.strand;
-        const L = ctx.seqLength;
         // the arrow head goes on the piece holding the 3' end
         const end3 = dir === 1 ? (entry.extent.end > L ? entry.extent.end - L : entry.extent.end) : entry.extent.start;
         const hasHead = dir === 1 ? it.end === end3 && scale.x(it.end) <= width + CLIP : it.start === end3 && scale.x(it.start) >= -CLIP;
@@ -832,17 +1024,31 @@ function layoutOrfs(set: TrackSet<OrfEntry>, v: VerticalLayout, ctx: LaneContext
   out.small = small;
 }
 
-function layoutPrimers(set: TrackSet<PrimerEntry>, v: VerticalLayout, ctx: LaneContext, out: ViewModel['primers']): void {
+/** Drawn x extent of a primer piece: its annealed part widened to PRIMER_MIN_PX. */
+export function primerGlyphExtent(x0: number, x1: number): [number, number] {
+  if (x1 - x0 >= PRIMER_MIN_PX) return [x0, x1];
+  const c = (x0 + x1) / 2;
+  return [c - PRIMER_MIN_PX / 2, c + PRIMER_MIN_PX / 2];
+}
+
+function layoutPrimers(
+  set: TrackSet<PrimerEntry>,
+  v: VerticalLayout,
+  ctx: LaneContext,
+  out: ViewModel['primers'],
+  space: LabelSpace,
+): void {
   const { scale, width, bpFrom, bpTo, measure, seqLength: L } = ctx;
   const m = METRICS;
-  for (const side of ['above', 'below'] as const) {
+  const candidates: Array<{ ref: number; piece: 0 | 1 | 2; side: Side; lane: number; x0: number; x1: number; cy: number; dir: 1 | -1 }> = [];
+  for (const side of SIDES) {
     const lanes = set[side];
     for (let lane = 0; lane < lanes.length; lane++) {
       const { items } = lanes[lane];
       const [i0, i1] = visibleSpan(lanes[lane], bpFrom, bpTo);
       // the shaft sits a little towards the backbone; the barb and tail rise away from it
       const cy = v.primers[side][lane] + m.primerLaneHeight / 2 + (side === 'above' ? 2 : -2);
-      let occupied = -Infinity;
+      const row = space.row(`p:${side}:${lane}`);
       for (let i = i0; i < i1; i++) {
         const it = items[i];
         if (it.end <= bpFrom || it.start >= bpTo) continue;
@@ -853,79 +1059,188 @@ function layoutPrimers(set: TrackSet<PrimerEntry>, v: VerticalLayout, ctx: LaneC
         const end3 = dir === 1 ? (ann.end > L ? ann.end - L : ann.end) : ann.start;
 
         let d = '';
+        let gx0 = Infinity;
+        let gx1 = -Infinity;
         for (const ap of piecesOf(ann, L)) {
           const s = Math.max(ap.start, it.start);
           const e = Math.min(ap.end, it.end);
           if (e <= s) continue;
-          let x0 = scale.x(s);
-          let x1 = scale.x(e);
-          if (x1 - x0 < 1.5) {
-            const c = (x0 + x1) / 2;
-            x0 = c - 0.75;
-            x1 = c + 0.75;
-          }
-          const tip = dir === 1 ? e === end3 && x1 <= width + CLIP : s === end3 && x0 >= -CLIP;
+          const tip = dir === 1 ? e === end3 : s === end3;
+          let [x0, x1] = [scale.x(s), scale.x(e)];
+          // only the piece with the arrow head is widened (a cut-off piece is just a shaft)
+          if (tip) [x0, x1] = primerGlyphExtent(x0, x1);
+          else if (x1 - x0 < 1.5) [x0, x1] = [(x0 + x1) / 2 - 0.75, (x0 + x1) / 2 + 0.75];
+          const showTip = tip && (dir === 1 ? x1 <= width + CLIP : x0 >= -CLIP);
           const cx0 = Math.max(-CLIP, x0);
           const cx1 = Math.min(width + CLIP, x1);
-          d += tip
+          if (cx1 <= cx0) continue;
+          d += showTip
             ? primerPath(cx0, cx1, cy, dir, m.primerShaft, m.primerHead, m.primerBarb)
             : rectPath(cx0, cy - m.primerShaft / 2, cx1 - cx0, m.primerShaft);
+          gx0 = Math.min(gx0, cx0);
+          gx1 = Math.max(gx1, cx1);
         }
 
         let tail: string | null = null;
         if (entry.tail) {
           const s = Math.max(entry.tail.start, it.start);
           const e = Math.min(entry.tail.end, it.end);
-          if (e > s) {
+          const x0 = Math.max(-CLIP, scale.x(s));
+          const x1 = Math.min(width + CLIP, scale.x(e));
+          if (e > s && x1 - x0 >= 3) {
             const ty = cy + (dir === 1 ? -3.5 : 3.5);
-            const x0 = Math.max(-CLIP, scale.x(s));
-            const x1 = Math.min(width + CLIP, scale.x(e));
             // a short diagonal joins the raised tail to the shaft where annealing starts
             if (dir === 1) {
-              tail = e === entry.tail.end ? `M${fmt(x0)} ${fmt(ty)}H${fmt(Math.max(x0, x1 - 2.5))}L${fmt(x1)} ${fmt(cy)}` : hlinePath(x0, x1, ty);
+              const joined = e === entry.tail.end;
+              const end = joined ? Math.min(x1, gx0 === Infinity ? x1 : gx0) : x1;
+              tail = joined ? `M${fmt(x0)} ${fmt(ty)}H${fmt(Math.max(x0, end - 2.5))}L${fmt(end)} ${fmt(cy)}` : hlinePath(x0, x1, ty);
             } else {
-              tail = s === entry.tail.start ? `M${fmt(x1)} ${fmt(ty)}H${fmt(Math.min(x1, x0 + 2.5))}L${fmt(x0)} ${fmt(cy)}` : hlinePath(x0, x1, ty);
+              const joined = s === entry.tail.start;
+              const start = joined ? Math.max(x0, gx1 === -Infinity ? x0 : gx1) : x0;
+              tail = joined ? `M${fmt(x1)} ${fmt(ty)}H${fmt(Math.min(x1, start + 2.5))}L${fmt(start)} ${fmt(cy)}` : hlinePath(x0, x1, ty);
             }
+            gx0 = Math.min(gx0, x0);
+            gx1 = Math.max(gx1, x1);
           }
         }
         if (!d && !tail) continue;
         out.glyphs.push({ key: `primer:${it.ref}:${it.piece}`, entry: it.ref, d, tail, dir });
-
-        // Name beside the primer, on its 3' side first. A primer that wraps the origin is
-        // labelled on the piece that holds its 3' end.
-        const x0 = scale.x(it.start);
-        const x1 = scale.x(it.end);
-        let labelRight = -Infinity;
-        const isLabelPiece = it.piece === 0 || it.piece === (dir === 1 ? 2 : 1);
-        if (isLabelPiece && entry.name) {
-          const next = i + 1 < items.length ? scale.x(items[i + 1].start) : Infinity;
-          const tw = measure(entry.name, m.primerFont, 500);
-          const rightOk = x1 >= 0 && x1 + BESIDE_GAP + tw + BESIDE_GAP <= next && x1 + BESIDE_GAP + tw <= width - 2;
-          const leftOk = x0 <= width && x0 - BESIDE_GAP - tw >= occupied + BESIDE_GAP && x0 - BESIDE_GAP - tw >= 2;
-          const right = dir === 1 ? (rightOk ? true : leftOk ? false : null) : leftOk ? false : rightOk ? true : null;
-          if (right !== null) {
-            const x = right ? x1 + BESIDE_GAP : x0 - BESIDE_GAP;
-            const left = right ? x : x - tw;
-            out.labels.push({
-              key: `primer:${it.ref}:${it.piece}:label`,
-              entry: it.ref,
-              dir,
-              text: entry.name,
-              x,
-              y: cy,
-              anchor: right ? 'start' : 'end',
-              left,
-              right: left + tw,
-              top: cy - m.primerFont / 2 - 1,
-              bottom: cy + m.primerFont / 2 + 1,
-            });
-            if (right) labelRight = x + tw;
-          }
+        row.add(gx0, gx1);
+        // a primer that wraps the origin is labelled on the piece holding its 3' end
+        if (it.piece === 0 || it.piece === (dir === 1 ? 2 : 1)) {
+          candidates.push({ ref: it.ref, piece: it.piece, side, lane, x0: gx0, x1: gx1, cy, dir });
         }
-        occupied = Math.max(occupied, x1, labelRight);
       }
     }
   }
+
+  candidates.sort((a, b) => a.x0 - b.x0);
+  const font = m.primerFont;
+  for (const c of candidates) {
+    const entry = set.entries[c.ref];
+    if (!entry.name) continue;
+    const tw = measure(entry.name, font, m.primerWeight);
+    const row = space.row(`p:${c.side}:${c.lane}`);
+    const right = (): number | null => {
+      const l = c.x1 + BESIDE_GAP;
+      return l >= EDGE && l + tw <= width - EDGE && row.isFree(l, l + tw + NEIGHBOUR_GAP) ? l : null;
+    };
+    const left = (): number | null => {
+      const l = c.x0 - BESIDE_GAP - tw;
+      return l >= EDGE && l + tw <= width - EDGE && row.isFree(l - NEIGHBOUR_GAP, l + tw) ? l : null;
+    };
+    // the name goes on the 3' side first (right of a forward primer, left of a reverse one)
+    const l = c.dir === 1 ? (right() ?? left()) : (left() ?? right());
+    if (l === null) continue;
+    row.add(l, l + tw);
+    out.labels.push({
+      key: `primer:${c.ref}:${c.piece}:label`,
+      entry: c.ref,
+      dir: c.dir,
+      text: entry.name,
+      x: l + tw / 2,
+      y: c.cy,
+      anchor: 'middle',
+      left: l,
+      right: l + tw,
+      top: c.cy - font / 2 - 1,
+      bottom: c.cy + font / 2 + 1,
+    });
+  }
+}
+
+/** Index of the first marker with pos >= bp. */
+function firstMarkerAtLeast(markers: readonly CutMarker[], bp: number): number {
+  let lo = 0;
+  let hi = markers.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (markers[mid].pos < bp) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+function layoutEnzymes(markers: readonly CutMarker[], v: VerticalLayout, ctx: LaneContext, view: ViewModel, letterZoom: boolean): void {
+  const { scale, width, measure } = ctx;
+  const m = METRICS;
+  const a = firstMarkerAtLeast(markers, scale.bp(-2));
+  const b = firstMarkerAtLeast(markers, scale.bp(width + 2) + 1e-9);
+  const visible: number[] = [];
+  for (let i = a; i < b; i++) visible.push(i);
+  view.enzymes.visible = visible;
+
+  const placed: Array<PlacedLabel | null> = visible.map(() => null);
+  if (v.enzymeRows > 0) {
+    const widths = enzymeLabelWidths(markers, measure);
+    const dense = visible.length > MAX_LABELLED_CUTS;
+    const candidates: number[] = [];
+    for (let j = 0; j < visible.length; j++) if (!dense || markers[visible[j]].unique) candidates.push(j);
+    const result = placeEnzymeLabels(
+      candidates.map((j) => {
+        const mk = markers[visible[j]];
+        return { x: scale.x(mk.pos), width: widths[visible[j]], priority: mk.unique ? 1 : 0 };
+      }),
+      { maxRows: v.enzymeRows, minX: EDGE, maxX: width - EDGE },
+    );
+    candidates.forEach((j, k) => {
+      placed[j] = result[k];
+    });
+  }
+
+  // Cut marks across the backbone; at letter zoom the staggered cut between the strands.
+  let ticks = '';
+  let ticksUnlabelled = '';
+  let staggered = '';
+  const drawn = new Set<number>();
+  const yTop = v.topStrandY - CUT_OVERSHOOT;
+  const yBottom = v.bottomStrandY + CUT_OVERSHOOT;
+  visible.forEach((i, j) => {
+    const mk = markers[i];
+    const x = Math.round(scale.x(mk.pos) * 2) / 2;
+    if (letterZoom && mk.cuts) {
+      const xb = Math.round(scale.x(mk.bottom) * 2) / 2;
+      const yMid = (v.topStrandY + v.bottomStrandY) / 2;
+      staggered += `M${fmt(x)} ${fmt(v.topStrandY - 3)}V${fmt(yMid)}H${fmt(xb)}V${fmt(v.bottomStrandY + 3)}`;
+      return;
+    }
+    const key = Math.round(x * 2);
+    if (placed[j]) ticks += vlinePath(x, yTop, yBottom);
+    else if (!drawn.has(key)) ticksUnlabelled += vlinePath(x, yTop, yBottom);
+    drawn.add(key);
+  });
+  view.enzymes.ticks = ticks;
+  view.enzymes.ticksUnlabelled = ticksUnlabelled;
+  view.enzymes.staggered = staggered;
+
+  let leaders = '';
+  placed.forEach((p, j) => {
+    if (!p) return;
+    const i = visible[j];
+    const mk = markers[i];
+    const x = Math.round(p.x * 2) / 2;
+    const rowTop = enzymeRowTop(v, p.row);
+    const cy = rowTop + m.enzymeRowHeight / 2;
+    const leader = vlinePath(x, cy + 2, v.topStrandY - CUT_OVERSHOOT);
+    leaders += leader;
+    const textW = p.right - p.left - m.enzymeLabelPad;
+    const textLeft = p.align === 'start' ? x + m.enzymeLabelPad : x - m.enzymeLabelPad - textW;
+    view.enzymes.labels.push({
+      key: `e${i}`,
+      marker: i,
+      unique: mk.unique,
+      text: mk.label,
+      x: textLeft,
+      y: cy,
+      anchor: 'start',
+      left: p.left,
+      right: p.right,
+      top: rowTop + 1,
+      bottom: rowTop + m.enzymeRowHeight - 1,
+      leader,
+    });
+  });
+  view.enzymes.leaders = leaders;
 }
 
 /** Build the per-frame view model. */
@@ -938,6 +1253,7 @@ export function computeView(input: ViewInput): ViewModel {
   const bpTo = scale.bp(width + CLIP);
   const count = (set: TrackSet<TrackEntryBase> | null): LaneCounts =>
     set ? { above: set.above.length, below: set.below.length } : { above: 0, below: 0 };
+  // DNA reads as a double strand; RNA and protein as a single line.
   const isDna = record.molecule === 'DNA';
   const v = computeVerticalLayout({
     enzymeRows: input.markers && input.markers.length > 0 ? input.enzymeRows : 0,
@@ -960,13 +1276,14 @@ export function computeView(input: ViewInput): ViewModel {
   };
   let continuation: string | null = null;
   if (topology === 'circular' && L > 0) {
+    // A few short dashes beyond each end say "the molecule continues round".
     const ys = isDna ? [v.topStrandY, v.bottomStrandY] : [v.topStrandY];
+    const xs = scale.x(0);
+    const xe = scale.x(L);
     let c = '';
     for (const y of ys) {
-      const xs = scale.x(0);
-      const xe = scale.x(L);
-      if (xs > 0) for (let d = 3; d <= 13; d += 5) c += hlinePath(xs - d - 2.5, xs - d, y);
-      if (xe < width) for (let d = 3; d <= 13; d += 5) c += hlinePath(xe + d, xe + d + 2.5, y);
+      if (xs > 4) for (let d = 3; d <= 13; d += 5) c += hlinePath(xs - d - 2.5, xs - d, y);
+      if (xe < width - 4) for (let d = 3; d <= 13; d += 5) c += hlinePath(xe + d, xe + d + 2.5, y);
     }
     continuation = c || null;
   }
@@ -994,8 +1311,8 @@ export function computeView(input: ViewInput): ViewModel {
     const fontSize = letterFontSize(k);
     letters = {
       fontSize,
-      topY: isDna ? v.topStrandY + (v.bottomStrandY - v.topStrandY) * 0.28 : v.topStrandY - fontSize * 0.8,
-      bottomY: v.topStrandY + (v.bottomStrandY - v.topStrandY) * 0.72,
+      topY: isDna ? v.topStrandY + (v.bottomStrandY - v.topStrandY) * 0.29 : v.topStrandY - fontSize * 0.8,
+      bottomY: v.topStrandY + (v.bottomStrandY - v.topStrandY) * 0.71,
       top: row(ext.top[0], ext.top[1], false),
       bottom: isDna ? row(ext.bottom[0], ext.bottom[1], true) : null,
     };
@@ -1041,273 +1358,12 @@ export function computeView(input: ViewInput): ViewModel {
     features: { glyphs: [], small: [], density: [], labels: [] },
     orfs: { glyphs: [], small: '' },
     primers: { glyphs: [], labels: [] },
-    enzymes: { ticks: '', staggered: '', leaders: '', labels: [], visible: [] },
+    enzymes: { ticks: '', ticksUnlabelled: '', staggered: '', leaders: '', labels: [], visible: [] },
   };
-  if (input.features) layoutFeatures(input.features, v, ctx, view.features);
+  const space = new LabelSpace();
+  if (input.features) layoutFeatures(input.features, v, ctx, view.features, space, input.pinnedFeatureIds);
   if (input.orfs) layoutOrfs(input.orfs, v, ctx, view.orfs);
-  if (input.primers) layoutPrimers(input.primers, v, ctx, view.primers);
+  if (input.primers) layoutPrimers(input.primers, v, ctx, view.primers, space);
   if (input.markers && input.markers.length > 0) layoutEnzymes(input.markers, v, ctx, view, letters !== null);
   return view;
-}
-
-/** Index of the first marker with pos >= bp. */
-function firstMarkerAtLeast(markers: readonly CutMarker[], bp: number): number {
-  let lo = 0;
-  let hi = markers.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (markers[mid].pos < bp) lo = mid + 1;
-    else hi = mid;
-  }
-  return lo;
-}
-
-function layoutEnzymes(markers: readonly CutMarker[], v: VerticalLayout, ctx: LaneContext, view: ViewModel, letterZoom: boolean): void {
-  const { scale, width, measure } = ctx;
-  const m = METRICS;
-  const a = firstMarkerAtLeast(markers, scale.bp(-2));
-  const b = firstMarkerAtLeast(markers, scale.bp(width + 2) + 1e-9);
-  const visible: number[] = [];
-  for (let i = a; i < b; i++) visible.push(i);
-  view.enzymes.visible = visible;
-
-  // cut marks on the backbone; at letter zoom the staggered cut between the strands
-  let ticks = '';
-  let staggered = '';
-  let lastX = NaN;
-  const yTop = v.topStrandY - 3.5;
-  const yBottom = v.bottomStrandY + 3.5;
-  for (const i of visible) {
-    const mk = markers[i];
-    const x = Math.round(scale.x(mk.pos) * 2) / 2;
-    if (letterZoom && mk.cuts) {
-      const xb = Math.round(scale.x(mk.bottom) * 2) / 2;
-      const yMid = (v.topStrandY + v.bottomStrandY) / 2;
-      staggered += `M${fmt(x)} ${fmt(v.topStrandY - 3)}V${fmt(yMid)}H${fmt(xb)}V${fmt(v.bottomStrandY + 3)}`;
-      continue;
-    }
-    if (x === lastX) continue;
-    lastX = x;
-    ticks += vlinePath(x, yTop, yBottom);
-  }
-  view.enzymes.ticks = ticks;
-  view.enzymes.staggered = staggered;
-
-  if (v.enzymeRows <= 0) return;
-  const boxes = visible.map((i) => {
-    const mk = markers[i];
-    return {
-      x: scale.x(mk.pos),
-      width: m.enzymeLabelPad + measure(mk.label, m.enzymeFont, mk.unique ? m.enzymeUniqueWeight : 400),
-      priority: mk.unique ? 1 : 0,
-    };
-  });
-  const placed = placeEnzymeLabels(boxes, { maxRows: v.enzymeRows, minX: 2, maxX: width - 2 });
-  let leaders = '';
-  placed.forEach((p, j) => {
-    if (!p) return;
-    const i = visible[j];
-    const mk = markers[i];
-    const x = Math.round(boxes[j].x * 2) / 2;
-    const rowTop = enzymeRowTop(v, p.row);
-    const cy = rowTop + m.enzymeRowHeight / 2;
-    const leader = vlinePath(x, cy + 3, v.topStrandY - 3.5);
-    leaders += leader;
-    const textX = p.align === 'start' ? x + m.enzymeLabelPad : x - m.enzymeLabelPad;
-    view.enzymes.labels.push({
-      key: `e${i}`,
-      marker: i,
-      unique: mk.unique,
-      text: mk.label,
-      x: textX,
-      y: cy,
-      anchor: p.align === 'start' ? 'start' : 'end',
-      left: p.left,
-      right: p.right,
-      top: rowTop + 1,
-      bottom: rowTop + m.enzymeRowHeight - 1,
-      leader,
-    });
-  });
-  view.enzymes.leaders = leaders;
-}
-
-// ---------------------------------------------------------------------------
-// Selection
-// ---------------------------------------------------------------------------
-
-export interface SelectionPiece {
-  start: number;
-  end: number;
-  /** False where the piece is cut by the origin (the selection continues at the other end). */
-  startEdge: boolean;
-  endEdge: boolean;
-}
-
-/** Pieces of a selection in [0, L]: a range that wraps the origin of a circular record gives two. */
-export function selectionPieces(range: Range, seqLength: number, topology: Topology): SelectionPiece[] {
-  if (seqLength <= 0) return [];
-  const r = normalizeRange(range, seqLength, topology);
-  if (r.end <= r.start) return [];
-  if (topology === 'circular' && r.end > seqLength) {
-    if (r.end - r.start >= seqLength) return [{ start: 0, end: seqLength, startEdge: true, endEdge: true }];
-    return [
-      { start: r.start, end: seqLength, startEdge: true, endEdge: false },
-      { start: 0, end: r.end - seqLength, startEdge: false, endEdge: true },
-    ];
-  }
-  return [{ start: r.start, end: r.end, startEdge: true, endEdge: true }];
-}
-
-/** x positions at which to draw the caret for a gap (both ends for the origin of a circular record). */
-export function caretPositions(gap: number, seqLength: number, topology: Topology): number[] {
-  if (topology === 'circular' && seqLength > 0) {
-    const g = mod(gap, seqLength);
-    return g === 0 ? [0, seqLength] : [g];
-  }
-  return [Math.max(0, Math.min(seqLength, gap))];
-}
-
-// ---------------------------------------------------------------------------
-// Hit testing
-// ---------------------------------------------------------------------------
-
-export interface HitInput {
-  view: ViewModel;
-  features: TrackSet<FeatureEntry> | null;
-  orfs: TrackSet<OrfEntry> | null;
-  primers: TrackSet<PrimerEntry> | null;
-  markers: readonly CutMarker[] | null;
-}
-
-function inBox(b: TextBox, x: number, y: number, pad = 2): boolean {
-  return x >= b.left - pad && x <= b.right + pad && y >= b.top - pad && y <= b.bottom + pad;
-}
-
-/** Lane item at x (px) within `tol` px, preferring an item that contains x. */
-function itemAt(lane: Lane, scale: LinearScale, x: number, tol: number): number {
-  const [i0, i1] = visibleSpan(lane, scale.bp(x - tol), scale.bp(x + tol));
-  let best = -1;
-  let bestDist = Infinity;
-  for (let i = i0; i < i1; i++) {
-    const it = lane.items[i];
-    const x0 = scale.x(it.start);
-    const x1 = scale.x(it.end);
-    const dist = x < x0 ? x0 - x : x > x1 ? x - x1 : 0;
-    if (dist <= tol && dist < bestDist) {
-      best = i;
-      bestDist = dist;
-      if (dist === 0) break;
-    }
-  }
-  return best;
-}
-
-/** Base index (0-based) and gap position under x. */
-export function positionsAt(scale: LinearScale, x: number, seqLength: number): { base: number; gap: number } {
-  const bp = scale.bp(x);
-  return {
-    base: Math.max(0, Math.min(seqLength - 1, Math.floor(bp))),
-    gap: Math.max(0, Math.min(seqLength, Math.round(bp))),
-  };
-}
-
-/** What lies at (x, y) in map coordinates (y measured from the top of the map content). */
-export function hitTest(input: HitInput, x: number, y: number): MapTarget {
-  const { view } = input;
-  const { scale, v } = view;
-  const L = view.seqLength;
-  const { base, gap } = positionsAt(scale, x, L);
-
-  if (input.markers) {
-    for (const lab of view.enzymes.labels) {
-      if (inBox(lab, x, y)) return { kind: 'enzyme', site: input.markers[lab.marker].site };
-    }
-  }
-  if (input.features) {
-    for (const lab of view.features.labels) {
-      if (!lab.inside && inBox(lab, x, y, 1)) return { kind: 'feature', id: input.features.entries[lab.entry].feature.id };
-    }
-  }
-  if (input.primers) {
-    for (const lab of view.primers.labels) {
-      if (inBox(lab, x, y, 1)) return { kind: 'primer', id: input.primers.entries[lab.entry].site.primerId };
-    }
-  }
-
-  const laneHit = <E extends TrackEntryBase>(
-    set: TrackSet<E> | null,
-    tops: BandTops,
-    h: number,
-    tol: number,
-  ): E | null => {
-    if (!set) return null;
-    for (const side of ['above', 'below'] as const) {
-      const lanes = set[side];
-      for (let lane = 0; lane < lanes.length; lane++) {
-        const top = tops[side][lane];
-        if (y < top || y >= top + h) continue;
-        const i = itemAt(lanes[lane], scale, x, tol);
-        return i >= 0 ? set.entries[lanes[lane].items[i].ref] : null;
-      }
-    }
-    return null;
-  };
-
-  const f = laneHit(input.features, v.features, METRICS.featureLaneHeight, 2);
-  if (f) return { kind: 'feature', id: f.feature.id };
-  const o = laneHit(input.orfs, v.orfs, METRICS.orfLaneHeight, 2);
-  if (o) return { kind: 'orf', orf: o.orf };
-  const p = laneHit(input.primers, v.primers, METRICS.primerLaneHeight, 3);
-  if (p) return { kind: 'primer', id: p.site.primerId };
-
-  // backbone and ruler: cut marks first (they are thin, so allow a few px)
-  if (y >= v.topStrandY - 7 && y <= v.rulerBottom - 4) {
-    if (input.markers && y <= v.bottomStrandY + 7) {
-      let best: number | null = null;
-      let bestDist = 3.5;
-      for (const i of view.enzymes.visible) {
-        const d = Math.abs(scale.x(input.markers[i].pos) - x);
-        if (d <= bestDist) {
-          best = i;
-          bestDist = d;
-        }
-      }
-      if (best !== null) return { kind: 'enzyme', site: input.markers[best].site };
-    }
-    if (L > 0 && scale.bp(x) >= 0 && scale.bp(x) <= L) return { kind: 'sequence', position: base };
-  }
-  return { kind: 'background', position: gap };
-}
-
-/**
- * Outline path of a feature at the current zoom (all its visible pieces), widened to at least
- * `minWidth` px, used for the hover / highlight ring. Empty when the feature is not visible.
- */
-export function featureOutline(view: ViewModel, set: TrackSet<FeatureEntry>, entryIndex: number, minWidth = 3): string {
-  const entry = set.entries[entryIndex];
-  if (!entry) return '';
-  const L = view.seqLength;
-  const top = view.v.features[entry.side][entry.lane] + (METRICS.featureLaneHeight - METRICS.featureBarHeight) / 2;
-  if (top === undefined || Number.isNaN(top)) return '';
-  let d = '';
-  const pieces: Array<{ start: number; end: number; piece: 0 | 1 | 2 }> =
-    entry.extent.end > L
-      ? [
-          { start: entry.extent.start, end: L, piece: 1 },
-          { start: 0, end: entry.extent.end - L, piece: 2 },
-        ]
-      : [{ start: entry.extent.start, end: entry.extent.end, piece: 0 }];
-  for (const p of pieces) {
-    if (p.end <= view.bpFrom || p.start >= view.bpTo) continue;
-    d += featurePieceShape(entry, p, top, { scale: view.scale, width: view.width, seqLength: L }, minWidth).d;
-  }
-  return d;
-}
-
-/** Index (into the track entries) of the feature with this id, or -1. */
-export function featureEntryIndex(set: TrackSet<FeatureEntry> | null, id: string | null | undefined): number {
-  if (!set || !id) return -1;
-  for (let i = 0; i < set.entries.length; i++) if (set.entries[i].feature.id === id) return i;
-  return -1;
 }

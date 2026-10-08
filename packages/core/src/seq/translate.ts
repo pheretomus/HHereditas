@@ -115,12 +115,21 @@ export function codonKey(m1: number, m2: number, m3: number): number {
 
 /**
  * @internal Lookup tables of one genetic code for every (possibly ambiguous) codon, indexed by
- * {@link codonKey}. Entries whose key contains a 0 mask are 0 in all three tables.
+ * {@link codonKey}. Entries whose key contains a 0 mask are 0 in all four tables.
  */
 export interface CompiledGeneticCode {
   readonly code: GeneticCode;
   /** Character code of the translation: amino acid, B/Z/J/X for ambiguous codons, '*' for stops. */
   readonly aa: Uint8Array;
+  /**
+   * Character code of the translation as the initiator codon of a complete coding sequence: each
+   * codon the triplet may stand for reads as M when it is a start codon of the table and as its
+   * amino acid (or stop) otherwise, and the readings are combined with the rules of `aa`. So M when
+   * every expansion is a start codon (or the others are Met codons too, as ATR in table 21), the
+   * internal translation when none is, and X when start and non-start codons mix (GTN in table 11:
+   * M or V).
+   */
+  readonly initiator: Uint8Array;
   /** 1 when every codon the triplet may stand for is a start codon of the table. */
   readonly start: Uint8Array;
   /** 1 when every codon the triplet may stand for is in `stopCodons` (context-dependent stops included). */
@@ -161,6 +170,7 @@ function basesOf(mask: number): string[] {
 
 function compile(code: GeneticCode): CompiledGeneticCode {
   const aa = new Uint8Array(4096);
+  const initiator = new Uint8Array(4096);
   const start = new Uint8Array(4096);
   const stop = new Uint8Array(4096);
   const starts = new Set(code.startCodons);
@@ -169,8 +179,10 @@ function compile(code: GeneticCode): CompiledGeneticCode {
     for (let m2 = 1; m2 < 16; m2++) {
       for (let m3 = 1; m3 < 16; m3++) {
         const aminoAcids = new Set<string>();
+        const initiatorReadings = new Set<string>(); // M for a start codon, else its amino acid
         let total = 0;
         let nonCoding = 0;
+        let initiatorNonCoding = 0;
         let nStart = 0;
         let nStop = 0;
         for (const b1 of basesOf(m1)) {
@@ -181,6 +193,9 @@ function compile(code: GeneticCode): CompiledGeneticCode {
               const residue = code.forwardTable[codon];
               if (residue === undefined) nonCoding++;
               else aminoAcids.add(residue);
+              const initial = starts.has(codon) ? 'M' : residue;
+              if (initial === undefined) initiatorNonCoding++;
+              else initiatorReadings.add(initial);
               if (starts.has(codon)) nStart++;
               if (stops.has(codon)) nStop++;
             }
@@ -188,13 +203,14 @@ function compile(code: GeneticCode): CompiledGeneticCode {
         }
         const key = codonKey(m1, m2, m3);
         aa[key] = resolveExpansion(aminoAcids, nonCoding, total).charCodeAt(0);
+        initiator[key] = resolveExpansion(initiatorReadings, initiatorNonCoding, total).charCodeAt(0);
         start[key] = nStart === total ? 1 : 0;
         stop[key] = nStop === total ? 1 : 0;
       }
     }
   }
   const hasContextStops = code.stopCodons.some((c) => code.forwardTable[c] !== undefined);
-  return { code, aa, start, stop, hasContextStops };
+  return { code, aa, initiator, start, stop, hasContextStops };
 }
 
 const compiledCodes = new Map<number, CompiledGeneticCode>();
@@ -234,7 +250,7 @@ export function charCodesToString(codes: Uint8Array, length: number): string {
 
 /** How the codons of one reading frame are turned into amino acids. */
 interface FrameRules {
-  /** The first codon is an initiator: translated as M when it is a start codon of the table. */
+  /** The first codon is an initiator: translated with {@link CompiledGeneticCode.initiator} (M for a start codon). */
   initiator: boolean;
   /** The last codon is a terminator: translated as '*' when it is a stop codon of the table. */
   terminator: boolean;
@@ -253,7 +269,9 @@ interface FrameRules {
  * Residue (character code) of the trailing partial codon of length `tailLength` (1 or 2) at `i`,
  * padded with N as in the NCBI C++ Toolkit (CSeqTranslator::TranslateToProtein: the bases are
  * followed by N, and "if padding was needed, trim ambiguous last residue"): GC -> GCN -> A; GA -> GAN
- * (D or E) -> X -> undefined, i.e. no residue. `first` marks the initiator codon of a coding sequence.
+ * (D or E) -> X -> undefined, i.e. no residue. `first` marks the initiator codon of a coding
+ * sequence; as in TranslateToProtein, its internal residue decides whether it is dropped, and the
+ * initiator residue is what is kept (GT in table 11: GTN = V, kept, as initiator X).
  */
 function paddedCodonResidue(
   nt: string,
@@ -266,9 +284,8 @@ function paddedCodonResidue(
   const m2 = tailLength === 2 ? maskAt(nt, i + 1) : MASK_N;
   if (m1 === 0 || m2 === 0) throw invalidNucleotide(nt, m1 === 0 ? i : i + 1);
   const key = codonKey(m1, m2, MASK_N);
-  const residue = cc.aa[key];
-  if (residue === CHAR_X) return undefined;
-  return first && cc.start[key] === 1 ? CHAR_M : residue;
+  if (cc.aa[key] === CHAR_X) return undefined;
+  return first ? cc.initiator[key] : cc.aa[key];
 }
 
 /**
@@ -289,7 +306,7 @@ function translateCodons(nt: string, offset: number, cc: CompiledGeneticCode, ru
     let residue = cc.aa[key];
     const override = rules.exceptions?.get(k);
     if (override !== undefined) residue = override.charCodeAt(0);
-    else if (k === 0 && rules.initiator && cc.start[key] === 1) residue = CHAR_M;
+    else if (k === 0 && rules.initiator) residue = cc.initiator[key];
     else if (k === nCodons - 1 && rules.terminator && cc.stop[key] === 1) residue = CHAR_STOP;
     if (residue === CHAR_STOP && rules.toStop) return charCodesToString(out, n);
     out[n++] = residue;

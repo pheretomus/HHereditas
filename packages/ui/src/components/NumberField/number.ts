@@ -49,7 +49,11 @@ export function normalizeNumber(value: number, min: number, max: number, precisi
   return Math.min(max, Math.max(min, rounded));
 }
 
-/** One step up (+1) or down (-1) from `value`, snapping to the step grid like NSStepper. */
+/**
+ * Moves `value` up (+1) or down (-1) by `distance` (default: one `step`). The first step
+ * snaps onto the step grid (60.2 → 60.5 with step 0.5) like NSStepper; the rest of the
+ * distance is added exactly, so a large step of 5 goes 60.5 → 55.5, not to a 5-grid.
+ */
 export function stepNumber(
   value: number | null,
   direction: 1 | -1,
@@ -57,10 +61,12 @@ export function stepNumber(
   min: number,
   max: number,
   precision: number,
+  distance: number = step,
 ): number {
   const base = value ?? (direction > 0 ? Math.max(min, 0) - step : Math.min(max, 0) + step);
   const origin = Number.isFinite(min) ? min : 0;
   const offset = (base - origin) / step;
   const snapped = direction > 0 ? Math.floor(offset + 1e-9) + 1 : Math.ceil(offset - 1e-9) - 1;
-  return normalizeNumber(origin + snapped * step, min, max, precision);
+  const extra = Math.max(0, distance - step) * direction;
+  return normalizeNumber(origin + snapped * step + extra, min, max, precision);
 }

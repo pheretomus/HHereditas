@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 
 /** Kinds of text the gel writes (each maps to a token font size and weight). */
-export type GelTextRole = 'ladder' | 'ladderStrong' | 'lane' | 'size';
+export type GelTextRole = 'ladder' | 'ladderStrong' | 'lane' | 'size' | 'sizeStrong';
 
 /** Returns the rendered width (px) of `text` in the font of `role`. */
 export type GelTextMeasurer = (text: string, role: GelTextRole) => number;
@@ -18,6 +18,7 @@ const ROLE_FONT: Readonly<Record<GelTextRole, { sizeVar: string; size: number; w
   // Lane labels are measured in the selected (semibold) weight, the widest one.
   lane: { sizeVar: '--hh-text-sm', size: 11, weightVar: '--hh-weight-semibold', weight: 600 },
   size: { sizeVar: '--hh-text-xs', size: 10, weightVar: '--hh-weight-regular', weight: 400 },
+  sizeStrong: { sizeVar: '--hh-text-xs', size: 10, weightVar: '--hh-weight-semibold', weight: 600 },
 };
 
 /** Width estimate without a canvas: average glyph widths of a UI sans-serif font. */

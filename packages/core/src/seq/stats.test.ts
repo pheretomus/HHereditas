@@ -273,6 +273,33 @@ describe('protein statistics', () => {
     expect(proteinMolecularWeight('MUO')).toBeCloseTo(536.5473, 4); // Sec and Pyl have masses
   });
 
+  // Review regression: the spec requires proteinIsoelectricPoint to equal Biopython's
+  // ProteinAnalysis(p).isoelectric_point() within 0.01, but the search interval had been widened past
+  // Biopython's [4.05, 12], so short acidic peptides (DL, EA, the FLAG tag) and very basic ones
+  // differed by up to 0.45. The default now is Biopython's computation; `interval: 'unbounded'` gives
+  // the root of the charge function wherever it lies (tests below).
+  it('equals Biopython isoelectric_point() by default, also when the root lies outside [4.05, 12]', () => {
+    // tools/oracle/.venv/bin/python -I -c "from Bio.SeqUtils.ProtParam import ProteinAnalysis as PA;
+    //   print(PA('DL').isoelectric_point())"   (Biopython 1.88)
+    const biopython: Record<string, number> = {
+      DL: 4.0500284194946286,
+      EA: 4.0500284194946286,
+      DYKDDDDK: 4.0500284194946286,
+      EWGVFWYTWWDTFEWIFYED: 4.0500284194946286,
+      RKKHR: 11.999967765808105,
+      DD: 4.0500284194946286,
+      RR: 11.999967765808105,
+      D: 4.299381065368652,
+      R: 9.750021171569824,
+      MDYKDHDGDYKDHDIDYKDDDDK: 4.155976295471191,
+    };
+    for (const [p, pi] of Object.entries(biopython)) {
+      expect(Math.abs(proteinIsoelectricPoint(p) - pi), p).toBeLessThan(0.01);
+      expect(proteinIsoelectricPoint(p), p).toBeCloseTo(pi, 9); // the same bisection, step by step
+      expect(proteinIsoelectricPoint(p, { interval: 'biopython' }), p).toBe(proteinIsoelectricPoint(p));
+    }
+  });
+
   // Review regression: Biopython's bisection only searches [4.05, 12] and returned its bound for
   // proteins whose isoelectric point lies outside (FLAG tag, poly-Asp, prothymosin alpha, protamine).
   it('does not clamp pI to Biopython\'s bisection interval [4.05, 12]', () => {

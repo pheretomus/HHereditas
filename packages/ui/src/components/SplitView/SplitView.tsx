@@ -266,10 +266,16 @@ export function SplitView({ orientation = 'horizontal', children, animated = tru
             [horizontal ? 'maxWidth' : 'maxHeight']: Number.isFinite(pane.max) ? pane.max : undefined,
           }
         : { flex: '1 1 0px', [horizontal ? 'minWidth' : 'minHeight']: pane.min };
-    // Fixed panes keep their content at full size while animating closed (no reflow), and
-    // slide towards the outer edge of the window.
+    // A collapsing fixed pane keeps its content at full size while it animates closed (no
+    // reflow) and slides towards the outer edge of the window. Open panes simply fill
+    // themselves: when the window is narrow they may be flex-shrunk below their size (never
+    // below their minimum), and pinning the content to the full size would clip it.
     const innerStyle: CSSProperties | undefined = pane.fixed
-      ? { [horizontal ? 'width' : 'height']: `max(100%, ${Math.max(pane.size, pane.min)}px)` }
+      ? {
+          [horizontal ? 'width' : 'height']: pane.collapsed
+            ? `max(100%, ${Math.max(pane.size, pane.min)}px)`
+            : `max(100%, ${pane.min}px)`,
+        }
       : undefined;
     const keep = pane.props.keepMounted ?? true;
     out.push(

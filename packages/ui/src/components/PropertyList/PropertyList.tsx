@@ -12,6 +12,10 @@ export interface PropertyItem {
   mono?: boolean;
   /** Native tooltip on the value (e.g. the untruncated text). */
   title?: string;
+  /** Clamp the value to this many lines (ellipsis); the copy button still copies everything. */
+  maxLines?: number;
+  /** Override the list's copyable setting for this row. */
+  copyable?: boolean;
   /** React key (default: the label when it is a string). */
   key?: string;
 }
@@ -42,6 +46,8 @@ export function PropertyList({ items, children, labelWidth = 88, copyable = true
             copyValue={item.copyValue}
             mono={item.mono}
             title={item.title}
+            maxLines={item.maxLines}
+            copyable={item.copyable}
           >
             {item.value}
           </PropertyRow>
@@ -58,6 +64,8 @@ export interface PropertyRowProps {
   copyValue?: string;
   mono?: boolean;
   title?: string;
+  /** Clamp the value to this many lines (ellipsis). */
+  maxLines?: number;
   /** Override the list's copyable setting for this row. */
   copyable?: boolean;
 }
@@ -86,7 +94,7 @@ async function writeClipboard(text: string): Promise<boolean> {
   }
 }
 
-export function PropertyRow({ label, children, copyValue, mono = false, title, copyable }: PropertyRowProps) {
+export function PropertyRow({ label, children, copyValue, mono = false, title, maxLines, copyable }: PropertyRowProps) {
   const ctx = useContext(Ctx);
   const text = copyValue ?? (typeof children === 'string' || typeof children === 'number' ? String(children) : undefined);
   const canCopy = (copyable ?? ctx.copyable) && text !== undefined && text !== '';
@@ -97,7 +105,12 @@ export function PropertyRow({ label, children, copyValue, mono = false, title, c
     <div className={styles.row}>
       <dt className={styles.label}>{label}</dt>
       <dd className={cx(styles.value, mono && styles.mono)} title={title}>
-        <span className={styles.valueText}>{children}</span>
+        <span
+          className={cx(styles.valueText, maxLines !== undefined && styles.clamped)}
+          style={maxLines !== undefined ? { WebkitLineClamp: maxLines } : undefined}
+        >
+          {children}
+        </span>
         {canCopy ? (
           <button
             type="button"

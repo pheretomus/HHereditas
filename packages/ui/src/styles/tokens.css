@@ -54,6 +54,8 @@
   --hh-sidebar-width: 248px;
   --hh-inspector-width: 288px;
   --hh-row-height: 28px; /* source-list rows */
+  /* Width of the macOS traffic-light cluster (close / minimize / zoom) incl. margins. */
+  --hh-traffic-light-width: 78px;
   /* Space reserved for the macOS traffic lights when the title bar overlays the content. */
   --hh-traffic-light-inset: 0px;
 
@@ -174,6 +176,26 @@
   --hh-feature-regulatory: #5fb3a6;
   --hh-feature-repeat: #b0b7c3;
   --hh-feature-misc: #9fb0c4;
+
+  /* Feature colour palette offered by colour pickers. These are DATA colours: the chosen hex
+     value is written into the document (Feature.color), so they are deliberately the same in
+     light and dark themes and are not redefined in the dark blocks below. */
+  --hh-swatch-1: #f5b841;
+  --hh-swatch-2: #f2d03b;
+  --hh-swatch-3: #9ccc3c;
+  --hh-swatch-4: #5bbf6a;
+  --hh-swatch-5: #5fb3a6;
+  --hh-swatch-6: #5ac8fa;
+  --hh-swatch-7: #4f8ef7;
+  --hh-swatch-8: #7b8ce8;
+  --hh-swatch-9: #b18ae6;
+  --hh-swatch-10: #e679ad;
+  --hh-swatch-11: #e5584f;
+  --hh-swatch-12: #f39a3d;
+  --hh-swatch-13: #c49a6c;
+  --hh-swatch-14: #8a9bb0;
+  --hh-swatch-15: #b0b7c3;
+  --hh-swatch-16: #6e6e73;
 }
 
 /* Dark values: applied by explicit data-theme="dark" or by the OS preference when no theme is forced. */
@@ -366,7 +388,7 @@
 
 /* macOS: the window title bar overlays the content (titleBarStyle "Overlay" in tauri.conf.json). */
 :root.hh-platform-mac {
-  --hh-traffic-light-inset: 78px;
+  --hh-traffic-light-inset: var(--hh-traffic-light-width);
 }
 
 /* Hairlines: half a CSS pixel is exactly one device pixel on 2x screens. */

@@ -37,18 +37,23 @@
 }
 
 .headerTitle {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* The count follows the title ("Features 32"), so it never competes with the rows' trailing column. */
 .headerCount {
   flex: none;
   color: var(--hh-text-tertiary);
   font-weight: var(--hh-weight-medium);
   font-variant-numeric: tabular-nums;
+}
+
+.headerFill {
+  flex: 1 1 auto;
 }
 
 .chevron {
@@ -109,6 +114,10 @@
   stroke-width: 1.75;
 }
 
+.item[data-icon-tone='secondary'] .icon {
+  color: var(--hh-text-secondary);
+}
+
 .label {
   flex: 1 1 auto;
   min-width: 0;
@@ -130,6 +139,23 @@
   color: var(--hh-text-secondary);
   font-size: var(--hh-text-sm);
   font-variant-numeric: tabular-nums;
+}
+
+/* Hover actions (e.g. a close button) replace the trailing accessory while visible. */
+.actions {
+  display: none;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  margin-right: -4px;
+}
+
+.item:hover .actions {
+  display: inline-flex;
+}
+
+.item:hover .hasActions {
+  display: none;
 }
 
 .item[aria-disabled='true'] {

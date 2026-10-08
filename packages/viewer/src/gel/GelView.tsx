@@ -3,12 +3,14 @@
  *
  * Pure presentation: band positions (0 = well .. 1 = bottom) and intensities come from the gel
  * model in @hhereditas/core. The view lays the lanes out to fill its container (lanes share the
- * width up to 64 px each, centred), writes the ladder sizes at the left, lane labels on top, and
- * reports clicks on lanes and hovers on bands.
+ * width up to 64 px each, centred; the slab fills the height), writes the ladder sizes at the left,
+ * lane labels on top (rotated and truncated when long), and reports clicks on lanes and hovers on
+ * bands. Pass a memoized `lanes` array: a new array re-runs the layout.
  *
- * Interaction: hover a band for its size(s) and fragment labels. Keyboard: Tab to the lanes,
- * Left/Right/Home/End move between lanes, Up/Down (PageUp/PageDown) step through the bands of the
- * focused lane, Enter/Space click the lane, Escape hides the band tooltip.
+ * Interaction: hover a band for its size(s) and fragment labels; hover a truncated lane label for
+ * its full text (when lanes are too narrow for labels, hovering the lane names it). Keyboard: Tab to
+ * the lanes, Left/Right/Home/End move between lanes, Up/Down (PageUp/PageDown) step through the bands
+ * of the focused lane, Enter/Space click the lane, Escape hides the band tooltip.
  */
 import {
   memo,
@@ -157,6 +159,12 @@ export function GelView({
     [lanes, width, height, showSizes, agarosePercent, measure],
   );
 
+  // accessible names list the visible bands (genome digests have thousands: computed once per layout)
+  const laneAriaLabels = useMemo(
+    () => layout?.lanes.map((lane) => gelLaneAriaLabel(lane.lane, lane.index, lane.bands.map((b) => b.band))) ?? [],
+    [layout],
+  );
+
   const idBase = gelSvgId(useId());
   const tipId = `${idBase}-tip`;
   const [pointerLane, setPointerLane] = useState(-1);
@@ -280,10 +288,13 @@ export function GelView({
     }
   };
 
-  // Tooltip: a band (pointer or keyboard) or a truncated lane label.
+  // Tooltip: a band (pointer or keyboard), a truncated lane label, or the lane under the pointer when
+  // the lanes are too narrow for labels.
   const labelTip = layout && labelHover >= 0 ? layout.header.labels.find((l) => l.laneIndex === labelHover && l.truncated) : undefined;
   const tipContent = active && activeLane ? { lane: activeLane, description: describeInspection(activeLane, active) } : null;
-  const showTip = tipContent !== null || labelTip !== undefined;
+  const laneTip =
+    !tipContent && layout && layout.header.mode === 'hidden' && pointerLane >= 0 ? layout.lanes[pointerLane] : undefined;
+  const showTip = tipContent !== null || labelTip !== undefined || laneTip !== undefined;
 
   useLayoutEffect(() => {
     const el = tipRef.current;
@@ -304,6 +315,9 @@ export function GelView({
     } else if (labelTip) {
       left = clamp(labelTip.x - w / 2, 4, Math.max(4, layout.width - w - 4));
       top = layout.slab.y + 6;
+    } else if (laneTip) {
+      left = clamp(laneTip.cx - w / 2, 4, Math.max(4, layout.width - w - 4));
+      top = clamp(laneTip.well.y + laneTip.well.height + 6, 4, Math.max(4, layout.height - h - 4));
     } else {
       return;
     }
@@ -402,11 +416,7 @@ export function GelView({
                   }}
                   role={clickable ? 'option' : 'listitem'}
                   aria-selected={clickable ? selected : undefined}
-                  aria-label={gelLaneAriaLabel(
-                    lane.lane,
-                    i,
-                    lane.bands.map((b) => b.band),
-                  )}
+                  aria-label={laneAriaLabels[i]}
                   aria-describedby={active && active.laneIndex === i && active.source === 'keyboard' ? tipId : undefined}
                   tabIndex={i === tabStop ? 0 : -1}
                   className={cx(styles.lane, clickable && styles.clickable)}
@@ -427,6 +437,8 @@ export function GelView({
                 <TooltipBody laneName={gelLaneName(tipContent.lane.lane, tipContent.lane.index)} d={tipContent.description} />
               ) : labelTip ? (
                 <div className={styles.tipText}>{labelTip.text}</div>
+              ) : laneTip ? (
+                <div className={styles.tipText}>{gelLaneName(laneTip.lane, laneTip.index)}</div>
               ) : null}
             </div>
           )}
@@ -525,7 +537,7 @@ const GelAnnotations = memo(function GelAnnotations({
           return (
             <text
               key={`${lane.index}:${s.bandIndex}`}
-              className={cx(styles.sizeLabel, isActive && styles.sizeLabelActive)}
+              className={cx(styles.sizeLabel, s.emphasized && styles.sizeLabelStrong, isActive && styles.sizeLabelActive)}
               x={s.x}
               y={s.y}
               dy="0.35em"

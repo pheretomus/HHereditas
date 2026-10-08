@@ -122,3 +122,31 @@ export function fragmentKey(seq: string, ends: FragmentEnds): string {
   const p = pydnaStrands(seq, ends);
   return `${seq}|${ends.left.kind}:${ends.left.length}|${ends.right.kind}:${ends.right.length}|${p.watson}|${p.crick}|${p.ovhg}`;
 }
+
+/**
+ * What makes a returned value unsafe for callers that modify results in place, one message per
+ * problem with its path (empty list = fine): an object reachable twice (shared by two places of
+ * the result), a frozen object, an object that is one of `inputs`, or a negative zero.
+ */
+export function resultObjectProblems(value: unknown, inputs: readonly object[] = []): string[] {
+  const seen = new Map<object, string>();
+  const problems: string[] = [];
+  const visit = (v: unknown, path: string): void => {
+    if (typeof v === 'number') {
+      if (Object.is(v, -0)) problems.push(`${path} is -0`);
+      return;
+    }
+    if (v === null || typeof v !== 'object') return;
+    const first = seen.get(v);
+    if (first !== undefined) {
+      problems.push(`${path} is the same object as ${first}`);
+      return;
+    }
+    seen.set(v, path);
+    if (Object.isFrozen(v)) problems.push(`${path} is frozen`);
+    if (inputs.includes(v)) problems.push(`${path} is an input object`);
+    for (const [key, child] of Object.entries(v)) visit(child, `${path}.${key}`);
+  };
+  visit(value, 'result');
+  return problems;
+}

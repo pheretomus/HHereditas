@@ -9,13 +9,15 @@ import {
   plant,
   randInt,
   randomDna,
+  resultObjectProblems,
   rotate,
 } from '../../test/oracle/enzymes/load';
-import type { CutPair, EnzymeSite, Topology } from '../types';
+import type { CutPair, DnaEnd, EnzymeSite, FragmentEnds, Topology } from '../types';
 import { iupacMatches, reverseComplement } from '../seq/alphabet';
 import { mod, sliceRange } from '../seq/range';
 import { COMMON_ENZYMES, ENZYMES, getEnzyme, isPalindromic, makeEnzyme } from './enzyme';
 import type { RestrictionEnzyme } from './enzyme';
+import { digest, digestDetailed } from './digest';
 import { compareSites, countCuts, countSites, findSites, findSitesForEnzyme } from './search';
 
 function E(name: string): RestrictionEnzyme {
@@ -451,4 +453,233 @@ describe('findSites: performance', () => {
     expect(one).toBeLessThan(3000);
     expect(all).toBeLessThan(20_000);
   }, 60_000);
+});
+
+// ---------------------------------------------------------------------------
+// Regression tests for defects found by adversarial review
+// ---------------------------------------------------------------------------
+
+const blunt: DnaEnd = { kind: 'blunt', length: 0 };
+const five = (length: number): DnaEnd => ({ kind: '5prime', length });
+const three = (length: number): DnaEnd => ({ kind: '3prime', length });
+
+/** Random end with an overhang of at most `room` bases (blunt when room < 1). */
+function randomEnd(rand: () => number, room: number): DnaEnd {
+  const kind = (['blunt', '5prime', '3prime'] as const)[randInt(rand, 0, 2)];
+  return kind === 'blunt' || room < 1 ? blunt : { kind, length: randInt(rand, 1, room) };
+}
+
+/**
+ * Every cleavage event of a site in molecule coordinates, before any end rule, computed from the
+ * enzyme definition (strand -1: mirrored offsets; palindromic sites: both readings), once each.
+ */
+function allEvents(site: EnzymeSite, enzyme: RestrictionEnzyme = E(site.enzyme)): CutPair[] {
+  const n = enzyme.site.length;
+  const p = site.range.start;
+  const palindromic = isPalindromic(enzyme.site);
+  const events = new Map<string, CutPair>();
+  for (const c of enzyme.cuts) {
+    const forward = { top: p + c.top, bottom: p + c.bottom };
+    const mirrored = { top: p + n - c.bottom, bottom: p + n - c.top };
+    const readings = site.strand === -1 ? [mirrored] : palindromic ? [forward, mirrored] : [forward];
+    for (const ev of readings) events.set(`${ev.top},${ev.bottom}`, ev);
+  }
+  return [...events.values()];
+}
+
+const byCut = (a: CutPair, b: CutPair) => a.top - b.top || a.bottom - b.bottom;
+
+describe('review: findSites applies the sticky-end rule of digest to linear molecules given their ends', () => {
+  // GFP start, cut out of a vector with EcoRI + XhoI for directional cloning: 5' AATT and TCGA overhangs
+  const insert = 'ATGAGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGATGGTGATGTTAATGGGCACAAATTTTCTGTC';
+
+  it('lists the TaqI site in the single-stranded TCGA overhang of an EcoRI-XhoI insert without a cleavage event', () => {
+    expect(insert.includes('TCGA')).toBe(false); // no internal TaqI site
+    const [, frag] = digest('GGGGG' + 'GAATTC' + insert + 'CTCGAG' + 'GGGGG', 'linear', [E('EcoRI'), E('XhoI')]);
+    expect(frag.ends).toEqual({ left: five(4), right: five(4) });
+    const L = frag.length;
+    const enzymes = [E('TaqI'), E('EcoRI'), E('XhoI')];
+    const sites = findSites(frag.seq, 'linear', enzymes, { ends: frag.ends });
+    // the last 4 bases exist only on the bottom strand: the site text is there, TaqI cannot cut it
+    expect(sites).toEqual([{ enzyme: 'TaqI', range: { start: L - 4, end: L }, strand: 1, cuts: [] }]);
+    const report = digestDetailed(frag.seq, 'linear', [E('TaqI')], { ends: frag.ends });
+    expect(report.fragments).toHaveLength(1);
+    expect(report.skipped.map((s) => s.reason)).toEqual(['end']);
+    expect(countCuts(sites).get('TaqI') ?? 0).toBe(report.fragments.length - 1);
+    expect(findSitesForEnzyme(frag.seq, 'linear', E('TaqI'), { ends: frag.ends })).toEqual(sites);
+    // without ends the molecule is taken as blunt-ended (documented default): TaqI then seems to cut once
+    expect(countCuts(findSites(frag.seq, 'linear', enzymes)).get('TaqI')).toBe(1);
+  });
+
+  it('agrees with digest on common cloning ends whose overhang is a 4-cutter site', () => {
+    // [enzyme making the ends, 4-cutters whose recognition sequence is that overhang]
+    const cases: Array<[string, string[]]> = [
+      ['XhoI', ['TaqI']], // C^TCGAG: 5' TCGA
+      ['SalI', ['TaqI']], // G^TCGAC: 5' TCGA
+      ['HindIII', ['AluI', 'CviKI-1']], // A^AGCTT: 5' AGCT
+      ['SacI', ['AluI', 'CviKI-1']], // GAGCT^C: 3' AGCT
+      ['XbaI', ['BfaI']], // T^CTAGA: 5' CTAG
+      ['SpeI', ['BfaI']], // A^CTAGT: 5' CTAG
+      ['NheI', ['BfaI']], // G^CTAGC: 5' CTAG
+      ['NcoI', ['CviAII']], // C^CATGG: 5' CATG
+      ['SphI', ['CviAII']], // GCATG^C: 3' CATG
+      ['KpnI', ['RsaI', 'Csp6I']], // GGTAC^C: 3' GTAC
+      ['PstI', ['HpyCH4V']], // CTGCA^G: 3' TGCA
+      ['NotI', ['HaeIII']], // GC^GGCCGC: 5' GGCC
+    ];
+    const flank = 'A'.repeat(20);
+    for (const [cutter, fourCutters] of cases) {
+      const frags = digest(flank + E(cutter).site + flank + E(cutter).site + flank, 'linear', [E(cutter)]);
+      expect(frags, cutter).toHaveLength(3);
+      frags.forEach((frag, i) => {
+        for (const name of fourCutters) {
+          const label = `${name} on ${cutter} fragment ${i}`;
+          const sites = findSites(frag.seq, 'linear', [E(name)], { ends: frag.ends });
+          // the only sites are the overhangs (both ends of the middle fragment, one end of the others)
+          expect(sites.map((s) => s.cuts), label).toEqual(i === 1 ? [[], []] : [[]]);
+          expect(countCuts(sites).get(name), label).toBe(digest(frag.seq, 'linear', [E(name)], { ends: frag.ends }).length - 1);
+          // read as a blunt-ended molecule, both overhang sites of the middle fragment would seem to cut
+          if (i === 1) expect(countCuts(findSites(frag.seq, 'linear', [E(name)])).get(name), label).toBe(2);
+        }
+      });
+    }
+  });
+
+  it('validates the ends like digest, ignores them on circles and treats blunt ends as the default', () => {
+    const seq = 'GATCAAAAGAATTCAAAAGATC'; // 22 bases
+    const enzymes = [E('MboI'), E('EcoRI'), E('DpnI')];
+    const plain = findSites(seq, 'linear', enzymes);
+    // MboI ^GATC cuts at gap 0 (site at 0) and gap L (site at 18): not cleaved (Biopython rule)
+    expect(plain.map((s) => [s.enzyme, s.range.start, s.cuts.length])).toEqual([
+      ['DpnI', 0, 1],
+      ['MboI', 0, 0],
+      ['EcoRI', 8, 1],
+      ['DpnI', 18, 1],
+      ['MboI', 18, 0],
+    ]);
+    expect(findSites(seq, 'linear', enzymes, {})).toEqual(plain);
+    expect(findSites(seq, 'linear', enzymes, { ends: { left: blunt, right: blunt } })).toEqual(plain);
+    expect(findSites(seq, 'linear', enzymes, { ends: { left: five(0), right: three(0) } })).toEqual(plain);
+    // one unpaired base at each end: the DpnI cuts (gaps 2 and 20) still leave a base pair on each
+    // side, but neither GATC site is fully double-stranded any more, so DpnI cannot cut
+    const sticky = findSites(seq, 'linear', enzymes, { ends: { left: five(1), right: three(1) } });
+    expect(sticky.map((s) => [s.enzyme, s.range.start, s.cuts.length])).toEqual([
+      ['DpnI', 0, 0],
+      ['MboI', 0, 0],
+      ['EcoRI', 8, 1],
+      ['DpnI', 18, 0],
+      ['MboI', 18, 0],
+    ]);
+    expect(digest(seq, 'linear', [E('DpnI')], { ends: { left: five(1), right: three(1) } })).toHaveLength(1);
+    const ends = { left: five(9), right: three(3) };
+    expect(findSites(seq, 'circular', enzymes, { ends })).toEqual(findSites(seq, 'circular', enzymes));
+    expect(findSites('', 'linear', enzymes, { ends })).toEqual([]);
+    const invalid: FragmentEnds[] = [
+      { left: five(12), right: three(10) }, // no base pair left
+      { left: five(23), right: blunt }, // longer than the molecule
+      { left: five(-1), right: blunt },
+      { left: three(1.5), right: blunt },
+      { left: { kind: 'blunt', length: 2 }, right: blunt },
+      { left: { kind: 'sticky', length: 1 } as unknown as DnaEnd, right: blunt },
+    ];
+    for (const bad of invalid) {
+      let message = '';
+      try {
+        digest(seq, 'linear', enzymes, { ends: bad });
+      } catch (e) {
+        message = (e as Error).message;
+      }
+      expect(message, JSON.stringify(bad)).not.toBe('');
+      expect(() => findSites(seq, 'linear', enzymes, { ends: bad }), JSON.stringify(bad)).toThrow(message);
+    }
+  });
+
+  it('keeps exactly the events with a base pair to spare inside the duplex and a fully double-stranded site, like digest', () => {
+    const rand = mulberry32(0x57e4d5);
+    const pool = ['EcoRI', 'BamHI', 'MboI', 'TaqI', 'AluI', 'PstI', 'KpnI', 'SmaI', 'BsaI', 'BsmBI', 'SapI', 'BaeI', 'CspCI', 'MmeI',
+      'MlyI', 'HinfI', 'BglI', 'SgeI', 'MspJI', 'TspRI', 'NlaIII', 'AbaSI'].map(E);
+    let kept = 0;
+    let dropped = 0;
+    for (let trial = 0; trial < 1500; trial++) {
+      const enzymes = [...new Set(Array.from({ length: randInt(rand, 1, 3) }, () => pool[randInt(rand, 0, pool.length - 1)]))];
+      const L = randInt(rand, 2, 80);
+      const left = randomEnd(rand, Math.min(8, L - 1));
+      const ends: FragmentEnds = { left, right: randomEnd(rand, Math.min(8, L - 1 - left.length)) };
+      const from = ends.left.length; // first paired base
+      const to = L - ends.right.length; // end of the paired bases
+      let seq = randomDna(L, rand);
+      for (let k = randInt(rand, 1, 4); k > 0; k--) {
+        // sites straddling or near the single-stranded ends
+        const e = enzymes[randInt(rand, 0, enzymes.length - 1)];
+        let text = instantiate(e.site, rand);
+        if (rand() < 0.5) text = reverseComplement(text);
+        if (text.length > L) continue;
+        const anchor = rand() < 0.5 ? from : to;
+        seq = plant(seq, Math.max(0, Math.min(L - text.length, anchor - randInt(rand, 0, text.length + 2))), text);
+      }
+      const sites = findSites(seq, 'linear', enzymes, { ends });
+      // the same sites as without ends: only their cleavage events depend on the ends
+      expect(sites.map((s) => [s.enzyme, s.range, s.strand])).toEqual(findSites(seq, 'linear', enzymes).map((s) => [s.enzyme, s.range, s.strand]));
+      const report = digestDetailed(seq, 'linear', enzymes, { ends });
+      const skippedAtEnd = report.skipped.filter((s) => s.reason === 'end');
+      const endKeys = new Set(skippedAtEnd.map((s) => `${s.enzyme}@${s.site.start}/${s.strand}|${s.top},${s.bottom}`));
+      let droppedHere = 0;
+      for (const site of sites) {
+        const canCut = (c: CutPair) =>
+          Math.min(c.top, c.bottom) > from && Math.max(c.top, c.bottom) < to && site.range.start >= from && site.range.end <= to;
+        const label = `${site.enzyme}@${site.range.start}/${site.strand} ${JSON.stringify(ends)} ${seq}`;
+        const events = allEvents(site);
+        expect([...site.cuts].sort(byCut), label).toEqual(events.filter(canCut).sort(byCut));
+        // digest skips (reason 'end') exactly the events of this site that findSites drops
+        for (const c of events) {
+          expect(endKeys.has(`${site.enzyme}@${site.range.start}/${site.strand}|${c.top},${c.bottom}`), `${label} ${c.top},${c.bottom}`).toBe(!canCut(c));
+        }
+        kept += site.cuts.length;
+        droppedHere += events.length - site.cuts.length;
+      }
+      expect(skippedAtEnd).toHaveLength(droppedHere);
+      dropped += droppedHere;
+    }
+    console.info(`findSites with ends: ${kept} events kept, ${dropped} dropped at the ends (all as digest decides)`);
+    expect(kept).toBeGreaterThan(1000);
+    expect(dropped).toBeGreaterThan(1000);
+  });
+});
+
+describe('review: circular cut positions are never negative zero', () => {
+  it('reports the BaeI bottom cut -15 on a 15-bp circle as +0', () => {
+    // BaeI (10/15)ACNNNNGTAYC(12/7) at 0: left event (-10, -15) -> (5, 0); right event (23, 18) -> (8, 3)
+    const [site] = findSitesForEnzyme('ACAAAAGTATC' + 'TTTT', 'circular', E('BaeI'));
+    expect(site.cuts.map((c) => [c.top, c.bottom])).toEqual([[5, 0], [8, 3]]);
+    expect(Object.is(site.cuts[0].bottom, 0)).toBe(true);
+  });
+
+  it('never emits -0 or shared objects on small circles with far-reaching enzymes (digest neither)', () => {
+    const rand = mulberry32(0x2e40);
+    const enzymes = [
+      ...['BaeI', 'CspCI', 'MmeI', 'BsaI', 'AbaSI', 'TspRI'].map(E),
+      makeEnzyme({ name: 'Upstream', site: 'GAC', cuts: [{ top: -30, bottom: -27 }] }),
+      makeEnzyme({ name: 'BothSides', site: 'CTTG', cuts: [{ top: 40, bottom: 36 }, { top: -8, bottom: -8 }] }),
+    ];
+    let negativeMultiples = 0;
+    for (let trial = 0; trial < 400; trial++) {
+      const L = randInt(rand, 1, 40);
+      let seq = randomDna(L, rand);
+      for (let k = randInt(rand, 1, 3); k > 0; k--) {
+        const e = enzymes[randInt(rand, 0, enzymes.length - 1)];
+        let text = instantiate(e.site, rand);
+        if (rand() < 0.5) text = reverseComplement(text);
+        if (text.length <= L) seq = plant(seq, randInt(rand, 0, L - 1), text);
+      }
+      const sites = findSites(seq, 'circular', enzymes);
+      expect(resultObjectProblems(sites), seq).toEqual([]);
+      for (const site of sites) {
+        const enzyme = enzymes.find((e) => e.name === site.enzyme) as RestrictionEnzyme;
+        for (const c of allEvents(site, enzyme)) if ((c.top < 0 && c.top % L === 0) || (c.bottom < 0 && c.bottom % L === 0)) negativeMultiples++;
+      }
+      const report = digestDetailed(seq, 'circular', enzymes);
+      expect(resultObjectProblems(report).filter((p) => p.endsWith('-0')), seq).toEqual([]);
+    }
+    expect(negativeMultiples).toBeGreaterThan(20); // the -0 case is exercised
+  });
 });

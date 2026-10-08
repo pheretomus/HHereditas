@@ -207,14 +207,12 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
     const title = `${primer.name}${fwd ? ' →' : ' ←'}\nbinds ${formatRange(site.range, L)} · ${site.annealedLength} nt${
       site.mismatches ? ` · ${site.mismatches} mismatch${site.mismatches > 1 ? 'es' : ''}` : ''
     }${site.tailLength ? ` · ${site.tailLength} nt 5′ tail` : ''}${site.tm !== undefined ? ` · Tm ${site.tm.toFixed(1)} °C` : ''}`;
+    const outline = primerPath(x0, x1, pillTop, pillH, p.strand, p.tip, p.openStart, p.openEnd, m.primerTip);
     items.push(
       <g key={`p${p.primer}-${p.startCol}`} className={fwd ? styles.primerFwd : styles.primerRev}>
-        <path
-          className={`${styles.primerBody} ${styles.hit}`}
-          data-kind="primer"
-          data-index={p.primer}
-          d={primerPath(x0, x1, pillTop, pillH, p.strand, p.tip, p.openStart, p.openEnd, m.primerTip)}
-        >
+        {/* opaque under-layer: enzyme leaders pass behind the translucent pill */}
+        <path className={styles.primerBackdrop} d={outline} />
+        <path className={`${styles.primerBody} ${styles.hit}`} data-kind="primer" data-index={p.primer} d={outline}>
           <title>{title}</title>
         </path>
         {mismatchCols.map((col) => (
@@ -322,6 +320,8 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
       const info = ctx.coding(piece.feature);
       if (info && info.codonCount > 0) {
         const { shades, letters } = rowCodons(info, row.start, piece.bars);
+        const barStarts = new Set(piece.bars.map((b) => b.startCol));
+        const barEnds = new Set(piece.bars.map((b) => b.endCol));
         const trTop = barTop + m.featureBarHeight + 1;
         const trH = m.translationHeight - 2;
         const normal: string[] = [];
@@ -339,18 +339,23 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
         }
         children.push(
           <g key="tr" className={styles.translation}>
-            {shades.map((s) => (
-              <rect
-                key={`${s.codon}-${s.c0}`}
-                className={s.codon % 2 === 0 ? styles.codonEven : styles.codonOdd}
-                style={{ fill }}
-                x={colLeft(geo, s.c0) + 0.5}
-                y={trTop}
-                width={Math.max(0.5, colRight(geo, s.c1 - 1) - colLeft(geo, s.c0) - 1)}
-                height={trH}
-                rx={2}
-              />
-            ))}
+            {shades.map((s) => {
+              // cells meet in the middle of group gaps, so the strip reads as one continuous band;
+              // at the ends of a bar they stop at the bar's edge
+              const x0 = barStarts.has(s.c0) ? colLeft(geo, s.c0) : gapX(geo, s.c0, n);
+              const x1 = barEnds.has(s.c1) ? colRight(geo, s.c1 - 1) : gapX(geo, s.c1, n);
+              return (
+                <rect
+                  key={`${s.codon}-${s.c0}`}
+                  className={s.codon % 2 === 0 ? styles.codonEven : styles.codonOdd}
+                  style={{ fill }}
+                  x={x0}
+                  y={trTop}
+                  width={Math.max(0.5, x1 - x0)}
+                  height={trH}
+                />
+              );
+            })}
             {normal.length > 0 && (
               <text className={styles.aminoAcids} x={normalX.join(' ')} y={baseline(trTop, trH, 11)}>
                 {normal.join('')}

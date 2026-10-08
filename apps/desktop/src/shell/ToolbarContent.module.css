@@ -1,0 +1,33 @@
+.toolbar {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0 10px 0 8px;
+}
+
+.title {
+  flex: 0 1 auto;
+  min-width: 48px;
+  max-width: 320px;
+}
+
+.edited {
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-regular);
+  white-space: nowrap;
+}
+
+.tools {
+  gap: 0;
+}
+
+.search {
+  flex: 0 1 auto;
+  min-width: 120px;
+}
+
+/* The pane toggles are momentary (their aria-expanded state must not look "pressed"). */
+.paneToggle[aria-expanded='true']:not(:hover):not(:active) {
+  background: transparent;
+}

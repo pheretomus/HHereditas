@@ -24,7 +24,14 @@ import {
 import { FEATURE_LABEL_ON_FILL } from '../common/colors';
 import { formatBp, formatInt, formatPosition } from '../common/format';
 import { useElementSize } from '../common/useElementSize';
-import { type SequenceSelection, caretAt, hasSelectedBases, selectBetween, selectRange, selectionAnchor } from '../selection';
+import {
+  type SequenceSelection,
+  caretAt,
+  hasSelectedBases,
+  selectBetween,
+  selectRange,
+  selectionAnchor,
+} from '../selection';
 import styles from './CircularMap.module.css';
 import {
   angleDelta,
@@ -44,8 +51,8 @@ import {
   type MapGeometry,
   LABEL_CHIP_GAP,
   buildMapModel,
-  labelChipSize,
   computeGeometry,
+  labelChipSize,
   placeLabels,
 } from './layout';
 import { type TextMeasurer, createCanvasMeasurer } from './measure';
@@ -58,7 +65,7 @@ export interface CircularMapProps {
   /** Primer binding sites; names come from record.primers (matched by primerId). */
   primerSites?: readonly PrimerBindingSite[];
   orfs?: readonly Orf[];
-  /** Controlled selection. Omit (undefined) to let the map keep its own. */
+  /** Controlled selection (null = nothing selected). Omit (undefined) to let the map keep its own. */
   selection?: SequenceSelection | null;
   onSelectionChange?: (selection: SequenceSelection | null) => void;
   /** Feature to emphasise, e.g. hovered in the sidebar. */
@@ -71,11 +78,12 @@ export interface CircularMapProps {
   /** Layers to draw; each defaults to visible when its data is given. */
   show?: MapLayers;
   className?: string;
-  /** Map rotation in degrees, clockwise; 0 puts the origin at 12 o'clock. */
+  /** Map rotation in degrees, clockwise; 0 (default) puts the origin at 12 o'clock. */
   rotation?: number;
 }
 
 const EMPTY: readonly never[] = [];
+/** Pointer travel (px) before a press in the ring becomes a drag selection. */
 const DRAG_THRESHOLD = 3;
 
 function cn(...parts: Array<string | false | null | undefined>): string {
@@ -143,17 +151,53 @@ export function coverRanges(a: Range, b: Range, length: number, topology: Topolo
   return { start, end: start + (length - bestGap.len) };
 }
 
-interface DragState {
+/**
+ * Circular molecules: signed travel (bases) from the selection anchor to `gap` when the
+ * selection is extended there (shift+click / shift+drag). The selection keeps its direction
+ * unless the new end is much closer the other way round; with only a caret, the shorter arc wins.
+ */
+export function extendOffset(current: SequenceSelection | null, anchor: number, gap: number, length: number): number {
+  if (length <= 0) return 0;
+  let dc = 0;
+  if (current && current.range.end > current.range.start) {
+    const len = Math.min(length, current.range.end - current.range.start);
+    const caretAtEnd = mod(current.caret, length) === mod(current.range.end, length);
+    dc = caretAtEnd ? len : -len;
+  }
+  const fwd = mod(gap - anchor, length);
+  if (fwd === 0) return Math.abs(dc) >= length ? dc : 0;
+  const back = fwd - length;
+  return Math.abs(fwd - dc) <= Math.abs(back - dc) ? fwd : back;
+}
+
+/** Selection between an anchor and a signed travel on a circular molecule. */
+export function selectionFromOffset(anchor: number, offset: number, length: number): SequenceSelection {
+  const n = Math.round(offset);
+  if (n === 0 || length <= 0) return caretAt(anchor);
+  if (Math.abs(n) >= length) return { range: { start: anchor, end: anchor + length }, caret: anchor };
+  return selectBetween(anchor, mod(anchor + n, length), length, 'circular', n > 0);
+}
+
+/** Extend a selection to cover `gap` (shift+click on the ring). */
+function extendToGap(current: SequenceSelection, gap: number, length: number, topology: Topology): SequenceSelection {
+  const anchor = selectionAnchor(current, length, topology);
+  if (topology === 'linear') return selectBetween(anchor, gap, length, topology);
+  return selectionFromOffset(anchor, extendOffset(current, anchor, gap, length), length);
+}
+
+interface Press {
   pointerId: number;
-  anchor: number;
-  /** Signed travel from the anchor in bases (circular: cumulative, may cross the origin). */
-  offset: number;
-  /** Linear molecules: current head gap. */
-  head: number;
-  lastAngle: number;
   startX: number;
   startY: number;
-  moved: boolean;
+  /** The press can turn into a drag selection (in the ring area, not on an outside label). */
+  draggable: boolean;
+  dragging: boolean;
+  anchor: number;
+  /** Circular: signed bases travelled from the anchor, tracked cumulatively across the origin. */
+  offset: number;
+  /** Linear: current head gap. */
+  head: number;
+  lastAngle: number;
 }
 
 export function CircularMap(props: CircularMapProps) {
@@ -230,15 +274,17 @@ export function CircularMap(props: CircularMapProps) {
     return ids.sort().join('\u0000');
   }, [model, selStart, selEnd, highlightedFeatureId]);
 
-  const basePlacement = useMemo(() => (geom ? placeLabels(geom) : null), [geom]);
   const placement = useMemo(() => {
-    if (!geom || !basePlacement || !pinnedKey) return basePlacement;
+    if (!geom) return null;
+    const base = geom.basePlacement;
+    if (!pinnedKey) return base;
     const pinned = new Set(pinnedKey.split('\u0000'));
+    // Re-layout only when a pinned label is missing, so labels do not move needlessly.
     const missing = geom.candidates.some(
-      (c) => c.featureId !== undefined && pinned.has(c.featureId) && !basePlacement.byKey.has(c.key),
+      (c) => c.featureId !== undefined && pinned.has(c.featureId) && !base.byKey.has(c.key),
     );
-    return missing ? placeLabels(geom, pinned) : basePlacement;
-  }, [geom, basePlacement, pinnedKey]);
+    return missing ? placeLabels(geom, pinned) : base;
+  }, [geom, pinnedKey]);
 
   // ---- Hover ---------------------------------------------------------------------
   const [hover, setHover] = useState<HitResult | null>(null);
@@ -260,6 +306,7 @@ export function CircularMap(props: CircularMapProps) {
   // Geometry changed under the pointer (resize, new record): drop a stale hover.
   useEffect(() => {
     if (hoverKeyRef.current) updateHover(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geom]);
 
   const positionTooltip = () => {
@@ -283,7 +330,7 @@ export function CircularMap(props: CircularMapProps) {
     onSelectionChange?.(next);
   };
 
-  const dragRef = useRef<DragState | null>(null);
+  const pressRef = useRef<Press | null>(null);
   const suppressClickRef = useRef(false);
 
   const localPoint = (e: { clientX: number; clientY: number }) => {
@@ -291,73 +338,68 @@ export function CircularMap(props: CircularMapProps) {
     return { x: e.clientX - (rect?.left ?? 0), y: e.clientY - (rect?.top ?? 0) };
   };
 
-  const dragSelection = (d: DragState, g: MapGeometry): SequenceSelection => {
+  const dragSelection = (d: Press, g: MapGeometry): SequenceSelection => {
     const L = g.model.length;
     if (g.model.topology === 'linear') return selectBetween(d.anchor, d.head, L, 'linear');
-    const n = Math.round(d.offset);
-    if (n === 0) return caretAt(d.anchor);
-    if (Math.abs(n) >= L) return { range: { start: d.anchor, end: d.anchor + L }, caret: d.anchor };
-    return selectBetween(d.anchor, mod(d.anchor + n, L), L, 'circular', n > 0);
+    return selectionFromOffset(d.anchor, d.offset, L);
   };
 
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0 || !geom) return;
-    containerRef.current?.focus({ preventScroll: true });
     suppressClickRef.current = false;
     const p = localPoint(e);
-    const hit = hitTest(geom, placement, p.x, p.y);
-    if (hit.kind !== 'ring') return; // annotations and background act on click
     const L = geom.model.length;
-    if (L <= 0) return;
-    e.preventDefault();
-    const { angle } = cartesianToPolar(geom.cx, geom.cy, p.x, p.y);
+    const topology = geom.model.topology;
+    const { r, angle } = cartesianToPolar(geom.cx, geom.cy, p.x, p.y);
+    const hit = hitTest(geom, placement, p.x, p.y);
+    const onLabel = 'via' in hit && hit.via === 'label';
+    const draggable = L > 0 && !onLabel && r >= geom.dragInner && r <= geom.dragOuter;
     const gap = angleToGap(geom.scale, angle);
     const current = selRef.current;
     let anchor = gap;
     let offset = 0;
     if (e.shiftKey && current) {
-      anchor = selectionAnchor(current, L, geom.model.topology);
-      if (geom.model.topology === 'circular') {
-        offset = mod(gap - anchor, L);
-        if (offset > L / 2) offset -= L;
-      } else offset = gap - anchor;
+      anchor = selectionAnchor(current, L, topology);
+      offset = topology === 'circular' ? extendOffset(current, anchor, gap, L) : gap - anchor;
     }
-    const d: DragState = {
+    pressRef.current = {
       pointerId: e.pointerId,
+      startX: p.x,
+      startY: p.y,
+      draggable,
+      dragging: false,
       anchor,
       offset,
       head: gap,
       lastAngle: angle,
-      startX: p.x,
-      startY: p.y,
-      moved: false,
     };
-    dragRef.current = d;
-    try {
-      svgRef.current?.setPointerCapture?.(e.pointerId);
-    } catch {
-      // capture is best effort (unsupported in some test environments)
+    if (draggable) {
+      try {
+        svgRef.current?.setPointerCapture?.(e.pointerId);
+      } catch {
+        // capture is best effort (unsupported in some test environments)
+      }
     }
-    if (e.shiftKey && current) emit(dragSelection(d, geom));
-    updateHover(null);
   };
 
   const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (!geom) return;
     const p = localPoint(e);
     pointerRef.current = p;
-    const d = dragRef.current;
+    const d = pressRef.current;
     if (d && d.pointerId === e.pointerId) {
+      if (!d.draggable) return;
+      if (!d.dragging) {
+        if (Math.hypot(p.x - d.startX, p.y - d.startY) < DRAG_THRESHOLD) return;
+        d.dragging = true;
+        updateHover(null);
+      }
       const L = geom.model.length;
       const { angle } = cartesianToPolar(geom.cx, geom.cy, p.x, p.y);
-      if (!d.moved && Math.hypot(p.x - d.startX, p.y - d.startY) < DRAG_THRESHOLD) {
-        d.lastAngle = angle;
-        return;
-      }
-      d.moved = true;
       const gap = angleToGap(geom.scale, angle);
       if (geom.model.topology === 'circular') {
-        // Track the cumulative angle so drags can cross the origin in either direction.
+        // Track the cumulative angle so drags can cross the origin in either direction (and
+        // keep extending past it); the gap under the pointer fixes rounding drift.
         const cumulative = d.offset + angleDelta(d.lastAngle, angle) / degreesPerBase(geom.scale);
         let off = gap - d.anchor;
         off += Math.round((cumulative - off) / L) * L;
@@ -374,27 +416,31 @@ export function CircularMap(props: CircularMapProps) {
     const interactive = hit.kind === 'ring' || hit.kind === 'background' ? null : hit;
     updateHover(interactive);
     const svg = svgRef.current;
-    if (svg) svg.style.cursor = interactive ? 'pointer' : 'default';
+    if (svg) svg.style.cursor = interactive ? 'pointer' : '';
     positionTooltip();
   };
 
-  const endDrag = (e: ReactPointerEvent<SVGSVGElement>, commit: boolean) => {
-    const d = dragRef.current;
+  const endPress = (e: ReactPointerEvent<SVGSVGElement>) => {
+    const d = pressRef.current;
     if (!d || d.pointerId !== e.pointerId) return;
-    dragRef.current = null;
+    pressRef.current = null;
     try {
       svgRef.current?.releasePointerCapture?.(e.pointerId);
     } catch {
-      // ignore
+      // already released
     }
-    suppressClickRef.current = true;
-    if (!commit || !geom) return;
-    if (!d.moved) {
-      // A plain click on the ring places the caret; shift+click already extended on press.
-      if (!(e.shiftKey && selRef.current)) emit(caretAt(d.anchor));
-    } else {
-      emit(dragSelection(d, geom));
+    if (d.dragging) {
+      // The click that follows a drag must not also act on what is under the pointer.
+      suppressClickRef.current = true;
+      if (geom) emit(dragSelection(d, geom));
     }
+  };
+
+  const onPointerCancel = (e: ReactPointerEvent<SVGSVGElement>) => {
+    const d = pressRef.current;
+    if (!d || d.pointerId !== e.pointerId) return;
+    pressRef.current = null;
+    if (d.dragging) suppressClickRef.current = true;
   };
 
   const onClick = (e: ReactMouseEvent<SVGSVGElement>) => {
@@ -407,34 +453,43 @@ export function CircularMap(props: CircularMapProps) {
     const hit = hitTest(geom, placement, p.x, p.y);
     const L = geom.model.length;
     const topology = geom.model.topology;
+    const current = selRef.current;
+    const selectOrExtend = (range: Range) =>
+      emit(
+        selectRange(
+          e.shiftKey && current && hasSelectedBases(current) ? coverRanges(current.range, range, L, topology) : range,
+          L,
+          topology,
+        ),
+      );
     switch (hit.kind) {
-      case 'feature': {
-        const extent = hit.shape.item.extent;
-        const current = selRef.current;
-        const range =
-          e.shiftKey && current && hasSelectedBases(current) ? coverRanges(current.range, extent, L, topology) : extent;
-        emit(selectRange(range, L, topology));
+      case 'feature':
+        selectOrExtend(hit.shape.item.extent);
         onFeatureClick?.(hit.shape.id, {
-          clickCount: Math.max(1, e.detail),
+          clickCount: Math.max(1, e.detail || 1),
           shiftKey: e.shiftKey,
           metaKey: e.metaKey,
           ctrlKey: e.ctrlKey,
         });
         break;
-      }
       case 'enzyme':
         onEnzymeClick?.(hit.shape.item.site);
         break;
       case 'primer':
+        selectOrExtend(hit.shape.item.site.range);
         onPrimerClick?.(hit.shape.item.site.primerId);
         break;
       case 'orf':
-        emit(selectRange(hit.shape.item.orf.range, L, topology));
+        selectOrExtend(hit.shape.item.orf.range);
         break;
+      case 'ring': {
+        if (L <= 0) break;
+        const gap = angleToGap(geom.scale, cartesianToPolar(geom.cx, geom.cy, p.x, p.y).angle);
+        emit(e.shiftKey && current ? extendToGap(current, gap, L, topology) : caretAt(gap));
+        break;
+      }
       case 'background':
-        if (selRef.current) emit(null);
-        break;
-      default:
+        if (current) emit(null);
         break;
     }
   };
@@ -447,14 +502,31 @@ export function CircularMap(props: CircularMapProps) {
   };
 
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape' && selRef.current) emit(null);
+    if (e.key === 'Escape' && selRef.current) {
+      e.stopPropagation();
+      emit(null);
+    }
   };
 
   const L = model.length;
-  const ariaLabel = `Circular map of ${record.name || 'Untitled'}, ${formatBp(L)}, ${record.features.length} feature${
-    record.features.length === 1 ? '' : 's'
-  }`;
+  const nFeatures = record.features.length;
+  const ariaLabel = `Plasmid map of ${record.name || 'Untitled'}, ${formatBp(L)}${
+    record.topology === 'linear' ? ', linear' : ''
+  }, ${formatInt(nFeatures)} feature${nFeatures === 1 ? '' : 's'}`;
   const hoverFeatureId = hover?.kind === 'feature' ? hover.shape.id : null;
+  const hoverProps: HoverProps | null = geom
+    ? {
+        geom,
+        placement,
+        hover,
+        highlightedFeatureId: highlightedFeatureId !== hoverFeatureId ? highlightedFeatureId : null,
+      }
+    : null;
+  const selectionText = !sel
+    ? ''
+    : sel.range.end > sel.range.start
+      ? `Selected ${formatRangeText(sel.range, L)}, ${formatBp(Math.min(L, sel.range.end - sel.range.start))}`
+      : `Caret after base ${formatInt(sel.caret)}`;
 
   return (
     <div
@@ -462,8 +534,14 @@ export function CircularMap(props: CircularMapProps) {
       className={cn(styles.root, className)}
       tabIndex={0}
       role="group"
+      aria-roledescription="plasmid map"
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
+      // The focus ring is for keyboard focus only: shift+click and Escape are part of mouse use.
+      onPointerDown={(e) => e.currentTarget.setAttribute('data-pointer-focus', '')}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) e.currentTarget.removeAttribute('data-pointer-focus');
+      }}
     >
       {geom && (
         <svg
@@ -472,31 +550,26 @@ export function CircularMap(props: CircularMapProps) {
           width={geom.width}
           height={geom.height}
           viewBox={`0 0 ${geom.width} ${geom.height}`}
-          role="img"
-          aria-label={ariaLabel}
+          aria-hidden="true"
           data-testid="circular-map-svg"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
-          onPointerUp={(e) => endDrag(e, true)}
-          onPointerCancel={(e) => endDrag(e, false)}
+          onPointerUp={endPress}
+          onPointerCancel={onPointerCancel}
           onPointerLeave={() => {
             pointerRef.current = null;
-            if (!dragRef.current) updateHover(null);
+            if (!pressRef.current) updateHover(null);
           }}
           onClick={onClick}
           onContextMenu={onContextMenuEvent}
         >
           <SelectionUnderlay geom={geom} selection={sel} idPrefix={idPrefix} />
           <LeaderLayer placement={placement} />
+          {hoverProps && <HoverLabelLayer {...hoverProps} />}
           <ShapeLayer geom={geom} idPrefix={idPrefix} />
           <LabelLayer geom={geom} placement={placement} />
           <SelectionOverlay geom={geom} selection={sel} />
-          <HoverLayer
-            geom={geom}
-            placement={placement}
-            hover={hover}
-            highlightedFeatureId={highlightedFeatureId !== hoverFeatureId ? highlightedFeatureId : null}
-          />
+          {hoverProps && <HoverShapeLayer {...hoverProps} />}
         </svg>
       )}
       {geom && hover && (
@@ -504,6 +577,9 @@ export function CircularMap(props: CircularMapProps) {
           <TooltipContent hit={hover} geom={geom} />
         </div>
       )}
+      <div className={styles.srOnly} aria-live="polite">
+        {selectionText}
+      </div>
     </div>
   );
 }
@@ -536,7 +612,7 @@ function SelectionUnderlay({
       <defs>
         <radialGradient id={id} gradientUnits="userSpaceOnUse" cx={geom.cx} cy={geom.cy} r={geom.radius}>
           <stop offset="0" className={styles.selStopCentre} />
-          <stop offset="0.6" className={styles.selStopMid} />
+          <stop offset="0.55" className={styles.selStopMid} />
           <stop offset="1" className={styles.selStopEdge} />
         </radialGradient>
       </defs>
@@ -564,18 +640,18 @@ function SelectionOverlay({ geom, selection }: { geom: MapGeometry; selection: S
             d={`${radialLinePath(cx, cy, geom.centreRadius, R, a0)} ${radialLinePath(cx, cy, geom.centreRadius, R, a1)}`}
           />
         )}
-        <path className={styles.selArc} d={arcPath(cx, cy, R, a0, a1)} />
+        <path className={styles.selArc} d={arcPath(cx, cy, R, a0, a1)} data-testid="circular-selection-arc" />
       </g>
     );
   }
   const angle = positionToAngle(geom.scale, selection.range.start);
-  const outer = geom.ringOuter + 3;
-  const knob = polarToCartesian(cx, cy, outer + 2, angle);
+  const outer = geom.ringOuter + 4;
+  const knob = polarToCartesian(cx, cy, outer + 2.5, angle);
   const inner = geom.ruler ? Math.min(geom.ruler.radius, R - 12) : Math.max(geom.centreRadius, 8);
   return (
     <g pointerEvents="none" data-testid="circular-caret">
       <path className={styles.caret} d={radialLinePath(cx, cy, inner, outer, angle)} />
-      <circle className={styles.caretKnob} cx={knob.x} cy={knob.y} r={2.5} />
+      <circle className={styles.caretKnob} cx={knob.x} cy={knob.y} r={2.75} />
     </g>
   );
 }
@@ -621,28 +697,27 @@ const ShapeLayer = memo(function ShapeLayer({ geom, idPrefix }: { geom: MapGeome
         </g>
       )}
       <g>
-        {geom.features.map((f) => (
-          <g key={f.id} data-feature-id={f.id}>
-            {f.connectors && <path className={styles.connector} d={f.connectors} style={{ stroke: f.stroke }} />}
-            <path className={styles.feature} d={f.d} style={{ fill: f.fill, stroke: f.stroke }} />
-            {f.inside && (
-              <text className={styles.insideLabel} style={{ fontSize: f.inside.fontSize, fill: FEATURE_LABEL_ON_FILL }}>
-                <textPath href={`#${idPrefix}${f.inside.key}`} startOffset="50%">
-                  {f.inside.text}
-                </textPath>
-              </text>
-            )}
-          </g>
-        ))}
+        {geom.featureOrder.map((i) => {
+          const f = geom.features[i];
+          return (
+            <g key={f.id} data-feature-id={f.id}>
+              {f.connectors && <path className={styles.connector} d={f.connectors} style={{ stroke: f.stroke }} />}
+              <path className={styles.feature} d={f.d} style={{ fill: f.fill, stroke: f.stroke }} />
+              {f.inside && (
+                <text className={styles.insideLabel} style={{ fontSize: f.inside.fontSize, fill: FEATURE_LABEL_ON_FILL }}>
+                  <textPath href={`#${idPrefix}${f.inside.key}`} startOffset="50%">
+                    {f.inside.text}
+                  </textPath>
+                </text>
+              )}
+            </g>
+          );
+        })}
       </g>
       {geom.primers.length > 0 && (
         <g>
           {geom.primers.map((p) => (
-            <path
-              key={p.index}
-              className={p.item.site.strand === 1 ? styles.primerFwd : styles.primerRev}
-              d={p.d}
-            />
+            <path key={p.index} className={p.item.site.strand === 1 ? styles.primerFwd : styles.primerRev} d={p.d} />
           ))}
         </g>
       )}
@@ -716,13 +791,13 @@ const LabelLayer = memo(function LabelLayer({
               style={{ fontWeight: c.fontWeight }}
               data-label-key={c.key}
             >
-              {c.text}
+              {l.text}
             </text>
           </g>
         );
       })}
       {placement.notes.map((n) => (
-        <text key={n.anchor} className={styles.note} x={n.x} y={n.y} textAnchor={n.anchor}>
+        <text key={`${n.anchor}${n.x}`} className={styles.note} x={n.x} y={n.y} textAnchor={n.anchor} data-testid="circular-more">
           {n.text}
         </text>
       ))}
@@ -730,64 +805,70 @@ const LabelLayer = memo(function LabelLayer({
   );
 });
 
-function HoverLayer({
-  geom,
-  placement,
-  hover,
-  highlightedFeatureId,
-}: {
+/** Keys of the outside labels and feature ids to emphasise for the hover / highlight state. */
+function emphasis(hover: HitResult | null, highlightedFeatureId: string | null) {
+  const labelKeys: string[] = [];
+  const featureIds: Array<[string, 'hover' | 'highlight']> = [];
+  if (highlightedFeatureId) {
+    featureIds.push([highlightedFeatureId, 'highlight']);
+    labelKeys.push(`f:${highlightedFeatureId}`);
+  }
+  if (hover?.kind === 'feature') {
+    featureIds.push([hover.shape.id, 'hover']);
+    labelKeys.push(`f:${hover.shape.id}`);
+  } else if (hover?.kind === 'enzyme') labelKeys.push(`e:${hover.shape.index}`);
+  else if (hover?.kind === 'primer') labelKeys.push(`p:${hover.shape.index}`);
+  return { labelKeys, featureIds };
+}
+
+interface HoverProps {
   geom: MapGeometry;
   placement: LabelPlacement | null;
   hover: HitResult | null;
   highlightedFeatureId: string | null;
-}) {
+}
+
+/** Under the labels: a soft pill behind each emphasised label and its leader drawn darker. */
+function HoverLabelLayer({ placement, hover, highlightedFeatureId }: HoverProps) {
+  if (!placement || (!hover && !highlightedFeatureId)) return null;
   const parts: ReactNode[] = [];
-  const labelPill = (key: string) => {
-    const l = placement?.byKey.get(key);
-    if (!l) return;
+  for (const key of emphasis(hover, highlightedFeatureId).labelKeys) {
+    const l = placement.byKey.get(key);
+    if (!l) continue;
     const b = l.box;
     parts.push(<path key={`lead-${key}`} className={styles.hoverLeader} d={l.leader} />);
     parts.push(
       <rect
         key={`pill-${key}`}
         className={styles.hoverLabel}
-        x={b.x0 - 3}
+        x={b.x0 - 4}
         y={b.y0 + 0.5}
-        width={b.x1 - b.x0 + 6}
+        width={b.x1 - b.x0 + 8}
         height={b.y1 - b.y0 - 1}
         rx={4}
       />,
     );
-  };
-  const featureEmphasis = (id: string) => {
+  }
+  return parts.length ? <g pointerEvents="none">{parts}</g> : null;
+}
+
+/** Over the shapes: outline of the hovered / highlighted annotation. */
+function HoverShapeLayer({ geom, hover, highlightedFeatureId }: HoverProps) {
+  if (!hover && !highlightedFeatureId) return null;
+  const parts: ReactNode[] = [];
+  for (const [id, kind] of emphasis(hover, highlightedFeatureId).featureIds) {
     const f = geom.features.find((s) => s.id === id);
-    if (!f) return;
-    parts.push(<path key={`f-${id}`} className={styles.hoverFeature} d={f.d} />);
-    labelPill(`f:${id}`);
-  };
-  if (highlightedFeatureId) featureEmphasis(highlightedFeatureId);
-  if (hover) {
-    switch (hover.kind) {
-      case 'feature':
-        featureEmphasis(hover.shape.id);
-        break;
-      case 'enzyme':
-        parts.push(<path key="tick" className={styles.hoverTick} d={hover.shape.d} />);
-        labelPill(`e:${hover.shape.index}`);
-        break;
-      case 'primer':
-        parts.push(<path key="primer" className={styles.hoverShape} d={hover.shape.d} />);
-        labelPill(`p:${hover.shape.index}`);
-        break;
-      case 'orf':
-        parts.push(<path key="orf" className={styles.hoverShape} d={hover.shape.d} />);
-        break;
-      default:
-        break;
+    if (f) {
+      parts.push(
+        <path key={`f-${id}`} className={kind === 'hover' ? styles.hoverFeature : styles.highlightFeature} d={f.d} />,
+      );
     }
   }
-  if (parts.length === 0) return null;
-  return <g pointerEvents="none">{parts}</g>;
+  if (hover?.kind === 'enzyme') parts.push(<path key="tick" className={styles.hoverTick} d={hover.shape.d} />);
+  if (hover?.kind === 'primer' || hover?.kind === 'orf') {
+    parts.push(<path key="shape" className={styles.hoverShape} d={hover.shape.d} />);
+  }
+  return parts.length ? <g pointerEvents="none">{parts}</g> : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -817,9 +898,7 @@ function TooltipContent({ hit, geom }: { hit: HitResult; geom: MapGeometry }) {
       );
     }
     case 'enzyme': {
-      const { site, unique, cuts } = hit.shape.item;
-      const count = geom.model.enzymes.reduce((n, e) => n + (e.site.enzyme === site.enzyme ? e.site.cuts.length : 0), 0);
-      const label = hit.shape.item.label;
+      const { site, unique, cutCount, label } = hit.shape.item;
       const at = label.slice(label.lastIndexOf('(') + 1, -1);
       return (
         <>
@@ -827,8 +906,8 @@ function TooltipContent({ hit, geom }: { hit: HitResult; geom: MapGeometry }) {
             <span className={styles.ttTitleText}>{site.enzyme}</span>
           </div>
           <div className={styles.ttMeta}>
-            {unique ? 'Unique cutter' : count === 0 ? 'Does not cut' : `Cuts ${formatInt(count)} times`}
-            {cuts.length ? ` · cuts after ${at}` : ''}
+            {unique ? 'Unique cutter' : cutCount === 0 ? 'Does not cut' : `Cuts ${formatInt(cutCount)} times`}
+            {site.cuts.length ? ` · cuts after ${at}` : ''}
           </div>
           <div className={styles.ttRange}>
             Site {formatRangeText(normalizeRange(site.range, L, geom.model.topology), L)} ·{' '}

@@ -180,6 +180,56 @@ describe('GelView', () => {
     expect(document.activeElement).toBe(options[0]);
   });
 
+  it('shows the full text of a truncated lane label in a tooltip', () => {
+    const long = Array.from(
+      { length: 12 },
+      (_, i): GelLane => ({
+        id: `c${i}`,
+        label: `pUC19-mCherry clone ${i + 1} · EcoRI + HindIII double digest`,
+        kind: 'sample',
+        bands: [{ size: 2660, position: pos(2660), intensity: 1 }],
+      }),
+    );
+    const onLaneClick = vi.fn();
+    render(<GelView lanes={long} onLaneClick={onLaneClick} />);
+    const layout = layoutFor(long);
+    expect(layout.header.mode).toBe('diagonal');
+    expect(layout.header.labels[4].truncated).toBe(true);
+    const label = screen.getByText(long[4].label);
+    fireEvent.pointerEnter(label);
+    expect(screen.getByRole('tooltip').textContent).toBe(long[4].label);
+    fireEvent.click(label);
+    expect(onLaneClick).toHaveBeenLastCalledWith('c4');
+    fireEvent.pointerLeave(label);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
+  it('names the lane under the pointer when the lanes are too narrow for labels', () => {
+    const many = Array.from(
+      { length: 100 },
+      (_, i): GelLane => ({
+        id: `s${i}`,
+        label: `Sample ${i + 1}`,
+        kind: 'sample',
+        bands: [{ size: 1000, position: pos(1000), intensity: 1 }],
+      }),
+    );
+    render(<GelView lanes={many} />);
+    const layout = layoutFor(many);
+    expect(layout.header.mode).toBe('hidden');
+    expect(screen.queryByText('Sample 42')).toBeNull();
+    const lane = layout.lanes[41];
+    const list = screen.getByRole('list', { name: 'Lanes' });
+    fireEvent.pointerMove(list, { clientX: lane.cx, clientY: layout.scale.top + 20 });
+    expect(screen.getByRole('tooltip').textContent).toBe('Sample 42');
+    // on a band, the band tooltip (which names the lane too) takes over
+    fireEvent.pointerMove(list, { clientX: lane.cx, clientY: lane.bands[0].y });
+    expect(screen.getByRole('tooltip').textContent).toContain('1,000 bp');
+    expect(screen.getByRole('tooltip').textContent).toContain('Sample 42');
+    fireEvent.pointerLeave(list);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
   it('shows an empty state without lanes and handles empty lanes', () => {
     render(<GelView lanes={[]} />);
     expect(screen.getByText('No lanes')).toBeTruthy();

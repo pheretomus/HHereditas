@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactElement, type ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, type ReactElement, type ReactNode } from 'react';
 import { Tooltip as TooltipPrimitive } from 'radix-ui';
 import { cx } from '../../lib/cx';
 import { formatShortcut } from '../../lib/shortcut';
@@ -44,7 +44,21 @@ export interface TooltipProps {
   className?: string;
 }
 
-/** Small, quiet macOS-style help tag with an optional shortcut hint. */
+/** True unless the element is known to have non-keyboard focus. */
+function hasKeyboardFocus(el: Element | null): boolean {
+  if (!el) return true;
+  try {
+    return el.matches(':focus-visible');
+  } catch {
+    return true; // engines without :focus-visible: keep the default behaviour
+  }
+}
+
+/**
+ * Small, quiet macOS-style help tag with an optional shortcut hint. It appears on hover and
+ * on keyboard focus, but not when focus returns to its trigger programmatically (e.g. after
+ * choosing an item from the trigger's menu with the mouse).
+ */
 export function Tooltip({
   content,
   shortcut,
@@ -60,10 +74,30 @@ export function Tooltip({
   className,
 }: TooltipProps) {
   const hasProvider = useContext(ProviderPresent);
+  const [openState, setOpenState] = useState(defaultOpen ?? false);
+  const hovering = useRef(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   if (disabled || content == null || content === '') return children;
+  const controlled = open !== undefined;
+  const handleOpenChange = (next: boolean) => {
+    if (next && !hovering.current && !hasKeyboardFocus(triggerRef.current)) return;
+    if (!controlled) setOpenState(next);
+    onOpenChange?.(next);
+  };
   const root = (
-    <TooltipPrimitive.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange} delayDuration={delayDuration}>
-      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
+    <TooltipPrimitive.Root open={controlled ? open : openState} onOpenChange={handleOpenChange} delayDuration={delayDuration}>
+      <TooltipPrimitive.Trigger
+        asChild
+        ref={triggerRef}
+        onPointerEnter={() => {
+          hovering.current = true;
+        }}
+        onPointerLeave={() => {
+          hovering.current = false;
+        }}
+      >
+        {children}
+      </TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
           side={side}

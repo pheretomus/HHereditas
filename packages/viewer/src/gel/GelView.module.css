@@ -138,6 +138,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.sizeLabelStrong {
+  font-weight: var(--hh-weight-semibold);
+}
+
 .sizeLabelActive {
   fill: var(--hh-gel-band);
 }
@@ -216,7 +220,8 @@
 
 .lane:focus-visible {
   outline: 2px solid var(--hh-accent);
-  outline-offset: -2px;
+  /* inset like the selection outline, inside the slab's rounded edge */
+  outline-offset: -3px;
 }
 
 .clickable {
@@ -255,12 +260,10 @@
 .tipTitle {
   font-size: var(--hh-text-md);
   font-weight: var(--hh-weight-semibold);
-  font-variant-numeric: tabular-nums;
 }
 
 .tipDetail {
   color: var(--hh-text-secondary);
-  font-variant-numeric: tabular-nums;
 }
 
 .tipLabels {

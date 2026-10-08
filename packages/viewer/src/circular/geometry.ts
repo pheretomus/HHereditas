@@ -123,6 +123,15 @@ export function pxToDegrees(px: number, r: number): number {
   return r > 0 ? px / (r * DEG) : 0;
 }
 
+/** Shortest distance from point (px, py) to the segment (x0, y0)-(x1, y1). */
+export function distanceToSegment(px: number, py: number, x0: number, y0: number, x1: number, y1: number): number {
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const len2 = dx * dx + dy * dy;
+  const t = len2 > 0 ? Math.max(0, Math.min(1, ((px - x0) * dx + (py - y0) * dy) / len2)) : 0;
+  return Math.hypot(px - (x0 + t * dx), py - (y0 + t * dy));
+}
+
 // ---------------------------------------------------------------------------
 // SVG path builders. Numbers are rounded to 0.01 px to keep the markup compact.
 // ---------------------------------------------------------------------------

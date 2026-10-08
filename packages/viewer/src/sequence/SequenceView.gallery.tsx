@@ -8,7 +8,8 @@ import { SAMPLES } from '../fixtures';
 import type { SequenceSelection } from '../selection';
 import { SequenceView, type SequenceViewProps } from './SequenceView';
 import { applyEditNaive, demoPrimersFor, findDemoOrfs, findDemoSites, findMotif, syntheticGenome } from './sequenceGalleryData';
-import type { MapTarget, SequenceEdit } from './types';
+import { translateLite } from './translate-lite';
+import type { FeatureClickInfo, MapTarget, SequenceEdit } from './types';
 
 type GalleryStories = Record<string, () => ReactNode>;
 
@@ -74,6 +75,16 @@ function Harness({ record, initialSelection = null, scrollToPosition, liveSites,
     event.preventDefault();
     setMessage(`Context menu: ${target.kind}${'position' in target ? ` ${formatInt(target.position)}` : 'id' in target ? ` ${target.id}` : ''}`);
   }, []);
+  const onFeatureClick = useCallback(
+    (id: string, info: FeatureClickInfo) =>
+      setMessage(`${info.clickCount > 1 ? 'Double-clicked' : 'Clicked'} ${rec.features.find((f) => f.id === id)?.name ?? id}`),
+    [rec.features],
+  );
+  const onEnzymeClick = useCallback((site: EnzymeSite) => setMessage(`Clicked ${site.enzyme}`), []);
+  const onPrimerClick = useCallback(
+    (id: string) => setMessage(`Clicked primer ${rec.primers.find((p) => p.id === id)?.name ?? id}`),
+    [rec.primers],
+  );
   const hoveredName = hovered ? rec.features.find((f) => f.id === hovered)?.name : null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: frameWidth ?? '100%', borderRight: frameWidth ? '1px solid var(--hh-separator)' : undefined }}>
@@ -88,6 +99,9 @@ function Harness({ record, initialSelection = null, scrollToPosition, liveSites,
           onEdit={onEdit}
           onInvalidInput={(text) => setMessage(`Not DNA: “${text.length > 24 ? `${text.slice(0, 24)}…` : text}”`)}
           onContextMenu={onContextMenu}
+          onFeatureClick={onFeatureClick}
+          onEnzymeClick={onEnzymeClick}
+          onPrimerClick={onPrimerClick}
           scrollTo={scrollTo}
           {...rest}
         />
@@ -95,7 +109,7 @@ function Harness({ record, initialSelection = null, scrollToPosition, liveSites,
       {status && (
         <div style={statusStyle}>
           <span style={{ color: 'var(--hh-text)', fontWeight: 'var(--hh-weight-medium)' as CSSProperties['fontWeight'] }}>{rec.name}</span>
-          <span>{`${formatBp(rec.seq.length)} ${rec.topology}`}</span>
+          <span>{rec.molecule === 'protein' ? `${formatInt(rec.seq.length)} aa` : `${formatBp(rec.seq.length)} ${rec.topology}`}</span>
           <span>{describe(selection, rec.seq.length)}</span>
           {hoveredName && <span>{hoveredName}</span>}
           {message && <span style={{ color: 'var(--hh-text)' }}>{message}</span>}
@@ -140,6 +154,22 @@ const stickyFragment: SeqRecord = {
   seq: SAMPLES.linear.record.seq.slice(0, 240),
   features: SAMPLES.linear.record.features.filter((f) => f.segments.every((s) => s.end <= 240)),
   ends: { left: { kind: '5prime', length: 4 }, right: { kind: '5prime', length: 4 } },
+};
+
+/** KanR (from pFA6a) as a protein record, with a signal-like feature. */
+const kanR = SAMPLES.pFA6a.record.features.find((f) => f.name === 'KanR')!;
+const proteinRecord: SeqRecord = {
+  id: 'kanr-protein',
+  name: 'KanR protein',
+  description: 'Aminoglycoside phosphotransferase',
+  seq: translateLite(SAMPLES.pFA6a.record.seq.slice(kanR.segments[0].start, kanR.segments[0].end)).replace(/\*$/, ''),
+  topology: 'linear',
+  molecule: 'protein',
+  features: [
+    { id: 'dom', type: 'misc_feature', name: 'APH domain', strand: 0, segments: [{ start: 20, end: 240 }], qualifiers: [] },
+  ],
+  primers: [],
+  meta: {},
 };
 
 const pFA6aSites: readonly EnzymeSite[] = SAMPLES.pFA6a.enzymeSites;
@@ -203,5 +233,6 @@ export default {
   'bases-per-row-60': sample('linear', { basesPerRow: 60 }),
   'sticky-ends': () => <Harness record={stickyFragment} enzymeSites={findDemoSites(stickyFragment.seq, false)} />,
   empty: () => <Harness record={emptyRecord} editable status />,
+  protein: () => <Harness record={proteinRecord} editable status />,
   'genome-4.6Mb': () => <GenomeStory />,
 } satisfies GalleryStories;

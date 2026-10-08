@@ -1,0 +1,362 @@
+.welcome {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--hh-bg-content);
+  color: var(--hh-text);
+}
+
+/* Empty top strip that drags the window (title bar area). */
+.dragStrip {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--hh-toolbar-height);
+}
+
+/* ---- hero ---- */
+.hero {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: var(--hh-toolbar-height) 32px 56px;
+  overflow: auto;
+}
+
+.heroInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(380px, 100%);
+}
+
+.mark {
+  display: block;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 10px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.appName {
+  margin: 0;
+  font-size: var(--hh-text-3xl);
+  font-weight: var(--hh-weight-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.tagline {
+  margin: 6px 0 0;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-md);
+  text-align: center;
+}
+
+.version {
+  margin: 4px 0 0;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  margin-top: 32px;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  margin: 0;
+  padding: 8px 12px 8px 10px;
+  border: 0;
+  border-radius: var(--hh-radius-lg);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+  transition: background-color var(--hh-duration-fast) var(--hh-ease);
+}
+
+.action:hover:not(:disabled) {
+  background: var(--hh-bg-hover);
+}
+
+.action:active:not(:disabled) {
+  background: var(--hh-bg-pressed);
+  transition: none;
+}
+
+.action:disabled {
+  opacity: 0.45;
+}
+
+.action:focus-visible {
+  outline: 3px solid var(--hh-focus-ring);
+  outline-offset: 0;
+}
+
+.actionIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--hh-radius-md);
+  background: var(--hh-accent-soft);
+  color: var(--hh-accent);
+}
+
+.actionIcon :where(svg) {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.75;
+}
+
+.actionText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.actionTitle {
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-semibold);
+}
+
+.actionDetail {
+  overflow: hidden;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actionShortcut {
+  flex: none;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-md);
+  letter-spacing: 0.04em;
+}
+
+.dropHint {
+  position: absolute;
+  right: 0;
+  bottom: 22px;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+}
+
+.dropHint :where(svg) {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.75;
+}
+
+/* ---- side list ---- */
+.side {
+  position: relative;
+  display: flex;
+  flex: 0 0 300px;
+  flex-direction: column;
+  min-height: 0;
+  padding-top: var(--hh-toolbar-height);
+  background: var(--hh-bg-sidebar);
+  box-shadow: inset var(--hh-hairline) 0 0 var(--hh-separator);
+}
+
+.sideScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 10px 16px;
+  overflow-y: auto;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  margin-top: 8px;
+  padding: 0 8px;
+}
+
+.sectionHeader:first-child {
+  margin-top: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-bold);
+}
+
+.clear {
+  margin: 0;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: var(--hh-radius-xs);
+  background: transparent;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  cursor: default;
+}
+
+.clear:hover {
+  background: var(--hh-bg-hover);
+  color: var(--hh-text);
+}
+
+.clear:focus-visible {
+  outline: 2px solid var(--hh-focus-ring);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--hh-radius-md);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.item:hover {
+  background: var(--hh-bg-hover);
+}
+
+.item:active {
+  background: var(--hh-bg-pressed);
+}
+
+.item:focus-visible {
+  outline: 3px solid var(--hh-focus-ring);
+  outline-offset: -1px;
+}
+
+.itemIcon {
+  display: inline-flex;
+  flex: none;
+  color: var(--hh-accent);
+}
+
+.itemIcon :where(svg) {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+.itemText {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.itemTitle,
+.itemDetail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemTitle {
+  font-size: var(--hh-text-md);
+}
+
+.itemDetail {
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+}
+
+.itemMeta {
+  flex: none;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyList {
+  margin: 2px 8px 6px;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+}
+
+/* ---- drop overlay ---- */
+.dropOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  padding: 14px;
+  background: color-mix(in srgb, var(--hh-bg-content) 70%, transparent);
+  pointer-events: none;
+  animation: fadeIn var(--hh-duration-fast) var(--hh-ease);
+}
+
+.dropTarget {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 2px dashed var(--hh-accent);
+  border-radius: var(--hh-radius-xl);
+  background: var(--hh-accent-soft);
+  color: var(--hh-accent);
+  font-size: var(--hh-text-lg);
+  font-weight: var(--hh-weight-semibold);
+}
+
+.dropTarget :where(svg) {
+  width: 36px;
+  height: 36px;
+  stroke-width: 1.5;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}

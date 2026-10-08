@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { FIXTURES_DIR, genbankSequence, instantiate, mulberry32, plant, randInt, randomDna, rotate } from '../../test/oracle/enzymes/load';
+import {
+  FIXTURES_DIR,
+  genbankSequence,
+  instantiate,
+  mulberry32,
+  plant,
+  randInt,
+  randomDna,
+  resultObjectProblems,
+  rotate,
+} from '../../test/oracle/enzymes/load';
 import type { DnaEnd, FragmentEnds, Topology } from '../types';
 import { iupacMatches, reverseComplement } from '../seq/alphabet';
 import { sliceRange } from '../seq/range';
@@ -936,5 +946,84 @@ describe('digest: conflict resolution depends on neither strand, origin nor enzy
         expect(digestDetailed(seq, topology, reordered)).toEqual(digestDetailed(seq, topology, enzymes));
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regression tests for defects found by adversarial review (shared objects, gel sizes)
+// ---------------------------------------------------------------------------
+
+describe('review: digest results are fresh objects that callers may modify', () => {
+  it('gives an uncut circle its own, unfrozen blunt ends', () => {
+    const [uncut] = digest('ACGTACGT', 'circular', [E('EcoRI')]);
+    expect(uncut.topology).toBe('circular');
+    expect(uncut.ends.left).not.toBe(uncut.ends.right);
+    expect([Object.isFrozen(uncut.ends), Object.isFrozen(uncut.ends.left), Object.isFrozen(uncut.ends.right)]).toEqual([false, false, false]);
+    uncut.ends.left.length = 0; // threw a TypeError when the frozen module constant was returned
+    uncut.ends.right.kind = '5prime';
+    expect(uncut.ends.left).toEqual(blunt);
+    expect(digest('ACGTACGT', 'circular', [E('EcoRI')])[0].ends).toEqual({ left: blunt, right: blunt });
+  });
+
+  it('does not share DigestCut objects between neighbouring fragments or the two ends of a linearized circle', () => {
+    const frags = digest('AAGAATTCAAGAATTCAA', 'linear', [E('EcoRI')]);
+    expect(frags[0].rightCut).toEqual(frags[1].leftCut);
+    expect(frags[0].rightCut).not.toBe(frags[1].leftCut);
+    frags[1].leftCut!.top -= 3;
+    expect(frags[0].rightCut).toEqual({ enzyme: 'EcoRI', top: 3, bottom: 7 });
+    const [once] = digest('TTCAAGAA', 'circular', [E('EcoRI')]);
+    expect(once.leftCut).toEqual(once.rightCut);
+    expect(once.leftCut).not.toBe(once.rightCut);
+  });
+
+  it('gives every skipped event its own blockedBy object', () => {
+    // AluI AG^CT and CviKI-1 RG^CY make the same blunt break inside the HindIII overhang: both are blocked by HindIII
+    const report = digestDetailed('CCCCAAGCTTCCCC', 'linear', [E('AluI'), E('CviKI-1'), E('HindIII')]);
+    const blocked = report.skipped.filter((s) => s.reason === 'conflict');
+    expect(blocked.map((s) => [s.enzyme, s.blockedBy])).toEqual([
+      ['AluI', { enzyme: 'HindIII', top: 5, bottom: 9 }],
+      ['CviKI-1', { enzyme: 'HindIII', top: 5, bottom: 9 }],
+    ]);
+    expect(blocked[0].blockedBy).not.toBe(blocked[1].blockedBy);
+    expect(blocked[0].blockedBy).not.toBe(report.fragments[0].rightCut);
+  });
+
+  it('never returns shared, frozen or input objects, nor -0 (random digests)', () => {
+    const rand = mulberry32(0xf7e54);
+    const pool = ['EcoRI', 'BamHI', 'MboI', 'BstYI', 'AluI', 'CviKI-1', 'HindIII', 'BsaI', 'BsmAI', 'BsmBI', 'PstI', 'SmaI', 'XmaI', 'BaeI',
+      'CspCI', 'MlyI', 'PleI', 'TspRI', 'SgeI', 'NlaIII', 'HaeIII', 'NotI'].map(E);
+    const seen = { uncut: 0, linearizedCircles: 0, sharedBreaks: 0, conflicts: 0 };
+    for (let trial = 0; trial < 800; trial++) {
+      const enzymes = [...new Set(Array.from({ length: randInt(rand, 1, 3) }, () => pool[randInt(rand, 0, pool.length - 1)]))];
+      const L = randInt(rand, 1, 120);
+      let seq = randomDna(L, rand);
+      for (let k = randInt(rand, 0, 4); k > 0; k--) {
+        const e = enzymes[randInt(rand, 0, enzymes.length - 1)];
+        let text = instantiate(e.site, rand);
+        if (rand() < 0.5) text = reverseComplement(text);
+        if (text.length <= L) seq = plant(seq, randInt(rand, 0, L - 1), text);
+      }
+      for (const topology of ['linear', 'circular'] as const) {
+        const ends = topology === 'linear' && L > 1 && rand() < 0.5 ? randomEnds(rand, L, 6) : undefined;
+        const report = digestDetailed(seq, topology, enzymes, ends ? { ends } : undefined);
+        const inputs: object[] = [enzymes, ...enzymes, ...(ends ? [ends, ends.left, ends.right] : [])];
+        expect(resultObjectProblems(report, inputs), `${enzymes.map((e) => e.name).join('+')} ${topology} ${seq}`).toEqual([]);
+        expect(resultObjectProblems(digest(seq, topology, enzymes, ends ? { ends } : undefined), inputs)).toEqual([]);
+        const frags = report.fragments;
+        if (frags.length === 1 && frags[0].topology === 'circular') seen.uncut++;
+        if (topology === 'circular' && frags.length === 1 && frags[0].leftCut !== undefined) seen.linearizedCircles++;
+        if (frags.length > 1 && frags.some((f) => f.leftCut !== undefined && f.rightCut !== undefined)) seen.sharedBreaks++;
+        seen.conflicts += report.skipped.filter((s) => s.reason === 'conflict').length;
+      }
+    }
+    console.info(`fresh-object check: ${JSON.stringify(seen)}`);
+    expect(Math.min(seen.uncut, seen.linearizedCircles, seen.sharedBreaks, seen.conflicts)).toBeGreaterThan(20);
+  });
+});
+
+describe('review: digestSizes for gel lanes (reviewer reproduction)', () => {
+  it('digestSizes distinguishes an uncut plasmid from a linear molecule', () => {
+    const plasmid = 'GAATTC' + 'ACGT'.repeat(500);
+    expect(digestSizes(plasmid, 'circular', [E('NotI')])).not.toEqual(digestSizes(plasmid, 'linear', []));
   });
 });

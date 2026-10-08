@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { FIXTURES_DIR, genbankSequence } from '../../test/oracle/enzymes/load';
 import { COMMERCIAL_ENZYMES, COMMON_ENZYMES, ENZYMES, effectiveSiteLength, getEnzyme, isPalindromic, overhang } from './enzyme';
 import type { RestrictionEnzyme } from './enzyme';
-import { findSites } from './search';
+import { digest } from './digest';
+import { countCuts, findSites } from './search';
 import { cuttersWithCount, filterEnzymes, nonCutters, uniqueCutters } from './sets';
 
 function E(name: string): RestrictionEnzyme {
@@ -130,5 +131,20 @@ describe('regression: cutter lists given an enzyme list only name enzymes of tha
     expect(cuttersWithCount(puc, 2, [E('EcoRI'), E('NotI'), E('PvuII')])).toEqual(['PvuII']);
     // without a list every enzyme present in `sites` is considered
     expect(cuttersWithCount(sites, 0)).toEqual(['MboI']);
+  });
+});
+
+describe('review: cutter lists of a sticky-ended linear record, from sites found with its ends', () => {
+  it('does not count the TaqI site in the single-stranded overhang of an EcoRI-XhoI insert', () => {
+    const insert = 'ATGAGTAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGATGGTGATGTTAATGGGCACAAATTTTCTGTC';
+    const [, frag] = digest('GGGGG' + 'GAATTC' + insert + 'CTCGAG' + 'GGGGG', 'linear', [E('EcoRI'), E('XhoI')]);
+    const enzymes = [E('TaqI'), E('EcoRI'), E('XhoI')];
+    const sites = findSites(frag.seq, 'linear', enzymes, { ends: frag.ends });
+    // TaqI cannot cut this fragment at all (its only site is the TCGA overhang)
+    expect(digest(frag.seq, 'linear', [E('TaqI')], { ends: frag.ends })).toHaveLength(1);
+    expect(countCuts(sites).get('TaqI') ?? 0).toBe(0);
+    expect(uniqueCutters(sites)).toEqual([]);
+    expect(cuttersWithCount(sites, 0)).toEqual(['TaqI']);
+    expect(nonCutters(sites, enzymes)).toEqual(['EcoRI', 'TaqI', 'XhoI']);
   });
 });

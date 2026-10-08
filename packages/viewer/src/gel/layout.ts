@@ -27,7 +27,8 @@ const HEADER_GAP = 7; // between the lane labels and the slab
 const SIDE_LABEL_GAP = 4; // between a band and its size label
 const MAX_SIDE_LABEL = 56;
 const MIN_SLAB_WIDTH = 168;
-const SLAB_ASPECT = 0.5; // the slab is at least this wide relative to its height (when space allows)
+const MIN_SLAB_LANES = 3; // the slab is at least this many lanes wide...
+const SLAB_ASPECT = 0.3; // ...and at least this wide relative to its height (when space allows)
 const LEADER_BEND = 2.5; // a ladder label moved less than this (px) keeps a straight tick
 const EPS = 1e-6;
 
@@ -101,6 +102,12 @@ export interface GelLabelTarget {
   protected?: boolean;
   /** Tie-breaker when a label must be dropped: lighter labels go first (e.g. band intensity). */
   weight?: number;
+  /**
+   * Bounds of this label's centre (px), in addition to `maxShift`. Labels without a leader use the
+   * midpoints to the neighbouring bands, so that a label always stays closest to its own band.
+   */
+  minY?: number;
+  maxY?: number;
 }
 
 export interface GelLabelPlacementOptions {
@@ -122,9 +129,9 @@ export interface GelPlacedLabel {
 /**
  * Positions labels on a vertical axis so that they never overlap: labels keep their order, are at
  * least `spacing` apart, stay inside [minY, maxY], and move as little as possible (least squares).
- * When a crowd of labels would have to move further than `maxShift`, labels are dropped, the most
- * crowded first (which thins dense runs to every other label), never protected ones while others
- * remain. Returns the kept labels top to bottom.
+ * When a crowd of labels would have to move further than `maxShift` (or out of a label's own
+ * bounds), labels are dropped, the most crowded first (which thins dense runs to every other
+ * label), never protected ones while others remain. Returns the kept labels top to bottom.
  */
 export function placeGelLabels(
   targets: readonly GelLabelTarget[],
@@ -133,8 +140,16 @@ export function placeGelLabels(
   const { spacing, minY, maxY } = options;
   const maxShift = options.maxShift ?? spacing;
   if (!(spacing > 0) || !(maxY >= minY)) return [];
-  let active = targets
-    .map((t, index) => ({ index, y: t.y, protected: t.protected === true, weight: t.weight ?? 0 }))
+  let active: ActiveLabel[] = targets
+    .map((t, index) => ({
+      index,
+      y: t.y,
+      protected: t.protected === true,
+      weight: t.weight ?? 0,
+      // the label may move within maxShift and its own bounds (which always contain its target)
+      lo: Math.min(t.y, Math.max(t.y - maxShift, t.minY ?? -Infinity)),
+      hi: Math.max(t.y, Math.min(t.y + maxShift, t.maxY ?? Infinity)),
+    }))
     .filter((t) => Number.isFinite(t.y))
     .sort((a, b) => a.y - b.y || a.index - b.index);
   const capacity = Math.floor((maxY - minY) / spacing + EPS) + 1;
@@ -159,11 +174,11 @@ export function placeGelLabels(
     let hi = active.length - 1;
     if (placed) {
       let worst = -1;
-      let worstShift = maxShift + EPS;
+      let worstExcess = EPS;
       for (let i = 0; i < active.length; i++) {
-        const shift = Math.abs(placed[i] - active[i].y);
-        if (shift > worstShift) {
-          worstShift = shift;
+        const excess = Math.max(active[i].lo - placed[i], placed[i] - active[i].hi);
+        if (excess > worstExcess) {
+          worstExcess = excess;
           worst = i;
         }
       }
@@ -214,6 +229,9 @@ interface ActiveLabel {
   y: number;
   protected: boolean;
   weight: number;
+  /** Allowed range of the label centre. */
+  lo: number;
+  hi: number;
 }
 
 /** Index (into `active`) of the label to drop among active[lo..hi]: unprotected, most crowded, lightest. */
@@ -274,6 +292,8 @@ export interface GelSizeLabel {
   /** Centre of the band (px); differs from y when the label had to move. */
   bandY: number;
   width: number;
+  /** Reference band of a ladder (drawn bolder). */
+  emphasized: boolean;
 }
 
 export interface GelLaneGeometry {
@@ -521,7 +541,7 @@ export function computeGelLayout(lanes: readonly GelLane[], options: GelLayoutOp
   if (showSizes === 'all') {
     prepared.forEach((bands, i) => {
       if (!labelledLane(i)) return;
-      for (const p of bands) sideLabel = Math.max(sideLabel, measure(formatGelSize(p.band.size, 'band'), 'size'));
+      for (const p of bands) sideLabel = Math.max(sideLabel, measure(formatGelSize(p.band.size, 'band'), p.band.emphasized ? 'sizeStrong' : 'size'));
     });
     if (sideLabel > 0) sideLabel = Math.ceil(Math.min(sideLabel, MAX_SIDE_LABEL) + SIDE_LABEL_GAP + 2);
   }
@@ -547,7 +567,7 @@ export function computeGelLayout(lanes: readonly GelLane[], options: GelLayoutOp
   const naturalPitch = laneWidth + sideLabel;
   const labelTexts = lanes.map((l) => l.label.trim());
   const labelWidths = labelTexts.map((t) => (t.length > 0 ? Math.ceil(measure(t, 'lane')) : 0));
-  const capLen = clamp((H - 2 * pad) * 0.18 * Math.SQRT2, 56, 150);
+  const capLen = clamp((H - 2 * pad) * 0.18 * Math.SQRT2, 56, 200);
   const maxPitch = n > 0 ? Math.min(naturalPitch * 1.6, (availW - 2 * sideMargin) / n) : 0;
   const headerPlan = compact
     ? planHeader([], [], naturalPitch, naturalPitch, 0, 0)
@@ -585,9 +605,13 @@ export function computeGelLayout(lanes: readonly GelLane[], options: GelLayoutOp
   if (compact) {
     slabW = W;
   } else {
+    // The slab hugs the lanes (so that the ladder sizes stay close to the ladder), but one or two
+    // lanes still get a gel-shaped slab rather than a sliver.
     const worst = overflowFor(neededSlabW);
     const room = W - 2 * pad - Math.max(gutterL, worst.left) - Math.max(gutterR, worst.right);
-    slabW = Math.max(neededSlabW, Math.min(Math.max(MIN_SLAB_WIDTH, slabH * SLAB_ASPECT), room));
+    const minLanes = n > 0 ? MIN_SLAB_LANES * pitch + 2 * sideMargin : MIN_SLAB_LANES * GEL_MAX_LANE_WIDTH + 2 * margin(GEL_MAX_LANE_WIDTH);
+    const minW = Math.max(MIN_SLAB_WIDTH, minLanes, slabH * SLAB_ASPECT);
+    slabW = Math.max(neededSlabW, Math.min(minW, room));
   }
   const overflow = overflowFor(slabW);
   const leftExtra = compact ? 0 : Math.max(gutterL, overflow.left);
@@ -696,14 +720,22 @@ export function computeGelLayout(lanes: readonly GelLane[], options: GelLayoutOp
     if (ladderRight >= 0) gutter(ladderRight, 'right');
   }
 
-  // Sizes next to the other lanes' bands.
+  // Sizes next to the other lanes' bands. Without leaders, a label must stay closer to its own band
+  // than to any other band of the lane (bounds halfway to the neighbours); crowded labels are dropped.
   if (sideLabel > 0) {
     for (const lane of laneGeoms) {
       if (!labelledLane(lane.index) || lane.bands.length === 0) continue;
       const texts = lane.bands.map((g) => formatGelSize(g.band.size, 'band'));
+      const bands = lane.bands;
       const placed = placeGelLabels(
-        lane.bands.map((g) => ({ y: g.y, weight: g.band.intensity })),
-        { spacing: SIZE_LINE, minY: slab.y + SIZE_LINE / 2 + 2, maxY: slabBottom - SIZE_LINE / 2 - 2, maxShift: SIZE_LINE },
+        bands.map((g, i) => ({
+          y: g.y,
+          protected: g.band.emphasized === true,
+          weight: g.band.intensity,
+          minY: i > 0 ? (bands[i - 1].y + g.y) / 2 : undefined,
+          maxY: i < bands.length - 1 ? (g.y + bands[i + 1].y) / 2 : undefined,
+        })),
+        { spacing: SIZE_LINE, minY: slab.y + SIZE_LINE / 2 + 2, maxY: slabBottom - SIZE_LINE / 2 - 2, maxShift: SIZE_LINE / 2 },
       );
       lane.sizeLabels = placed.map((p) => ({
         bandIndex: p.index,
@@ -711,7 +743,8 @@ export function computeGelLayout(lanes: readonly GelLane[], options: GelLayoutOp
         x: lane.bandLeft + lane.bandWidth + SIDE_LABEL_GAP,
         y: p.y,
         bandY: lane.bands[p.index].y,
-        width: Math.min(measure(texts[p.index], 'size'), MAX_SIDE_LABEL),
+        width: Math.min(measure(texts[p.index], lane.bands[p.index].band.emphasized ? 'sizeStrong' : 'size'), MAX_SIDE_LABEL),
+        emphasized: lane.bands[p.index].band.emphasized === true,
       }));
     }
   }

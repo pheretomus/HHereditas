@@ -97,6 +97,16 @@
   padding: 1px 0;
 }
 
+/* When some items of a panel have icons, labels of the others line up with the icon labels
+   (icon 16 px + gap 7 px), so the text forms one clean column. */
+.content:has(.icon) .item:not(:has(.icon)) > .label {
+  padding-left: 23px;
+}
+
+.content:has(.icon) .sectionLabel {
+  padding-left: 45px;
+}
+
 .shortcut {
   flex: none;
   margin-left: 24px;

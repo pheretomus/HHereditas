@@ -158,11 +158,21 @@ describe('finding: the empty range {L, L} on a circular record is rejected', () 
 });
 
 describe('finding: extractRange cannot take the parentRange of a plasmid cut once', () => {
+  // Rejected (see the extractRange TSDoc): a range longer than the circle is not a normalized
+  // range (types.ts: end - start <= length) and repeats the overhang bases, so which copy should
+  // carry the features crossing the cut would be a guess. The test pins the documented contract
+  // (an explicit RangeError) and the documented way to build that fragment.
   it('fragment record of a singly cut plasmid', () => {
     const puc = parseGenbank(fixture('pUC19_M77789.gb')).records[0];
+    const L = puc.seq.length;
     const [frag] = digest(puc.seq, puc.topology, [getEnzyme('EcoRI')!]);
     expect(frag.parentRange).toEqual({ start: 284, end: 2974 }); // 2690 = L + 4 overhang bases
-    expect(() => extractRange(puc, frag.parentRange)).not.toThrow();
+    expect(() => extractRange(puc, frag.parentRange)).toThrow(RangeError);
+    expect(() => extractRange(puc, frag.parentRange)).toThrow(/more than the whole circle/);
+    // the whole circle opened at the cut, plus the repeated overhang bases
+    const opened = extractRange(puc, { start: 284, end: 284 + L });
+    const overhang = puc.seq.slice(284, 288);
+    expect(insertBases(opened, L, overhang).seq).toBe(frag.seq);
   });
 });
 

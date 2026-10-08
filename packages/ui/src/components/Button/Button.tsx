@@ -46,7 +46,7 @@ export function Button({
         styles[variant],
         styles[size],
         block && styles.block,
-        !hasLabel && styles.iconOnly,
+        !hasLabel && (trailingIcon ? styles.iconMenu : styles.iconOnly),
         className,
       )}
       disabled={disabled || loading}
@@ -55,7 +55,7 @@ export function Button({
     >
       {loading ? (
         <span className={styles.icon}>
-          <Spinner size={size === 'sm' ? 12 : 14} label="" />
+          <Spinner size={size === 'sm' ? 12 : 14} label="" className={styles.spinner} />
         </span>
       ) : icon ? (
         <span className={styles.icon} aria-hidden>

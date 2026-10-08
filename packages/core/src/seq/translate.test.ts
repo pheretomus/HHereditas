@@ -220,6 +220,27 @@ describe('translate', () => {
     expect(translate('AAAATG', { cds: true })).toBe('KM'); // only the first codon is an initiator
   });
 
+  // Review regression: the initiator codon became M only when every expansion was a start codon,
+  // and otherwise fell back to the consensus of the internal readings. When the expansions mix
+  // start and non-start codons that share one internal residue (GTN in table 11: GTG = M as
+  // initiator, GTA/GTC/GTT = V), that asserted V although the initiator residue is M or V. NCBI's
+  // start-residue consensus (CTrans_table::x_InitFsaTransl) gives X there.
+  it('cds: an ambiguous initiator codon mixing start and non-start codons is X, not their internal residue', () => {
+    expect(translate('GTNAAATAA', { table: 11, cds: true })).toBe('XK*'); // GTG start, GTA/GTC/GTT not
+    expect(translate('CTNAAATAA', { table: 1, cds: true })).toBe('XK*'); // CTG is a table-1 start
+    expect(translate('TTRAAATAA', { table: 1, cds: true })).toBe('XK*'); // TTG start, TTA not
+    expect(translate('MTCAAATAA', { table: 2, cds: true })).toBe('XK*'); // ATC start (I), CTC not (L)
+    expect(translate('ATYAAATAA', { table: 23, cds: true })).toBe('XK*'); // ATT start (I), ATC not
+    // the internal reading is unchanged
+    expect(translate('GTNAAATAA', { table: 11 })).toBe('VK*');
+    expect(translate('MTCAAATAA', { table: 2 })).toBe('JK*');
+    // every reading agrees: ATR in table 21 is ATA (Met, not a start) or ATG (start)
+    expect(translate('ATRAAATAA', { table: 21, cds: true })).toBe('MK*');
+    // all starts / no starts are unaffected
+    expect(translate('NTGAAATAA', { table: 11, cds: true })).toBe('MK*'); // ATG CTG GTG TTG: all starts
+    expect(translate('GCNAAATAA', { table: 11, cds: true })).toBe('AK*');
+  });
+
   it('context-dependent stop codons (tables 27, 28, 31)', () => {
     // table 27: TGA = W or stop
     expect(translate('ATGTGAAAATGA', { table: 27 })).toBe('MWKW');
@@ -547,6 +568,77 @@ describe('translateFeature', () => {
     );
   });
 
+  // Review regression: Number('') and Number('  ') are 0, so an empty /transl_table (GenBank
+  // "/transl_table=", read as '') passed the integer check and failed later with "Unknown NCBI
+  // genetic code (translation table) 0", a RangeError that does not name the feature; unknown ids
+  // (/transl_table=8) also escaped as RangeErrors that do not say which feature is malformed.
+  describe('review: malformed /transl_table and /codon_start values name the feature', () => {
+    const rec = record('ATGAAACCCTAA');
+    const withQualifiers = (qualifiers: Qualifier[]) =>
+      makeFeature({ type: 'CDS', name: 'geneX', strand: 1, segments: [{ start: 0, end: 12 }], qualifiers });
+    const table = (value: string | null) => withQualifiers([{ key: 'transl_table', value }]);
+    const codonStart = (value: string | null) => withQualifiers([{ key: 'codon_start', value }]);
+
+    it('an empty or blank /transl_table is a TranslationError naming the feature', () => {
+      for (const value of ['', ' ', '\t ']) {
+        expect(() => translateFeature(rec, table(value)), JSON.stringify(value)).toThrow(TranslationError);
+        expect(() => translateFeature(rec, table(value)), JSON.stringify(value)).toThrow(/geneX/);
+      }
+    });
+
+    it('an unknown /transl_table id is a TranslationError naming the feature and the value', () => {
+      for (const value of ['8', '17', '0', '34', '7']) {
+        expect(() => translateFeature(rec, table(value)), value).toThrow(TranslationError);
+        expect(() => translateFeature(rec, table(value)), value).toThrow(
+          new RegExp(`geneX.*/transl_table="${value}".*unknown NCBI genetic code`),
+        );
+      }
+      // options.table is the caller's setting, not feature data: still a RangeError
+      expect(() => translateFeature(rec, withQualifiers([]), { table: 8 })).toThrow(RangeError);
+    });
+
+    it('only plain decimal integers are table ids or codon starts (no hex, exponent, sign or fraction)', () => {
+      for (const value of ['0x0B', '1e1', '+11', '11.0', '11.5', '-1', '1 1', 'Infinity', '11a']) {
+        expect(() => translateFeature(rec, table(value)), value).toThrow(TranslationError);
+        expect(() => translateFeature(rec, table(value)), value).toThrow(/geneX/);
+      }
+      for (const value of ['', ' ', '0x1', '1e0', '+1', '1.0', 'Infinity']) {
+        expect(() => translateFeature(rec, codonStart(value)), JSON.stringify(value)).toThrow(TranslationError);
+        expect(() => translateFeature(rec, codonStart(value)), JSON.stringify(value)).toThrow(/geneX/);
+      }
+      // surrounding white space and leading zeros are fine
+      expect(translateFeature(rec, table(' 11 '))).toBe('MKP*');
+      expect(translateFeature(rec, table('011'))).toBe('MKP*');
+      expect(translateFeature(rec, codonStart(' 1 '))).toBe('MKP*');
+    });
+
+    it('a value-less /transl_table or /codon_start (GenBank "/transl_table" without "=") is not silently ignored', () => {
+      expect(() => translateFeature(rec, table(null))).toThrow(TranslationError);
+      expect(() => translateFeature(rec, table(null))).toThrow(/geneX.*\/transl_table/);
+      expect(() => translateFeature(rec, codonStart(null))).toThrow(TranslationError);
+      expect(() => translateFeature(rec, codonStart(null))).toThrow(/geneX.*\/codon_start/);
+    });
+
+    it('conflicting repeated values are rejected, repeated equal values accepted', () => {
+      const twoTables = withQualifiers([
+        { key: 'transl_table', value: '11' },
+        { key: 'transl_table', value: '4' },
+      ]);
+      expect(() => translateFeature(rec, twoTables)).toThrow(TranslationError);
+      expect(() => translateFeature(rec, twoTables)).toThrow(/geneX.*conflicting/);
+      const sameTables = withQualifiers([
+        { key: 'transl_table', value: '11' },
+        { key: 'transl_table', value: ' 11' },
+      ]);
+      expect(translateFeature(rec, sameTables)).toBe('MKP*');
+      const twoStarts = withQualifiers([
+        { key: 'codon_start', value: '1' },
+        { key: 'codon_start', value: '2' },
+      ]);
+      expect(() => translateFeature(rec, twoStarts)).toThrow(/geneX.*conflicting/);
+    });
+  });
+
   it('handles empty and tiny features, and RNA records', () => {
     const rec = record('ATGAAATAA');
     expect(translateFeature(rec, cds([], 1))).toBe('');
@@ -575,6 +667,22 @@ describe('translateFeature', () => {
     expect(translateFeature(empty, cds([{ start: 0, end: 0 }], 1))).toBe('');
     expect(() => translateFeature(empty, cds([{ start: 1, end: 1 }], 1))).toThrow(TranslationError);
     expect(() => translateFeature(empty, cds([{ start: 0, end: 1 }], 1))).toThrow(TranslationError);
+  });
+
+  // Review regression (see the translate test of the same name): translateFeature reads the first
+  // codon of a 5'-complete CDS with the same initiator rule.
+  it('an ambiguous initiator codon mixing start and non-start codons is X (5\'-complete CDS)', () => {
+    const t11 = [{ key: 'transl_table', value: '11' }];
+    expect(translateFeature(record('GTNAAATAA'), cds([{ start: 0, end: 9 }], 1, t11))).toBe('XK*');
+    expect(translateFeature(record('CTNAAATAA'), cds([{ start: 0, end: 9 }], 1))).toBe('XK*');
+    expect(translateFeature(record(reverseComplement('GTNAAATAA')), cds([{ start: 0, end: 9 }], -1, t11))).toBe('XK*');
+    // a 5'-partial CDS keeps the internal reading of its first codon
+    expect(translateFeature(record('GTNAAATAA'), cds([{ start: 0, end: 9 }], 1, t11, { partialStart: true }))).toBe(
+      'VK*',
+    );
+    // a CDS shorter than one codon: GT + N = GTN, internal V (kept), initiator X (NCBI TranslateToProtein)
+    expect(translateFeature(record('GT'), cds([{ start: 0, end: 2 }], 1, t11))).toBe('X');
+    expect(translateFeature(record('GT'), cds([{ start: 0, end: 2 }], 1, t11, { partialStart: true }))).toBe('V');
   });
 
   it('does not mutate its inputs', () => {

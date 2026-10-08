@@ -1,6 +1,7 @@
-import type { ComponentPropsWithRef, CSSProperties } from 'react';
+import { useMemo, useRef, type ComponentPropsWithRef, type CSSProperties } from 'react';
 import { Popover as PopoverPrimitive } from 'radix-ui';
 import { cx } from '../../lib/cx';
+import { mergeRefs } from '../../lib/mergeRefs';
 import styles from './Popover.module.css';
 
 /** Root: controls open state (`open`, `defaultOpen`, `onOpenChange`). */
@@ -21,7 +22,22 @@ export interface PopoverContentProps extends ComponentPropsWithRef<typeof Popove
   width?: number | string;
 }
 
-/** Floating panel attached to a trigger (NSPopover). Closes on Esc and outside click. */
+/** Text-entry controls that receive focus when a popover opens (not colour, range, checkbox…). */
+const TEXT_ENTRY = [
+  ...['', '[type="text"]', '[type="search"]', '[type="number"]', '[type="email"]', '[type="url"]', '[type="tel"]', '[type="password"]'].map(
+    (t) => `input${t || ':not([type])'}:not([disabled])`,
+  ),
+  'textarea:not([disabled])',
+  '[contenteditable="true"]',
+].join(', ');
+
+/**
+ * Floating panel attached to a trigger (NSPopover). Closes on Esc and outside click.
+ *
+ * On open, focus goes to the first text field inside (its text selected, like macOS) or to
+ * the panel itself, never to the first button: a focus ring on an arbitrary button looks
+ * like a stray selection. Pass `onOpenAutoFocus` and call `preventDefault()` to take over.
+ */
 export function PopoverContent({
   arrow = true,
   padding = 'md',
@@ -32,17 +48,36 @@ export function PopoverContent({
   className,
   style,
   children,
+  onOpenAutoFocus,
+  ref,
   ...rest
 }: PopoverContentProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const setRef = useMemo(() => mergeRefs(contentRef, ref), [ref]);
   const merged: CSSProperties | undefined = width !== undefined ? { width, ...style } : style;
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
+        ref={setRef}
         side={side}
         sideOffset={sideOffset ?? (arrow ? 4 : 6)}
         collisionPadding={collisionPadding}
         className={cx(styles.content, styles[`pad-${padding}`], className)}
         style={merged}
+        onOpenAutoFocus={(e) => {
+          onOpenAutoFocus?.(e);
+          if (e.defaultPrevented) return;
+          e.preventDefault();
+          const content = contentRef.current;
+          if (!content) return;
+          const field = content.querySelector<HTMLElement>(TEXT_ENTRY);
+          if (field) {
+            field.focus({ preventScroll: true });
+            if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) field.select();
+          } else {
+            content.focus({ preventScroll: true });
+          }
+        }}
         {...rest}
       >
         {children}

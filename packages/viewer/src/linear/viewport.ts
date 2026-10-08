@@ -66,6 +66,8 @@ export function clampViewport(
   let span = vp.end - vp.start;
   const valid = Number.isFinite(vp.start) && Number.isFinite(vp.end) && span > 0;
   if (!valid) return clampViewport({ start: 0, end: maxSpan }, L, plotWidth, maxPxPerBase);
+  // Already allowed: returned as is, so re-clamping never shifts it by rounding noise.
+  if (span >= minSpan && span < L && vp.start >= 0 && vp.end <= L) return { start: vp.start, end: vp.end };
   const center = (vp.start + vp.end) / 2;
   span = Math.min(maxSpan, Math.max(minSpan, span));
   if (span >= L) {

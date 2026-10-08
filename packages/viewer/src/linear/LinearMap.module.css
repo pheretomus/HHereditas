@@ -4,12 +4,14 @@
  */
 
 .root {
+  /* The map's background; text halos use it to keep labels legible over leader lines. */
+  --linear-map-bg: var(--hh-bg-content);
   position: relative;
   width: 100%;
   height: 100%;
   min-height: 140px;
   overflow: hidden;
-  background: var(--hh-bg-content);
+  background: var(--linear-map-bg);
   color: var(--hh-text);
   font-family: var(--hh-font-ui);
   -webkit-user-select: none;
@@ -29,6 +31,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+  scrollbar-color: var(--hh-scrollbar-thumb) transparent;
 }
 
 .svg {
@@ -109,7 +112,15 @@
   font-weight: var(--hh-weight-medium);
 }
 
-.featureLabelBeside {
+/* Labels outside bars may sit over enzyme leaders: a halo in the background colour keeps them clear. */
+.halo {
+  paint-order: stroke;
+  stroke: var(--linear-map-bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.featureLabelOutside {
   fill: var(--hh-text-secondary);
 }
 
@@ -154,10 +165,18 @@
   stroke-width: 1;
 }
 
+/* Cut of a labelled site, where its leader meets the backbone. */
 .cutTick {
   fill: none;
-  stroke: var(--hh-seq-backbone);
-  stroke-width: 1.25;
+  stroke: var(--hh-text-tertiary);
+  stroke-width: 1;
+}
+
+/* Cuts whose label did not fit: present, but quiet (the hover card names them). */
+.cutTickQuiet {
+  fill: none;
+  stroke: var(--hh-separator-strong);
+  stroke-width: 1;
 }
 
 .cutStaggered {
@@ -181,10 +200,11 @@
   fill: var(--hh-accent);
 }
 
-.leaderHot {
+.leaderHot,
+.cutHot {
   fill: none;
   stroke: var(--hh-accent);
-  stroke-width: 1;
+  stroke-width: 1.25;
 }
 
 /* ---- Selection, caret, highlight -------------------------------------------------------- */
@@ -219,10 +239,12 @@
   stroke-linejoin: round;
 }
 
-/* ---- Tooltip ------------------------------------------------------------------------- */
+/* ---- Hover card ------------------------------------------------------------------------ */
 
 .tooltip {
   position: absolute;
+  top: 0;
+  left: 0;
   z-index: 3;
   max-width: 300px;
   padding: 7px 10px 8px;
@@ -234,10 +256,10 @@
   line-height: 1.4;
   pointer-events: none;
   white-space: nowrap;
-  animation: tooltipIn var(--hh-duration-fast) var(--hh-ease);
+  animation: hh-linear-tooltip-in var(--hh-duration-fast) var(--hh-ease) both;
 }
 
-@keyframes tooltipIn {
+@keyframes hh-linear-tooltip-in {
   from {
     opacity: 0;
   }
@@ -246,26 +268,40 @@
   }
 }
 
-.tooltipTitle {
+@media (prefers-reduced-motion: reduce) {
+  .tooltip {
+    animation: none;
+  }
+}
+
+.ttTitle {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: var(--hh-text-md);
   font-weight: var(--hh-weight-semibold);
   overflow: hidden;
+}
+
+.ttTitleText {
+  overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.tooltipSwatch {
+.ttSwatch {
   flex: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 2.5px;
   box-shadow: inset 0 0 0 0.5px var(--hh-separator-strong);
 }
 
-.tooltipMeta {
+.ttMeta {
   color: var(--hh-text-secondary);
+}
+
+.ttRange {
+  color: var(--hh-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -295,7 +331,7 @@
   top: 3px;
   height: 5px;
   border-radius: 3px;
-  background: var(--hh-text-tertiary);
+  background: var(--hh-scrollbar-thumb);
   transition:
     top var(--hh-duration-fast) var(--hh-ease),
     height var(--hh-duration-fast) var(--hh-ease),
@@ -310,7 +346,7 @@
 .thumbActive {
   top: 2px;
   height: 7px;
-  background: var(--hh-text-secondary);
+  background: var(--hh-scrollbar-thumb-hover);
 }
 
 /* ---- Empty state --------------------------------------------------------------------- */
@@ -323,13 +359,4 @@
   justify-content: center;
   color: var(--hh-text-tertiary);
   font-size: var(--hh-text-md);
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }

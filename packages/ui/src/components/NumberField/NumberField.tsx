@@ -81,8 +81,8 @@ export function NumberField({
 
   const stepBy = (direction: 1 | -1, big: boolean) => {
     const current = draft !== null ? (parseNumberInput(draft) ?? value) : value;
-    const s = big ? (largeStep ?? step * 10) : step;
-    const next = stepNumber(current, direction, s, min, max, decimals);
+    const distance = big ? (largeStep ?? step * 10) : step;
+    const next = stepNumber(current, direction, step, min, max, decimals, distance);
     setDraft(null);
     if (next !== value) onValueChange(next);
     return next;

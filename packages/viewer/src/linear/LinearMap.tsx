@@ -3,44 +3,49 @@
  * alternative view of circular ones (drawn from the origin).
  *
  * Interaction model (macOS conventions):
- *  - ctrl/⌘ + wheel or trackpad pinch zooms around the pointer; horizontal wheel or
- *    shift + wheel pans; ←/→ pan, +/− zoom, 0 zooms to fit when the map has focus;
- *  - drag anywhere selects bases (the selection snaps to gaps); click a feature to select it,
- *    shift-click to extend; double-click a feature to zoom to it; double-click empty space to
- *    zoom in;
- *  - hover shows a tooltip; the slim bar at the bottom pans while zoomed in.
+ *  - ⌘/ctrl + wheel or a trackpad pinch zooms around the pointer; a horizontal swipe or
+ *    shift + wheel pans; with the map focused, ← → pan, + − zoom, 0 zooms to fit, Home / End
+ *    jump to the ends, Esc clears the selection;
+ *  - drag anywhere to select bases (selections snap to the gaps between bases); click a feature,
+ *    primer or ORF to select it, shift-click to extend; double-click a feature to zoom to it;
+ *    click the backbone to place the caret, empty space to clear the selection, double-click
+ *    empty space to zoom in;
+ *  - hovering shows a card; the slim bar at the bottom pans while zoomed in.
  * The component is presentational: selection and viewport may be controlled (pass `selection`
  * / `viewport`) or left to the component.
  */
 import type { EnzymeSite, Orf, PrimerBindingSite, Range, SeqRecord } from '@hhereditas/core';
+import { normalizeRange } from '@hhereditas/core';
 import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
   RefObject,
 } from 'react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { formatBp, formatInt } from '../common/format';
 import { useElementSize } from '../common/useElementSize';
 import type { SequenceSelection } from '../selection';
-import { caretAt, selectBetween, selectRange, selectionAnchor } from '../selection';
+import { caretAt, selectBetween, selectRange } from '../selection';
 import { buildCutMarkers } from './enzymeLabels';
-import type { FeatureEntry, HitInput, ViewModel } from './layout';
+import type { HitInput } from './hitTest';
+import { featureEntryIndex, featureOutline, hitTest, positionsAt } from './hitTest';
+import type { FeatureEntry, ViewInput, ViewModel } from './layout';
 import {
+  CUT_OVERSHOOT,
   METRICS,
   buildFeatureTrack,
   buildOrfTrack,
   buildPrimerTrack,
   computeView,
+  contentOffsetY,
   enzymeRowsToReserve,
-  featureEntryIndex,
-  featureOutline,
-  hitTest,
-  positionsAt,
 } from './layout';
 import styles from './LinearMap.module.css';
 import { HighlightLayer, MapContent, SelectionLayer } from './LinearMapLayers';
 import { targetKey, tooltipContent } from './LinearMapTooltip';
+import { extendSelection, extendSelectionToRange } from './selectionGeometry';
+import { vlinePath } from './shapes';
 import type { TextMeasurer } from './textMeasure';
 import { createCanvasMeasurer, estimateTextWidth } from './textMeasure';
 import type { FeatureClickInfo, MapShowOptions, MapTarget } from './types';
@@ -95,17 +100,11 @@ interface Press {
   pointerId: number;
   x: number;
   y: number;
-  target: MapTarget;
   dragging: boolean;
-  shift: boolean;
+  /** Gap where the drag started. */
   anchor: number;
-}
-
-interface Hover {
-  target: MapTarget;
-  /** Pointer position relative to the root element. */
-  x: number;
-  y: number;
+  /** With shift: the selection being extended. */
+  extendFrom: SequenceSelection | null;
 }
 
 const DRAG_THRESHOLD = 3;
@@ -156,8 +155,11 @@ export function LinearMap(props: LinearMapProps) {
   const topology = record.topology;
 
   const rootRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const size = useElementSize(rootRef);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  // The scroller's content box: the pane minus a vertical scrollbar, if one is shown.
+  const size = useElementSize(scrollerRef);
   const measure = useTextMeasurer(rootRef);
   const width = size.width;
   const plotLeft = METRICS.padX;
@@ -192,39 +194,6 @@ export function LinearMap(props: LinearMapProps) {
     [markers, L, plotLeft, plotWidth, width, measure],
   );
 
-  // ---- viewport ---------------------------------------------------------------------
-  const controlled = props.viewport !== undefined;
-  const [internalVp, setInternalVp] = useState<{ id: string; vp: Range } | null>(null);
-  const target: Range = controlled
-    ? (props.viewport as Range)
-    : internalVp && internalVp.id === record.id
-      ? internalVp.vp
-      : fullViewport(L);
-  const [animVp, setAnimVp] = useState<Range | null>(null);
-  const shownRaw = clampViewport(animVp ?? target, L, plotWidth);
-  const shownStart = shownRaw.start;
-  const shownEnd = shownRaw.end;
-  const shown = useMemo<Range>(() => ({ start: shownStart, end: shownEnd }), [shownStart, shownEnd]);
-  const scale = useMemo(() => makeScale(shown, plotLeft, plotWidth), [shown, plotLeft, plotWidth]);
-
-  const view = useMemo<ViewModel | null>(
-    () =>
-      width > 0 && L > 0
-        ? computeView({
-            record,
-            width,
-            scale,
-            features: featureTrack,
-            orfs: orfTrack,
-            primers: primerTrack,
-            markers,
-            enzymeRows,
-            measure,
-          })
-        : null,
-    [record, width, scale, featureTrack, orfTrack, primerTrack, markers, enzymeRows, measure],
-  );
-
   // ---- selection ----------------------------------------------------------------------
   const selectionControlled = props.selection !== undefined;
   const [internalSel, setInternalSel] = useState<{ id: string; sel: SequenceSelection | null } | null>(null);
@@ -234,8 +203,61 @@ export function LinearMap(props: LinearMapProps) {
       ? internalSel.sel
       : null;
 
+  // ---- viewport ---------------------------------------------------------------------
+  const controlled = props.viewport !== undefined;
+  const [internalVp, setInternalVp] = useState<{ id: string; vp: Range } | null>(null);
+  const target: Range = controlled
+    ? (props.viewport as Range)
+    : internalVp && internalVp.id === record.id
+      ? internalVp.vp
+      : fullViewport(L);
+  const [animVp, setAnimVp] = useState<Range | null>(null);
+  // Re-renders after a controlled change, so a parent that keeps its viewport snaps us back.
+  const [, resync] = useReducer((n: number) => n + 1, 0);
+  const shownRaw = clampViewport(animVp ?? target, L, plotWidth);
+  const shownStart = shownRaw.start;
+  const shownEnd = shownRaw.end;
+  const shown = useMemo<Range>(() => ({ start: shownStart, end: shownEnd }), [shownStart, shownEnd]);
+  const scale = useMemo(() => makeScale(shown, plotLeft, plotWidth), [shown, plotLeft, plotWidth]);
+
+  // Labels of the highlighted feature and of a selected feature win when space runs out.
+  const highlightId = props.highlightedFeatureId ?? null;
+  const selStart = selection?.range.start ?? -1;
+  const selEnd = selection?.range.end ?? -1;
+  const pinnedKey = useMemo(() => {
+    const ids: string[] = [];
+    if (highlightId) ids.push(highlightId);
+    if (featureTrack && selEnd > selStart && L > 0) {
+      const r = normalizeRange({ start: selStart, end: selEnd }, L, topology);
+      for (const e of featureTrack.entries) {
+        if (e.extent.start === r.start && e.extent.end === r.end && e.feature.id !== highlightId) ids.push(e.feature.id);
+      }
+    }
+    return ids.join('\u0000');
+  }, [highlightId, featureTrack, selStart, selEnd, L, topology]);
+
+  const baseInput = useMemo<ViewInput | null>(
+    () =>
+      width > 0 && L > 0
+        ? { record, width, scale, features: featureTrack, orfs: orfTrack, primers: primerTrack, markers, enzymeRows, measure }
+        : null,
+    [record, width, scale, featureTrack, orfTrack, primerTrack, markers, enzymeRows, measure, L],
+  );
+  const baseView = useMemo(() => (baseInput ? computeView(baseInput) : null), [baseInput]);
+  const view = useMemo<ViewModel | null>(() => {
+    if (!baseInput || !baseView || !pinnedKey || !featureTrack) return baseView;
+    const pinned = new Set(pinnedKey.split('\u0000'));
+    const labelled = new Set(baseView.features.labels.map((l) => l.entry));
+    const missing = [...pinned].some((id) => {
+      const idx = featureEntryIndex(featureTrack, id);
+      if (idx < 0 || labelled.has(idx)) return false;
+      return featureOutline(baseView, featureTrack, idx) !== '';
+    });
+    return missing ? computeView({ ...baseInput, pinnedFeatureIds: pinned }) : baseView;
+  }, [baseInput, baseView, pinnedKey, featureTrack]);
+
   // ---- hover / tooltip ----------------------------------------------------------------
-  const [hover, setHover] = useState<Hover | null>(null);
+  const [hoverTarget, setHoverTarget] = useState<MapTarget | null>(null);
   const [tooltipOn, setTooltipOn] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [thumbActive, setThumbActive] = useState(false);
@@ -276,8 +298,10 @@ export function LinearMap(props: LinearMapProps) {
     };
   });
 
-  /** The viewport interactions build on: what is on screen, or the newest one requested. */
+  /** What is on screen (the current animation frame while gliding); pointer gestures build on it. */
   const liveVp = useRef<Range>(shown);
+  /** The newest viewport requested (an animation's destination); keyboard steps build on it. */
+  const goalVp = useRef<Range>(shown);
   const lastEmitted = useRef<Range | null>(null);
   const animFrame = useRef<number | null>(null);
   const prevTarget = useRef<{ id: string; vp: Range } | null>(null);
@@ -296,13 +320,14 @@ export function LinearMap(props: LinearMapProps) {
     setAnimVp(from);
     const tick = (now: number) => {
       const t = Math.min(1, (now - t0) / ANIMATION_MS);
-      const vp = t >= 1 ? to : interpolateViewport(from, to, easeInOutCubic(t));
-      liveVp.current = vp;
-      setAnimVp(vp);
       if (t < 1) {
+        const vp = interpolateViewport(from, to, easeInOutCubic(t));
+        liveVp.current = vp;
+        setAnimVp(vp);
         animFrame.current = requestAnimationFrame(tick);
       } else {
         animFrame.current = null;
+        liveVp.current = to;
         done();
       }
     };
@@ -312,8 +337,10 @@ export function LinearMap(props: LinearMapProps) {
   const commitViewport = (c: Range) => {
     const cur = latest.current;
     liveVp.current = c;
+    goalVp.current = c;
     lastEmitted.current = c;
     if (!cur.controlled) setInternalVp({ id: cur.props.record.id, vp: c });
+    else resync();
     cur.props.onViewportChange?.(c);
   };
 
@@ -321,8 +348,13 @@ export function LinearMap(props: LinearMapProps) {
   const setViewport = (vp: Range, animate = false) => {
     const cur = latest.current;
     const c = clampViewport(vp, cur.L, cur.plotWidth);
+    goalVp.current = c;
     if (animate && !prefersReducedMotion()) {
-      animateTo(liveVp.current, c, () => commitViewport(c));
+      animateTo(liveVp.current, c, () => {
+        // committed and handed over in one render (state updates in a frame callback batch)
+        commitViewport(c);
+        setAnimVp(null);
+      });
       return;
     }
     stopAnimation();
@@ -340,20 +372,16 @@ export function LinearMap(props: LinearMapProps) {
     if (prefersReducedMotion() || L <= 0) return;
     const to = clampViewport(target, L, plotWidth);
     if (sameViewport(to, shownRef.current)) return;
+    goalVp.current = to;
     animateTo(shownRef.current, to, () => setAnimVp(null));
   }, [controlled, record.id, target.start, target.end]);
 
-  // An animation that ended on a committed viewport hands over to it once the target matches.
-  useLayoutEffect(() => {
-    if (animVp && animFrame.current === null) {
-      const eps = Math.max(1e-6, (shown.end - shown.start) * 1e-9);
-      if (sameViewport(clampViewport(target, L, plotWidth), clampViewport(animVp, L, plotWidth), eps)) setAnimVp(null);
-    }
-  });
-
   useLayoutEffect(() => {
     shownRef.current = shown;
-    if (animFrame.current === null) liveVp.current = shown;
+    if (animFrame.current === null) {
+      liveVp.current = shown;
+      goalVp.current = shown;
+    }
   });
 
   useEffect(() => () => stopAnimation(), []);
@@ -365,23 +393,16 @@ export function LinearMap(props: LinearMapProps) {
     cur.props.onSelectionChange?.(sel);
   };
 
-  /** Extend the current selection (anchor stays) so that it reaches `range`. */
-  const extendTo = (range: Range) => {
+  /** Select `range` (an item that was clicked), or grow the selection to cover it with shift. */
+  const selectItem = (range: Range, shift: boolean) => {
     const { selection: sel, L: len, topology: topo } = latest.current;
-    if (!sel) {
-      emitSelection(selectRange(range, len, topo));
-      return;
-    }
-    const anchor = selectionAnchor(sel, len, topo);
-    const end = range.end > len ? range.end - len : range.end;
-    const head = Math.abs(end - anchor) >= Math.abs(range.start - anchor) ? end : range.start;
-    emitSelection(selectBetween(anchor, head, len, topo, head >= anchor));
+    emitSelection(shift ? extendSelectionToRange(sel, range, len, topo) : selectRange(range, len, topo));
   };
 
   // ---- coordinates and hit testing ------------------------------------------------------
   // The map content is centred vertically (slightly above centre) when the pane is taller.
   const contentHeight = view?.height ?? 0;
-  const offsetY = Math.max(0, Math.round((size.height - contentHeight) * 0.46));
+  const offsetY = contentOffsetY(size.height, contentHeight);
   const offsetYRef = useRef(offsetY);
   useLayoutEffect(() => {
     offsetYRef.current = offsetY;
@@ -389,8 +410,7 @@ export function LinearMap(props: LinearMapProps) {
 
   const toLocal = (clientX: number, clientY: number): { x: number; y: number } | null => {
     const svg = svgRef.current;
-    const view = latest.current.view;
-    if (!svg || !view) return null;
+    if (!svg || !latest.current.view) return null;
     const rect = svg.getBoundingClientRect();
     return { x: clientX - rect.left, y: clientY - rect.top - offsetYRef.current };
   };
@@ -413,11 +433,30 @@ export function LinearMap(props: LinearMapProps) {
     return positionsAt(cur.scale, x, cur.L).gap;
   };
 
-  // ---- tooltip timing -------------------------------------------------------------------
+  // ---- hover card ---------------------------------------------------------------------------
   const tooltipTimer = useRef<number | null>(null);
   const tooltipWarmUntil = useRef(0);
   const hoverKey = useRef('');
   const hoveredFeature = useRef<string | null>(null);
+  /** Pointer position relative to the root element, for the card. */
+  const pointer = useRef<{ x: number; y: number } | null>(null);
+
+  const positionTooltip = () => {
+    const el = tooltipRef.current;
+    const p = pointer.current;
+    const root = rootRef.current;
+    if (!el || !p || !root) return;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const W = root.clientWidth;
+    const H = root.clientHeight;
+    let x = p.x + 14;
+    let y = p.y + 18;
+    if (x + w > W - 6) x = Math.max(6, p.x - 14 - w);
+    if (y + h > H - 6) y = Math.max(6, p.y - 12 - h);
+    el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+  };
+  useLayoutEffect(positionTooltip);
 
   const clearTooltipTimer = () => {
     if (tooltipTimer.current !== null) {
@@ -436,25 +475,28 @@ export function LinearMap(props: LinearMapProps) {
     const p = toLocal(clientX, clientY);
     const root = rootRef.current;
     if (!p || !root) return;
+    const rr = root.getBoundingClientRect();
+    pointer.current = { x: clientX - rr.left, y: clientY - rr.top };
     const t = hitAt(p.x, p.y);
     const interesting = t.kind === 'feature' || t.kind === 'enzyme' || t.kind === 'primer' || t.kind === 'orf';
     setHoveredFeature(t.kind === 'feature' ? t.id : null);
     const key = interesting ? targetKey(t) : '';
-    const rr = root.getBoundingClientRect();
-    if (key !== hoverKey.current) {
-      hoverKey.current = key;
-      clearTooltipTimer();
-      if (!key) {
-        setTooltipOn(false);
-        tooltipWarmUntil.current = performance.now() + TOOLTIP_WARM;
-      } else if (performance.now() < tooltipWarmUntil.current) {
-        setTooltipOn(true);
-      } else {
-        setTooltipOn(false);
-        tooltipTimer.current = window.setTimeout(() => setTooltipOn(true), TOOLTIP_DELAY);
-      }
+    if (key === hoverKey.current) {
+      positionTooltip();
+      return;
     }
-    setHover(interesting ? { target: t, x: clientX - rr.left, y: clientY - rr.top } : null);
+    hoverKey.current = key;
+    clearTooltipTimer();
+    if (!key) {
+      setTooltipOn(false);
+      tooltipWarmUntil.current = performance.now() + TOOLTIP_WARM;
+    } else if (performance.now() < tooltipWarmUntil.current) {
+      setTooltipOn(true);
+    } else {
+      setTooltipOn(false);
+      tooltipTimer.current = window.setTimeout(() => setTooltipOn(true), TOOLTIP_DELAY);
+    }
+    setHoverTarget(interesting ? t : null);
   };
 
   const clearHover = () => {
@@ -462,7 +504,7 @@ export function LinearMap(props: LinearMapProps) {
     if (hoverKey.current) tooltipWarmUntil.current = performance.now() + TOOLTIP_WARM;
     hoverKey.current = '';
     setTooltipOn(false);
-    setHover(null);
+    setHoverTarget(null);
     setHoveredFeature(null);
   };
 
@@ -488,7 +530,7 @@ export function LinearMap(props: LinearMapProps) {
       const s = makeScale(vp, cur.plotLeft, cur.plotWidth);
       vp = panViewport(vp, acc.pan / s.pxPerBp, cur.L, cur.plotWidth);
     }
-    setViewport(vp);
+    if (!sameViewport(vp, liveVp.current)) setViewport(vp);
   };
 
   const queueWheel = (zoom: number, anchorX: number, pan: number) => {
@@ -587,12 +629,11 @@ export function LinearMap(props: LinearMapProps) {
     autoScroll.current.frame = null;
   };
 
-  const dragTo = (x: number) => {
-    const p = press.current;
-    if (!p) return;
-    const cur = latest.current;
-    const head = gapAt(x);
-    emitSelection(selectBetween(p.anchor, head, cur.L, cur.topology, head >= p.anchor));
+  /** Selection while dragging from the press to gap `head`. */
+  const dragSelection = (p: Press, head: number): SequenceSelection => {
+    const { L: len, topology: topo } = latest.current;
+    if (p.extendFrom) return extendSelection(p.extendFrom, head, len, topo);
+    return selectBetween(p.anchor, head, len, topo, head >= p.anchor);
   };
 
   const autoScrollTick = () => {
@@ -609,21 +650,27 @@ export function LinearMap(props: LinearMapProps) {
     const s = makeScale(vp, cur.plotLeft, cur.plotWidth);
     const next = panViewport(vp, speedPx / s.pxPerBp, cur.L, cur.plotWidth);
     if (!sameViewport(next, vp)) setViewport(next);
-    // extend the selection to the bp now under the pointer (clamped to the visible area)
+    // extend the selection to the base now under the pointer (clamped to the visible area)
     const s2 = makeScale(next, cur.plotLeft, cur.plotWidth);
     const head = Math.max(0, Math.min(cur.L, Math.round(s2.bp(Math.max(0, Math.min(w, a.x))))));
-    emitSelection(selectBetween(p.anchor, head, cur.L, cur.topology, head >= p.anchor));
+    emitSelection(dragSelection(p, head));
     a.frame = requestAnimationFrame(autoScrollTick);
   };
 
   const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0 || !latest.current.view) return;
-    rootRef.current?.focus({ preventScroll: true });
+    // (the press focuses the map natively; a script focus() would show the keyboard focus ring)
     const p = toLocal(e.clientX, e.clientY);
     if (!p) return;
     const cur = latest.current;
-    const anchor = e.shiftKey && cur.selection ? selectionAnchor(cur.selection, cur.L, cur.topology) : gapAt(p.x);
-    press.current = { pointerId: e.pointerId, x: p.x, y: p.y, target: hitAt(p.x, p.y), dragging: false, shift: e.shiftKey, anchor };
+    press.current = {
+      pointerId: e.pointerId,
+      x: p.x,
+      y: p.y,
+      dragging: false,
+      anchor: gapAt(p.x),
+      extendFrom: e.shiftKey ? cur.selection : null,
+    };
     try {
       e.currentTarget.setPointerCapture?.(e.pointerId);
     } catch {
@@ -642,7 +689,7 @@ export function LinearMap(props: LinearMapProps) {
         pr.dragging = true;
         setDragging(true);
       }
-      dragTo(p.x);
+      emitSelection(dragSelection(pr, gapAt(p.x)));
       autoScroll.current.x = p.x;
       const w = latest.current.view?.width ?? 0;
       if ((p.x < AUTOSCROLL_EDGE || p.x > w - AUTOSCROLL_EDGE) && autoScroll.current.frame === null) {
@@ -683,9 +730,8 @@ export function LinearMap(props: LinearMapProps) {
         const idx = featureEntryIndex(cur.featureTrack, t.id);
         const entry: FeatureEntry | undefined = idx >= 0 ? cur.featureTrack?.entries[idx] : undefined;
         if (entry) {
-          if (e.shiftKey && cur.selection) extendTo(entry.extent);
-          else emitSelection(selectRange(entry.extent, len, topo));
-          if (clickCount === 2) setViewport(viewportForRange(entry.extent, len, topo, 0.08), true);
+          selectItem(entry.extent, e.shiftKey);
+          if (clickCount === 2 && !e.shiftKey) setViewport(viewportForRange(entry.extent, len, topo, 0.08), true);
         }
         pr.onFeatureClick?.(t.id, { clickCount, shiftKey: e.shiftKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey });
         return;
@@ -695,28 +741,21 @@ export function LinearMap(props: LinearMapProps) {
         return;
       case 'primer': {
         const entry = cur.primerTrack?.entries.find((en) => en.site.primerId === t.id);
-        if (entry) {
-          if (e.shiftKey && cur.selection) extendTo(entry.annealed);
-          else emitSelection(selectRange(entry.annealed, len, topo));
-        }
+        if (entry) selectItem(entry.annealed, e.shiftKey);
         pr.onPrimerClick?.(t.id);
         return;
       }
       case 'orf':
-        if (e.shiftKey && cur.selection) extendTo(t.orf.range);
-        else emitSelection(selectRange(t.orf.range, len, topo));
+        selectItem(t.orf.range, e.shiftKey);
         return;
-      default: {
+      case 'sequence':
+      case 'background': {
         const gap = gapAt(p.x);
-        if (e.shiftKey && cur.selection) {
-          const anchor = selectionAnchor(cur.selection, len, topo);
-          emitSelection(selectBetween(anchor, gap, len, topo, gap >= anchor));
-        } else {
-          emitSelection(caretAt(gap));
-        }
-        if (clickCount === 2 && t.kind === 'background') {
-          const vp = liveVp.current;
-          setViewport(zoomViewport(vp, 2, cur.scale.bp(p.x), len, cur.plotWidth), true);
+        if (e.shiftKey && cur.selection) emitSelection(extendSelection(cur.selection, gap, len, topo));
+        else if (t.kind === 'sequence') emitSelection(caretAt(gap));
+        else if (cur.selection) emitSelection(null);
+        if (clickCount === 2 && t.kind === 'background' && !e.shiftKey) {
+          setViewport(zoomViewport(liveVp.current, 2, cur.scale.bp(p.x), len, cur.plotWidth), true);
         }
       }
     }
@@ -727,6 +766,8 @@ export function LinearMap(props: LinearMapProps) {
     if (!handler) return;
     const p = toLocal(e.clientX, e.clientY);
     if (!p) return;
+    e.preventDefault();
+    clearHover();
     handler(hitAt(p.x, p.y), e);
   };
 
@@ -735,7 +776,7 @@ export function LinearMap(props: LinearMapProps) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const cur = latest.current;
     if (cur.L <= 0) return;
-    const vp = liveVp.current;
+    const vp = goalVp.current;
     const span = vp.end - vp.start;
     const center = (vp.start + vp.end) / 2;
     switch (e.key) {
@@ -745,6 +786,12 @@ export function LinearMap(props: LinearMapProps) {
         setViewport(panViewport(vp, dir * span * (e.shiftKey ? 0.8 : 0.2), cur.L, cur.plotWidth), true);
         break;
       }
+      case 'Home':
+        setViewport({ start: 0, end: span }, true);
+        break;
+      case 'End':
+        setViewport({ start: cur.L - span, end: cur.L }, true);
+        break;
       case '+':
       case '=':
         setViewport(zoomViewport(vp, 2, center, cur.L, cur.plotWidth), true);
@@ -755,6 +802,10 @@ export function LinearMap(props: LinearMapProps) {
         break;
       case '0':
         setViewport(fullViewport(cur.L), true);
+        break;
+      case 'Escape':
+        if (!cur.selection) return;
+        emitSelection(null);
         break;
       default:
         return;
@@ -794,7 +845,7 @@ export function LinearMap(props: LinearMapProps) {
     const cur = latest.current;
     const rect = e.currentTarget.getBoundingClientRect();
     const f = (e.clientX - rect.left) / Math.max(1, rect.width);
-    const vp = liveVp.current;
+    const vp = goalVp.current;
     const span = vp.end - vp.start;
     const c = f * cur.L;
     setViewport({ start: c - span / 2, end: c + span / 2 }, true);
@@ -803,8 +854,7 @@ export function LinearMap(props: LinearMapProps) {
   // ---- derived drawing state ------------------------------------------------------------------
   const svgHeight = Math.max(size.height, contentHeight);
 
-  const highlightId = props.highlightedFeatureId ?? null;
-  const hoveredFeatureId = hover?.target.kind === 'feature' ? hover.target.id : null;
+  const hoveredFeatureId = hoverTarget?.kind === 'feature' ? hoverTarget.id : null;
   const ring = useMemo(() => {
     if (!view || !featureTrack || !highlightId) return '';
     const idx = featureEntryIndex(featureTrack, highlightId);
@@ -816,14 +866,24 @@ export function LinearMap(props: LinearMapProps) {
     return idx >= 0 ? featureOutline(view, featureTrack, idx) : '';
   }, [view, featureTrack, hoveredFeatureId, highlightId]);
   const hotEnzyme = useMemo(() => {
-    if (!view || !markers || hover?.target.kind !== 'enzyme') return null;
-    const site = hover.target.site;
-    return view.enzymes.labels.find((l) => markers[l.marker].site === site) ?? null;
-  }, [view, markers, hover]);
+    if (!view || !markers || hoverTarget?.kind !== 'enzyme') return { label: null, cuts: '' };
+    const site = hoverTarget.site;
+    const label = view.enzymes.labels.find((l) => markers[l.marker].site === site) ?? null;
+    // every visible cut of the same enzyme lights up
+    let cuts = '';
+    if (!view.letters) {
+      for (const i of view.enzymes.visible) {
+        if (markers[i].site.enzyme !== site.enzyme) continue;
+        const x = Math.round(view.scale.x(markers[i].pos) * 2) / 2;
+        cuts += vlinePath(x, view.v.topStrandY - CUT_OVERSHOOT, view.v.bottomStrandY + CUT_OVERSHOOT);
+      }
+    }
+    return { label, cuts };
+  }, [view, markers, hoverTarget]);
 
   const tooltip =
-    tooltipOn && hover && !dragging
-      ? tooltipContent(hover.target, { record, features: featureTrack, orfs: orfTrack, primers: primerTrack, enzymeSites })
+    tooltipOn && hoverTarget && !dragging
+      ? tooltipContent(hoverTarget, { record, features: featureTrack, orfs: orfTrack, primers: primerTrack, enzymeSites })
       : null;
 
   const zoomed = view !== null && !isFullViewport(shown, L);
@@ -832,14 +892,6 @@ export function LinearMap(props: LinearMapProps) {
   }`;
 
   const rootClass = [styles.root, className ?? ''].filter(Boolean).join(' ');
-
-  if (L <= 0) {
-    return (
-      <div ref={rootRef} className={rootClass} role="group" aria-roledescription="linear map" aria-label={ariaLabel} tabIndex={0}>
-        <div className={styles.empty}>No sequence</div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -852,8 +904,10 @@ export function LinearMap(props: LinearMapProps) {
       onKeyDown={onKeyDown}
       data-testid="linear-map"
     >
-      <div className={styles.scroller}>
-        {view ? (
+      <div ref={scrollerRef} className={styles.scroller}>
+        {L <= 0 ? (
+          <div className={styles.empty}>No sequence</div>
+        ) : view ? (
           <svg
             ref={svgRef}
             className={dragging ? `${styles.svg} ${styles.dragging}` : styles.svg}
@@ -874,7 +928,7 @@ export function LinearMap(props: LinearMapProps) {
             <g transform={`translate(0 ${offsetY})`}>
               <MapContent view={view} />
               <SelectionLayer view={view} selection={selection} />
-              <HighlightLayer ring={ring} hoverRing={hoverRing} enzyme={hotEnzyme} />
+              <HighlightLayer ring={ring} hoverRing={hoverRing} enzyme={hotEnzyme.label} enzymeCuts={hotEnzyme.cuts} />
             </g>
           </svg>
         ) : null}
@@ -901,8 +955,8 @@ export function LinearMap(props: LinearMapProps) {
           />
         </div>
       ) : null}
-      {tooltip && hover ? (
-        <div className={styles.tooltip} role="tooltip" style={tooltipStyle(hover, size.width, size.height)}>
+      {tooltip ? (
+        <div ref={tooltipRef} className={styles.tooltip} role="tooltip">
           {tooltip}
         </div>
       ) : null}
@@ -923,12 +977,3 @@ function thumbStyle(vp: Range, L: number, plotWidth: number): { left: number; wi
   return { left, width: w };
 }
 
-function tooltipStyle(h: Hover, width: number, height: number): { left: number; top: number; transform?: string } {
-  const flipX = h.x > width - 280;
-  const flipY = h.y > height - 90;
-  return {
-    left: flipX ? h.x - 12 : h.x + 14,
-    top: flipY ? h.y - 12 : h.y + 18,
-    transform: `${flipX ? 'translateX(-100%)' : ''} ${flipY ? 'translateY(-100%)' : ''}`.trim() || undefined,
-  };
-}

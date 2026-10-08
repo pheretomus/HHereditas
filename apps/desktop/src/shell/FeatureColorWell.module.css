@@ -1,0 +1,162 @@
+.well {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: var(--hh-control-height-sm);
+  max-width: 100%;
+  margin: 0;
+  padding: 0 7px 0 4px;
+  border: 0;
+  border-radius: var(--hh-radius-sm);
+  background: var(--hh-bg-control);
+  box-shadow: var(--hh-shadow-control);
+  color: var(--hh-text);
+  font-size: var(--hh-text-md);
+  line-height: 1;
+  cursor: default;
+  transition: background-color var(--hh-duration-fast) var(--hh-ease);
+}
+
+.well:hover:not(:disabled) {
+  background: var(--hh-bg-control-hover);
+}
+
+.well[data-state='open'] {
+  background: var(--hh-bg-control-active);
+}
+
+.well:disabled {
+  opacity: 0.6;
+}
+
+.well:focus-visible {
+  outline: 3px solid var(--hh-focus-ring);
+  outline-offset: 1px;
+}
+
+.swatch {
+  flex: none;
+  width: 26px;
+  height: 16px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 var(--hh-hairline) var(--hh-separator-strong);
+}
+
+.wellText {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  stroke-width: 2.4;
+  color: var(--hh-text-tertiary);
+}
+
+.panel {
+  width: 216px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+  padding: 2px;
+}
+
+.chip {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--hh-hairline) var(--hh-separator-strong);
+  color: var(--hh-accent-contrast);
+  cursor: default;
+  transition: transform var(--hh-duration-fast) var(--hh-ease);
+}
+
+.chip:hover {
+  transform: scale(1.12);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--hh-focus-ring);
+  outline-offset: 1px;
+}
+
+.chip :where(svg) {
+  width: 12px;
+  height: 12px;
+  stroke-width: 3;
+}
+
+.selected {
+  box-shadow:
+    inset 0 0 0 var(--hh-hairline) var(--hh-separator-strong),
+    0 0 0 2px var(--hh-bg-elevated),
+    0 0 0 3.5px var(--hh-text-secondary);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 6px;
+  box-shadow: inset 0 var(--hh-hairline) 0 var(--hh-separator);
+}
+
+.auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.autoSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--hh-hairline) var(--hh-separator-strong);
+}
+
+.custom {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: var(--hh-control-height-sm);
+  padding: 0 8px;
+  border-radius: var(--hh-radius-sm);
+  color: var(--hh-text);
+  font-size: var(--hh-text-md);
+  cursor: default;
+}
+
+.custom:hover {
+  background: var(--hh-bg-hover);
+}
+
+.custom:focus-within {
+  outline: 3px solid var(--hh-focus-ring);
+}
+
+/* The native colour input is invisible; clicking the label opens the system colour panel. */
+.native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: default;
+}

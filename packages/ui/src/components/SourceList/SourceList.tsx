@@ -31,12 +31,21 @@ export interface SourceListItem {
   id: string;
   /** Row text; also used for type-ahead and the accessible name. */
   label: string;
+  /** Accessible name when it should say more than the label (e.g. "pUC19, edited"). */
+  accessibleLabel?: string;
   /** 16 px leading icon or glyph. Generic (currentColor) icons are tinted with the accent colour. */
   icon?: ReactNode;
   /** Dim, right-aligned detail text (e.g. "861 bp"). */
   secondary?: ReactNode;
   /** Trailing count, badge or accessory. */
   trailing?: ReactNode;
+  /**
+   * Small pointer controls (e.g. a close button) shown at the trailing edge while the row is
+   * hovered; they replace `trailing` while visible. Clicks on them do not select the row.
+   * Give them tabIndex={-1}: the list is one Tab stop, and keyboard users act on rows with
+   * shortcuts or a context menu.
+   */
+  actions?: ReactNode;
   disabled?: boolean;
   /** Native tooltip, e.g. the full name when the label is truncated. */
   title?: string;
@@ -53,6 +62,11 @@ export interface SourceListSection {
   collapsible?: boolean;
   /** Placeholder row shown when the section has no items (e.g. "No primers"). */
   emptyText?: string;
+  /**
+   * Tint of generic (currentColor) row icons: 'accent' (default, like macOS sidebars) or
+   * 'secondary' for long lists where blue icons would be noisy.
+   */
+  iconTone?: 'accent' | 'secondary';
 }
 
 export interface SourceListProps {
@@ -384,6 +398,7 @@ export function SourceList({
               >
                 <span className={styles.headerTitle}>{section.title}</span>
                 {section.count != null ? <span className={styles.headerCount}>{section.count}</span> : null}
+                <span className={styles.headerFill} />
                 {collapsible ? <ChevronRight className={styles.chevron} aria-hidden /> : null}
               </div>
             );
@@ -407,9 +422,10 @@ export function SourceList({
               aria-disabled={item.disabled || undefined}
               aria-setsize={section.items.length}
               aria-posinset={row.itemIndex + 1}
-              aria-label={item.label}
+              aria-label={item.accessibleLabel ?? item.label}
               title={item.title}
               data-active={active || undefined}
+              data-icon-tone={section.iconTone === 'secondary' ? 'secondary' : undefined}
               className={styles.item}
               style={{ top: row.top, height: row.height }}
               onClick={() => {
@@ -428,7 +444,19 @@ export function SourceList({
               ) : null}
               <span className={styles.label}>{item.label}</span>
               {item.secondary != null ? <span className={styles.secondary}>{item.secondary}</span> : null}
-              {item.trailing != null ? <span className={styles.trailing}>{item.trailing}</span> : null}
+              {item.trailing != null ? (
+                <span className={cx(styles.trailing, item.actions != null && styles.hasActions)}>{item.trailing}</span>
+              ) : null}
+              {item.actions != null ? (
+                <span
+                  className={styles.actions}
+                  onClick={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  {item.actions}
+                </span>
+              ) : null}
             </div>
           );
         })}

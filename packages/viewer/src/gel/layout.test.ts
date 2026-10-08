@@ -38,12 +38,10 @@ const ladderLane = (id = 'ladder', sizes = LADDER_MIX, label = 'Ladder'): GelLan
   bands: sizes.map((s) => band(s, REFERENCE.has(s) ? 1 : 0.4, { emphasized: REFERENCE.has(s) })),
 });
 
-const sampleLane = (id: string, sizes: number[], label = id): GelLane => ({
-  id,
-  label,
-  kind: 'sample',
-  bands: sizes.map((s) => band(s, s / Math.max(...sizes))),
-});
+const sampleLane = (id: string, sizes: number[], label = id): GelLane => {
+  const max = sizes.reduce((m, s) => Math.max(m, s), 0);
+  return { id, label, kind: 'sample', bands: sizes.map((s) => band(s, s / max)) };
+};
 
 const DIGEST: GelLane[] = [
   ladderLane(),
@@ -219,6 +217,30 @@ describe('placeGelLabels', () => {
     expect(noOverlap(placed.map((p) => p.y), 12)).toBe(true);
   });
 
+  it('keeps each label within its own bounds, e.g. closer to its band than to the neighbouring bands', () => {
+    // bands 6 px apart: 14 px labels that may not leave their band's cell can only label some bands
+    const ys = [100, 106, 112, 118, 124, 130, 136];
+    const targets = ys.map((y, i) => ({
+      y,
+      minY: i > 0 ? (ys[i - 1] + y) / 2 : undefined,
+      maxY: i < ys.length - 1 ? (y + ys[i + 1]) / 2 : undefined,
+    }));
+    const placed = placeGelLabels(targets, { spacing: 14, minY: 0, maxY: 1000, maxShift: 14 });
+    expect(placed.length).toBeGreaterThanOrEqual(2);
+    expect(placed.length).toBeLessThan(ys.length);
+    expect(noOverlap(placed.map((p) => p.y), 14)).toBe(true);
+    for (const p of placed) {
+      const nearest = ys.reduce((best, y, i) => (Math.abs(y - p.y) < Math.abs(ys[best] - p.y) ? i : best), 0);
+      expect(Math.abs(ys[p.index] - p.y)).toBeLessThanOrEqual(Math.abs(ys[nearest] - p.y) + 1e-6);
+    }
+    // without bounds the same labels may drift onto the neighbouring bands
+    const loose = placeGelLabels(
+      ys.map((y) => ({ y })),
+      { spacing: 14, minY: 0, maxY: 1000, maxShift: 14 },
+    );
+    expect(loose.length).toBeGreaterThan(placed.length);
+  });
+
   it('keeps protected labels before others and ignores invalid targets', () => {
     const targets = [{ y: 100 }, { y: 101, protected: true }, { y: 102 }, { y: Number.NaN }];
     const placed = placeGelLabels(targets, { spacing: 14, minY: 0, maxY: 1000, maxShift: 2 });
@@ -299,6 +321,50 @@ describe('computeGelLayout', () => {
     }
   });
 
+  it('keeps every sample size label closest to its own band, even in dense lanes', () => {
+    const mspi = [622, 527, 404, 307, 242, 238, 217, 201, 190, 180, 160, 147, 123, 110, 90, 76, 67, 34, 26, 15];
+    const lanes = [ladderLane(), sampleLane('mspi', mspi), ladderLane('copy')]; // the same ladder twice: labelled like a sample
+    for (const [width, height] of [
+      [700, 300],
+      [900, 600],
+    ]) {
+      const layout = computeGelLayout(lanes, { width, height, showSizes: 'all' });
+      expect(layout.ladderRight).toBe(-1);
+      for (const lane of layout.lanes.slice(1)) {
+        expect(lane.sizeLabels.length).toBeGreaterThan(3);
+        if (height === 300) expect(lane.sizeLabels.length).toBeLessThan(lane.bands.length); // crowded: some dropped
+        expect(noOverlap(lane.sizeLabels.map((l) => l.y), 12)).toBe(true);
+        for (const l of lane.sizeLabels) {
+          const own = Math.abs(l.y - lane.bands[l.bandIndex].y);
+          for (const g of lane.bands) expect(own).toBeLessThanOrEqual(Math.abs(l.y - g.y) + 1e-6);
+          expect(own).toBeLessThanOrEqual(6 + 1e-6);
+        }
+      }
+      // reference bands of a ladder labelled like a sample keep their labels
+      const copy = layout.lanes[2];
+      const labelled = new Set(copy.sizeLabels.map((l) => copy.bands[l.bandIndex].band.size));
+      for (const s of REFERENCE) expect(labelled.has(s)).toBe(true);
+      const bold = copy.sizeLabels.filter((l) => l.emphasized).map((l) => copy.bands[l.bandIndex].band.size);
+      expect(new Set(bold)).toEqual(REFERENCE);
+    }
+  });
+
+  it('hugs the lanes with the slab, so that ladder sizes stay next to the ladder', () => {
+    const big = computeGelLayout(DIGEST, { width: 1600, height: 1000 });
+    expect(big.slab.width).toBeLessThanOrEqual(DIGEST.length * big.pitch + 2 * 24 + 1);
+    expect(big.lanes[0].bandLeft - big.slab.x).toBeLessThan(40);
+    // one or two lanes still get a gel-shaped slab, not a sliver
+    const one = computeGelLayout([sampleLane('pcr', [1000])], { width: 1600, height: 1000 });
+    expect(one.slab.width).toBeGreaterThanOrEqual(one.slab.height * 0.3 - 1);
+    expect(one.slab.width).toBeLessThan(one.slab.height * 0.35);
+    const small = computeGelLayout([sampleLane('pcr', [1000]), sampleLane('b', [500])], { width: 900, height: 600 });
+    expect(small.slab.width).toBeGreaterThanOrEqual(3 * small.pitch);
+    // centred
+    const lane = small.lanes[0];
+    const last = small.lanes[1];
+    expect(lane.x - small.slab.x).toBeCloseTo(small.slab.x + small.slab.width - (last.x + last.width), 6);
+  });
+
   it('writes short lane labels horizontally and rotates long ones', () => {
     const short = computeGelLayout(DIGEST, { width: 900, height: 600 });
     expect(short.header.mode).toBe('horizontal');
@@ -346,6 +412,39 @@ describe('computeGelLayout', () => {
     }
     expect(layout.lanes[1].sizeLabels).toEqual([]); // no labels on a smear
     expect(layout.lanes[0].smear).toBeNull();
+  });
+
+  it('lays out and hit-tests digests of a 4.6 Mb genome (thousands of fragments per lane) quickly', () => {
+    // exponential fragment sizes (random cut sites) for a frequent and a rare cutter
+    let seed = 42;
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) + 0.5) / 2147483648;
+    const digest = (mean: number) => {
+      const sizes: number[] = [];
+      for (let total = 0; total < 4_641_652; ) {
+        const s = Math.max(1, Math.round(-Math.log(rnd()) * mean));
+        sizes.push(s);
+        total += s;
+      }
+      return sizes;
+    };
+    const frequent = digest(256);
+    expect(frequent.length).toBeGreaterThan(15_000);
+    const lanes = [ladderLane(), sampleLane('sau3ai', frequent), sampleLane('ecori', digest(7200))];
+    const t0 = performance.now();
+    const layout = computeGelLayout(lanes, { width: 1600, height: 1000, showSizes: 'all' });
+    const t1 = performance.now();
+    expect(t1 - t0).toBeLessThan(300);
+    expect(layout.lanes[1].smear).not.toBeNull();
+    expect(layout.lanes[1].bands.length).toBeGreaterThan(15_000);
+    const lane = layout.lanes[1];
+    let hits = 0;
+    const t2 = performance.now();
+    for (let i = 0; i < 2000; i++) {
+      const hit = hitTestGel(layout, lane.cx, layout.slab.y + (layout.slab.height * i) / 2000);
+      if (hit && hit.bandIndex >= 0) hits++;
+    }
+    expect(performance.now() - t2).toBeLessThan(100);
+    expect(hits).toBeGreaterThan(100);
   });
 
   it('handles empty lanes and an empty gel', () => {

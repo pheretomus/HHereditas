@@ -1,13 +1,13 @@
 /**
- * SVG layers of the linear map. Each layer is memoized on the data it draws, so hovering
- * or moving the selection does not re-render the (much larger) map content.
+ * SVG layers of the linear map. Each layer is memoized on the data it draws, so hovering or
+ * moving the selection does not re-render the (much larger) map content.
  */
 import { memo } from 'react';
 import { FEATURE_LABEL_ON_FILL, featureStroke } from '../common/colors';
 import type { SequenceSelection } from '../selection';
 import type { EnzymeLabel, ViewModel } from './layout';
-import { caretPositions, selectionPieces } from './layout';
 import styles from './LinearMap.module.css';
+import { caretPositions, selectionPieces } from './selectionGeometry';
 
 const r2 = (n: number): number => Math.round(n * 100) / 100;
 
@@ -32,7 +32,7 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
       {primers.labels.map((l) => (
         <text
           key={l.key}
-          className={`${styles.primerLabel} ${l.dir === 1 ? styles.primerFwd : styles.primerRev}`}
+          className={`${styles.primerLabel} ${styles.halo} ${l.dir === 1 ? styles.primerFwd : styles.primerRev}`}
           x={r2(l.x)}
           y={r2(l.y)}
           textAnchor={l.anchor}
@@ -42,7 +42,7 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
         </text>
       ))}
 
-      {/* features: density, batched small bars, full glyphs, labels */}
+      {/* features: density, slim bars, full glyphs, labels */}
       {features.density.map((p) => (
         <path key={p.key} d={p.d} style={{ fill: p.fill, opacity: p.opacity }} />
       ))}
@@ -50,9 +50,7 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
         <path key={p.key} d={p.d} style={{ fill: p.fill }} />
       ))}
       {features.glyphs.map((g) =>
-        g.connector ? (
-          <path key={`${g.key}:c`} className={styles.connector} d={g.connector} />
-        ) : null,
+        g.connector ? <path key={`${g.key}:c`} className={styles.connector} d={g.connector} /> : null,
       )}
       {features.glyphs.map((g) => (
         <path key={g.key} className={styles.feature} d={g.d} style={{ fill: g.fill, stroke: featureStroke(g.fill) }} />
@@ -60,8 +58,8 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
       {features.labels.map((l) => (
         <text
           key={l.key}
-          className={l.inside ? styles.featureLabel : `${styles.featureLabel} ${styles.featureLabelBeside}`}
-          style={l.inside ? { fill: FEATURE_LABEL_ON_FILL } : undefined}
+          className={l.placement === 'inside' ? styles.featureLabel : `${styles.featureLabel} ${styles.featureLabelOutside} ${styles.halo}`}
+          style={l.placement === 'inside' ? { fill: FEATURE_LABEL_ON_FILL } : undefined}
           x={r2(l.x)}
           y={r2(l.y)}
           textAnchor={l.anchor}
@@ -71,7 +69,7 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
         </text>
       ))}
 
-      {/* backbone: two strands (one for RNA / protein), letters at high zoom */}
+      {/* backbone: two strands (one for RNA and protein), letters at high zoom */}
       {backbone.top ? <path className={styles.strand} d={`M${r2(backbone.top[0])} ${r2(v.topStrandY)}H${r2(backbone.top[1])}`} /> : null}
       {backbone.bottom ? (
         <path className={styles.strand} d={`M${r2(backbone.bottom[0])} ${r2(v.bottomStrandY)}H${r2(backbone.bottom[1])}`} />
@@ -112,6 +110,7 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
       ))}
 
       {/* enzyme cuts and labels */}
+      {enzymes.ticksUnlabelled ? <path className={styles.cutTickQuiet} d={enzymes.ticksUnlabelled} /> : null}
       {enzymes.ticks ? <path className={styles.cutTick} d={enzymes.ticks} /> : null}
       {enzymes.staggered ? <path className={styles.cutStaggered} d={enzymes.staggered} /> : null}
       {enzymes.labels.map((l) => (
@@ -122,7 +121,7 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
 });
 
 function EnzymeText({ label, hot = false }: { label: EnzymeLabel; hot?: boolean }) {
-  const cls = [styles.enzymeLabel, label.unique ? styles.enzymeLabelUnique : '', hot ? styles.enzymeHot : ''].join(' ');
+  const cls = [styles.enzymeLabel, label.unique ? styles.enzymeLabelUnique : '', hot ? styles.enzymeHot : ''].filter(Boolean).join(' ');
   return (
     <text className={cls} x={r2(label.x)} y={r2(label.y)} textAnchor={label.anchor} dominantBaseline="central">
       {label.text}
@@ -147,7 +146,7 @@ export const SelectionLayer = memo(function SelectionLayer({
     const pieces = selectionPieces(selection.range, seqLength, topology);
     return (
       <g data-testid="selection">
-        {pieces.map((p, i) => {
+        {pieces.map((p) => {
           const x0 = clampX(scale.x(p.start));
           const x1 = clampX(scale.x(p.end));
           const w = Math.max(1, x1 - x0);
@@ -155,7 +154,7 @@ export const SelectionLayer = memo(function SelectionLayer({
           if (p.startEdge && x0 > -2) edges += `M${r2(x0 + 0.5)} ${r2(top)}V${r2(bottom)}`;
           if (p.endEdge && x1 < width + 2) edges += `M${r2(x0 + w - 0.5)} ${r2(top)}V${r2(bottom)}`;
           return (
-            <g key={i} data-piece={`${p.start}-${p.end}`}>
+            <g key={`${p.start}-${p.end}`} data-piece={`${p.start}-${p.end}`}>
               <rect className={styles.selection} x={r2(x0)} y={r2(top)} width={r2(w)} height={r2(bottom - top)} />
               {edges ? <path className={styles.selectionEdge} d={edges} /> : null}
             </g>
@@ -177,20 +176,23 @@ export const SelectionLayer = memo(function SelectionLayer({
   );
 });
 
-/** Rings around highlighted / hovered features, and the hovered enzyme label. */
+/** Rings around the highlighted and hovered features; the hovered enzyme's label and cuts. */
 export const HighlightLayer = memo(function HighlightLayer({
   ring,
   hoverRing,
   enzyme,
+  enzymeCuts,
 }: {
   ring: string;
   hoverRing: string;
   enzyme: EnzymeLabel | null;
+  enzymeCuts: string;
 }) {
   return (
     <>
-      {hoverRing ? <path className={styles.hoverRing} d={hoverRing} /> : null}
-      {ring ? <path className={styles.ring} d={ring} /> : null}
+      {hoverRing ? <path data-testid="hover-ring" className={styles.hoverRing} d={hoverRing} /> : null}
+      {ring ? <path data-testid="highlight-ring" className={styles.ring} d={ring} /> : null}
+      {enzymeCuts ? <path className={styles.cutHot} d={enzymeCuts} /> : null}
       {enzyme ? (
         <>
           <path className={styles.leaderHot} d={enzyme.leader} />

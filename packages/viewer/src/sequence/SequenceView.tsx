@@ -10,6 +10,9 @@
  * the edges), shift+click extends, clicking an annotation selects it. Keyboard input goes
  * through a hidden textarea (focus, IME, clipboard; see editing.ts for the key map). The view
  * never edits the record itself: it reports SequenceEdit intents through onEdit.
+ *
+ * Pass stable (memoized) arrays and callbacks: the row model is rebuilt whenever the record,
+ * the annotation arrays, `translate` or the number of bases per row change.
  */
 import type { EnzymeSite, Feature, Orf, PrimerBindingSite, SearchHit, SeqRecord, Topology } from '@hhereditas/core';
 import { featureExtent, mod, normalizeRange } from '@hhereditas/core';
@@ -18,6 +21,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
+  type RefObject,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -27,19 +31,10 @@ import {
 } from 'react';
 import { featureFill, featureStroke } from '../common/colors';
 import { formatBp, formatInt } from '../common/format';
-import { useElementSize } from '../common/useElementSize';
 import type { SequenceSelection } from '../selection';
 import { caretAt, hasSelectedBases, selectBetween, selectRange } from '../selection';
 import type { CaretAffinity, EditingContext } from './editing';
-import {
-  caretGap,
-  copyText,
-  coverSelection,
-  cutIntent,
-  extendSelectionTo,
-  keyIntent,
-  textIntent,
-} from './editing';
+import { caretGap, copyText, coverSelection, cutIntent, extendSelectionTo, keyIntent, textIntent } from './editing';
 import type { LayoutFeature, LayoutPrimer, RowModel } from './layout';
 import {
   DEFAULT_METRICS,
@@ -79,13 +74,14 @@ export interface SequenceViewProps {
   onSelectionChange?: (selection: SequenceSelection | null) => void;
   /** e.g. hovered in the sidebar. */
   highlightedFeatureId?: string | null;
-  /** Also selects the feature's extent (onSelectionChange). */
+  /** Also selects the feature's extent (onSelectionChange); shift+click extends the selection over it. */
   onFeatureClick?: (featureId: string, info: FeatureClickInfo) => void;
   onFeatureHover?: (featureId: string | null) => void;
   /** Also selects the recognition site. */
   onEnzymeClick?: (site: EnzymeSite) => void;
   /** Also selects the binding site. */
   onPrimerClick?: (primerId: string) => void;
+  /** What is under the pointer; call event.preventDefault() to replace the native menu. The selection is unchanged. */
   onContextMenu?: (target: MapTarget, event: ReactMouseEvent) => void;
   show?: SequenceViewShow;
   /** Default 'auto': as many groups of 10 bases as fit the width. */
@@ -111,6 +107,7 @@ const OVERSCAN = 480;
 const MAX_SCROLL_HEIGHT = 15_000_000;
 const AUTOSCROLL_EDGE = 28;
 const AUTOSCROLL_MAX = 48;
+/** The hidden textarea always holds this one selected character so copy / cut events fire. */
 const INPUT_PLACEHOLDER = ' ';
 
 function isMacPlatform(): boolean {
@@ -143,6 +140,7 @@ interface Hit {
   index: number;
 }
 
+/** The annotation under the pointer, from the data-kind / data-index attributes of the drawing. */
 function hitOf(target: EventTarget | null): Hit | null {
   if (!target || typeof (target as Element).closest !== 'function') return null;
   const el = (target as Element).closest('[data-kind]');
@@ -152,12 +150,45 @@ function hitOf(target: EventTarget | null): Hit | null {
   return kind && Number.isInteger(index) ? { kind, index } : null;
 }
 
-function describeSelection(sel: SequenceSelection | null, L: number): string {
+/** A length in the record's unit: "2,686 bp" or "263 aa". */
+function formatLength(n: number, protein: boolean): string {
+  return protein ? `${formatInt(n)} aa` : formatBp(n);
+}
+
+/** Screen-reader description of the selection (1-based positions). */
+function describeSelection(sel: SequenceSelection | null, L: number, protein: boolean): string {
   if (!sel) return '';
   const len = sel.range.end - sel.range.start;
-  if (len <= 0) return `Cursor at position ${formatInt(Math.min(sel.caret, L))} of ${formatInt(L)}`;
+  const unit = protein ? 'residue' : 'base';
+  if (len <= 0) {
+    const gap = Math.min(sel.caret, L);
+    return gap === 0 ? `Cursor before ${unit} 1 of ${formatInt(L)}` : `Cursor after ${unit} ${formatInt(gap)} of ${formatInt(L)}`;
+  }
   const last = sel.range.end > L ? sel.range.end - L : sel.range.end;
-  return `Selected ${formatInt(sel.range.start + 1)} to ${formatInt(last)}, ${formatBp(len)}`;
+  return `Selected ${formatInt(sel.range.start + 1)} to ${formatInt(last)}, ${formatLength(len, protein)}`;
+}
+
+/**
+ * Client size of the scroller (excludes its scrollbar). `measured` turns true after the first
+ * layout pass (before the first paint), even when the element has no size (jsdom, hidden tabs).
+ */
+function useClientSize(ref: RefObject<HTMLElement | null>): { width: number; height: number; measured: boolean } {
+  const [size, setSize] = useState({ width: 0, height: 0, measured: false });
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => {
+      const width = el.clientWidth;
+      const height = el.clientHeight;
+      setSize((prev) => (prev.measured && prev.width === width && prev.height === height ? prev : { width, height, measured: true }));
+    };
+    update();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return size;
 }
 
 export function SequenceView(props: SequenceViewProps) {
@@ -200,14 +231,13 @@ export function SequenceView(props: SequenceViewProps) {
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const size = useElementSize(scrollerRef);
+  const size = useClientSize(scrollerRef);
+  const measured = size.measured;
   const viewportWidth = size.width > 0 ? size.width : FALLBACK_WIDTH;
   const viewportHeight = size.height > 0 ? size.height : FALLBACK_HEIGHT;
-  // the layout only depends on the width through N and the label limit: quantize to avoid
-  // rebuilding the model on every pixel of a window resize
-  const layoutWidth = Math.floor(viewportWidth / 8) * 8;
 
   // ---- fonts --------------------------------------------------------------------------------
+  // Label widths are measured in the real fonts: re-measure once web fonts have loaded.
   const [fontEpoch, setFontEpoch] = useState(0);
   useEffect(() => {
     const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
@@ -231,9 +261,9 @@ export function SequenceView(props: SequenceViewProps) {
   }, [showNumbers, L, fontEpoch]);
 
   const N =
-    basesPerRow === 'auto' || !(typeof basesPerRow === 'number' && basesPerRow > 0)
-      ? autoBasesPerRow(layoutWidth, DEFAULT_METRICS, numberColumnWidth)
-      : Math.floor(basesPerRow);
+    typeof basesPerRow === 'number' && basesPerRow >= 1
+      ? Math.floor(basesPerRow)
+      : autoBasesPerRow(viewportWidth, DEFAULT_METRICS, numberColumnWidth);
 
   const layoutFeatures = useMemo<LayoutFeature[]>(
     () =>
@@ -256,18 +286,20 @@ export function SequenceView(props: SequenceViewProps) {
     const byId = new Map(record.primers.map((p) => [p.id, p.sequence]));
     return layoutPrimers.map(({ site }) => {
       const s = byId.get(site.primerId) ?? '';
-      const n = site.range.end - site.range.start;
+      const n = Math.max(0, Math.min(site.annealedLength, site.range.end - site.range.start));
       return s.length >= n ? s.slice(s.length - n).toUpperCase() : '';
     });
   }, [layoutPrimers, record.primers]);
   const visibleOrfs = showOrfs ? orfs : EMPTY;
 
+  // Until the viewport has been measured (synchronously, before the first paint) the number of
+  // bases per row is unknown: use an empty placeholder instead of laying out the record twice.
   const model: RowModel = useMemo(() => {
     void fontEpoch;
+    if (!measured) return buildRowModel({ length: 0, topology, basesPerRow: N, numberColumnWidth, showComplement });
     return buildRowModel({
       length: L,
       topology,
-      width: layoutWidth,
       basesPerRow: N,
       numberColumnWidth,
       showComplement,
@@ -277,9 +309,10 @@ export function SequenceView(props: SequenceViewProps) {
       orfs: visibleOrfs,
       measure: measureLabel,
     });
-  }, [L, topology, layoutWidth, N, numberColumnWidth, showComplement, layoutFeatures, enzymes, layoutPrimers, visibleOrfs, fontEpoch]);
+  }, [measured, L, topology, N, numberColumnWidth, showComplement, layoutFeatures, enzymes, layoutPrimers, visibleOrfs, fontEpoch]);
 
   const translator = translate ?? translateFeatureLite;
+  /** Coding information of a translated feature, computed lazily (only for rows on screen). */
   const coding = useMemo(() => {
     const cache = new Map<number, CodingInfo | null>();
     return (index: number): CodingInfo | null => {
@@ -292,6 +325,7 @@ export function SequenceView(props: SequenceViewProps) {
     };
   }, [layoutFeatures, seq, topology, translator]);
 
+  /** x positions (glyph centres) of the bases of a row of n bases, as an SVG coordinate list. */
   const glyphXs = useMemo(() => {
     const cache = new Map<number, string>();
     return (n: number): string => {
@@ -333,32 +367,17 @@ export function SequenceView(props: SequenceViewProps) {
   const controlled = selectionProp !== undefined;
   const rawSelection = controlled ? selectionProp : innerSelection;
   const selection = useMemo(() => sanitizeSelection(rawSelection, L, topology), [rawSelection, L, topology]);
+  // On circular records gap 0 and gap L are one place; the affinity says on which row the caret is drawn.
   const [affinityState, setAffinityState] = useState<{ caret: number; affinity: CaretAffinity }>({
     caret: -1,
     affinity: 'downstream',
   });
   const affinity: CaretAffinity = selection && affinityState.caret === selection.caret ? affinityState.affinity : 'downstream';
+  const molecule = record.molecule;
   const editCtx = useMemo<EditingContext>(
-    () => ({ length: L, topology, basesPerRow: N, editable: canEdit }),
-    [L, topology, N, canEdit],
+    () => ({ length: L, topology, basesPerRow: N, editable: canEdit, molecule }),
+    [L, topology, N, canEdit, molecule],
   );
-
-  const lastEmitted = useRef<SequenceSelection | null>(null);
-  const commitSelection = useCallback(
-    (next: SequenceSelection | null, aff: CaretAffinity = 'downstream') => {
-      setAffinityState({ caret: next ? next.caret : -1, affinity: aff });
-      if (sameSelection(next, lastEmitted.current) && sameSelection(next, latest.current.selection)) return;
-      lastEmitted.current = next;
-      if (!controlled) setInnerSelection(next);
-      onSelectionChange?.(next);
-    },
-    [controlled, onSelectionChange],
-  );
-
-  // ---- focus ----------------------------------------------------------------------------------
-  const [focused, setFocused] = useState(false);
-  const [keyboardFocus, setKeyboardFocus] = useState(false);
-  const pointerFocus = useRef(false);
 
   // ---- scrolling ------------------------------------------------------------------------------
   const [scrollTop, setScrollTop] = useState(0);
@@ -368,57 +387,105 @@ export function SequenceView(props: SequenceViewProps) {
   const contentTop = scrollTop * ratio;
   const shift = contentTop - scrollTop;
 
-  // latest values for window-level listeners and effects
-  const latest = useRef({
-    model,
-    selection,
-    affinity,
-    ratio,
-    editCtx,
-    commitSelection,
-    canEdit,
-    seq,
+  // Latest values for window-level listeners, effects and stable callbacks.
+  const latest = useRef({ model, selection, affinity, ratio, editCtx, canEdit, seq, onSelectionChange, controlled });
+  useLayoutEffect(() => {
+    latest.current = { model, selection, affinity, ratio, editCtx, canEdit, seq, onSelectionChange, controlled };
   });
-  latest.current = { model, selection, affinity, ratio, editCtx, commitSelection, canEdit, seq };
 
-  const anchorRef = useRef<{ base: number; offset: number } | null>(null);
-  const onScroll = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    setScrollTop(el.scrollTop);
+  const lastEmitted = useRef<SequenceSelection | null>(null);
+  const commitSelection = useCallback((next: SequenceSelection | null, aff: CaretAffinity = 'downstream') => {
+    setAffinityState({ caret: next ? next.caret : -1, affinity: aff });
+    const cur = latest.current;
+    if (sameSelection(next, lastEmitted.current) && sameSelection(next, cur.selection)) return;
+    lastEmitted.current = next;
+    if (!cur.controlled) setInnerSelection(next);
+    cur.onSelectionChange?.(next);
+  }, []);
+
+  /**
+   * Scroll anchor: the first base of the row at the top of the viewport and the offset into that
+   * row. Restored whenever the model changes (resize, edits, layers toggled) so the text under the
+   * user's eyes stays put.
+   */
+  const anchorRef = useRef<{ base: number; offset: number }>({ base: 0, offset: 0 });
+  const updateAnchor = useCallback((el: HTMLElement) => {
     const { model: mdl, ratio: rt } = latest.current;
     const top = el.scrollTop * rt;
     const r = rowAtY(mdl, top);
     anchorRef.current = { base: mdl.rows[r].start, offset: top - mdl.offsets[r] };
   }, []);
 
-  /** Scroll so that content range [top, bottom] is visible ('center' re-centres it when it is not). */
-  const revealContent = useCallback((top: number, bottom: number, mode: 'nearest' | 'center') => {
+  /** Scroll the content (unscaled px) to `top`. */
+  const scrollContentTo = useCallback(
+    (top: number) => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      const { model: mdl, ratio: rt } = latest.current;
+      const viewH = el.clientHeight || FALLBACK_HEIGHT;
+      const clamped = Math.max(0, Math.min(Math.max(0, mdl.totalHeight - viewH), top));
+      el.scrollTop = clamped / rt;
+      setScrollTop(el.scrollTop);
+      updateAnchor(el);
+    },
+    [updateAnchor],
+  );
+
+  const onScroll = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
-    const { model: mdl, ratio: rt } = latest.current;
-    const viewH = el.clientHeight || FALLBACK_HEIGHT;
-    const cur = el.scrollTop * rt;
-    const margin = Math.min(48, viewH / 6);
-    let target: number | null = null;
-    if (top >= cur + 0 && bottom <= cur + viewH) return;
-    if (mode === 'center') target = (top + bottom) / 2 - viewH / 2;
-    else if (top < cur) target = top - margin;
-    else if (bottom > cur + viewH) target = bottom - viewH + margin;
-    if (target === null) return;
-    target = Math.max(0, Math.min(mdl.totalHeight - viewH, target));
-    el.scrollTop = target / rt;
     setScrollTop(el.scrollTop);
-  }, []);
+    updateAnchor(el);
+  }, [updateAnchor]);
 
+  const prevModel = useRef(model);
+  const prevRecordId = useRef(record.id);
+  useLayoutEffect(() => {
+    if (prevModel.current === model) return;
+    prevModel.current = model;
+    const el = scrollerRef.current;
+    if (!el) return;
+    // another document: start at its beginning instead of at the old document's position
+    if (prevRecordId.current !== record.id) {
+      prevRecordId.current = record.id;
+      anchorRef.current = { base: 0, offset: 0 };
+    }
+    const a = anchorRef.current;
+    const r = rowOfBase(model, a.base);
+    const target = model.offsets[r] + Math.min(a.offset, model.rows[r].height);
+    const next = target / ratio;
+    if (Math.abs(el.scrollTop - next) >= 1) {
+      el.scrollTop = next;
+      setScrollTop(el.scrollTop);
+    }
+  }, [model, ratio, record.id]);
+
+  /** Scroll so that content range [top, bottom] is visible ('center' re-centres it when it is not). */
+  const revealContent = useCallback(
+    (top: number, bottom: number, mode: 'nearest' | 'center') => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      const viewH = el.clientHeight || FALLBACK_HEIGHT;
+      const cur = el.scrollTop * latest.current.ratio;
+      if (top >= cur && bottom <= cur + viewH) return;
+      const margin = Math.min(48, viewH / 6);
+      let target: number;
+      if (mode === 'center') target = (top + bottom) / 2 - viewH / 2;
+      else if (top < cur) target = top - margin;
+      else target = bottom - viewH + margin;
+      scrollContentTo(target);
+    },
+    [scrollContentTo],
+  );
+
+  /** Reveal a row (its strands when the row is taller than the viewport). */
   const revealRow = useCallback(
     (r: number, mode: 'nearest' | 'center') => {
       const { model: mdl } = latest.current;
       const row = mdl.rows[r];
       if (!row) return;
       const rowTop = mdl.offsets[r];
-      const el = scrollerRef.current;
-      const viewH = el?.clientHeight || FALLBACK_HEIGHT;
+      const viewH = scrollerRef.current?.clientHeight || FALLBACK_HEIGHT;
       if (row.height <= viewH - 32) revealContent(rowTop, rowTop + row.height, mode);
       else {
         const m = mdl.metrics;
@@ -429,6 +496,7 @@ export function SequenceView(props: SequenceViewProps) {
     [revealContent],
   );
 
+  // keyboard moves and edits scroll the caret into view once the new layout is committed
   const pendingReveal = useRef(false);
   useLayoutEffect(() => {
     if (!pendingReveal.current) return;
@@ -438,34 +506,28 @@ export function SequenceView(props: SequenceViewProps) {
     revealRow(rowOfGap(model, gap, affinity === 'upstream'), 'nearest');
   });
 
-  // keep the first visible base in place when the rows reflow (window resize)
-  const prevN = useRef(N);
-  useLayoutEffect(() => {
-    if (prevN.current === N) return;
-    prevN.current = N;
-    const a = anchorRef.current;
-    const el = scrollerRef.current;
-    if (!a || !el) return;
-    const r = rowOfBase(model, a.base);
-    const target = model.offsets[r] + Math.min(a.offset, model.rows[r].height);
-    el.scrollTop = target / ratio;
-    setScrollTop(el.scrollTop);
-  }, [N, model, ratio]);
-
+  // scroll requests wait until the viewport has been measured (the row model depends on its width)
   const lastScrollRequest = useRef<number | null>(null);
   useLayoutEffect(() => {
-    if (!scrollTo || scrollTo.requestId === lastScrollRequest.current) return;
+    if (!scrollTo || scrollTo.requestId === lastScrollRequest.current || !measured) return;
     lastScrollRequest.current = scrollTo.requestId;
-    const pos = topology === 'circular' && L > 0 ? mod(scrollTo.position, L) : Math.max(0, Math.min(L - 1, scrollTo.position));
+    if (L === 0) return;
+    const pos = topology === 'circular' ? mod(Math.floor(scrollTo.position), L) : Math.max(0, Math.min(L - 1, Math.floor(scrollTo.position)));
     revealRow(rowOfBase(model, pos), 'center');
-  }, [scrollTo, model, topology, L, revealRow]);
+  }, [scrollTo, measured, model, topology, L, revealRow]);
+
+  // ---- focus ----------------------------------------------------------------------------------
+  const [focused, setFocused] = useState(false);
+  const [keyboardFocus, setKeyboardFocus] = useState(false);
+  const pointerFocus = useRef(false);
 
   // ---- pointer --------------------------------------------------------------------------------
+  /** Pointer position in content coordinates (x from the view's left edge, y from the first row). */
   const contentPoint = useCallback((clientX: number, clientY: number) => {
     const el = scrollerRef.current;
     if (!el) return { x: 0, y: 0 };
     const rect = el.getBoundingClientRect();
-    return { x: clientX - rect.left, y: clientY - rect.top + el.scrollTop * latest.current.ratio };
+    return { x: clientX - rect.left + el.scrollLeft, y: clientY - rect.top + el.scrollTop * latest.current.ratio };
   }, []);
 
   const drag = useRef<{
@@ -483,13 +545,13 @@ export function SequenceView(props: SequenceViewProps) {
     const update = () => {
       const d = drag.current;
       if (!d) return;
-      const { model: mdl, editCtx: ctx, commitSelection: commit } = latest.current;
+      const { model: mdl, editCtx: ctx } = latest.current;
       const pt = contentPoint(d.clientX, d.clientY);
       const hit = gapAtPoint(mdl, pt.x, pt.y);
       if (hit.gap === d.head) return;
       d.head = hit.gap;
       const next = d.extend ? extendSelectionTo(d.base, hit.gap, ctx) : selectBetween(d.anchor, hit.gap, ctx.length, ctx.topology);
-      commit(next, hit.upstream ? 'upstream' : 'downstream');
+      commitSelection(next, hit.upstream ? 'upstream' : 'downstream');
     };
     const tick = () => {
       const d = drag.current;
@@ -504,9 +566,11 @@ export function SequenceView(props: SequenceViewProps) {
         el.scrollTop = before + dy;
         if (el.scrollTop !== before) {
           setScrollTop(el.scrollTop);
-          update();
+          updateAnchor(el);
         }
       }
+      // every frame: the content under a still pointer changes while scrolling (auto-scroll, wheel)
+      update();
       d.raf = requestAnimationFrame(tick);
     };
     const move = (ev: MouseEvent) => {
@@ -536,24 +600,22 @@ export function SequenceView(props: SequenceViewProps) {
       window.addEventListener('blur', end);
     };
     return { start, end };
-  }, [contentPoint]);
+  }, [contentPoint, commitSelection, updateAnchor]);
 
   useEffect(() => dragApi.end, [dragApi]);
 
-  const layoutFeaturesRef = useRef(layoutFeatures);
-  layoutFeaturesRef.current = layoutFeatures;
-
+  /** Click on an annotation: select it (and report it). Returns false when `hit` is not one. */
   const selectAnnotation = useCallback(
     (hit: Hit, e: ReactMouseEvent): boolean => {
       const { editCtx: ctx, selection: sel, model: mdl } = latest.current;
       switch (hit.kind) {
         case 'feature': {
-          const lf = layoutFeaturesRef.current[hit.index];
+          const lf = layoutFeatures[hit.index];
           if (!lf) return false;
           const f = lf.feature;
           const extent = normalizeRange(featureExtent(f, L, topology), L, topology);
-          onFeatureClick?.(f.id, { clickCount: e.detail || 1, shiftKey: e.shiftKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey });
           commitSelection(e.shiftKey ? coverSelection(sel, extent, ctx) : selectRange(extent, L, topology));
+          onFeatureClick?.(f.id, { clickCount: e.detail || 1, shiftKey: e.shiftKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey });
           return true;
         }
         case 'translation': {
@@ -561,24 +623,23 @@ export function SequenceView(props: SequenceViewProps) {
           const pt = contentPoint(e.clientX, e.clientY);
           const base = baseAtPoint(mdl, pt.x, pt.y);
           const k = info && base >= 0 ? codonAtBase(info, base) : -1;
-          if (info && k >= 0) {
-            const range = codonRange(info, k, L, topology);
-            commitSelection(e.shiftKey ? coverSelection(sel, range, ctx) : selectRange(range, L, topology));
-          }
+          if (!info || k < 0) return false;
+          const range = codonRange(info, k, L, topology);
+          commitSelection(e.shiftKey ? coverSelection(sel, range, ctx) : selectRange(range, L, topology));
           return true;
         }
         case 'enzyme': {
           const site = enzymes[hit.index];
           if (!site) return false;
-          onEnzymeClick?.(site);
           commitSelection(selectRange(site.range, L, topology));
+          onEnzymeClick?.(site);
           return true;
         }
         case 'primer': {
           const lp = layoutPrimers[hit.index];
           if (!lp) return false;
-          onPrimerClick?.(lp.site.primerId);
           commitSelection(selectRange(lp.site.range, L, topology));
+          onPrimerClick?.(lp.site.primerId);
           return true;
         }
         case 'orf': {
@@ -591,7 +652,7 @@ export function SequenceView(props: SequenceViewProps) {
           return false;
       }
     },
-    [L, topology, coding, commitSelection, contentPoint, enzymes, layoutPrimers, visibleOrfs, onFeatureClick, onEnzymeClick, onPrimerClick],
+    [L, topology, layoutFeatures, coding, commitSelection, contentPoint, enzymes, layoutPrimers, visibleOrfs, onFeatureClick, onEnzymeClick, onPrimerClick],
   );
 
   const onMouseDown = useCallback(
@@ -599,7 +660,9 @@ export function SequenceView(props: SequenceViewProps) {
       const el = scrollerRef.current;
       if (!el || e.button !== 0) return;
       const rect = el.getBoundingClientRect();
-      if (e.clientX - rect.left >= el.clientWidth) return; // vertical scrollbar
+      // the scrollbars are not content
+      if (el.clientWidth > 0 && e.clientX - rect.left >= el.clientWidth) return;
+      if (el.clientHeight > 0 && e.clientY - rect.top >= el.clientHeight) return;
       e.preventDefault();
       pointerFocus.current = true;
       setKeyboardFocus(false);
@@ -660,7 +723,9 @@ export function SequenceView(props: SequenceViewProps) {
         const pt = contentPoint(e.clientX, e.clientY);
         const band = bandAtY(model, pt.y);
         const base = baseAtPoint(model, pt.x, pt.y);
-        if ((band === 'strand' || band === 'complement') && base >= 0 && pt.y >= 0 && pt.y < model.totalHeight) {
+        const g = model.geometry;
+        const overText = pt.x >= g.textLeft - 1 && pt.x <= g.textRight + 1;
+        if ((band === 'strand' || band === 'complement') && overText && base >= 0 && pt.y >= 0 && pt.y < model.totalHeight) {
           target = { kind: 'sequence', position: base };
         } else target = { kind: 'background', position: gapAtPoint(model, pt.x, pt.y).gap };
       }
@@ -692,11 +757,12 @@ export function SequenceView(props: SequenceViewProps) {
     [applyEdit, onInvalidInput],
   );
 
+  /** Put the placeholder back into the textarea and select it (keeps copy / cut enabled). */
   const resetInput = useCallback(() => {
     const input = inputRef.current;
     if (!input) return;
     if (input.value !== INPUT_PLACEHOLDER) input.value = INPUT_PLACEHOLDER;
-    if (document.activeElement === input) input.select();
+    if (typeof document !== 'undefined' && document.activeElement === input) input.select();
   }, []);
 
   const onKeyDown = useCallback(
@@ -723,7 +789,7 @@ export function SequenceView(props: SequenceViewProps) {
         case 'page': {
           e.preventDefault();
           const el = scrollerRef.current;
-          if (el) el.scrollTop += intent.direction * Math.max(40, el.clientHeight - 48);
+          if (el) scrollContentTo(el.scrollTop * latest.current.ratio + intent.direction * Math.max(40, el.clientHeight - 48));
           break;
         }
         case 'handled':
@@ -733,7 +799,7 @@ export function SequenceView(props: SequenceViewProps) {
           break;
       }
     },
-    [mac, commitSelection, applyEdit],
+    [mac, commitSelection, applyEdit, scrollContentTo],
   );
 
   // native listeners: beforeinput (typing), composition (IME), input (fallback)
@@ -748,6 +814,7 @@ export function SequenceView(props: SequenceViewProps) {
         ev.preventDefault();
         if (ev.data) handleText(ev.data);
       } else if (type.startsWith('insert') || type.startsWith('delete') || type.startsWith('history') || type.startsWith('format')) {
+        // paste, cut, line breaks, undo: handled by their own events (or the app)
         ev.preventDefault();
       }
     };
@@ -792,9 +859,14 @@ export function SequenceView(props: SequenceViewProps) {
       e.preventDefault();
       const { seq: s, selection: sel, editCtx: ctx } = latest.current;
       const cut = cutIntent(s, sel, ctx);
-      if (!cut) return;
-      e.clipboardData.setData('text/plain', cut.text);
-      applyEdit(cut.intent.edit, cut.intent.selection, cut.intent.affinity);
+      if (cut) {
+        e.clipboardData.setData('text/plain', cut.text);
+        applyEdit(cut.intent.edit, cut.intent.selection, cut.intent.affinity);
+      } else {
+        // read-only: cut copies
+        const text = copyText(s, sel);
+        if (text) e.clipboardData.setData('text/plain', text);
+      }
     },
     [applyEdit],
   );
@@ -810,11 +882,22 @@ export function SequenceView(props: SequenceViewProps) {
   );
 
   const onFocus = useCallback(() => {
+    const byKeyboard = !pointerFocus.current;
     setFocused(true);
-    setKeyboardFocus(!pointerFocus.current);
+    setKeyboardFocus(byKeyboard);
     pointerFocus.current = false;
     resetInput();
-  }, [resetInput]);
+    // Tabbing into a view without a selection puts the caret at the start of the first row on
+    // screen, so arrows and typing start where the user is looking.
+    const { selection: sel, model: mdl, ratio: rt } = latest.current;
+    const el = scrollerRef.current;
+    if (byKeyboard && !sel && el && mdl.length > 0) {
+      const top = el.scrollTop * rt;
+      let r = rowAtY(mdl, top);
+      if (mdl.offsets[r] + mdl.rows[r].y.strand < top && r + 1 < mdl.rowCount) r++;
+      commitSelection(caretAt(mdl.rows[r].start));
+    }
+  }, [resetInput, commitSelection]);
   const onBlur = useCallback(() => {
     setFocused(false);
     setKeyboardFocus(false);
@@ -828,14 +911,9 @@ export function SequenceView(props: SequenceViewProps) {
 
   const selected = hasSelectedBases(selection);
   const caretAbs = selection ? caretGap(selection, editCtx, affinity) : -1;
-  const caretRowIndex = selection && !selected ? rowOfGap(model, caretAbs, affinity === 'upstream') : -1;
-  const caretInfo = (() => {
-    if (!selection) return null;
-    const r = rowOfGap(model, caretAbs, affinity === 'upstream');
-    const row = model.rows[r];
-    const x = gapX(geo, caretAbs - row.start, row.end - row.start);
-    return { row: r, x, top: model.offsets[r] + row.y.strand };
-  })();
+  const caretRowIndex = selection ? rowOfGap(model, caretAbs, affinity === 'upstream') : -1;
+  const caretRow = caretRowIndex >= 0 ? model.rows[caretRowIndex] : null;
+  const caretX = caretRow ? gapX(geo, caretAbs - caretRow.start, caretRow.end - caretRow.start) : 0;
 
   const highlightIndex = useMemo(
     () => (highlightedFeatureId ? layoutFeatures.findIndex((lf) => lf.feature.id === highlightedFeatureId) : -1),
@@ -871,7 +949,7 @@ export function SequenceView(props: SequenceViewProps) {
     }
     const rowHighlight = highlightIndex >= 0 && row.features.some((p) => p.feature === highlightIndex) ? highlightIndex : -1;
     const rowHover = hoveredSite >= 0 && row.enzymeLabels.some((l) => l.site === hoveredSite) ? hoveredSite : -1;
-    const caretHere = caretRowIndex === r && caretInfo;
+    const caretHere = !selected && caretRowIndex === r;
     rowsOut.push(
       <div key={r} className={styles.row} style={{ top: model.offsets[r] - shift, height: row.height }} data-row={r}>
         <RowBackdrop
@@ -889,7 +967,7 @@ export function SequenceView(props: SequenceViewProps) {
             key={`caret-${caretAbs}-${affinity}`}
             className={focused ? `${styles.caret} ${styles.caretBlink}` : `${styles.caret} ${styles.caretInactive}`}
             style={{
-              left: caretInfo.x - 1,
+              left: caretX - 1,
               top: row.y.strand - 2,
               height: (showComplement ? 2 : 1) * m.strandHeight + 4,
             }}
@@ -903,6 +981,13 @@ export function SequenceView(props: SequenceViewProps) {
       </div>,
     );
   }
+
+  // The hidden textarea follows the caret (IME candidate windows open there) while the caret's
+  // row is rendered; otherwise it stays in view so focusing it never scrolls the view.
+  const caretRendered = caretRow !== null && caretRowIndex >= firstRow && caretRowIndex <= lastRow;
+  const inputStyle = caretRendered
+    ? { top: model.offsets[caretRowIndex] + caretRow.y.strand - shift, left: caretX }
+    : { top: scrollTop, left: geo.textLeft };
 
   const rootClass = [styles.root, className].filter(Boolean).join(' ');
   return (
@@ -920,13 +1005,13 @@ export function SequenceView(props: SequenceViewProps) {
         onMouseLeave={onMouseLeave}
         onContextMenu={onContextMenuEvent}
       >
-        <div className={styles.canvas} style={{ height: spacerHeight }}>
+        <div className={styles.canvas} style={{ height: spacerHeight, minWidth: geo.width }}>
           {rowsOut}
           <textarea
             ref={inputRef}
             className={styles.input}
-            style={caretInfo ? { top: caretInfo.top - shift, left: caretInfo.x } : undefined}
-            aria-label={`${record.name || 'Sequence'}: ${formatBp(L)} ${topology}${canEdit ? '' : ', read only'}`}
+            style={inputStyle}
+            aria-label={`${record.name || 'Sequence'}: ${formatLength(L, isProtein)} ${isProtein ? 'protein' : topology}${canEdit ? '' : ', read only'}`}
             aria-readonly={!canEdit}
             readOnly={!canEdit}
             defaultValue={INPUT_PLACEHOLDER}
@@ -946,7 +1031,7 @@ export function SequenceView(props: SequenceViewProps) {
         </div>
       </div>
       <div className={styles.srOnly} aria-live="polite">
-        {focused ? describeSelection(selection, L) : ''}
+        {focused ? describeSelection(selection, L, isProtein) : ''}
       </div>
     </div>
   );

@@ -5,25 +5,17 @@
 export { SequenceView } from './SequenceView';
 export type { SequenceViewProps } from './SequenceView';
 export type { FeatureClickInfo, MapTarget, SequenceEdit, SequenceViewShow } from './types';
+
+// Row model: exact row contents and heights, hit-testing (pure, DOM-free).
 export {
   DEFAULT_METRICS as SEQUENCE_VIEW_METRICS,
   autoBasesPerRow,
-  baseAtPoint,
   buildRowModel,
-  colCenter,
-  colLeft,
-  colRight,
   cutCounts,
-  cutLabelNumber,
   enzymeLabelText,
   gapAtPoint,
-  gapX,
-  rangeColsInRow,
   rowAtY,
   rowOfBase,
-  rowOfGap,
-  xToCol,
-  xToGap,
 } from './layout';
 export type {
   BarPiece,
@@ -42,8 +34,9 @@ export type {
   RowModelInput,
   SequenceMetrics,
 } from './layout';
+
+// Keyboard / text / clipboard input as edit and selection intents (pure).
 export {
-  caretGap,
   cleanSequenceInput,
   copyText,
   coverSelection,
@@ -51,12 +44,13 @@ export {
   deleteIntent,
   extendBy,
   extendSelectionTo,
-  insertIntent,
   keyIntent,
   selectionAfterEdit,
   textIntent,
 } from './editing';
 export type { CaretAffinity, EditingContext, KeyInput, KeyIntent, TextIntent } from './editing';
+
+// Translation of CDS features under their codons.
 export { buildCodingInfo, codonAtBase, codonRange, codonStartOffset } from './translation';
 export type { CodingInfo } from './translation';
 export { codonToAminoAcid, translateFeatureLite, translateLite } from './translate-lite';

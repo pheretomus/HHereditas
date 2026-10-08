@@ -93,12 +93,18 @@ export const DEFAULT_METRICS: SequenceMetrics = Object.freeze({
   labelPadding: 4,
 });
 
-/** Horizontal layout shared by every row of a model. */
+/**
+ * Horizontal layout shared by every row of a model. It depends only on the metrics, the
+ * row-number column and the number of bases per row (never on the view width), so resizing
+ * the view only rebuilds the model when the number of bases per row changes.
+ */
 export interface RowGeometry {
-  /** Width of the view (px). */
+  /** Width of the content: the text block plus its right padding (px). */
   readonly width: number;
   /** x of the left edge of the first base of every row. */
   readonly textLeft: number;
+  /** x of the right edge of the last base of a full row. */
+  readonly textRight: number;
   /** Rightmost x a label may reach. */
   readonly labelRight: number;
   readonly charWidth: number;
@@ -120,20 +126,17 @@ export function autoBasesPerRow(width: number, metrics: SequenceMetrics, numberC
   return Math.max(1, groups) * metrics.groupSize;
 }
 
-export function makeGeometry(
-  width: number,
-  metrics: SequenceMetrics,
-  numberColumnWidth: number,
-  basesPerRow: number,
-): RowGeometry {
+export function makeGeometry(metrics: SequenceMetrics, numberColumnWidth: number, basesPerRow: number): RowGeometry {
   const textLeft = textLeftFor(metrics, numberColumnWidth);
   const n = Math.max(1, Math.floor(basesPerRow));
   const g = Math.max(1, metrics.groupSize);
   const textRight = textLeft + n * metrics.charWidth + Math.floor((n - 1) / g) * metrics.groupGap;
+  const width = Math.ceil(textRight + metrics.paddingRight);
   return {
-    width: Math.max(width, textRight + metrics.paddingRight),
+    width,
     textLeft,
-    labelRight: Math.max(width, textRight + metrics.paddingRight) - 4,
+    textRight,
+    labelRight: width - 4,
     charWidth: metrics.charWidth,
     groupSize: g,
     groupGap: metrics.groupGap,
@@ -233,8 +236,6 @@ export interface LayoutPrimer {
 export interface RowModelInput {
   readonly length: number;
   readonly topology: Topology;
-  /** View width (px): limits how far labels may extend. */
-  readonly width: number;
   readonly basesPerRow: number;
   readonly metrics?: SequenceMetrics;
   /** Width of the row-number column (0 = no numbers). */
@@ -523,7 +524,7 @@ export function buildRowModel(input: RowModelInput): RowModel {
   const circular = topology === 'circular' && L > 0;
   const N = Math.max(1, Math.floor(input.basesPerRow));
   const rowCount = Math.max(1, Math.ceil(L / N));
-  const geo = makeGeometry(input.width, metrics, input.numberColumnWidth ?? 0, N);
+  const geo = makeGeometry(metrics, input.numberColumnWidth ?? 0, N);
   const showComplement = input.showComplement ?? true;
   const features = input.features ?? EMPTY;
   const enzymes = input.enzymes ?? EMPTY;

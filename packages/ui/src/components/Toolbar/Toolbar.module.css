@@ -61,6 +61,12 @@
   white-space: nowrap;
 }
 
+/* Unified window toolbars show the window title at 15 px bold (macOS 11+). */
+.window .titleText {
+  font-size: var(--hh-text-lg);
+  letter-spacing: -0.005em;
+}
+
 .subtitle {
   overflow: hidden;
   color: var(--hh-text-secondary);

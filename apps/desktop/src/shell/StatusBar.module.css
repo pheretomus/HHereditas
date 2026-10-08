@@ -1,0 +1,38 @@
+.bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 16px;
+  height: var(--hh-statusbar-height);
+  padding: 0 12px;
+  background: var(--hh-bg-window);
+  box-shadow: inset 0 var(--hh-hairline) 0 var(--hh-separator);
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.leading {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Status text is worth copying (ranges, lengths). */
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.trailing {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+}
+
+.document {
+  color: var(--hh-text-tertiary);
+}

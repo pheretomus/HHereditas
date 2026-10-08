@@ -44,6 +44,12 @@
   -webkit-user-select: text;
 }
 
+.clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+}
+
 .mono .valueText {
   font-family: var(--hh-font-mono);
   font-size: 12px;

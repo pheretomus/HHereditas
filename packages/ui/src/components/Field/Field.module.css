@@ -10,7 +10,8 @@
 
 .inline {
   display: grid;
-  align-items: start;
+  /* Labels sit on the baseline of the control's text, whatever the control height (macOS forms). */
+  align-items: baseline;
   column-gap: 10px;
 }
 
@@ -21,8 +22,6 @@
 }
 
 .inline > .label {
-  /* Align the label text with the text inside a 28 px control. */
-  padding-top: 6px;
   color: var(--hh-text);
   text-align: right;
 }
@@ -36,8 +35,15 @@
 .control {
   display: flex;
   flex-direction: column;
+  /* Controls keep their natural width (a segmented control must not stretch); text fields
+     still fill the column because they are width: 100%. */
+  align-items: flex-start;
   gap: 5px;
   min-width: 0;
+}
+
+.control > :where(*) {
+  max-width: 100%;
 }
 
 .note {
