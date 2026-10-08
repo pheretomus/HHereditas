@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+apps/*/src-tauri/target/
+apps/*/src-tauri/gen/
+
+# test output
+coverage/
+test-results/
+playwright-report/
+
+# large local-only fixtures (re-downloadable, see packages/core/test/fixtures/README.md)
+packages/core/test/fixtures/large/
+
+# python oracle environment
+tools/oracle/.venv/
+__pycache__/
+
+# editors / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# env
+.env
+.env.*
