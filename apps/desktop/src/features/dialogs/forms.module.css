@@ -1,0 +1,57 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hh-space-3);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--hh-space-3);
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hh-space-4);
+  margin: 0;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats strong {
+  color: var(--hh-text);
+  font-weight: var(--hh-weight-medium);
+}
+
+.warning {
+  color: var(--hh-orange);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--hh-border-control);
+  border-radius: var(--hh-radius-sm);
+  background: var(--hh-bg-field);
+  color: var(--hh-text);
+  font-family: var(--hh-font-mono);
+  font-size: var(--hh-text-sm);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.textarea:focus {
+  outline: none;
+  box-shadow: var(--hh-focus-ring);
+}
+
+.hint {
+  margin: 0;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+}

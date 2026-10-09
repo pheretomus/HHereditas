@@ -75,6 +75,10 @@ export interface ToolbarContentProps {
   enzymeDisplayLabels?: Partial<Record<EnzymeDisplay, string>>;
   /** Commands of the Actions menu. */
   onAction?: (action: ShellAction) => void;
+  /** False while the cloning tools are not available: the Clone submenu becomes a disabled "Cloning (coming soon)" item. Default true. */
+  cloningAvailable?: boolean;
+  /** Extra items at the top of the Actions menu (e.g. file commands where there is no menu bar), followed by a separator. */
+  actionsMenuPrefix?: ReactNode;
   /** Sequence search (controlled when searchValue is given). */
   searchValue?: string;
   onSearchChange?: (value: string) => void;
@@ -187,6 +191,8 @@ export function ToolbarContent({
   enzymeDisplayOptions = DEFAULT_ENZYME_DISPLAY_OPTIONS,
   enzymeDisplayLabels,
   onAction,
+  cloningAvailable = true,
+  actionsMenuPrefix,
   searchValue,
   onSearchChange,
   onSearchSubmit,
@@ -291,15 +297,27 @@ export function ToolbarContent({
             </MenuTrigger>
           </Tooltip>
           <MenuContent align="end">
-            <MenuSub>
-              <MenuSubTrigger icon={<Combine />}>Clone</MenuSubTrigger>
-              <MenuSubContent>
-                <MenuItem onSelect={run('clone-restriction')}>Restriction cloning…</MenuItem>
-                <MenuItem onSelect={run('clone-gibson')}>Gibson assembly…</MenuItem>
-                <MenuItem onSelect={run('clone-golden-gate')}>Golden Gate…</MenuItem>
-                <MenuItem onSelect={run('clone-pcr')}>PCR…</MenuItem>
-              </MenuSubContent>
-            </MenuSub>
+            {actionsMenuPrefix ? (
+              <>
+                {actionsMenuPrefix}
+                <MenuSeparator />
+              </>
+            ) : null}
+            {cloningAvailable ? (
+              <MenuSub>
+                <MenuSubTrigger icon={<Combine />}>Clone</MenuSubTrigger>
+                <MenuSubContent>
+                  <MenuItem onSelect={run('clone-restriction')}>Restriction cloning…</MenuItem>
+                  <MenuItem onSelect={run('clone-gibson')}>Gibson assembly…</MenuItem>
+                  <MenuItem onSelect={run('clone-golden-gate')}>Golden Gate…</MenuItem>
+                  <MenuItem onSelect={run('clone-pcr')}>PCR…</MenuItem>
+                </MenuSubContent>
+              </MenuSub>
+            ) : (
+              <MenuItem icon={<Combine />} disabled>
+                Cloning (coming soon)
+              </MenuItem>
+            )}
             <MenuItem icon={<AlignVerticalSpaceAround />} shortcut={keys.digest} onSelect={run('digest')}>
               Digest &amp; gel…
             </MenuItem>
