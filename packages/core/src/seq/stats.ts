@@ -3,9 +3,9 @@
  *
  * Formulas and constants are those of Biopython 1.88 (Bio.SeqUtils.gc_fraction,
  * Bio.SeqUtils.molecular_weight, Bio.SeqUtils.ProtParam, Bio.SeqUtils.IsoelectricPoint), which the
- * tests use as the oracle; the sources of the constants are cited at each table. Deliberate
- * deviation: proteinIsoelectricPoint returns the root of Biopython's charge function even when it
- * lies outside the interval [4.05, 12] that Biopython's bisection is limited to (see there).
+ * tests use as the oracle; the sources of the constants are cited at each table. Note that
+ * proteinIsoelectricPoint, like Biopython, only searches pH [4.05, 12] unless asked for the
+ * unbounded root of the charge function (see there).
  */
 
 import { characterAt } from './translate';
@@ -320,9 +320,10 @@ export function proteinChargeAtPh(protein: string, pH: number): number {
 }
 
 /**
- * Biopython's isoelectric-point bisection (Bio.SeqUtils.IsoelectricPoint.pi): start pH and interval.
- * Its docstring assumes every pI lies inside, which is false: e.g. the FLAG tag DYKDDDDK has pI 3.97
- * and protamine P1 12.08 (ExPASy Compute pI/Mw), and Biopython returns the bound for both.
+ * Biopython's isoelectric-point bisection (Bio.SeqUtils.IsoelectricPoint.pi, defaults pH=7.775,
+ * min_=4.05, max_=12): start pH and interval. Its docstring assumes every pI lies inside, which is
+ * false: e.g. the FLAG tag DYKDDDDK has pI 3.97 and protamine P1 12.08 (ExPASy Compute pI/Mw), and
+ * Biopython returns the bound for both.
  */
 const BIOPYTHON_PI_START = 7.775;
 const BIOPYTHON_PI_MIN = 4.05;
@@ -344,42 +345,67 @@ function bisectIsoelectricPoint(model: ChargeModel, pH: number, lo: number, hi: 
   return pH;
 }
 
+/** Options of {@link proteinIsoelectricPoint}. */
+export interface IsoelectricPointOptions {
+  /**
+   * Where the isoelectric point is searched for:
+   *   - 'biopython' (default): exactly as Biopython's `ProteinAnalysis(p).isoelectric_point()`, by
+   *     bisection within pH [4.05, 12]. When the isoelectric point lies outside that interval, the
+   *     result is the interval's bound (4.0500 or 12.0000, within 1e-4), which is NOT an isoelectric
+   *     point: the FLAG tag DYKDDDDK gives 4.050 although its pI is 3.971;
+   *   - 'unbounded': the root of the charge function wherever it lies (FLAG tag 3.971, protamine P1
+   *     12.075). Identical to 'biopython' whenever the root lies inside [4.05, 12]. Use it to display
+   *     or compare pI values; use the default to reproduce Biopython.
+   */
+  interval?: 'biopython' | 'unbounded';
+}
+
 /**
  * Isoelectric point (pH units): the pH at which the net charge of {@link proteinChargeAtPh} (method
  * of Bjellqvist et al., see the pK table) is zero, by bisection to within 0.00005.
  *
  * The net charge decreases strictly with pH, from the number of basic groups (at least the
  * N-terminus) at low pH to minus the number of acidic groups (at least the C-terminus) at high pH,
- * so this root always exists and is unique. When it lies in [4.05, 12] the bisection
- * is exactly Biopython's (start at pH 7.775 in [4.05, 12], halve until at most 0.0001 wide), so the
- * result equals `ProteinAnalysis(p).isoelectric_point()`. Biopython never looks outside that
- * interval and returns its bound there; this function instead widens the interval until it contains
- * the root, so acidic peptides and very basic proteins get their true pI (FLAG tag DYKDDDDK 3.971,
- * Biopython 4.050; protamine P1 12.075, Biopython 12.000). There is no clamping at all: extreme
- * compositions such as 200 Arg (14.30) or 12000 Asp (-0.03) give values outside pH 0-14, where the
- * model is an extrapolation and ExPASy reports its search bounds 14.00 and 0.00.
+ * so this root always exists and is unique. By default (`interval: 'biopython'`) the bisection is
+ * exactly Biopython's (start at pH 7.775 in [4.05, 12], halve until at most 0.0001 wide), so the
+ * result equals `ProteinAnalysis(p).isoelectric_point()`, also where that is wrong: Biopython never
+ * looks outside [4.05, 12] and returns the bound for acidic peptides (FLAG tag DYKDDDDK: 4.050, true
+ * pI 3.971; also DL, EA, poly-Glu) and very basic proteins (protamine P1: 12.000, true pI 12.075). A
+ * default result within 1e-4 of 4.05 or 12 therefore means "at or beyond this bound".
+ * `interval: 'unbounded'` widens the interval until it contains the root, so such proteins get their
+ * true pI: the value Biopython's own `IsoelectricPoint(p).pi(min_=..., max_=...)` gives (within its
+ * 1e-4 resolution) when called with an interval that contains the root, e.g. FLAG tag 3.9714 with
+ * min_=-10, max_=30 (checked with Biopython 1.88, 2026-10-08). There is no clamping at all then:
+ * extreme compositions such as 200 Arg (14.30) or 12000 Asp (-0.03) give values outside pH 0-14,
+ * where the model is an extrapolation and ExPASy reports its search bounds 14.00 and 0.00.
  *
- * ExPASy Compute pI/Mw agrees within its 0.01 rounding except when the C-terminal residue is D or E:
- * there ExPASy uses the C-terminal pK 3.55 of other residues instead of 4.55 / 4.75 (e.g. E10: ExPASy
- * 3.29, here and in Biopython's model 3.47). Observed on 21 sequences, 2026-10-08.
+ * ExPASy Compute pI/Mw agrees with the root within its 0.01 rounding except when the C-terminal
+ * residue is D or E: there ExPASy uses the C-terminal pK 3.55 of other residues instead of
+ * 4.55 / 4.75 (e.g. E10: ExPASy 3.29, here and in Biopython's model 3.47). Observed on 21 sequences,
+ * 2026-10-08.
  *
  * B, Z, J, X, U and O count as uncharged; a single trailing '*' is ignored (Biopython would use '*'
  * as the C-terminal residue). Returns NaN for an empty protein. Case-insensitive for ASCII letters.
  *
- * @throws RangeError for characters that are not amino-acid letters (or an internal '*').
+ * @throws RangeError for characters that are not amino-acid letters (or an internal '*'), or an
+ *   `interval` other than 'biopython' and 'unbounded'.
  */
-export function proteinIsoelectricPoint(protein: string): number {
+export function proteinIsoelectricPoint(protein: string, options: IsoelectricPointOptions = {}): number {
+  const interval = options.interval ?? 'biopython';
+  if (interval !== 'biopython' && interval !== 'unbounded') {
+    throw new RangeError(`interval must be 'biopython' or 'unbounded', got ${String(interval)}`);
+  }
   const p = checkedProtein(protein, 'isoelectric point');
   if (p.length === 0) return Number.NaN;
   const model = chargeModel(p);
-  if (chargeAt(model, BIOPYTHON_PI_MIN) <= 0) {
+  if (interval === 'unbounded' && chargeAt(model, BIOPYTHON_PI_MIN) <= 0) {
     // root at or below 4.05: move the lower bound down until the charge there is positive
     let width = 1;
     while (chargeAt(model, BIOPYTHON_PI_MIN - width) <= 0) width *= 2;
     const lo = BIOPYTHON_PI_MIN - width;
     return bisectIsoelectricPoint(model, (lo + BIOPYTHON_PI_MIN) / 2, lo, BIOPYTHON_PI_MIN);
   }
-  if (chargeAt(model, BIOPYTHON_PI_MAX) > 0) {
+  if (interval === 'unbounded' && chargeAt(model, BIOPYTHON_PI_MAX) > 0) {
     // root above 12: move the upper bound up until the charge there is no longer positive
     let width = 1;
     while (chargeAt(model, BIOPYTHON_PI_MAX + width) > 0) width *= 2;

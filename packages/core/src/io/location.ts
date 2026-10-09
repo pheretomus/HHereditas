@@ -403,18 +403,13 @@ function resolveSpan(
     lowerMarker = '<';
   }
   if (end > L) {
-    if (topology === 'circular') {
-      if (end - start > L) {
-        warnings.push(`'${text}' is longer than the circular molecule: clamped to one full turn`);
-        end = start + L;
-      } else {
-        warnings.push(`'${text}' ends after base ${L}: read as running over the origin of the circular molecule`);
-      }
-    } else {
-      warnings.push(`'${text}' ends after the last base (${L}): clamped to ${L} and marked partial`);
-      end = L;
-      upperMarker = '>';
-    }
+    // Clamped on circular molecules too: an origin-spanning part is written s..e with s > e or
+    // as join(s..L,1..e), never with e > L. Reading e > L as a wrap would add the unrelated bases
+    // 1..(e-L) to the feature (e.g. a record truncated before its LOCUS length); Biopython 1.88
+    // keeps such a location unwrapped as well.
+    warnings.push(`'${text}' ends after the last base (${L}): clamped to ${L} and marked partial`);
+    end = L;
+    upperMarker = '>';
   }
   return [makePiece(start, end, lowerMarker, upperMarker, a, b, L)];
 }
@@ -493,6 +488,17 @@ function hasInnerFuzzyBoundary(pieces: readonly Piece[]): boolean {
 }
 
 /**
+ * The molecule length L in whole bases, or undefined when `seqLength` is not a finite number
+ * >= 0 (NaN, undefined from a missing record, Infinity, a negative number, a non-number at run
+ * time). `Math.max(0, Math.floor(NaN))` is NaN, so such lengths must be rejected explicitly or
+ * they turn into NaN coordinates.
+ */
+function moleculeLength(seqLength: number): number | undefined {
+  if (typeof seqLength !== 'number' || !Number.isFinite(seqLength) || seqLength < 0) return undefined;
+  return Math.floor(seqLength);
+}
+
+/**
  * Parse an INSDC location string into top-strand segments.
  *
  * Accepted forms: `n`, `a..b`, `<a..b`, `a..>b`, `<a..>b`, `a^b` (zero-length segment at gap a),
@@ -514,14 +520,17 @@ function hasInnerFuzzyBoundary(pieces: readonly Piece[]): boolean {
  * on the upper boundary: a marker pointing into the span ('>a..b', 'a..<b') is kept as fuzzy
  * and its direction change is reported with a warning.
  *
- * Never throws. Returns `{ ok: false }` when the text is not a location, or when no part of
- * it lies on this sequence.
+ * Never throws. Returns `{ ok: false }` when the text is not a location, when no part of it
+ * lies on this sequence, or when `seqLength` is not a finite number >= 0.
  *
  * @param text location text, 1-based inclusive coordinates
- * @param seqLength length L of the molecule the location refers to (bases or residues)
+ * @param seqLength length L of the molecule the location refers to (bases or residues); a
+ *   fractional length is truncated to whole bases
  * @param topology topology of that molecule
  */
 export function parseLocation(text: string, seqLength: number, topology: Topology): LocationParseResult {
+  const L = moleculeLength(seqLength);
+  if (L === undefined) return { ok: false, error: `invalid sequence length ${String(seqLength)}: expected a finite number >= 0` };
   const cleaned = text.replace(/\s+/g, '');
   if (cleaned === '') return { ok: false, error: 'empty location' };
   const warnings: string[] = [];
@@ -537,7 +546,6 @@ export function parseLocation(text: string, seqLength: number, topology: Topolog
   collectParts(tree, false, parts);
 
   // Resolve every local part into pieces (each part keeps its written top-strand order).
-  const L = Math.max(0, Math.floor(seqLength));
   const resolved: { pieces: Piece[]; strand: 1 | -1 }[] = [];
   for (const { node, strand } of parts) {
     if (node.remote !== null) {
@@ -622,16 +630,17 @@ function formatBetween(gap: number, L: number, topology: Topology): string {
  * strand 0 is written like strand 1. Zero-length segments become between-bases sites
  * `a^a+1` (`L^1` at the origin of a circular molecule). `partialStart` adds '<' to the first
  * base of the first segment and `partialEnd` adds '>' to the last base of the last segment
- * (ignored on zero-length segments). Returns '' when there are no segments.
+ * (ignored on zero-length segments). Returns '' when there are no segments, or when
+ * `seqLength` is not a finite number >= 0 (nothing meaningful can be written then).
  *
  * @param loc strand, segments and partial flags (e.g. a `Feature`)
- * @param seqLength molecule length L
+ * @param seqLength molecule length L (a fractional length is truncated to whole bases)
  * @param topology molecule topology
  */
 export function formatLocation(loc: LocationLike, seqLength: number, topology: Topology): string {
-  const L = Math.max(0, Math.floor(seqLength));
+  const L = moleculeLength(seqLength);
   const n = loc.segments.length;
-  if (n === 0) return '';
+  if (n === 0 || L === undefined) return '';
   const texts: string[] = [];
   loc.segments.forEach((segment, k) => {
     const r = normalizeRange(segment, L, topology);

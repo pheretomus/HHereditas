@@ -222,6 +222,39 @@ describe('row model', () => {
     expect(p.label?.text).toBe('a long feature name');
     expect(p.label!.x).toBeGreaterThan(colRight(mdl.geometry, 42));
   });
+
+  it('names every short piece of a feature beside it when its lane has room (review: anonymous stubs)', () => {
+    // an origin-spanning promoter: its main piece at the end of the last row, a 2-base stub in row 1
+    const circ = model({ length: 100, topology: 'circular', basesPerRow: 50, features: [lf(feature('SP6 promoter', 80, 102))] });
+    const stub = circ.rows[0].features[0];
+    expect([stub.startCol, stub.endCol]).toEqual([0, 2]);
+    expect(stub.label).toMatchObject({ text: 'SP6 promoter', inside: false });
+    expect(stub.label!.x).toBeGreaterThan(colRight(circ.geometry, 1));
+    // the extra label never costs a lane
+    expect(circ.rows[0].featureLanes).toHaveLength(1);
+  });
+
+  it('puts a piece name to the left when the right side is taken, and drops it when its lane is full', () => {
+    // 'Long name here' starts 4 bases before the end of row 0; its main piece is in row 1
+    const left = model({ length: 200, basesPerRow: 100, features: [lf(feature('Long name here', 96, 196))] });
+    const start = left.rows[0].features[0];
+    expect([start.startCol, start.endCol]).toEqual([96, 100]);
+    expect(start.label).toMatchObject({ text: 'Long name here', inside: false });
+    expect(start.label!.x + start.label!.width).toBeLessThan(colLeft(left.geometry, 96));
+
+    // a bar of the same lane right before the stub: no room on either side, no extra lane
+    const full = model({
+      length: 200,
+      basesPerRow: 100,
+      features: [lf(feature('blocker', 60, 96)), lf(feature('Long name here', 97, 195))],
+    });
+    const pieces = full.rows[0].features;
+    const blocker = pieces.find((p) => p.feature === 0)!;
+    const stub = pieces.find((p) => p.feature === 1)!;
+    expect(stub.lane).toBe(blocker.lane);
+    expect(stub.label).toBeNull(); // 3 bases: too short even for a truncated name
+    expect(full.rows[0].featureLanes).toHaveLength(1);
+  });
 });
 
 describe('enzymes', () => {
@@ -317,6 +350,35 @@ describe('primers and ORFs', () => {
     // names at the 5′ end: left of a forward primer, right of a reverse one
     expect(f.label!.x + f.label!.width).toBeLessThan(colLeft(mdl.geometry, 20));
     expect(r.label!.x).toBeGreaterThan(colRight(mdl.geometry, 79));
+  });
+
+  it('draws a 5′ tail beside the annealed 5′ end, its length when the bases do not fit (review: tail)', () => {
+    const tailed = (start: number, end: number, strand: 1 | -1, tailLength: number) => ({
+      site: { ...primerSite('t', start, end, strand), tailLength },
+      name: 'Tailed',
+    });
+    // forward: the tail's 10 bases left of the 5' end, the name left of the tail
+    const fwd = model({ length: 200, basesPerRow: 100, primers: [tailed(40, 60, 1, 10)] });
+    const f = fwd.rows[0].primers[0];
+    const geo = fwd.geometry;
+    expect(f.tail).toMatchObject({ text: '' });
+    expect(f.tail!.width).toBeCloseTo(10 * geo.charWidth + 4);
+    expect(f.tail!.x + f.tail!.width).toBeCloseTo(colLeft(geo, 40) - M.primerTailGap);
+    expect(f.label!.x + f.label!.width).toBeLessThan(f.tail!.x);
+    // reverse: the tail continues right of the 5' end
+    const rev = model({ length: 200, basesPerRow: 100, primers: [tailed(40, 60, -1, 8)] });
+    const r = rev.rows[0].primers[0];
+    expect(r.tail!.x).toBeCloseTo(colRight(geo, 59) + M.primerTailGap);
+    expect(r.label!.x).toBeGreaterThan(r.tail!.x + r.tail!.width);
+    // a long tail near the start of the row: only its length; at the very start: nothing
+    const near = model({ length: 200, basesPerRow: 100, primers: [tailed(6, 30, 1, 24)] }).rows[0].primers[0];
+    expect(near.tail).toMatchObject({ text: '+24 nt' });
+    expect(near.tail!.x).toBeGreaterThanOrEqual(geo.textLeft - 8);
+    const atStart = model({ length: 200, basesPerRow: 100, primers: [tailed(0, 20, 1, 24)] }).rows[0].primers[0];
+    expect(atStart.tail).toBeNull();
+    // only the piece holding the annealed 5' end carries the tail
+    const split = model({ length: 200, basesPerRow: 50, primers: [tailed(40, 60, 1, 10)] });
+    expect(split.rows[1].primers[0].tail).toBeNull();
   });
 
   it('splits a primer across rows: the arrow tip only on its 3′ piece', () => {

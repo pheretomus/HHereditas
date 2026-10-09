@@ -10,17 +10,25 @@
  * primer3), so structures involving them are not detected. At least one of the two sequences of an
  * alignment must be at most 60 nt (primer3's limit for the two-state model; hairpins therefore
  * need <= 60 nt) and none may exceed 10 000 nt, otherwise a RangeError is thrown.
+ *
+ * Cost: a dimer check examines every pair of positions with loops of up to `maxLoop` nt, i.e. up to
+ * len1 × len2 × maxLoop²/2 loop evaluations, of which `thal.ts` skips those that provably cannot win
+ * (results unchanged). Measured on a 2023 laptop CPU (i9-13900HX, Node 22): hairpin or self-dimer of
+ * a 60-mer ≈ 2 ms; a 60-mer against a random 10 kb sequence ≈ 0.2–0.25 s; the low-complexity worst
+ * case 'G'×60 against 'C'×10 000 ≈ 0.65 s (primer3-py 2.3.1 on the same machine: 0.5 s and 3.1 s).
+ * The calls are synchronous: run checks against long partners off the UI thread (web worker).
  */
 import { canonicalOligo } from './normalize';
-import { oligoGcContent, resolveTmConditions, tmResolved, type TmConditions } from './tm';
+import { divalentToMonovalentMilliMolar, oligoGcContent, resolveTmConditions, tmResolved, type TmConditions } from './tm';
 import { THAL_MAX_ALIGN, thalDimer, thalHairpin, type ThalConditions, type ThalResult } from './thal';
 
 /** Options of the structure checks. */
 export interface StructureOptions {
   /**
    * Monovalent, Mg2+, dNTP and oligo concentrations (defaults: `DEFAULT_TM_CONDITIONS`, primer3's).
-   * The structure model always uses the SantaLucia entropy salt correction with the Na+
-   * equivalent 120·√([Mg2+] − [dNTP]); `saltCorrection`, DMSO and formamide are ignored here.
+   * The structure model always uses the SantaLucia entropy salt correction with primer3's Na+
+   * equivalent, monovalent + 120·√([Mg2+] − [dNTP]), which must be positive; `saltCorrection`,
+   * DMSO and formamide are ignored here.
    */
   conditions?: Partial<TmConditions>;
   /** Temperature in °C at which ΔG is reported; hairpin stems must also be stable (ΔG < 0) here. Default 37. */
@@ -52,8 +60,19 @@ export interface SecondaryStructure {
 const DEFAULT_TEMPERATURE_C = 37;
 const MAX_LOOP_LIMIT = 30;
 
+/**
+ * Validated conditions of the structure model. Throws a RangeError for invalid concentrations (see
+ * `resolveTmConditions`), a non-finite temperature, a `maxLoop` outside 0..30, or a Na+ equivalent
+ * of 0 (possible with 'owczarzy2008' conditions, whose Tm model accepts them).
+ */
 function thalConditions(options: StructureOptions | undefined): ThalConditions {
   const c = resolveTmConditions(options?.conditions);
+  if (c.monovalentMilliMolar + divalentToMonovalentMilliMolar(c.divalentMilliMolar, c.dntpMilliMolar) <= 0) {
+    throw new RangeError(
+      "The structure model uses primer3's Na+ equivalent (monovalent + 120·√(Mg2+ − dNTP)), which needs free " +
+        'cations: these conditions have monovalent = 0 and Mg2+ <= dNTP',
+    );
+  }
   const temperature = options?.temperatureCelsius ?? DEFAULT_TEMPERATURE_C;
   if (!Number.isFinite(temperature)) throw new RangeError(`temperatureCelsius must be finite (got ${temperature})`);
   const maxLoop = options?.maxLoop ?? MAX_LOOP_LIMIT;
@@ -137,13 +156,17 @@ export interface PrimerAnalysis {
   selfEndDimer?: SecondaryStructure;
 }
 
-/** Length, GC content, Tm, hairpin and self-dimers of one primer under the same conditions. */
+/**
+ * Length, GC content, Tm, hairpin and self-dimers of one primer under the same conditions.
+ * `options` are validated in full whatever the primer's length (also above 60 nt, where the
+ * structures are not computed), so the same options never pass for one primer and fail for another.
+ */
 export function analyzePrimer(seq: string, options?: StructureOptions): PrimerAnalysis {
   const s = prepare(seq);
   const tmConditions = resolveTmConditions(options?.conditions);
+  const c = thalConditions(options);
   const result: PrimerAnalysis = { length: s.length, gc: oligoGcContent(s), tm: tmResolved(s, tmConditions) };
   if (s.length <= THAL_MAX_ALIGN) {
-    const c = thalConditions(options);
     result.hairpin = toStructure(thalHairpin(s, c));
     result.selfDimer = toStructure(thalDimer(s, s, c, 'any'));
     result.selfEndDimer = toStructure(thalDimer(s, s, c, 'end1'));

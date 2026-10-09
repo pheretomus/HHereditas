@@ -263,6 +263,34 @@ describe('structure checks', () => {
     expect(() => hairpin('ACGT', { temperatureCelsius: Number.NaN })).toThrow(RangeError);
   });
 
+  it('analyzePrimer validates the structure options whatever the primer length (review regression)', () => {
+    const short = 'ACGTGGCATTGCAAGGCTAA'; // 20 nt
+    const long = short.repeat(4); // 80 nt: no structure checks above 60 nt, but the same options are rejected
+    for (const seq of [short, long]) {
+      expect(() => analyzePrimer(seq, { maxLoop: 99 }), `${seq.length} nt`).toThrow(RangeError);
+      expect(() => analyzePrimer(seq, { maxLoop: 2.5 }), `${seq.length} nt`).toThrow(RangeError);
+      expect(() => analyzePrimer(seq, { temperatureCelsius: Number.NaN }), `${seq.length} nt`).toThrow(RangeError);
+    }
+    const ok = analyzePrimer(long, { maxLoop: 10, temperatureCelsius: 55 });
+    expect(ok.hairpin).toBeUndefined();
+    expect(ok.tm).toBeCloseTo(tm(long), 12);
+  });
+
+  it("needs free cations in primer3's Na+ equivalent, whatever the Tm salt correction (review regression)", () => {
+    // 'owczarzy2008' accepts these conditions for the Tm (its free-Mg2+ model leaves some Mg2+ free),
+    // but the structure model uses monovalent + 120·√(Mg2+ − dNTP) = 0: an error instead of a garbage Tm
+    const conditions = { saltCorrection: 'owczarzy2008', monovalentMilliMolar: 0, divalentMilliMolar: 1.5, dntpMilliMolar: 1.5 } as const;
+    const p = 'GCGCAGCCGAAAGGCTGCGC';
+    expect(Number.isFinite(tm(p, conditions))).toBe(true);
+    expect(() => hairpin(p, { conditions })).toThrow(/free cations/);
+    expect(() => homodimer(p, { conditions })).toThrow(/free cations/);
+    expect(() => heterodimer(p, reverseComplement(p), { conditions })).toThrow(/free cations/);
+    expect(() => endStability(p, reverseComplement(p), { conditions })).toThrow(/free cations/);
+    for (const seq of [p, p.repeat(4)]) expect(() => analyzePrimer(seq, { conditions })).toThrow(/free cations/);
+    // with free Mg2+ in primer3's model the same call works
+    expect(hairpin(p, { conditions: { ...conditions, divalentMilliMolar: 3 } }).found).toBe(true);
+  });
+
   it('reports ΔG at the requested temperature', () => {
     const p = 'AGCGGATAACAATTTCACACAGGA';
     const partner = reverseComplement(p.slice(0, 18));
@@ -287,6 +315,28 @@ describe('structure checks', () => {
       // (the pairs themselves may differ when several structures are equally stable)
       expect(ba.pairs).toHaveLength(ab.pairs.length);
     }
+  });
+
+  it('checks a 60-mer against a 10 kb partner in interactive time, also the low-complexity worst case (review regression)', { timeout: 60_000 }, () => {
+    heterodimer('ACGTACGTAC', 'GTACGTACGT'); // warm-up
+    const random = mulberry32(60);
+    const rnd = (n: number) => Array.from({ length: n }, () => 'ACGT'[Math.floor(random() * 4)]).join('');
+    const timed = (f: () => SecondaryStructure) => {
+      const t0 = performance.now();
+      const result = f();
+      return { result, ms: performance.now() - t0 };
+    };
+    // primer3-py 2.3.1: calc_heterodimer('G' * 60, 'C' * 10000).tm = 102.30992754625305 (3.1 s); the
+    // same for calc_end_stability. The loop pruning of thal.ts fillDimer keeps primer3's exact result.
+    for (const f of [heterodimer, endStability]) {
+      const worst = timed(() => f('G'.repeat(60), 'C'.repeat(10_000)));
+      expect(worst.result.tm).toBeCloseTo(102.30992754625305, 9);
+      expect(worst.result.pairs).toHaveLength(60);
+      expect(worst.ms).toBeLessThan(3000); // was 9–16 s before the review fix
+    }
+    const typical = timed(() => heterodimer(rnd(60), rnd(10_000)));
+    expect(typical.result.found).toBe(true);
+    expect(typical.ms).toBeLessThan(1000);
   });
 
   it('summarises a primer', () => {

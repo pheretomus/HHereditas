@@ -3,8 +3,9 @@
  * moving the selection does not re-render the (much larger) map content.
  */
 import { memo } from 'react';
-import { FEATURE_LABEL_ON_FILL, featureStroke } from '../common/colors';
+import { featureStroke } from '../common/colors';
 import type { SequenceSelection } from '../selection';
+import { hasSelectedBases } from '../selection';
 import type { EnzymeLabel, ViewModel } from './layout';
 import styles from './LinearMap.module.css';
 import { caretPositions, selectionPieces } from './selectionGeometry';
@@ -13,7 +14,7 @@ const r2 = (n: number): number => Math.round(n * 100) / 100;
 
 /** Everything that depends only on the view model (data + viewport + size). */
 export const MapContent = memo(function MapContent({ view }: { view: ViewModel }) {
-  const { v, backbone, letters, ticks, features, orfs, primers, enzymes } = view;
+  const { backbone, letters, ticks, features, orfs, primers, enzymes } = view;
   return (
     <>
       {enzymes.leaders ? <path className={styles.leader} d={enzymes.leaders} /> : null}
@@ -32,7 +33,7 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
       {primers.labels.map((l) => (
         <text
           key={l.key}
-          className={`${styles.primerLabel} ${styles.halo} ${l.dir === 1 ? styles.primerFwd : styles.primerRev}`}
+          className={`${styles.primerLabel} ${l.dir === 1 ? styles.primerFwd : styles.primerRev}`}
           x={r2(l.x)}
           y={r2(l.y)}
           textAnchor={l.anchor}
@@ -58,8 +59,8 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
       {features.labels.map((l) => (
         <text
           key={l.key}
-          className={l.placement === 'inside' ? styles.featureLabel : `${styles.featureLabel} ${styles.featureLabelOutside} ${styles.halo}`}
-          style={l.placement === 'inside' ? { fill: FEATURE_LABEL_ON_FILL } : undefined}
+          className={l.placement === 'inside' ? styles.featureLabel : `${styles.featureLabel} ${styles.featureLabelOutside}`}
+          style={l.onFill ? { fill: l.onFill } : undefined}
           x={r2(l.x)}
           y={r2(l.y)}
           textAnchor={l.anchor}
@@ -70,9 +71,9 @@ export const MapContent = memo(function MapContent({ view }: { view: ViewModel }
       ))}
 
       {/* backbone: two strands (one for RNA and protein), letters at high zoom */}
-      {backbone.top ? <path className={styles.strand} d={`M${r2(backbone.top[0])} ${r2(v.topStrandY)}H${r2(backbone.top[1])}`} /> : null}
+      {backbone.top ? <path className={styles.strand} d={`M${r2(backbone.top[0])} ${r2(backbone.topY)}H${r2(backbone.top[1])}`} /> : null}
       {backbone.bottom ? (
-        <path className={styles.strand} d={`M${r2(backbone.bottom[0])} ${r2(v.bottomStrandY)}H${r2(backbone.bottom[1])}`} />
+        <path className={styles.strand} d={`M${r2(backbone.bottom[0])} ${r2(backbone.bottomY)}H${r2(backbone.bottom[1])}`} />
       ) : null}
       {backbone.continuation ? <path className={styles.continuation} d={backbone.continuation} /> : null}
       {letters?.top ? (
@@ -129,39 +130,59 @@ function EnzymeText({ label, hot = false }: { label: EnzymeLabel; hot?: boolean 
   );
 }
 
-/** Selection band(s) (two pieces when a circular selection wraps the origin) or the caret. */
-export const SelectionLayer = memo(function SelectionLayer({
-  view,
-  selection,
-}: {
+interface SelectionProps {
   view: ViewModel;
   selection: SequenceSelection | null;
-}) {
+}
+
+/** Visible x extents of the selected range (two pieces when a circular selection wraps the origin). */
+function selectionExtents(view: ViewModel, selection: SequenceSelection) {
+  const { scale, width, seqLength, topology } = view;
+  const clampX = (x: number) => Math.min(width + 2, Math.max(-2, x));
+  return selectionPieces(selection.range, seqLength, topology).map((p) => {
+    const x0 = clampX(scale.x(p.start));
+    const x1 = Math.max(x0 + 1, clampX(scale.x(p.end)));
+    return { key: `${p.start}-${p.end}`, x0, x1, startEdge: p.startEdge && x0 > -2, endEdge: p.endEdge && x1 < width + 2 };
+  });
+}
+
+/**
+ * Selection band(s) behind the map (like the circular map's wedge): features keep their colours
+ * and the band shows around them, over the backbone, the letters and the ruler.
+ */
+export const SelectionUnderlay = memo(function SelectionUnderlay({ view, selection }: SelectionProps) {
+  if (!hasSelectedBases(selection) || view.seqLength <= 0) return null;
+  const { bodyTop: top, bodyBottom: bottom } = view.v;
+  return (
+    <g data-testid="selection">
+      {selectionExtents(view, selection).map((p) => (
+        <rect
+          key={p.key}
+          data-piece={p.key}
+          className={styles.selection}
+          x={r2(p.x0)}
+          y={r2(top)}
+          width={r2(p.x1 - p.x0)}
+          height={r2(bottom - top)}
+        />
+      ))}
+    </g>
+  );
+});
+
+/** Crisp edges of the selection (on top of everything), or the caret for an empty selection. */
+export const SelectionOverlay = memo(function SelectionOverlay({ view, selection }: SelectionProps) {
   if (!selection || view.seqLength <= 0) return null;
   const { scale, v, width, seqLength, topology } = view;
-  const clampX = (x: number) => Math.min(width + 2, Math.max(-2, x));
   const top = v.bodyTop;
   const bottom = v.bodyBottom;
   if (selection.range.end > selection.range.start) {
-    const pieces = selectionPieces(selection.range, seqLength, topology);
-    return (
-      <g data-testid="selection">
-        {pieces.map((p) => {
-          const x0 = clampX(scale.x(p.start));
-          const x1 = clampX(scale.x(p.end));
-          const w = Math.max(1, x1 - x0);
-          let edges = '';
-          if (p.startEdge && x0 > -2) edges += `M${r2(x0 + 0.5)} ${r2(top)}V${r2(bottom)}`;
-          if (p.endEdge && x1 < width + 2) edges += `M${r2(x0 + w - 0.5)} ${r2(top)}V${r2(bottom)}`;
-          return (
-            <g key={`${p.start}-${p.end}`} data-piece={`${p.start}-${p.end}`}>
-              <rect className={styles.selection} x={r2(x0)} y={r2(top)} width={r2(w)} height={r2(bottom - top)} />
-              {edges ? <path className={styles.selectionEdge} d={edges} /> : null}
-            </g>
-          );
-        })}
-      </g>
-    );
+    let edges = '';
+    for (const p of selectionExtents(view, selection)) {
+      if (p.startEdge) edges += `M${r2(p.x0 + 0.5)} ${r2(top)}V${r2(bottom)}`;
+      if (p.endEdge) edges += `M${r2(p.x1 - 0.5)} ${r2(top)}V${r2(bottom)}`;
+    }
+    return edges ? <path data-testid="selection-edges" className={styles.selectionEdge} d={edges} /> : null;
   }
   const xs = caretPositions(selection.caret, seqLength, topology)
     .map((g) => scale.x(g))

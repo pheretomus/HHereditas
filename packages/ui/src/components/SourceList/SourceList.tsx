@@ -91,6 +91,12 @@ export interface SourceListProps {
   emphasized?: boolean;
   /** Right-click on an item (use it to show a ContextMenu for that item). */
   onItemContextMenu?: (item: SourceListItem, section: SourceListSection, event: MouseEvent) => void;
+  /**
+   * Item whose context menu is open: drawn with an accent outline (macOS marks the
+   * right-clicked row without selecting it). Set it in onItemContextMenu and clear it when
+   * the menu closes.
+   */
+  contextMenuItemId?: string | null;
   /** Row height in px (default 28). */
   rowHeight?: number;
   /** Scroll the selected item into view when `selectedId` changes (default true). */
@@ -123,6 +129,7 @@ export function SourceList({
   onCollapsedSectionsChange,
   emphasized,
   onItemContextMenu,
+  contextMenuItemId = null,
   rowHeight = DEFAULT_METRICS.rowHeight,
   revealSelection = true,
   className,
@@ -425,6 +432,7 @@ export function SourceList({
               aria-label={item.accessibleLabel ?? item.label}
               title={item.title}
               data-active={active || undefined}
+              data-context-target={item.id === contextMenuItemId || undefined}
               data-icon-tone={section.iconTone === 'secondary' ? 'secondary' : undefined}
               className={styles.item}
               style={{ top: row.top, height: row.height }}

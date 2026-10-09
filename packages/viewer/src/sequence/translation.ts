@@ -4,7 +4,8 @@
  * (joined) features and features wrapping the origin.
  */
 import type { Feature, Range, Topology } from '@hhereditas/core';
-import { featureSequence, getQualifier, mod, normalizeRange } from '@hhereditas/core';
+import { complement, featureSequence, getQualifier, mod, normalizeRange } from '@hhereditas/core';
+import { formatInt } from '../common/format';
 
 /** 0-based offset of the first complete codon (/codon_start minus one; 0 when absent or invalid). */
 export function codonStartOffset(feature: Feature): number {
@@ -123,6 +124,67 @@ export function codonRange(info: CodingInfo, k: number, length: number, topology
     if (end <= start) end += length;
   }
   return { start, end };
+}
+
+/** Bases of codon `k` read 5'->3' on the feature's strand (upper case), e.g. "AAG". */
+export function codonBases(info: CodingInfo, k: number, seq: string): string {
+  if (k < 0 || k >= info.codonCount) return '';
+  let out = '';
+  for (let i = 0; i < 3; i++) {
+    const b = info.baseAt(info.offset + 3 * k + i);
+    if (b < 0) return '';
+    out += seq[b] ?? '';
+  }
+  out = out.toUpperCase();
+  return info.feature.strand === -1 ? complement(out) : out;
+}
+
+const AA_NAMES: Readonly<Record<string, string>> = {
+  A: 'Ala',
+  R: 'Arg',
+  N: 'Asn',
+  D: 'Asp',
+  C: 'Cys',
+  Q: 'Gln',
+  E: 'Glu',
+  G: 'Gly',
+  H: 'His',
+  I: 'Ile',
+  L: 'Leu',
+  K: 'Lys',
+  M: 'Met',
+  F: 'Phe',
+  P: 'Pro',
+  S: 'Ser',
+  T: 'Thr',
+  W: 'Trp',
+  Y: 'Tyr',
+  V: 'Val',
+  U: 'Sec',
+  O: 'Pyl',
+  B: 'Asx',
+  Z: 'Glx',
+  J: 'Xle',
+  X: 'Xaa',
+  '*': 'Stop',
+};
+
+/** Three-letter name of a one-letter amino-acid code ("Lys", "Stop" for *); the letter itself when unknown. */
+export function aminoAcidName(aa: string): string {
+  return AA_NAMES[aa.toUpperCase()] ?? aa;
+}
+
+/**
+ * Tooltip of a residue of a translated feature: "Lys 123 (AAG) · KanR" (1-based residue number,
+ * codon 5'->3' on the coding strand).
+ */
+export function residueTitle(info: CodingInfo, k: number, seq: string): string {
+  const aa = info.protein[k] ?? '';
+  const codon = codonBases(info, k, seq);
+  const name = aa ? aminoAcidName(aa) : 'Codon';
+  const n = formatInt(k + 1);
+  const where = info.feature.name ? ` · ${info.feature.name}` : '';
+  return `${name} ${n}${codon ? ` (${codon})` : ''}${where}`;
 }
 
 export interface CodonShade {

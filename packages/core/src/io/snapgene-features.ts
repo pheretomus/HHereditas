@@ -38,10 +38,10 @@
  *    stale codon_start=1 next to readingFrame="±2", with a stored /translation in frame 2.
  */
 import { featureLabel, makeFeature } from '../seq/features';
-import { mod, normalizeRange } from '../seq/range';
+import { formatRange, mod, normalizeRange } from '../seq/range';
 import type { Feature, Qualifier, Range, Strand, Topology } from '../types';
 import type { ParseWarning } from './types';
-import { childElements, plainToRichText, richTextToPlain, xmlElement, type XmlElement } from './snapgene-markup';
+import { childElements, richTextToPlain, storeOneLine, xmlElement, type XmlElement } from './snapgene-markup';
 import { clip } from './snapgene-messages';
 
 /** Feature type used when the `type` attribute is missing (as in Biopython). */
@@ -133,12 +133,15 @@ function qualifierValue(v: XmlElement): string {
 }
 
 /**
- * SnapGene separates the translations of a feature's segments with commas and ends the
- * translation of a CDS that hits a stop codon with '*' (pFA-KanMX4.dna: "...LPVFA,HPETL...W*").
- * Neither belongs to an INSDC /translation, so both are removed.
+ * SnapGene separates the translations of a feature's segments with commas, ends the translation
+ * of a CDS that hits a stop codon with '*' (pFA-KanMX4.dna: "...LPVFA,HPETL...W*") and writes '?'
+ * for a codon with ambiguous bases (SnapGene plasmid library: pAd/BLOCK-iT-DEST AmpR, codon NCA;
+ * pJW168 Rep101(Ts), codon YAT). An INSDC /translation has neither separators nor the final stop,
+ * and uses 'X' for an unknown residue (INSDC Feature Table Definition, qualifier /translation;
+ * IUPAC-IUB one-letter amino-acid codes), as `translateFeature` does: '?' becomes 'X'.
  */
 function cleanQualifierValue(key: string, value: string): string {
-  return key === 'translation' ? value.replace(/,/g, '').replace(/\*$/, '') : value;
+  return key === 'translation' ? value.replace(/,/g, '').replace(/\*$/, '').replace(/\?/g, 'X') : value;
 }
 
 /**
@@ -344,32 +347,61 @@ function rewrap(range: Range, seqLength: number, topology: Topology): Range {
   return { start, end: start + (range.end - range.start) };
 }
 
-function describeRange(r: Range): string {
-  return `${r.start}..${r.end}`;
+/**
+ * A segment as given, in the 1-based inclusive notation used for every position shown to users
+ * ("6..12"; an empty segment is the position between two bases, "5^6"), even when it is reversed
+ * or out of range, so that the numbers show what is wrong.
+ */
+function describeSegment(r: Range): string {
+  return r.start === r.end ? `${r.start}^${r.start + 1}` : `${r.start + 1}..${r.end}`;
 }
 
-/** The feature's segments that can be written, normalized; the others are reported. */
+/** The position between two bases before 0-based base `position` of a circular sequence, 1-based ("5^6"; the origin is "L^1"). */
+function describeCircularGap(position: number, seqLength: number): string {
+  return position === 0 ? `${seqLength}^1` : `${position}^${position + 1}`;
+}
+
+/**
+ * The feature's segments that can be written, normalized (types.ts form); the others are dropped
+ * or adjusted with a warning that gives positions 1-based, as everywhere in the user interface.
+ */
 function writableSegments(feature: Feature, seqLength: number, topology: Topology, who: string, warnings: ParseWarning[]): Range[] {
   const out: Range[] = [];
   for (const segment of feature.segments) {
     const { start, end } = segment;
+    const given = describeSegment(segment);
     if (!Number.isInteger(start) || !Number.isInteger(end)) {
-      warnings.push({ message: `${who}: segment ${describeRange(segment)} has non-integer coordinates; not written.` });
+      warnings.push({ message: `${who}: segment ${given} has non-integer coordinates; not written.` });
       continue;
     }
     if (topology === 'circular' && seqLength > 0) {
+      if (start === end) {
+        warnings.push({ message: `${who}: segment ${describeCircularGap(mod(start, seqLength), seqLength)} is empty and cannot be stored in a SnapGene file; not written.` });
+        continue;
+      }
       const normalized = normalizeRange(segment, seqLength, 'circular');
       if (normalized.end === normalized.start) {
-        warnings.push({ message: `${who}: empty segment ${describeRange(segment)} cannot be stored in a SnapGene file; not written.` });
+        warnings.push({ message: `${who}: segment ${given} ends a whole number of turns of the ${seqLength} bp circular sequence before it starts, so it is empty; not written.` });
         continue;
       }
       if (normalized.start !== start || normalized.end !== end) {
-        warnings.push({ message: `${who}: segment ${describeRange(segment)} is not in normalized form; written as ${describeRange(normalized)}.` });
+        // normalizeRange: a reversed segment runs through the origin, one longer than the circle is cut
+        // to one turn, and the start is taken modulo the length; those are the only changes it makes.
+        const reason =
+          end < start
+            ? 'ends before it starts, so it was taken to run through the origin'
+            : end - start > seqLength
+              ? `is longer than the ${seqLength} bp circular sequence`
+              : `starts outside 1..${seqLength}`;
+        warnings.push({ message: `${who}: segment ${given} ${reason}; written as ${formatRange(normalized, seqLength)}.` });
       }
       out.push(normalized);
-    } else if (start < 0 || end > seqLength || start >= end) {
-      const reason = start === end ? 'is empty and cannot be stored in a SnapGene file' : `is outside the ${seqLength} bp sequence`;
-      warnings.push({ message: `${who}: segment ${describeRange(segment)} ${reason}; not written.` });
+    } else if (start === end) {
+      warnings.push({ message: `${who}: segment ${given} is empty and cannot be stored in a SnapGene file; not written.` });
+    } else if (end < start) {
+      warnings.push({ message: `${who}: segment ${given} ends before it starts; not written.` });
+    } else if (start < 0 || end > seqLength) {
+      warnings.push({ message: `${who}: segment ${given} extends beyond the ${seqLength} bp sequence; not written.` });
     } else {
       out.push({ start, end });
     }
@@ -441,7 +473,7 @@ function featureColor(feature: Feature, type: string, who: string, warnings: Par
   return DEFAULT_COLORS.get(type) ?? FALLBACK_COLOR;
 }
 
-function buildQualifiersXml(qualifiers: readonly Qualifier[], skip: Qualifier | undefined, who: string, warnings: ParseWarning[]): string {
+function buildQualifiersXml(qualifiers: readonly Qualifier[], skip: Qualifier | undefined, who: string, warnings: ParseWarning[], changedText: string[]): string {
   // SnapGene keeps the values of a qualifier together under one <Q>.
   const groups = new Map<string, Array<string | null>>();
   for (const q of qualifiers) {
@@ -466,7 +498,11 @@ function buildQualifiersXml(qualifiers: readonly Qualifier[], skip: Qualifier | 
       warnings.push({ message: `${who}: value-less /${clip(key)} not written because /${clip(key)} also has values.` });
     }
     const valueXml = present
-      .map((value) => (INTEGER_QUALIFIERS.has(key) && /^(0|-?[1-9]\d*)$/.test(value) ? xmlElement('V', [['int', value]]) : xmlElement('V', [['text', plainToRichText(value)]])))
+      .map((value) =>
+        INTEGER_QUALIFIERS.has(key) && /^(0|-?[1-9]\d*)$/.test(value)
+          ? xmlElement('V', [['int', value]])
+          : xmlElement('V', [['text', storeOneLine(value, `${who} /${clip(key)}`, changedText)]]),
+      )
       .join('');
     xml += xmlElement('Q', [['name', key]], valueXml);
   }
@@ -495,7 +531,18 @@ function writtenReadingFrame(feature: Feature, who: string, warnings: ParseWarni
   return readingFrame;
 }
 
-function buildFeatureXml(feature: Feature, recentId: number, seqLength: number, topology: Topology, warnings: ParseWarning[]): string | undefined {
+/**
+ * A `<Feature>` element and the colour written for its segments; undefined when no segment can be
+ * written. Text fields that will not read back as written are added to `changedText`.
+ */
+function buildFeatureXml(
+  feature: Feature,
+  recentId: number,
+  seqLength: number,
+  topology: Topology,
+  warnings: ParseWarning[],
+  changedText: string[],
+): { xml: string; color: string } | undefined {
   const name = feature.name.trim() || featureLabel(feature.type, feature.qualifiers);
   const type = feature.type.trim() || DEFAULT_FEATURE_TYPE;
   const who = `Feature "${clip(name)}"`;
@@ -513,25 +560,27 @@ function buildFeatureXml(feature: Feature, recentId: number, seqLength: number, 
   let content = '';
   for (const piece of layout.pieces) {
     const range = formatSegmentRange(piece.range, seqLength);
+    // Segment names are SnapGene rich text like every other name (the reader renders them as HTML).
+    const segmentName = parts?.names.get(piece.index);
     content += piece.gap
       ? xmlElement('Segment', [['range', range], ['color', 'noColor'], ['type', 'gap']])
       : xmlElement('Segment', [
-          ['name', parts?.names.get(piece.index)],
+          ['name', segmentName === undefined ? undefined : storeOneLine(segmentName, `${who} segment name`, changedText)],
           ['range', range],
           ['color', color],
           ['type', 'standard'],
           ['translated', translated],
         ]);
   }
-  content += buildQualifiersXml(feature.qualifiers, parts?.source, who, warnings);
+  content += buildQualifiersXml(feature.qualifiers, parts?.source, who, warnings, changedText);
   const readingFrame = writtenReadingFrame(feature, who, warnings);
   // Attribute order as written by SnapGene (fixtures). SnapGene hides 'source' features
   // (visible="0" in PlasmidPop's frame_test.dna, written by SnapGene from a GenBank import).
-  return xmlElement(
+  const xml = xmlElement(
     'Feature',
     [
       ['recentID', String(recentId)],
-      ['name', plainToRichText(name)],
+      ['name', storeOneLine(name, `${who} name`, changedText)],
       ['directionality', feature.strand === 1 ? '1' : feature.strand === -1 ? '2' : undefined],
       ['type', type],
       ['swappedSegmentNumbering', feature.strand === -1 ? '1' : undefined],
@@ -542,24 +591,34 @@ function buildFeatureXml(feature: Feature, recentId: number, seqLength: number, 
     ],
     content,
   );
+  return { xml, color };
 }
 
 /**
  * Build the `<Features>` packet text, or undefined when no feature can be written (SnapGene
  * omits the packet for sequences without features). Features whose segments are all invalid
- * are skipped; everything that is dropped or altered is reported in `warnings`.
+ * are skipped; everything that is dropped or altered is reported in `warnings`, including fuzzy
+ * ends and reverse-strand colours (`Feature.reverseColor`), which SnapGene features cannot hold:
+ * their segments have one colour each (fixtures; Biopython SnapGeneIO and sgffp read no other).
+ * Names and values whose line breaks or spacing will not read back are listed in `changedText`
+ * (labels such as `Feature "lacZ" /note`), for one warning about all text fields.
  */
-export function buildFeaturesXml(features: readonly Feature[], seqLength: number, topology: Topology, warnings: ParseWarning[]): string | undefined {
+export function buildFeaturesXml(features: readonly Feature[], seqLength: number, topology: Topology, warnings: ParseWarning[], changedText: string[] = []): string | undefined {
   const written: string[] = [];
   let fuzzy = 0;
+  let reverseColors = 0;
   for (const feature of features) {
-    const xml = buildFeatureXml(feature, written.length, seqLength, topology, warnings);
-    if (xml === undefined) continue;
-    written.push(xml);
+    const built = buildFeatureXml(feature, written.length, seqLength, topology, warnings, changedText);
+    if (built === undefined) continue;
+    written.push(built.xml);
     if (feature.partialStart === true || feature.partialEnd === true) fuzzy++;
+    if (feature.reverseColor !== undefined && normalizeColor(feature.reverseColor) !== built.color) reverseColors++;
   }
   if (fuzzy > 0) {
     warnings.push({ message: `${fuzzy} feature(s) have partial (fuzzy) ends, which SnapGene files cannot store; they were written with exact ends.` });
+  }
+  if (reverseColors > 0) {
+    warnings.push({ message: `${reverseColors} feature(s) have a reverse colour (a separate colour for the reverse strand), which SnapGene files cannot store; only the forward colour was written.` });
   }
   if (written.length === 0) return undefined;
   return `<?xml version="1.0"?>${xmlElement('Features', [['nextValidID', String(written.length)]], written.join(''))}\n`;

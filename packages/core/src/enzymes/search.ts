@@ -4,11 +4,14 @@
  * Conventions (see `types.ts`):
  *  - Site footprints are half-open 0-based ranges on the top strand. On circular molecules a site
  *    crossing the origin has `range.end > L` (e.g. { start: L - 2, end: L + 4 }).
- *  - Cut positions are GAP positions in top-strand coordinates: circular -> normalized into [0, L);
- *    linear -> a cleavage event is reported only when BOTH its top and bottom cut lie in [1, L - 1].
- *    That is Biopython's rule (Bio.Restriction AbstractCut._drop): a cut exactly at an end (gap 0
- *    or L) or beyond it does not cleave anything, so the event is omitted from `site.cuts` while
- *    the site itself is still listed.
+ *  - Cut positions are GAP positions in top-strand coordinates: circular -> normalized into [0, L)
+ *    (never -0); linear -> a cleavage event is reported only when it can cut the molecule, by the
+ *    rule `digest` applies (see `ends.ts`). With blunt ends (the default) that is Biopython's rule
+ *    (Bio.Restriction AbstractCut._drop): BOTH its top and bottom cut lie in [1, L - 1]; a cut
+ *    exactly at an end (gap 0 or L) or beyond it does not cleave anything. With sticky ends
+ *    (`options.ends`, e.g. a record's `ends`) the cut zone must also leave a base pair inside the
+ *    double-stranded part on each side, and the recognition site must be fully double-stranded.
+ *    An event that cannot cut is omitted from `site.cuts` while the site itself is still listed.
  *  - Palindromic sites are reported once, with strand 1. A non-palindromic site found as the
  *    reverse complement of the recognition sequence gets strand -1 and mirrored cut offsets: for
  *    a footprint starting at p with site length n, top = p + n - cut.bottom, bottom = p + n - cut.top.
@@ -24,11 +27,13 @@
  *  - Overlapping occurrences are all reported. Circular molecules shorter than a recognition
  *    sequence are not searched for that enzyme.
  */
-import type { CutPair, EnzymeSite, Topology } from '../types';
+import type { CutPair, EnzymeSite, FragmentEnds, Topology } from '../types';
 import { IUPAC_DNA, reverseComplement } from '../seq/alphabet';
 import { mod } from '../seq/range';
 import type { EnzymeCut, RestrictionEnzyme } from './enzyme';
 import { isPalindromic, validateEnzyme } from './enzyme';
+import type { PairedRegion } from './ends';
+import { BLUNT_ENDS, linearEndProblem, pairedRegion } from './ends';
 
 /** Bit of each unambiguous base (A=1, C=2, G=4, T=8, either case); 0 for every other character. */
 const BASE_BITS: Uint8Array = (() => {
@@ -213,23 +218,53 @@ export function compareSites(a: EnzymeSite, b: EnzymeSite): number {
 }
 
 /**
- * Cleavage events of one occurrence, in molecule coordinates: normalized into [0, L) on circular
- * molecules (events that coincide modulo L on a very small circle are listed once); on linear
- * molecules only events whose top and bottom cuts both lie in [1, L - 1].
+ * `mod(x, L)`: a position on a circle of length L, in [0, L), never negative zero. (`mod` returns
+ * -0 for negative multiples of L, since -15 % 15 is -0; Object.is, deep equality and number
+ * formatting tell -0 apart from 0.) @internal (also used by digest.ts)
  */
-function siteCuts(pattern: SitePattern, start: number, L: number, circular: boolean): CutPair[] {
+export function circularGap(x: number, L: number): number {
+  const r = mod(x, L);
+  return r === 0 ? 0 : r;
+}
+
+/**
+ * Cleavage events of one occurrence on a circular molecule of length L, normalized into [0, L)
+ * (events that coincide modulo L on a very small circle are listed once).
+ */
+function circularSiteCuts(pattern: SitePattern, start: number, L: number): CutPair[] {
+  const cuts: CutPair[] = [];
+  for (const c of pattern.cuts) {
+    const cut = { top: circularGap(start + c.top, L), bottom: circularGap(start + c.bottom, L) };
+    if (!cuts.some((x) => x.top === cut.top && x.bottom === cut.bottom)) cuts.push(cut);
+  }
+  return cuts;
+}
+
+/**
+ * Cleavage events of the occurrence [start, start + size) on a linear molecule whose base pairs
+ * are `paired`: the events that can cut it (see `linearEndProblem` in ends.ts).
+ */
+function linearSiteCuts(pattern: SitePattern, start: number, size: number, paired: PairedRegion): CutPair[] {
   const cuts: CutPair[] = [];
   for (const c of pattern.cuts) {
     const top = start + c.top;
     const bottom = start + c.bottom;
-    if (circular) {
-      const cut = { top: mod(top, L), bottom: mod(bottom, L) };
-      if (!cuts.some((x) => x.top === cut.top && x.bottom === cut.bottom)) cuts.push(cut);
-    } else if (top >= 1 && top <= L - 1 && bottom >= 1 && bottom <= L - 1) {
-      cuts.push({ top, bottom });
-    }
+    if (linearEndProblem(top, bottom, start, start + size, paired) === undefined) cuts.push({ top, bottom });
   }
   return cuts;
+}
+
+/** Options of {@link findSites}. */
+export interface SiteSearchOptions {
+  /**
+   * Single-stranded ends of a LINEAR molecule (FragmentEnds convention of `types.ts`, e.g. a
+   * record's `ends`; default: both blunt; an overhang of length 0 counts as blunt). Cleavage
+   * events are then reported exactly when `digest` with the same ends could make them: a site in
+   * or straddling a single-stranded overhang is listed without cleavage events. Validated like
+   * the ends of `digest` (throws if invalid or if they leave no base pair). Ignored for circular
+   * molecules and for an empty sequence.
+   */
+  ends?: FragmentEnds;
 }
 
 /**
@@ -237,26 +272,41 @@ function siteCuts(pattern: SitePattern, start: number, L: number, circular: bool
  * See the file comment for the conventions (footprints, strands, cut normalization, linear ends,
  * ambiguity codes). Sorted by range.start, then enzyme name, then strand (1 first).
  * Enzymes are identified by name: if two entries share a name only the first is searched.
- * Throws if an enzyme definition is invalid (see `validateEnzyme`).
+ * For a linear molecule with single-stranded ends pass them as `options.ends`, so that the
+ * reported cleavage events (and the counts derived from them) agree with `digest`.
+ * Throws if an enzyme definition is invalid (see `validateEnzyme`) or `options.ends` is invalid.
  */
-export function findSites(seq: string, topology: Topology, enzymes: readonly RestrictionEnzyme[]): EnzymeSite[] {
-  const sites: EnzymeSite[] = [];
-  const circular = topology === 'circular';
+export function findSites(
+  seq: string,
+  topology: Topology,
+  enzymes: readonly RestrictionEnzyme[],
+  options: SiteSearchOptions = {},
+): EnzymeSite[] {
   const L = seq.length;
+  // Linear molecules: the base-paired part given the ends, which are validated here as digest
+  // does. An empty sequence has no sites and, as in digest, its ends are not checked; so once a
+  // site is found, `paired` is undefined only for circular molecules.
+  const paired = topology === 'circular' || L === 0 ? undefined : pairedRegion(options.ends ?? BLUNT_ENDS, L);
+  const sites: EnzymeSite[] = [];
   scanEnzymeSites(seq, topology, enzymes, (enzyme, pattern, start) => {
     sites.push({
       enzyme: enzyme.name,
       range: { start, end: start + enzyme.size },
       strand: pattern.strand,
-      cuts: siteCuts(pattern, start, L, circular),
+      cuts: paired === undefined ? circularSiteCuts(pattern, start, L) : linearSiteCuts(pattern, start, enzyme.size, paired),
     });
   });
   return sites.sort(compareSites);
 }
 
 /** {@link findSites} for a single enzyme. */
-export function findSitesForEnzyme(seq: string, topology: Topology, enzyme: RestrictionEnzyme): EnzymeSite[] {
-  return findSites(seq, topology, [enzyme]);
+export function findSitesForEnzyme(
+  seq: string,
+  topology: Topology,
+  enzyme: RestrictionEnzyme,
+  options: SiteSearchOptions = {},
+): EnzymeSite[] {
+  return findSites(seq, topology, [enzyme], options);
 }
 
 /**

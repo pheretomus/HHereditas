@@ -9,7 +9,8 @@ import { describe, expect, it } from 'vitest';
 import { makeFeature, makeRecord } from '../seq/features';
 import type { Feature, SeqRecord } from '../types';
 import { decodeUtf8, readPackets } from './snapgene-binary';
-import { deterministicUuid } from './snapgene-notes';
+import { parseXml } from './snapgene-markup';
+import { deterministicUuid, isStorableNotesName } from './snapgene-notes';
 import { parseSnapGene, writeSnapGene, writeSnapGeneWithWarnings } from './snapgene';
 import {
   FIXTURE_DIR,
@@ -26,6 +27,9 @@ import {
 } from '../../test/oracle/snapgene/testkit';
 
 const NOW = new Date(Date.UTC(2026, 9, 8, 7, 5, 3));
+
+/** Writer warning for the reference summary that the reader keeps in meta.extras.References. */
+const REFERENCES_NOT_WRITTEN = 'The references (meta.extras.References) were not written: only a text summary of them is kept, which a SnapGene file cannot store.';
 
 function packetsOf(data: Uint8Array): Array<{ type: number; text: string; payload: Uint8Array }> {
   const scan = readPackets(data);
@@ -259,6 +263,20 @@ describe('writeSnapGene: round trips', () => {
     expect(back.features[0].name).toBe('<i>lacZ</i> α');
   });
 
+  it('keeps segment names that look like markup (verification defect: written raw, read back as HTML)', () => {
+    // Segment names (Biopython-style /parts) are rich text for the reader, like every other name.
+    // Before the fix "<b>signal</b>" read back as "signal", "x<br>y" as "x y" and "<html>" vanished.
+    for (const name of ['<b>signal</b> peptide', 'x<br>y', '<html>', 'exon <!-- 2 --> b', '<p>intron</p>', 'a & b <5kb>']) {
+      const parts = { key: 'parts', value: `2:${name}` };
+      const record = linear([
+        makeFeature({ type: 'CDS', name: 'split', strand: -1, segments: [{ start: 2, end: 10 }, { start: 15, end: 30 }], qualifiers: [parts, { key: 'label', value: 'split' }], color: '#993366' }),
+      ]);
+      const xml = packetsOf(writeSnapGene(record, { now: NOW })).find((p) => p.type === 0x0a)?.text ?? '';
+      expect(xml, name).toMatch(/<Segment name="[^"]*" range="3-10"/); // reverse feature: segment 2 counted 5'->3' is the left one
+      expect(roundTrip(record).features[0].qualifiers, name).toEqual([parts, { key: 'label', value: 'split' }]);
+    }
+  });
+
   it('keeps primers, comments, accession and organism', () => {
     const record = linear([], {
       primers: [
@@ -325,7 +343,11 @@ describe('writeSnapGene: round trips', () => {
 
   it('keeps the SnapGene fields of a record read from a SnapGene file', () => {
     const original = parseSnapGene(new Uint8Array(readFileSync(join(FIXTURE_DIR, 'pFA-KanMX4.dna')))).records[0];
-    const extras = roundTrip(original).meta.extras ?? {};
+    const { data, warnings } = writeSnapGeneWithWarnings(original, { now: NOW });
+    expect(warnings.map((w) => w.message)).toEqual([REFERENCES_NOT_WRITTEN]);
+    const back = parseSnapGene(data, { fileName: 'pFA-KanMX4.dna' });
+    expect(back.warnings).toEqual([]);
+    const extras = back.records[0].meta.extras ?? {};
     expect(extras).toMatchObject({
       UUID: '4bdbcd8e-3a32-4599-8c39-f269dcd552dc',
       Created: '2012.5.26',
@@ -348,18 +370,37 @@ describe('writeSnapGene: warnings for what SnapGene cannot store', () => {
 
   it('drops invalid and empty segments, and features left without segments', () => {
     expect(writeWarnings(base({ features: [f([{ start: 2, end: 2 }])] }))).toEqual([
-      'Feature "x": segment 2..2 is empty and cannot be stored in a SnapGene file; not written.',
+      'Feature "x": segment 2^3 is empty and cannot be stored in a SnapGene file; not written.',
       'Feature "x" has no segment that can be written; feature not written.',
     ]);
     expect(writeWarnings(base({ features: [f([{ start: 5, end: 12 }, { start: 0, end: 2 }])] }))).toEqual([
-      'Feature "x": segment 5..12 is outside the 10 bp sequence; not written.',
+      'Feature "x": segment 6..12 extends beyond the 10 bp sequence; not written.',
     ]);
-    expect(writeWarnings(base({ features: [f([{ start: 0.5, end: 2 }, { start: 1, end: 2 }])] }))[0]).toMatch(/non-integer/);
+    expect(writeWarnings(base({ features: [f([{ start: 0.5, end: 2 }, { start: 1, end: 2 }])] }))[0]).toBe('Feature "x": segment 1.5..2 has non-integer coordinates; not written.');
     expect(writeWarnings(base({ topology: 'circular', features: [f([{ start: 12, end: 15 }])] }))).toEqual([
-      'Feature "x": segment 12..15 is not in normalized form; written as 2..5.',
+      'Feature "x": segment 13..15 starts outside 1..10; written as 3..5.',
     ]);
     const parsed = parseSnapGene(writeSnapGene(base({ topology: 'circular', features: [f([{ start: 12, end: 15 }])] }), { now: NOW })).records[0];
     expect(parsed.features[0].segments).toEqual([{ start: 2, end: 5 }]);
+  });
+
+  it('gives positions 1-based in warnings, with the actual reason (reviewed defect: 0-based "a..b", reversed segments called "outside")', () => {
+    const hundred = (topology: 'linear' | 'circular', segments: Array<{ start: number; end: number }>) =>
+      writeWarnings(makeRecord({ name: 'w', seq: 'ACGT'.repeat(25), topology, features: [f(segments)] }));
+    // The file stores SnapGene range "91-10": bases 91-100 and 1-10.
+    expect(hundred('circular', [{ start: -10, end: 10 }])).toEqual(['Feature "x": segment -9..10 starts outside 1..100; written as 91..10.']);
+    expect(hundred('linear', [{ start: 50, end: 40 }])[0]).toBe('Feature "x": segment 51..40 ends before it starts; not written.');
+    expect(hundred('circular', [{ start: 50, end: 40 }])).toEqual(['Feature "x": segment 51..40 ends before it starts, so it was taken to run through the origin; written as 51..40.']);
+    expect(hundred('circular', [{ start: 5, end: 125 }])).toEqual(['Feature "x": segment 6..125 is longer than the 100 bp circular sequence; written as 6..5.']);
+    expect(hundred('circular', [{ start: 0, end: 0 }])[0]).toBe('Feature "x": segment 100^1 is empty and cannot be stored in a SnapGene file; not written.');
+    expect(hundred('circular', [{ start: 130, end: 130 }])[0]).toBe('Feature "x": segment 30^31 is empty and cannot be stored in a SnapGene file; not written.');
+    expect(hundred('circular', [{ start: 5, end: -95 }])[0]).toBe(
+      'Feature "x": segment 6..-95 ends a whole number of turns of the 100 bp circular sequence before it starts, so it is empty; not written.',
+    );
+    expect(hundred('linear', [{ start: -3, end: 4 }])[0]).toBe('Feature "x": segment -2..4 extends beyond the 100 bp sequence; not written.');
+    // What was written is what the warning says.
+    const record = makeRecord({ name: 'w', seq: 'ACGT'.repeat(25), topology: 'circular', features: [f([{ start: -10, end: 10 }])] });
+    expect(packetsOf(writeSnapGene(record, { now: NOW })).find((p) => p.type === 0x0a)?.text).toContain('<Segment range="91-10"');
   });
 
   it('reports segments it cannot order', () => {
@@ -412,6 +453,188 @@ describe('writeSnapGene: warnings for what SnapGene cannot store', () => {
       'Feature "x": qualifier with an empty name; not written.',
       'Feature "x": value-less /pseudo not written because /pseudo also has values.',
       '1 feature(s) have partial (fuzzy) ends, which SnapGene files cannot store; they were written with exact ends.',
+    ]);
+  });
+});
+
+describe('writeSnapGene: metadata it cannot store is reported, the rest survives (reviewed defects)', () => {
+  const messages = (record: SeqRecord) => writeSnapGeneWithWarnings(record, { now: NOW }).warnings.map((w) => w.message);
+  const readBack = (record: SeqRecord) => {
+    const result = parseSnapGene(writeSnapGene(record, { now: NOW }), { fileName: 'meta.dna' });
+    expect(result.warnings).toEqual([]);
+    return result.records[0];
+  };
+
+  it('skips Notes fields whose names the XML parser rejects or renames, instead of losing the whole Notes packet', () => {
+    // fast-xml-parser rejects a document with an element named "constructor" (all Notes fields were lost on reading).
+    const record = makeRecord({ seq: 'ACGTACGTAC', description: 'my plasmid', meta: { sourceFormat: 'snapgene', organism: 'E. coli', accession: 'X1', extras: { constructor: 'J. Doe' } } });
+    expect(messages(record)).toEqual(['1 SnapGene Notes field(s) of meta.extras were not written because a SnapGene file cannot store their names: "constructor".']);
+    const back = readBack(record);
+    expect(back).toMatchObject({ description: 'my plasmid', meta: { organism: 'E. coli', accession: 'X1' } });
+    // Every name the parser alters, as element and as attribute; storable fields next to them survive.
+    const extras: Record<string, string> = JSON.parse(
+      '{"__proto__":"a","prototype":"b","toString":"c","valueOf":"d","hasOwnProperty":"e","__defineGetter__":"f","__lookupSetter__":"g",' +
+        '"Field":"kept","Field.toString":"h","Field.unit":"mg","xmlField":"i","two words":"j"}',
+    ) as Record<string, string>;
+    const tricky = makeRecord({ seq: 'ACGTACGTAC', description: 'still here', meta: { sourceFormat: 'snapgene', extras } });
+    expect(messages(tricky)).toEqual([
+      '10 SnapGene Notes field(s) of meta.extras were not written because a SnapGene file cannot store their names: "__proto__", "prototype", "toString", "valueOf", "hasOwnProperty" and 5 more.',
+    ]);
+    const trickyBack = readBack(tricky);
+    expect(trickyBack.description).toBe('still here');
+    expect(trickyBack.meta.extras).toMatchObject({ Field: 'kept', 'Field.unit': 'mg' });
+    expect(Object.keys(trickyBack.meta.extras ?? {}).filter((k) => !k.startsWith('Field') && /^[a-z_]/.test(k))).toEqual([]);
+  });
+
+  it('knows exactly which element and attribute names the XML parser does not read back (checked against fast-xml-parser)', () => {
+    const candidates = new Set<string>(['__proto__', 'constructor', 'prototype', 'Field', 'a-b', '_x', 'Created', 'UTC', 'x1']);
+    for (const prototype of [Object.prototype, Function.prototype, Array.prototype, String.prototype, Number.prototype, Promise.prototype]) {
+      for (const name of Object.getOwnPropertyNames(prototype)) candidates.add(name);
+    }
+    let checked = 0;
+    for (const name of candidates) {
+      if (!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(name) || /^xml/i.test(name)) continue; // not a name the writer would try
+      const element = parseXml(`<Notes><${name}>v</${name}></Notes>`);
+      const attribute = parseXml(`<Notes><E ${name}="v"/></Notes>`);
+      const readsBack =
+        element.ok && element.root.children[0]?.name === name && attribute.ok && attribute.root.children[0]?.attributes.get(name) === 'v' && attribute.root.children[0].attributes.size === 1;
+      expect(isStorableNotesName(name), name).toBe(readsBack);
+      checked++;
+    }
+    expect(checked).toBeGreaterThan(80);
+    expect(isStorableNotesName('xmlField')).toBe(false); // reserved by XML 1.0, although this parser reads it
+  });
+
+  it('reports reverse-strand colours, which SnapGene cannot store', () => {
+    const feature = (name: string, extra: Partial<Feature>) => ({ ...makeFeature({ type: 'CDS', name, strand: -1, segments: [{ start: 0, end: 9 }] }), ...extra });
+    const record = makeRecord({
+      seq: 'ACGTACGTAC',
+      features: [
+        feature('differs', { color: '#ff0000', reverseColor: '#00ff00' }),
+        feature('same', { color: '#ff0000', reverseColor: '#FF0000' }),
+        feature('default', { reverseColor: '#993366' }), // equals the CDS colour written for colourless features
+        feature('invalid', { color: '#ff0000', reverseColor: 'green' }),
+      ],
+    });
+    expect(messages(record)).toEqual(['2 feature(s) have a reverse colour (a separate colour for the reverse strand), which SnapGene files cannot store; only the forward colour was written.']);
+    expect(readBack(record).features.map((f) => [f.color, f.reverseColor])).toEqual([['#ff0000', undefined], ['#ff0000', undefined], ['#993366', undefined], ['#ff0000', undefined]]);
+  });
+
+  it('reports the GenBank header fields and meta.extras fields it drops', () => {
+    const record = makeRecord({
+      seq: 'ACGTACGTAC',
+      meta: {
+        accession: 'M77789',
+        version: 'M77789.2',
+        keywords: 'cloning vector',
+        source: 'Cloning vector pUC19',
+        organism: 'Cloning vector pUC19',
+        division: 'SYN',
+        comments: ['first', 'second'],
+        extraHeaderLines: ['REFERENCE   1  (bases 1 to 2686)', '  AUTHORS   Yanisch-Perron,C., Vieira,J. and Messing,J.', '', 'DBLINK      BioProject: PRJNA1', 'REFERENCE   2'],
+        sourceFormat: 'genbank',
+        extras: { 'genbank.moleculeType': 'DNA', 'genbank.taxonomy': 'other sequences; artificial sequences; vectors.', Strandedness: 'double' },
+      },
+    });
+    expect(messages(record)).toEqual([
+      'The sequence version "M77789.2" (GenBank VERSION) was not written: SnapGene files have no field for it.',
+      'The keywords "cloning vector" (GenBank KEYWORDS) were not written: SnapGene files have no field for them.',
+      'The source "Cloning vector pUC19" (GenBank SOURCE) was not written: SnapGene files store only the organism.',
+      '4 GenBank header line(s) ("REFERENCE", "DBLINK") were not written: SnapGene files cannot store them.',
+      '2 field(s) of meta.extras were not written to the SnapGene file: "genbank.moleculeType", "genbank.taxonomy".',
+    ]);
+    const back = readBack(record);
+    expect(back.meta).toMatchObject({ accession: 'M77789', organism: 'Cloning vector pUC19', division: 'SYN', comments: ['first\nsecond'] });
+    expect([back.meta.version, back.meta.keywords, back.meta.source, back.meta.extraHeaderLines]).toEqual([undefined, undefined, undefined, undefined]);
+  });
+
+  it('reports meta.extras fields of a SnapGene record that have no place, and malformed SnapGene fields', () => {
+    const record = makeRecord({
+      seq: 'ACGTACGTAC',
+      meta: {
+        sourceFormat: 'snapgene',
+        extras: { UUID: 'not-a-uuid', Created: '8 Oct 2026', 'Created.UTC': 'noon', Description: 'in extras', 'Type.kind': 'x', 'Lone.attr': 'y', Kept: 'z', 'Kept.unit': 'u' },
+      },
+    });
+    expect(messages(record)).toEqual([
+      'The SnapGene field UUID "not-a-uuid" (meta.extras) is malformed; a new UUID was written.',
+      'The SnapGene field Created "8 Oct 2026" (meta.extras) is malformed; the current date was written.',
+      'The SnapGene field Created.UTC "noon" (meta.extras) is malformed; the current time was written.',
+      '3 field(s) of meta.extras were not written to the SnapGene file: "Description", "Type.kind", "Lone.attr".',
+    ]);
+    expect(readBack(record).meta.extras).toMatchObject({ Kept: 'z', 'Kept.unit': 'u', Created: '2026.10.8', 'Created.UTC': '7:5:3' });
+    // A valid Created keeps its date; a malformed time of day is then left out.
+    const timeOnly = makeRecord({ seq: 'ACGTACGTAC', meta: { sourceFormat: 'snapgene', extras: { Created: '2019.8.3', 'Created.UTC': '25 h' } } });
+    expect(messages(timeOnly)).toEqual(['The SnapGene field Created.UTC "25 h" (meta.extras) is malformed; it was not written.']);
+    const timeOnlyBack = readBack(timeOnly).meta.extras ?? {};
+    expect([timeOnlyBack.Created, timeOnlyBack['Created.UTC']]).toEqual(['2019.8.3', undefined]);
+  });
+
+  it('writes an edited meta.division instead of the Type / SequenceClass kept from the SnapGene file', () => {
+    const snapgene = (division: string | undefined, Type: string, SequenceClass: string) =>
+      makeRecord({ seq: 'ACGTACGTAC', meta: { sourceFormat: 'snapgene', ...(division !== undefined ? { division } : {}), extras: { Type, SequenceClass } } });
+    expect(readBack(snapgene('BCT', 'Synthetic', 'UNA')).meta).toMatchObject({ division: 'BCT', extras: { Type: 'Natural', SequenceClass: 'BCT' } });
+    expect(readBack(snapgene('SYN', 'Natural', 'PHG')).meta).toMatchObject({ division: 'SYN', extras: { Type: 'Synthetic', SequenceClass: 'PHG' } });
+    expect(readBack(snapgene('phg', 'Natural', 'UNA')).meta.division).toBe('PHG');
+    expect(readBack(snapgene(undefined, 'Natural', 'PLN')).meta.division).toBe('PLN'); // no division: the SnapGene fields stay
+    const odd = snapgene('XY', 'Natural', 'UNA');
+    expect(messages(odd)).toEqual(['The division "XY" is not a three-letter GenBank division code, so it was not written.']);
+    expect(readBack(odd).meta.division).toBe('UNA');
+  });
+});
+
+describe('writeSnapGene: text whose line breaks or spacing do not read back is reported (verification defect: silent before)', () => {
+  const SPACING = ' text value(s) lose line breaks or spacing in the SnapGene file: line breaks in one-line fields become spaces, and in text stored as HTML (multi-line comments, text that looks like markup) runs of spaces, tabs or non-breaking spaces become one space';
+  const write = (record: SeqRecord) => {
+    const { data, warnings } = writeSnapGeneWithWarnings(record, { now: NOW });
+    const result = parseSnapGene(data, { fileName: 'text.dna' });
+    expect(result.warnings).toEqual([]);
+    return { messages: warnings.map((w) => w.message), back: result.records[0] };
+  };
+  const feature = (name: string, qualifiers: Feature['qualifiers']) =>
+    makeFeature({ type: 'misc_feature', name, strand: 1, segments: [{ start: 0, end: 6 }], qualifiers: [{ key: 'label', value: name }, ...qualifiers], color: '#a6acb3' });
+
+  it('lists every field that changes, in one warning, and changes nothing else', () => {
+    const record = makeRecord({
+      name: 'text',
+      seq: 'ACGTACGTACGT',
+      description: 'line one\nline two',
+      features: [feature('f', [{ key: 'note', value: 'PCR:\n95 °C 30 s\n55 °C 30 s' }, { key: 'note', value: '<i>lacZ</i>  α' }, { key: 'note', value: 'kept  as  is' }])],
+      primers: [{ id: 'p', name: 'fwd', sequence: 'ACGTACGT', description: 'Tm\n60' }],
+      // GenBank structured comment: the alignment of the "::" column is lost in SnapGene's HTML.
+      meta: { organism: 'E. coli', comments: ['##Assembly-Data-START##\nAssembly Method       :: SPAdes v. 3.15\nSequencing Technology :: Illumina'] },
+    });
+    const { messages, back } = write(record);
+    expect(messages).toEqual([
+      `5${SPACING} (Feature "f" /note, Primer "fwd" description, the description, the comments).`,
+    ]);
+    expect(back.description).toBe('line one line two');
+    expect(back.features[0].qualifiers.filter((q) => q.key === 'note').map((q) => q.value)).toEqual(['PCR: 95 °C 30 s 55 °C 30 s', '<i>lacZ</i> α', 'kept  as  is']);
+    expect(back.primers[0].description).toBe('Tm 60');
+    expect(back.meta.comments).toEqual(['##Assembly-Data-START##\nAssembly Method :: SPAdes v. 3.15\nSequencing Technology :: Illumina']);
+  });
+
+  it('stays silent when the text reads back as written (plain spacing, single-line and multi-line text, CR LF, blanks at the ends)', () => {
+    const record = makeRecord({
+      name: 'text',
+      seq: 'ACGTACGTACGT',
+      description: '  pUC19  derivative  ',
+      features: [feature('<b>bold</b> name', [{ key: 'note', value: 'a\tb  c' }, { key: 'note', value: 'x<br>y' }, { key: 'parts', value: '1:<i>exon</i> one' }])],
+      primers: [{ id: 'p', name: ' rev ', sequence: 'ACGTACGT', description: 'plain  double  spaces' }],
+      meta: { organism: 'E. coli K-12', comments: ['first\r\nsecond', 'third, joined to the others'] },
+    });
+    const { messages, back } = write(record);
+    expect(messages).toEqual([]);
+    expect(back.description).toBe('pUC19  derivative');
+    expect(back.meta.comments).toEqual(['first\nsecond\nthird, joined to the others']);
+    expect(back.features[0].qualifiers.filter((q) => q.key === 'note').map((q) => q.value)).toEqual(['a\tb  c', 'x<br>y']);
+  });
+
+  it('reports long lists briefly, counting every value', () => {
+    const qualifiers = Array.from({ length: 7 }, (_, i) => ({ key: `note${i}`, value: `a\nb${i}` }));
+    const { messages } = write(makeRecord({ name: 'text', seq: 'ACGTACGTACGT', features: [feature('g', qualifiers)] }));
+    expect(messages).toEqual([
+      `7${SPACING} (Feature "g" /note0, Feature "g" /note1, Feature "g" /note2, Feature "g" /note3, Feature "g" /note4 and 2 more).`,
     ]);
   });
 });
@@ -492,7 +715,8 @@ describe('writeSnapGene: fixtures survive parse -> write -> parse', () => {
     it(name, () => {
       const first = parseSnapGene(new Uint8Array(readFileSync(join(FIXTURE_DIR, name))), { fileName: name }).records[0];
       const { data, warnings } = writeSnapGeneWithWarnings(first, { now: NOW });
-      expect(warnings).toEqual([]);
+      // The only thing a fixture loses is the reference list of pFA-KanMX4.dna (kept only as a summary).
+      expect(warnings.map((w) => w.message)).toEqual(first.meta.extras?.References !== undefined ? [REFERENCES_NOT_WRITTEN] : []);
       const second = parseSnapGene(data, { fileName: name });
       expect(second.warnings).toEqual([]);
       const expected = comparableRecord(first) as { meta: SeqRecord['meta'] };

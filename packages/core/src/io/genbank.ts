@@ -14,8 +14,8 @@ import type { Feature, MoleculeType, RecordMeta, SeqRecord, Topology } from '../
 import type { ParseResult, ParseWarning } from './types';
 import { featureLabel, makeRecord } from '../seq/features';
 import { newId } from '../seq/id';
-import { extractApeColors, formatFeature, readFeatureTable, type RawFeature, type WarnFn } from './genbank-features';
-import { formatHeader, GENBANK_EXTRA_KEYS, readHeader } from './genbank-header';
+import { extractApeColors, formatFeature, indentation, readFeatureTable, type RawFeature, type WarnFn } from './genbank-features';
+import { formatContig, formatHeader, GENBANK_EXTRA_KEYS, readHeader } from './genbank-header';
 import {
   formatGenbankDate,
   formatLocusLine,
@@ -78,14 +78,21 @@ function splitLines(text: string): string[] {
 }
 
 const LOCUS_LINE = /^LOCUS(?:\s|$)/;
-const FEATURES_LINE = /^FEATURES(?:\s|$)/;
+/** FEATURES belongs in column 1; up to 3 blanks are tolerated like for the header keywords. */
+const FEATURES_LINE = /^ {0,3}FEATURES(?:\s|$)/;
 const ORIGIN_LINE = /^ORIGIN(?:\s|$)/;
 const CONTIG_LINE = /^CONTIG(?:\s|$)/;
 /**
  * Lines that end the header: the feature table or one of the sections that follow it
  * (GenBank release notes 3.4.2 / 3.4.15; Biopython 1.88 `GenBankScanner.SEQUENCE_HEADERS`).
  */
-const HEADER_END = /^(?:FEATURES|ORIGIN|CONTIG|BASE COUNT|WGS|WGS_SCAFLD|TSA|TLS)(?:\s|$)/;
+const HEADER_END = /^(?: {0,3}FEATURES|ORIGIN|CONTIG|BASE COUNT|WGS|WGS_SCAFLD|TSA|TLS)(?:\s|$)/;
+/**
+ * Lines that end the feature table: the sections that follow it. Any other line belongs to
+ * the table, even an unindented one (a stray line, or the rest of a value broken by a raw line
+ * break): `readFeatureTable` deals with it, so that it cannot hide the features after it.
+ */
+const FEATURE_TABLE_END = /^(?:ORIGIN|CONTIG|BASE COUNT|WGS|WGS_SCAFLD|TSA|TLS)(?:\s|$)/;
 /** Section lines after the feature table that carry no data we keep. */
 const IGNORED_SECTION = /^(?:BASE COUNT|WGS|WGS_SCAFLD|TSA|TLS)(?:\s|$)/;
 /** Lines that end an ORIGIN sequence block early. */
@@ -98,6 +105,20 @@ const isTerminator = (line: string): boolean => line === '//';
 function hasLine(lines: readonly string[], start: number, end: number, pattern: RegExp): boolean {
   for (let k = start; k < end; k++) if (pattern.test(lines[k])) return true;
   return false;
+}
+
+/**
+ * Text of the CONTIG section `lines[start, end)` (keyword line, then its continuation lines):
+ * the data after the keyword, then the data of each continuation line from column 13, joined
+ * without separators like Biopython 1.88 (`GenBankScanner._feed_misc_lines`).
+ */
+function readContig(lines: readonly string[], start: number, end: number): string {
+  let text = lines[start].slice('CONTIG'.length).trim();
+  for (let k = start + 1; k < end; k++) {
+    const line = lines[k];
+    if (line !== '') text += indentation(line) >= 12 ? line.slice(12) : line.trim();
+  }
+  return text;
 }
 
 /**
@@ -115,17 +136,22 @@ const MAX_PLACEHOLDER_LENGTH = 2 ** 28;
  * Accepted: \n, \r\n and \r line endings, UTF-8 byte-order marks (also before later records, as
  * in concatenated files), tabs, trailing blanks, slightly wrong indentation, a missing '//'
  * terminator, a missing ORIGIN (the sequence becomes N, or X for proteins, with the LOCUS
- * length), CONTIG-only records (same placeholder), multi-record files. Any number of lines,
- * features and warnings per record. Sequence lines whose ORIGIN keyword line is missing are
- * still read as the sequence (with a warning) when their numbering shows a complete block
- * (from base 1, each line continuing the previous one).
+ * length), CONTIG-only records (same placeholder, CONTIG text kept), multi-record files. Any
+ * number of lines, features and warnings per record. Sequence lines whose ORIGIN keyword line is
+ * missing are still read as the sequence (with a warning) when their numbering shows a complete
+ * block (from base 1, each line continuing the previous one). Stray lines starting in column 1
+ * inside the feature table are skipped with a warning (or read as the rest of a value broken by
+ * a raw line break) and never hide the features after them; a feature key line that starts in
+ * column 1 (a known INSDC key followed by its location, or the standard layout without its
+ * indent) is read as a new feature, with a warning, so that its qualifiers are never attached
+ * to the previous feature.
  *
  * Record fields: `name` = LOCUS name; `description` = DEFINITION without its final period;
  * `seq` upper-case (U -> T for DNA, U kept for RNA, 'aa' records are proteins); topology
  * 'linear' when the LOCUS line has none. `meta`: accession, version, keywords (without final
  * period), source, organism, date, division, comments (one entry per COMMENT block),
- * extraHeaderLines (REFERENCE, DBLINK, ... verbatim), extras (LOCUS molecule token and
- * taxonomy lineage, see `GENBANK_EXTRA_KEYS`), sourceFormat 'genbank'.
+ * extraHeaderLines (REFERENCE, DBLINK, ... verbatim), extras (LOCUS molecule token, taxonomy
+ * lineage and CONTIG text, see `GENBANK_EXTRA_KEYS`), sourceFormat 'genbank'.
  * Features: 0-based half-open segments in top-strand order; name = featureLabel(); ApE colour
  * qualifiers become `color` / `reverseColor`; protein features get strand 0.
  */
@@ -208,11 +234,11 @@ function readRecord(lines: readonly string[], start: number, end: number, warn: 
   while (i < bodyEnd && !HEADER_END.test(lines[i])) i++;
   const header = readHeader(lines, start + 1, i, warn);
 
-  // Feature table: every indented (or blank) line after FEATURES.
+  // Feature table: every line after FEATURES up to the next section (ORIGIN, CONTIG, ...).
   let rawFeatures: RawFeature[] = [];
   if (i < bodyEnd && FEATURES_LINE.test(lines[i])) {
     const tableStart = ++i;
-    while (i < bodyEnd && (lines[i] === '' || lines[i].charCodeAt(0) === 32)) i++;
+    while (i < bodyEnd && !FEATURE_TABLE_END.test(lines[i])) i++;
     rawFeatures = readFeatureTable(lines, tableStart, i, warn);
   }
 
@@ -228,6 +254,7 @@ function readRecord(lines: readonly string[], start: number, end: number, warn: 
   };
   let sawOrigin = false;
   let sawContig = false;
+  let contig: string | undefined;
   while (i < bodyEnd) {
     const line = lines[i];
     if (line === '') {
@@ -236,11 +263,18 @@ function readRecord(lines: readonly string[], start: number, end: number, warn: 
       sawOrigin = true;
       for (i++; i < bodyEnd && !SEQUENCE_END.test(lines[i]); i++) readSequenceLine(i);
     } else {
-      // CONTIG, BASE COUNT, WGS, ... or an unexpected section: skip it with its continuation lines.
-      if (CONTIG_LINE.test(line)) sawContig = true;
-      else if (!IGNORED_SECTION.test(line)) warn(`unexpected line '${line.slice(0, 40)}' ignored`, i + 1);
+      // CONTIG (kept), BASE COUNT, WGS, ... or an unexpected section (skipped), with its
+      // continuation lines.
+      const sectionStart = i;
       i++;
       while (i < bodyEnd && (lines[i] === '' || lines[i].charCodeAt(0) === 32)) i++;
+      if (CONTIG_LINE.test(line)) {
+        sawContig = true;
+        if (contig === undefined) contig = readContig(lines, sectionStart, i);
+        else warn('repeated CONTIG section ignored', sectionStart + 1);
+      } else if (!IGNORED_SECTION.test(line)) {
+        warn(`unexpected line '${line.slice(0, 40)}' ignored`, sectionStart + 1);
+      }
     }
   }
   if (unlabelled !== undefined) {
@@ -311,6 +345,7 @@ function readRecord(lines: readonly string[], start: number, end: number, warn: 
   const extras: Record<string, string> = {};
   if (fields.moleculeToken !== undefined) extras[GENBANK_EXTRA_KEYS.moleculeType] = fields.moleculeToken;
   if (header.taxonomy !== undefined) extras[GENBANK_EXTRA_KEYS.taxonomy] = header.taxonomy;
+  if (contig !== undefined && contig !== '') extras[GENBANK_EXTRA_KEYS.contig] = contig;
   if (Object.keys(extras).length > 0) meta.extras = extras;
 
   return makeRecord({
@@ -357,6 +392,15 @@ function buildFeature(raw: RawFeature, seqLength: number, topology: Topology, mo
 // Writing
 // ---------------------------------------------------------------------------
 
+/**
+ * True when the sequence consists only of the letter the reader uses as placeholder for a
+ * record without sequence data (N for nucleotides, X for proteins), or is empty: writing the
+ * CONTIG section instead of it loses nothing, since reading it back gives the same placeholder.
+ */
+function isPlaceholderSequence(record: SeqRecord): boolean {
+  return (record.molecule === 'protein' ? /^X*$/ : /^N*$/).test(record.seq);
+}
+
 /** LOCUS molecule token: the original one when it still matches the record's molecule type. */
 function locusMoleculeToken(record: SeqRecord): string {
   if (record.molecule === 'protein') return '';
@@ -377,9 +421,11 @@ function locusMoleculeToken(record: SeqRecord): string {
  * then FEATURES: locations from `formatLocation` wrapped after commas, qualifiers wrapped at
  * column 79 without breaking words, a /label carrying `feature.name` when it differs from the
  * label derived from the qualifiers, ApE colour qualifiers (see {@link GenbankWriteOptions}).
- * ORIGIN: 60 lower-case residues per line in blocks of 10. Sticky ends (`record.ends`) and
- * primers cannot be represented in GenBank and are not written; features without segments
- * are skipped.
+ * ORIGIN: 60 lower-case residues per line in blocks of 10. A record read from a CONTIG entry
+ * (`GENBANK_EXTRA_KEYS.contig`) gets its CONTIG section back, wrapped after commas, instead of
+ * an ORIGIN section while its sequence is only the N (protein: X) placeholder, as Biopython
+ * writes it; before the ORIGIN section otherwise. Sticky ends (`record.ends`) and primers cannot
+ * be represented in GenBank and are not written; features without segments are skipped.
  */
 export function writeGenbank(record: SeqRecord, options: GenbankWriteOptions = {}): string {
   const length = record.seq.length;
@@ -403,7 +449,9 @@ export function writeGenbank(record: SeqRecord, options: GenbankWriteOptions = {
   out.push('FEATURES             Location/Qualifiers');
   const featureOptions = { colorQualifiers: options.colorQualifiers !== false, protein };
   for (const feature of record.features) appendAll(out, formatFeature(feature, length, record.topology, featureOptions));
-  appendAll(out, formatOrigin(record.seq));
+  const contig = record.meta.extras?.[GENBANK_EXTRA_KEYS.contig]?.trim();
+  if (contig) appendAll(out, formatContig(contig));
+  if (!contig || !isPlaceholderSequence(record)) appendAll(out, formatOrigin(record.seq));
   out.push('//');
   return out.join('\n') + '\n';
 }

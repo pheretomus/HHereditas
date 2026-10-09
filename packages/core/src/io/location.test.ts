@@ -205,8 +205,12 @@ const CASES: Case[] = [
   { text: '1..100', L: 100, topology: 'circular', segments: [seg(0, 100)] },
   { text: '51..50', L: 100, topology: 'circular', segments: [seg(50, 150)], formatted: 'join(51..100,1..50)' },
   { text: '100..1', L: 100, topology: 'circular', segments: [seg(99, 101)], formatted: 'join(100,1)' },
-  { text: '90..120', L: 100, topology: 'circular', segments: [seg(89, 120)], warnings: 1, formatted: 'join(90..100,1..20)' },
-  { text: '90..250', L: 100, topology: 'circular', segments: [seg(89, 189)], warnings: 1, formatted: 'join(90..100,1..89)' },
+  // positions after base L are clamped on circular molecules too (spec: "clamp or drop"); only
+  // s > e and joins over the origin wrap (review finding: '90..120' used to gain bases 1..20)
+  { text: '90..120', L: 100, topology: 'circular', segments: [seg(89, 100)], partialEnd: true, warnings: 1, formatted: '90..>100' },
+  { text: '90..250', L: 100, topology: 'circular', segments: [seg(89, 100)], partialEnd: true, warnings: 1, formatted: '90..>100' },
+  { text: '-5..120', L: 100, topology: 'circular', segments: [seg(0, 100)], partialStart: true, partialEnd: true, warnings: 2, formatted: '<1..>100' },
+  { text: 'complement(95..103)', L: 100, topology: 'circular', segments: [seg(94, 100)], strand: -1, partialEnd: true, warnings: 1, formatted: 'complement(95..>100)' },
   // linear molecules: start > end is read as a join over the ends, out-of-range positions clamp
   { text: '91..10', L: 100, segments: [seg(90, 100), seg(0, 10)], warnings: 1, formatted: 'join(91..100,1..10)' },
   { text: '>91..10', L: 100, segments: [seg(90, 100), seg(0, 10)], partialStart: true, warnings: 2, formatted: 'join(<91..100,1..10)' },
@@ -276,6 +280,50 @@ describe('parseLocation: review regressions', () => {
     for (const text of ['<5..10', '1..>9', '<5..>9', '<5', '>5', 'complement(<3..>12)']) {
       expect(ok(parseLocation(text, 20, 'linear')).warnings).toEqual([]);
     }
+  });
+
+  it('clamps a span ending after base L on a circular molecule instead of wrapping it', () => {
+    // Biopython 1.88 keeps [89:120] and extracts only the 11 existing bases; wrapping added
+    // bases 1..20 from the other side of the origin to the feature.
+    const circular = ok(parseLocation('90..120', 100, 'circular'));
+    expect(circular).toEqual({
+      ok: true,
+      strand: 1,
+      segments: [seg(89, 100)],
+      partialStart: false,
+      partialEnd: true,
+      warnings: ["'90..120' ends after the last base (100): clamped to 100 and marked partial"],
+    });
+    expect(ok(parseLocation('90..120', 100, 'linear'))).toEqual(circular);
+    // origin-spanning forms still wrap
+    expect(ok(parseLocation('90..20', 100, 'circular')).segments).toEqual([seg(89, 120)]);
+    expect(ok(parseLocation('join(90..100,1..20)', 100, 'circular')).segments).toEqual([seg(89, 120)]);
+    // the clamped junction of a join over the origin is an inner boundary: merged, with warnings
+    const joined = ok(parseLocation('join(90..105,1..20)', 100, 'circular'));
+    expect(joined.segments).toEqual([seg(89, 120)]);
+    expect(joined.partialEnd).toBe(false);
+    expect(joined.warnings).toEqual([
+      "'90..105' ends after the last base (100): clamped to 100 and marked partial",
+      'fuzzy boundary inside a multi-part location cannot be stored and was ignored',
+    ]);
+  });
+
+  it('never produces NaN coordinates for a length that is not a finite number >= 0', () => {
+    // e.g. a UI passing `record?.seq.length` while no record is loaded
+    const unusable = [NaN, undefined as unknown as number, null as unknown as number, Infinity, -Infinity, -1, '12' as unknown as number];
+    for (const L of unusable) {
+      for (const topology of ['linear', 'circular'] as const) {
+        for (const text of ['20..5', '1..10', 'complement(join(1..2,5^6))']) {
+          const r = parseLocation(text, L, topology);
+          expect(r, `${text} L=${String(L)}`).toEqual({ ok: false, error: `invalid sequence length ${String(L)}: expected a finite number >= 0` });
+        }
+        expect(formatLocation({ strand: -1, segments: [seg(3, 9)] }, L, topology)).toBe('');
+        expect(formatLocation({ strand: 1, segments: [seg(5, 5)] }, L, topology)).toBe('');
+      }
+    }
+    // a fractional length is truncated to whole bases, as before
+    expect(ok(parseLocation('1..10', 10.9, 'linear')).segments).toEqual([seg(0, 10)]);
+    expect(formatLocation({ strand: 1, segments: [seg(0, 12)] }, 10.9, 'linear')).toBe('1..10');
   });
 });
 

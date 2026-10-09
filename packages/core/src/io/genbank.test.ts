@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Feature, SeqRecord } from '../types';
-import { makeFeature, makeRecord } from '../seq/features';
+import { featureSequence, makeFeature, makeRecord } from '../seq/features';
 import { GENBANK_EXTRA_KEYS, parseGenbank, writeGenbank } from './genbank';
 import { normalizeColor } from './genbank-colors';
 import { formatQualifier, wrapLocation } from './genbank-features';
@@ -199,6 +199,57 @@ describe('parseGenbank: files and records', () => {
     expect(protein.record.seq).toBe('XXXXX');
   });
 
+  it('keeps the CONTIG section and writes it back instead of the N placeholder (review finding)', () => {
+    // The CONTIG line used to be dropped and the placeholder written as an ORIGIN of 'n': after one
+    // save it could not be told from real sequence. Biopython 1.88 keeps annotations['contig'] and
+    // writes the CONTIG line without any ORIGIN (InsdcIO._write_sequence).
+    const placeholderWarning = (n: number) => ({
+      message: `CONTIG record: its sequence is assembled from other entries and is not in this file; the sequence was filled with ${n} N (LOCUS length)`,
+      line: 1,
+      recordIndex: 0,
+    });
+    const strip = (x: SeqRecord) => ({ ...x, id: '', features: x.features.map((f) => ({ ...f, id: '' })) });
+    const first = parseGenbank(fixture('DS830848.gb'));
+    const record = first.records[0];
+    expect(record.meta.extras?.[GENBANK_EXTRA_KEYS.contig]).toBe('join(ABJB010667125.1:1..1311)');
+    expect(first.warnings).toEqual([placeholderWarning(1311)]);
+    const written = write(record);
+    expect(written).toContain('\nCONTIG      join(ABJB010667125.1:1..1311)\n//\n');
+    expect(written).not.toMatch(/^ORIGIN|nnnnnnnnnn/m);
+    const again = parseGenbank(written);
+    expect(again.warnings).toEqual([placeholderWarning(1311)]);
+    expect(strip(again.records[0])).toEqual(strip(record));
+
+    // a CONTIG section over several lines is joined without separators (Biopython's annotation)
+    // and written back wrapped after commas within 80 columns
+    const contigLines = [
+      'CONTIG      join(AAAA01000001.1:1..1000,gap(100),AAAA01000002.1:1..2000,',
+      '            gap(unk100),complement(AAAA01000003.1:1..1500))',
+    ];
+    const locus = 'LOCUS       CH000001                4700 bp    DNA     linear   CON 01-JAN-2020';
+    const multi = one(gb(locus, 'FEATURES             Location/Qualifiers', '     source          1..4700', ...contigLines, '//'));
+    expect(multi.warnings).toEqual([placeholderWarning(4700)]);
+    const contig = 'join(AAAA01000001.1:1..1000,gap(100),AAAA01000002.1:1..2000,gap(unk100),complement(AAAA01000003.1:1..1500))';
+    expect(multi.record.meta.extras?.[GENBANK_EXTRA_KEYS.contig]).toBe(contig);
+    expect(write(multi.record)).toContain(['     source          1..4700', ...contigLines, '//', ''].join('\n'));
+
+    // once the sequence holds real residues, it is written in ORIGIN, after the CONTIG section
+    const edited = { ...multi.record, seq: 'ACGT' + multi.record.seq.slice(4) };
+    const text = write(edited);
+    expect(text).toContain([...contigLines, 'ORIGIN', '        1 acgtnnnnnn'].join('\n'));
+    const back = one(text);
+    expect(back.warnings).toEqual([]);
+    expect(strip(back.record)).toEqual(strip(edited));
+
+    // a second CONTIG section is reported, the first one is kept
+    const twice = one(gb(locus, ...contigLines, 'CONTIG      join(X:1..4700)', '//'));
+    expect(twice.record.meta.extras?.[GENBANK_EXTRA_KEYS.contig]).toBe(contig);
+    expect(twice.warnings.map((w) => [w.line, w.message])).toEqual([
+      [1, placeholderWarning(4700).message],
+      [4, 'repeated CONTIG section ignored'],
+    ]);
+  });
+
   it('does not try to build a placeholder for an absurd LOCUS length', () => {
     const { record, warnings } = one(gb('LOCUS       big 99999999999 bp DNA linear SYN 01-JAN-2020', 'FEATURES             Location/Qualifiers', '     gene            1..10', '//'));
     expect(record.seq).toBe('');
@@ -358,6 +409,31 @@ describe('parseGenbank: header', () => {
     );
     expect(record.meta.organism).toBe('Influenza A virus (A/swine/Some Very Long Place Name/123456/2009 (H1N1))');
     expect(record.meta.extras?.[GENBANK_EXTRA_KEYS.taxonomy]).toBe('Viruses; Riboviria; Orthornavirae.');
+  });
+
+  it('reads sub-keywords indented by 4 to 11 blanks (review finding)', () => {
+    // Only 0-3 blanks were accepted: an ORGANISM line indented by 4 became a continuation of
+    // SOURCE, and the organism and lineage were lost without a warning. Biopython 1.88 reads the
+    // 4-blank form like this (keyword = line[:12].strip()); beyond that it truncates the keyword.
+    const lineage = '            Bacteria; Pseudomonadota; Gammaproteobacteria.';
+    for (const organismLine of ['    ORGANISM  Escherichia coli', '      ORGANISM Escherichia coli', '           ORGANISM Escherichia coli']) {
+      const { record, warnings } = one(gb(LOCUS, 'SOURCE      Escherichia coli', organismLine, lineage, ...ORIGIN));
+      expect(warnings).toEqual([]);
+      expect(record.meta.source).toBe('Escherichia coli');
+      expect(record.meta.organism).toBe('Escherichia coli');
+      expect(record.meta.extras?.[GENBANK_EXTRA_KEYS.taxonomy]).toBe('Bacteria; Pseudomonadota; Gammaproteobacteria.');
+    }
+    // REFERENCE sub-keywords start their own (verbatim) block too, and the record round-trips
+    const reference = ['REFERENCE   1  (bases 1 to 12)', '    AUTHORS   Doe,J.', '    TITLE     Direct Submission', '            continued title'];
+    const { record } = one(gb(LOCUS, ...reference, 'SOURCE      x', '    ORGANISM  y', ...ORIGIN));
+    expect(record.meta.extraHeaderLines).toEqual(reference);
+    expect(record.meta.organism).toBe('y');
+    const again = one(write(record));
+    expect(again.warnings).toEqual([]);
+    expect({ ...again.record, id: '' }).toEqual({ ...record, id: '', meta: { ...record.meta, date: '01-JAN-2020' } });
+    // a continuation line is still one when its first word is not a sub-keyword, or at 12 blanks
+    const definition = one(gb(LOCUS, 'DEFINITION  Synthetic', '      DNA construct', '            ORGANISM-like text.', ...ORIGIN));
+    expect(definition.record.description).toBe('Synthetic DNA construct ORGANISM-like text');
   });
 
   it('keeps COMMENT blocks with their line structure', () => {
@@ -533,6 +609,32 @@ describe('parseGenbank: features', () => {
     expect(fuzzy.partialEnd).toBeUndefined();
   });
 
+  it('clamps a feature running past the end of a circular record instead of wrapping it (review finding)', () => {
+    // A circular record truncated before its LOCUS length: the feature used to wrap over the
+    // origin and gain bases 1..20 (31 bases instead of the 11 that exist).
+    const r = parseGenbank(
+      gb(
+        'LOCUS       ptrunc                   120 bp    DNA     circular SYN 01-JAN-2020',
+        'FEATURES             Location/Qualifiers',
+        '     misc_feature    90..120',
+        '                     /label="tail"',
+        'ORIGIN',
+        '        1 aaaaaaaaaa aaaaaaaaaa cccccccccc cccccccccc cccccccccc cccccccccc',
+        '       61 cccccccccc cccccccccc cccccccccc gggggggggg',
+        '//',
+      ),
+    );
+    const record = r.records[0];
+    const f = record.features[0];
+    expect(f).toMatchObject({ name: 'tail', segments: [{ start: 89, end: 100 }], partialEnd: true });
+    // Biopython 1.88 on the same file: location [89:120](+), f.extract(seq) == 'CGGGGGGGGGG'
+    expect(featureSequence(f, record.seq)).toBe('CGGGGGGGGGG');
+    expect(r.warnings.map((w) => [w.line, w.message])).toEqual([
+      [1, 'LOCUS declares 120 bp but the sequence has 100; the sequence is used'],
+      [3, "feature 'misc_feature': '90..120' ends after the last base (100): clamped to 100 and marked partial"],
+    ]);
+  });
+
   it('gives protein features strand 0', () => {
     const r = parseGenbank(fixture('dbsource_wrap.gb')).records[0];
     expect(r.features.every((f) => f.strand === 0)).toBe(true);
@@ -552,6 +654,199 @@ describe('parseGenbank: features', () => {
     expect(record.features.map((f) => f.type)).toEqual(['gene']);
     expect(warnings.map((w) => w.line)).toEqual([3, 4, 5]);
     expect(warnings.every((w) => /skipped/.test(w.message))).toBe(true);
+  });
+
+  it('ignores a stray unindented line in the feature table and keeps every later feature (review finding)', () => {
+    // The first line not starting with a blank used to end the feature table: every later
+    // feature was dropped with only "unexpected line ... ignored". Biopython 1.88 keeps them all.
+    const { record, warnings } = featuresOf(
+      '     gene            1..4',
+      '                     /gene="abc"',
+      'stray text',
+      '     gene            5..8',
+      '                     /gene="def"',
+      '     CDS             9..12',
+      'x',
+      '                     /gene="ghi"',
+      'FEATURES             Location/Qualifiers',
+      '     misc_feature    2..3',
+    );
+    expect(record.features.map((f) => [f.type, f.name, f.qualifiers.length])).toEqual([
+      ['gene', 'abc', 1],
+      ['gene', 'def', 1],
+      ['CDS', 'ghi', 1],
+      ['misc_feature', 'misc_feature', 0],
+    ]);
+    expect(warnings.map((w) => [w.line, w.message])).toEqual([
+      [5, "unindented line 'stray text' in the feature table was ignored"],
+      [9, "unindented line 'x' in the feature table was ignored"],
+      [11, "unindented line 'FEATURES             Location/Qualifiers' in the feature table was ignored"],
+    ]);
+    // reviewer repro on a real file: one stray line early in pBR322's table (Biopython: 50 features)
+    const lines = fixture('pBR322_J01749.gb').split('\n');
+    lines.splice(232, 0, 'x');
+    const r = parseGenbank(lines.join('\n'));
+    const strip = (x: SeqRecord) => ({ ...x, id: '', features: x.features.map((f) => ({ ...f, id: '' })) });
+    expect(r.records[0].features).toHaveLength(50);
+    expect(strip(r.records[0])).toEqual(strip(parseGenbank(fixture('pBR322_J01749.gb')).records[0]));
+    expect(r.warnings).toEqual([{ message: "unindented line 'x' in the feature table was ignored", line: 233, recordIndex: 0 }]);
+  });
+
+  it('reads an unindented line inside an open quoted value or location as its continuation (review finding)', () => {
+    // A raw line break inside a value (exporter bug) puts the rest of the value in column 1.
+    const { record, warnings } = featuresOf(
+      '     CDS             join(1..4,',
+      '9..12)',
+      '                     /note="long note',
+      'broken here"',
+      '                     /gene="x"',
+      'trailing words',
+      '     gene            5..8',
+      '/gene="y"',
+    );
+    expect(record.features.map((f) => [f.type, f.segments, f.qualifiers])).toEqual([
+      [
+        'CDS',
+        [
+          { start: 0, end: 4 },
+          { start: 8, end: 12 },
+        ],
+        [
+          { key: 'note', value: 'long note broken here' },
+          { key: 'gene', value: 'x' },
+        ],
+      ],
+      // a qualifier written in column 1 is still a qualifier line
+      ['gene', [{ start: 4, end: 8 }], [{ key: 'gene', value: 'y' }]],
+    ]);
+    expect(warnings.map((w) => [w.line, w.message])).toEqual([
+      [4, "unindented line '9..12)' read as part of the location of feature 'CDS'"],
+      [6, "unindented line 'broken here\"' read as part of the quoted value of /note"],
+      [8, "unindented line 'trailing words' in the feature table was ignored"],
+    ]);
+    // before the first feature key, an unindented line is ignored the same way
+    const early = featuresOf('junk', '     gene            1..4');
+    expect(early.record.features.map((f) => f.type)).toEqual(['gene']);
+    expect(early.warnings).toEqual([{ message: "unindented line 'junk' in the feature table was ignored", line: 3, recordIndex: 0 }]);
+    // inside an unfinished location, only location text is read; a stray line is skipped
+    const inLocation = featuresOf('     CDS             join(1..4,', 'x', '                     9..12)', 'stray words', '                     /gene="g"');
+    expect(inLocation.record.features.map((f) => [f.segments, f.qualifiers])).toEqual([
+      [
+        [
+          { start: 0, end: 4 },
+          { start: 8, end: 12 },
+        ],
+        [{ key: 'gene', value: 'g' }],
+      ],
+    ]);
+    expect(inLocation.warnings.map((w) => [w.line, w.message])).toEqual([
+      [4, "unindented line 'x' in the feature table was ignored"],
+      [6, "unindented line 'stray words' in the feature table was ignored"],
+    ]);
+  });
+
+  it('reads a feature key line written in column 1 as a new feature, never as part of the previous one (verifier finding)', () => {
+    // The line used to be ignored and the qualifiers after it were attached to the PREVIOUS
+    // feature: the rep_origin below came back named 'bla' with /product="beta-lactamase", a
+    // silent misannotation of another region. Biopython 1.88 drops such a feature (or fails).
+    const { record, warnings } = featuresOf(
+      '     rep_origin      1..4',
+      'CDS             5..12', // the standard layout without its 5-blank indent
+      '                     /gene="bla"',
+      '                     /product="beta-lactamase"',
+      '     misc_feature    1..4',
+      '                     /note="first"',
+      'promoter 5..8', // hand-typed: a known INSDC key (merged into regulatory in 2014) and a location
+      '                     /label="lac promoter"',
+      'my_custom_type  join(1..2,', // an unknown key in the standard layout; the location goes on
+      '                     4..5)',
+      '                     /label="custom"',
+      'terminator', // a known key alone, its location on the next line
+      '                     9..12',
+      '                     /label="rrnB T1"',
+    );
+    expect(record.features.map((f) => [f.type, f.name, f.segments, f.qualifiers.map((q) => q.key)])).toEqual([
+      ['rep_origin', 'rep_origin', [{ start: 0, end: 4 }], []],
+      ['CDS', 'bla', [{ start: 4, end: 12 }], ['gene', 'product']],
+      ['misc_feature', 'first', [{ start: 0, end: 4 }], ['note']],
+      ['promoter', 'lac promoter', [{ start: 4, end: 8 }], ['label']],
+      [
+        'my_custom_type',
+        'custom',
+        [
+          { start: 0, end: 2 },
+          { start: 3, end: 5 },
+        ],
+        ['label'],
+      ],
+      ['terminator', 'rrnB T1', [{ start: 8, end: 12 }], ['label']],
+    ]);
+    const moved = (line: number, text: string) => [line, `feature key line '${text}' starts in column 1 instead of column 6: read as a new feature`];
+    expect(warnings.map((w) => [w.line, w.message])).toEqual([
+      moved(4, 'CDS             5..12'),
+      moved(9, 'promoter 5..8'),
+      moved(11, 'my_custom_type  join(1..2,'),
+      moved(14, 'terminator'),
+    ]);
+    // the record is written back in the standard layout and reads back without warnings
+    const back = parseGenbank(writeGenbank(record, { date: '01-JAN-2020' }));
+    expect(back.warnings).toEqual([]);
+    expect(back.records[0].features.map((f) => [f.type, f.name, f.segments])).toEqual(record.features.map((f) => [f.type, f.name, f.segments]));
+
+    // Unchanged: free text, a key word without a location, text inside an open quoted value,
+    // and a lone key word inside an unfinished location are not key lines.
+    const kept = featuresOf(
+      '     misc_feature    1..4',
+      'Figure 3', // two words, but no known key and not the key-line layout
+      '                     /note="a"',
+      'gene', // a known key alone, but no location line follows
+      '                     /note="b',
+      'promoter        5..8',
+      '                     c"',
+      '     CDS             join(1..4,',
+      'CDS',
+      '                     9..12)',
+    );
+    expect(kept.record.features.map((f) => [f.type, f.segments, f.qualifiers])).toEqual([
+      [
+        'misc_feature',
+        [{ start: 0, end: 4 }],
+        [
+          { key: 'note', value: 'a' },
+          { key: 'note', value: 'b promoter        5..8 c' },
+        ],
+      ],
+      [
+        'CDS',
+        [
+          { start: 0, end: 4 },
+          { start: 8, end: 12 },
+        ],
+        [],
+      ],
+    ]);
+    expect(kept.warnings.map((w) => [w.line, w.message])).toEqual([
+      [4, "unindented line 'Figure 3' in the feature table was ignored"],
+      [6, "unindented line 'gene' in the feature table was ignored"],
+      [8, "unindented line 'promoter        5..8' read as part of the quoted value of /note"],
+      [11, "unindented line 'CDS' in the feature table was ignored"],
+    ]);
+
+    // a key line in column 1 can also be the first line of the table
+    const first = featuresOf('gene            1..4', '                     /gene="g"');
+    expect(first.record.features.map((f) => [f.type, f.name, f.segments])).toEqual([['gene', 'g', [{ start: 0, end: 4 }]]]);
+    expect(first.warnings.map((w) => w.line)).toEqual([3]);
+  });
+
+  it('reads a feature table whose FEATURES keyword is indented by 1 to 3 blanks', () => {
+    // It used to be "misplaced FEATURES line in the header ignored", dropping every feature.
+    const original = parseGenbank(fixture('pBR322_J01749.gb')).records[0];
+    const strip = (x: SeqRecord) => ({ ...x, id: '', features: x.features.map((f) => ({ ...f, id: '' })) });
+    for (const indent of [' ', '   ']) {
+      const r = parseGenbank(fixture('pBR322_J01749.gb').replace(/^FEATURES/m, indent + 'FEATURES'));
+      expect(r.warnings).toEqual([]);
+      expect(strip(r.records[0])).toEqual(strip(original));
+    }
   });
 
   it('keeps a feature whose key line has no location by reading the next line', () => {
@@ -801,6 +1096,37 @@ describe('writeGenbank: features', () => {
     expect(long).toEqual([' '.repeat(21) + `/note="${'x'.repeat(100)}"`]);
   });
 
+  it('never ends a /translation line with a double quote, so escaped "" pairs survive (review finding)', () => {
+    // A cut between the two quotes of an escaped "" pair ended the line with '"' at an even quote
+    // count: our reader and Biopython then closed the value there and read the quote back doubled.
+    const translation = (value: string) =>
+      makeRecord({
+        name: 't',
+        seq: 'ACGT'.repeat(10),
+        features: [makeFeature({ type: 'CDS', segments: [{ start: 0, end: 12 }], qualifiers: [{ key: 'translation', value }] })],
+      });
+    const reviewer = 'M'.repeat(43) + '"' + 'K'.repeat(10);
+    const back = parseGenbank(write(translation(reviewer)));
+    expect(back.warnings).toEqual([]);
+    expect(back.records[0].features[0].qualifiers).toEqual([{ key: 'translation', value: reviewer }]);
+    // the quote(s) at every position around the first two cuts
+    for (let at = 30; at < 130; at++) {
+      for (const quotes of ['"', '""', '"""']) {
+        const value = 'M'.repeat(at) + quotes + 'K'.repeat(20);
+        const lines = formatQualifier('translation', value);
+        for (const l of lines.slice(0, -1)) expect(l.endsWith('"'), l).toBe(false);
+        for (const l of lines) expect(l.length).toBeLessThanOrEqual(79);
+        const r = parseGenbank(write(translation(value)));
+        expect(r.warnings).toEqual([]);
+        expect(r.records[0].features[0].qualifiers[0].value).toBe(value);
+      }
+    }
+    // a value made of quotes only cannot be broken anywhere: one long line, still read back
+    const onlyQuotes = '"'.repeat(60);
+    expect(formatQualifier('translation', onlyQuotes)).toEqual([' '.repeat(21) + `/translation="${'"'.repeat(120)}"`]);
+    expect(parseGenbank(write(translation(onlyQuotes))).records[0].features[0].qualifiers[0].value).toBe(onlyQuotes);
+  });
+
   it('escapes quotes, leaves numeric qualifiers unquoted and writes value-less qualifiers', () => {
     expect(formatQualifier('note', 'say "hi"')).toEqual([' '.repeat(21) + '/note="say ""hi"""']);
     expect(formatQualifier('codon_start', '1')).toEqual([' '.repeat(21) + '/codon_start=1']);
@@ -972,6 +1298,57 @@ describe('robustness: never throws, always returns valid records', () => {
       }
       checkInvariants(lines.join('\n'));
     }
+  });
+
+  it('never loses a feature to a stray unindented line inserted in a feature table (300 seeded cases)', () => {
+    // Review finding: one stray line used to end the table. Inside an open quoted value the line
+    // is read as part of the value (a raw line break looks the same); everything else is kept.
+    const next = rng(2026);
+    const tables = sources.flatMap((text) => {
+      const lines = text.split(/\r\n|\r|\n/);
+      const original = parseGenbank(text).records;
+      return lines.flatMap((l, s) => {
+        if (!/^FEATURES/.test(l)) return [];
+        let e = s + 1;
+        while (e < lines.length && !/^(?:ORIGIN|CONTIG|BASE COUNT|\/\/|LOCUS)/.test(lines[e])) e++;
+        return [{ lines, original, first: s + 1, last: e }];
+      });
+    });
+    for (let iter = 0; iter < 300; iter++) {
+      const t = tables[Math.floor(next() * tables.length)];
+      const at = t.first + Math.floor(next() * (t.last - t.first + 1));
+      const stray = next() < 0.5 ? 'x' : 'stray text written in column one by mistake';
+      const lines = [...t.lines];
+      lines.splice(at, 0, stray);
+      const r = parseGenbank(lines.join('\n'));
+      const shape = (records: SeqRecord[]) => records.map((rec) => rec.features.map((f) => [f.type, f.strand, f.segments, f.qualifiers.length]));
+      expect(shape(r.records), `${stray} at line ${at + 1}`).toEqual(shape(t.original));
+      expect(r.warnings.filter((w) => /unindented line/.test(w.message)).map((w) => w.line)).toEqual([at + 1]);
+    }
+  });
+
+  it('reads every feature key line of every fixture moved to column 1 like the original, with one warning (verifier finding)', () => {
+    // Before, the moved line was ignored and the qualifiers after it went to the previous feature.
+    const shape = (records: SeqRecord[]) =>
+      records.map((rec) => rec.features.map((f) => [f.type, f.name, f.strand, f.segments, f.qualifiers, f.partialStart, f.partialEnd, f.color]));
+    let cases = 0;
+    for (const text of sources) {
+      const lines = text.split(/\r\n|\r|\n/);
+      const original = parseGenbank(text);
+      let inTable = false;
+      lines.forEach((l, i) => {
+        if (/^(?:FEATURES|ORIGIN|CONTIG|BASE COUNT|\/\/|LOCUS)/.test(l)) inTable = l.startsWith('FEATURES');
+        if (!inTable || !/^ {5}\S/.test(l)) return;
+        cases++;
+        const moved = [...lines];
+        moved[i] = l.trimStart();
+        const r = parseGenbank(moved.join('\n'));
+        expect(shape(r.records), moved[i]).toEqual(shape(original.records));
+        expect(r.warnings.length, moved[i]).toBe(original.warnings.length + 1);
+        expect(r.warnings.filter((w) => /starts in column 1 instead of column 6/.test(w.message)).map((w) => w.line)).toEqual([i + 1]);
+      });
+    }
+    expect(cases).toBeGreaterThan(300);
   });
 
   it('survives random bytes and truncations', () => {

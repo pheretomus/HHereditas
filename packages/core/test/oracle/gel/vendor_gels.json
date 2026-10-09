@@ -1,15 +1,79 @@
 {
  "calibration": {
-  "fitted": {
-   "pooledRms": 0.018902530863895782,
-   "shapeExponent": 1.1189240618397873,
-   "smallDnaPosition": 0.902440202771756
+  "holdout": {
+   "agreement": {
+    "neb-n3236-3pct-tbe": {
+     "maxAbs": 0.021042426468913595,
+     "mode": "affine",
+     "rms": 0.007499567870351257
+    },
+    "thermo-sm0371-2.5pct-tbe": {
+     "maxAbs": 0.021653645435719175,
+     "mode": "affine",
+     "rms": 0.013285176176596098
+    },
+    "thermo-sm1191-3pct-tbe": {
+     "maxAbs": 0.04781753895656627,
+     "mode": "absolute",
+     "rms": 0.020831976428910614
+    }
+   },
+   "fitted": {
+    "pooledRms": 0.01455439780309948,
+    "tbeHighShapeExponent": 1.1124164672362626,
+    "tbeHighSmallDnaPosition": 0.8622958131740674
+   },
+   "ids": [
+    "thermo-sm1191-3pct-tbe",
+    "thermo-sm0371-2.5pct-tbe",
+    "neb-n3236-3pct-tbe"
+   ]
   },
-  "used": {
-   "pooledRms": 0.018948093004228037,
-   "shapeExponent": 1.12,
-   "smallDnaPosition": 0.9
-  }
+  "model": "TAE: (shapeExponent, smallDnaPosition); TBE: those values up to 1.0 %, (tbeHighShapeExponent, tbeHighSmallDnaPosition) from 2.0 %, linear in the agarose % in between",
+  "stage1": {
+   "fitted": {
+    "pooledRms": 0.018902530863895782,
+    "shapeExponent": 1.1189240618397873,
+    "smallDnaPosition": 0.902440202771756
+   },
+   "photos": 17,
+   "used": {
+    "shapeExponent": 1.12,
+    "smallDnaPosition": 0.9
+   }
+  },
+  "stage1Refit": {
+   "adopted": false,
+   "photos": 14,
+   "pooledRms": 0.012860827335306123,
+   "pooledRmsUsed": 0.015507631324047321,
+   "shapeExponent": 1.1758365602376082,
+   "smallDnaPosition": 0.9018144635753063
+  },
+  "stage2": {
+   "constraint": {
+    "minTopPosition": 0.005,
+    "percents": [
+     0.5,
+     3.0
+    ]
+   },
+   "fitted": {
+    "pooledRms": 0.014429122959668547,
+    "tbeHighShapeExponent": 1.129286543509159,
+    "tbeHighSmallDnaPosition": 0.8583143346686946
+   },
+   "used": {
+    "minTop": 0.009737254329213685,
+    "pooledRms": 0.014627563932582186,
+    "tbeHighShapeExponent": 1.13,
+    "tbeHighSmallDnaPosition": 0.86
+   }
+  },
+  "tbeRampPercent": [
+   1.0,
+   2.0
+  ]
  },
  "gels": [
   {
@@ -98,6 +162,12 @@
      534.97
     ]
    ],
+   "bestPossible": {
+    "rms": 0.008549969377609712,
+    "shapeExponent": 1.2150081828533246,
+    "smallDnaPosition": 0.9019089108704861,
+    "topPosition": 0.22675091059561847
+   },
    "buffer": "TAE",
    "buffer_stated": true,
    "conditions": "1% agarose, 1X TAE, 7 V/cm, 45 min, 8 cm gel",
@@ -188,6 +258,12 @@
      479.28
     ]
    ],
+   "bestPossible": {
+    "rms": 0.008656997192201261,
+    "shapeExponent": 1.1213804273096448,
+    "smallDnaPosition": 0.9272904310985635,
+    "topPosition": 0.21109539877535222
+   },
    "buffer": "TAE",
    "buffer_stated": true,
    "conditions": "1% agarose, 1X TAE, 7 V/cm, 45 min, 8 cm gel",
@@ -314,6 +390,12 @@
      525.26
     ]
    ],
+   "bestPossible": {
+    "rms": 0.0034903875261193015,
+    "shapeExponent": 1.080556851273505,
+    "smallDnaPosition": 0.9478916052218482,
+    "topPosition": 0.20974874108699226
+   },
    "buffer": "TAE",
    "buffer_stated": true,
    "conditions": "1% agarose, 1X TAE, 7 V/cm, 45 min, 8 cm gel",
@@ -325,27 +407,27 @@
   },
   {
    "agreement": {
-    "alpha": 748.0386653384971,
-    "beta": -29.557379701819567,
-    "maxAbs": 0.06558380148100741,
+    "alpha": 702.7124377786446,
+    "beta": -12.069069931848533,
+    "maxAbs": 0.025743672687435024,
     "mode": "affine",
     "residuals": [
-     0.059563047399930805,
-     0.04068683325660312,
-     0.02144976120152257,
-     0.002975554906611478,
-     -0.011155017615362302,
-     -0.01763427382522266,
-     -0.024627745657743973,
-     -0.030113954592159722,
-     -0.0332211531893443,
-     -0.03610929547903799,
-     -0.03163640645710267,
-     -0.01840529887428655,
-     0.012644147444578507,
-     0.06558380148100741
+     0.022321904217183847,
+     0.017595367832949082,
+     0.009872604062858427,
+     0.0005558105816113634,
+     -0.006429848233041158,
+     -0.009099057157535836,
+     -0.01224534207738575,
+     -0.014049896684977003,
+     -0.014023327721176516,
+     -0.01504436250184587,
+     -0.011337511457226364,
+     -0.004157420747791367,
+     0.010297407198935694,
+     0.025743672687435024
     ],
-    "rms": 0.033625194962810676
+    "rms": 0.013925076449103116
    },
    "bands": [
     [
@@ -405,6 +487,12 @@
      514.57
     ]
    ],
+   "bestPossible": {
+    "rms": 0.002436451002194408,
+    "shapeExponent": 1.1235688756946831,
+    "smallDnaPosition": 0.8592430544980654,
+    "topPosition": 0.08335432035035462
+   },
    "buffer": "TBE",
    "buffer_stated": true,
    "conditions": "1.7% agarose, 1X TBE, 5 V/cm, 1 h, 8 cm gel",
@@ -476,6 +564,12 @@
      771.55
     ]
    ],
+   "bestPossible": {
+    "rms": 0.003966201806703516,
+    "shapeExponent": 1.1776544316635675,
+    "smallDnaPosition": 0.9532622452808379,
+    "topPosition": 0.2619168223413293
+   },
    "buffer": "TAE",
    "buffer_stated": true,
    "conditions": "0.8% TAE agarose, ethidium bromide",
@@ -592,6 +686,12 @@
      801.13
     ]
    ],
+   "bestPossible": {
+    "rms": 0.006195266529847798,
+    "shapeExponent": 1.1551577092296688,
+    "smallDnaPosition": 0.891134964456849,
+    "topPosition": 0.2300602406827188
+   },
    "buffer": "TBE",
    "buffer_stated": true,
    "conditions": "1.0% TBE agarose, ethidium bromide",
@@ -673,6 +773,12 @@
      610.46
     ]
    ],
+   "bestPossible": {
+    "rms": 0.002514758178939958,
+    "shapeExponent": 1.069805617576713,
+    "smallDnaPosition": 0.8963622332423409,
+    "topPosition": 0.10110615212965646
+   },
    "buffer": "TAE",
    "buffer_stated": true,
    "conditions": "1.3% TAE agarose, ethidium bromide",
@@ -724,6 +830,12 @@
      727.43
     ]
    ],
+   "bestPossible": {
+    "rms": 0.0012653505017160688,
+    "shapeExponent": 1.453549197091395,
+    "smallDnaPosition": 0.8717824505295021,
+    "topPosition": 0.2721594039933759
+   },
    "buffer": "TAE",
    "buffer_stated": false,
    "conditions": "1.0% agarose (buffer not stated), ethidium bromide",
@@ -795,6 +907,12 @@
      249.09
     ]
    ],
+   "bestPossible": {
+    "rms": 0.002362917001867806,
+    "shapeExponent": 1.0950790716580519,
+    "smallDnaPosition": 0.9067298381652111,
+    "topPosition": 0.2201240605471736
+   },
    "buffer": "TBE",
    "buffer_stated": true,
    "conditions": "1.0% TBE agarose, ethidium bromide",
@@ -806,26 +924,26 @@
   },
   {
    "agreement": {
-    "alpha": 448.7969510591976,
-    "beta": -116.78799832480613,
-    "maxAbs": 0.023018950471302244,
+    "alpha": 440.5621947665293,
+    "beta": -115.44874261408512,
+    "maxAbs": 0.012043895675215495,
     "mode": "affine",
     "residuals": [
-     0.014707575892037585,
-     0.023018950471302244,
-     0.008561992863751672,
-     -0.012739231267328932,
-     -0.007185504559228135,
-     -0.008111086347284772,
-     -0.010831600360105229,
-     -0.009314240138453271,
-     -0.01437508006901366,
-     -0.0056587301659985195,
-     0.0007633021601414374,
-     0.006929769823236849,
-     0.014233881696946057
+     -0.0068817358715424935,
+     0.008850871203914087,
+     0.0040368443274547755,
+     -0.01157617482809319,
+     -0.00304457776510069,
+     -0.0010104379877008416,
+     -0.0009547247379220772,
+     0.002860459374699922,
+     -0.0009065478867644592,
+     0.007154792260182594,
+     0.009251948841512878,
+     0.004263178744575187,
+     -0.012043895675215495
     ],
-    "rms": 0.01174456443819815
+    "rms": 0.00677226167238257
    },
    "bands": [
     [
@@ -881,6 +999,12 @@
      232.69
     ]
    ],
+   "bestPossible": {
+    "rms": 0.005048110263637553,
+    "shapeExponent": 0.9988935856504522,
+    "smallDnaPosition": 0.9129888257685768,
+    "topPosition": 0.12983697423922236
+   },
    "buffer": "TBE",
    "buffer_stated": true,
    "conditions": "1.5% TBE agarose, ethidium bromide",
@@ -997,6 +1121,12 @@
      325.77
     ]
    ],
+   "bestPossible": {
+    "rms": 0.0030337213911158685,
+    "shapeExponent": 1.074864154931182,
+    "smallDnaPosition": 0.9238065545111409,
+    "topPosition": 0.22660579168211425
+   },
    "buffer": "TBE",
    "buffer_stated": true,
    "conditions": "1.0% TBE agarose, ethidium bromide",
@@ -1008,30 +1138,30 @@
   },
   {
    "agreement": {
-    "alpha": 410.48061582657294,
-    "beta": -52.49064607060455,
-    "maxAbs": 0.08571727046344428,
+    "alpha": 396.1069544178124,
+    "beta": -46.77867082259803,
+    "maxAbs": 0.01732826332015692,
     "mode": "affine",
     "residuals": [
-     0.08571727046344428,
-     0.02130332235109914,
-     0.01804520741845792,
-     0.007621894203477166,
-     -0.007963720006255996,
-     -0.018068062802700086,
-     -0.03666887393496799,
-     -0.044064936048824506,
-     -0.04699722986707722,
-     -0.03651170285886369,
-     -0.027745011737732316,
-     -0.011198078997815431,
-     -0.006787978788563491,
-     -0.0006617294187965804,
-     0.02111485952972213,
-     0.041067813888926594,
-     0.04179695660646908
+     0.014487933352155775,
+     -0.0015514905873244326,
+     0.0031518480292026816,
+     0.0015021384430115323,
+     -0.004506814510094455,
+     -0.004376023414687956,
+     -0.012536040691980067,
+     -0.01043992134399181,
+     -0.007619396476672761,
+     -0.0018745642206102952,
+     0.00248860310400631,
+     0.012632869499693345,
+     0.008130037746358582,
+     0.0022122525443599886,
+     0.008090488118180984,
+     0.0075363437285445945,
+     -0.01732826332015692
     ],
-    "rms": 0.03449137563110814
+    "rms": 0.00857824753822767
    },
    "bands": [
     [
@@ -1103,6 +1233,12 @@
      286.12
     ]
    ],
+   "bestPossible": {
+    "rms": 0.005385254922229542,
+    "shapeExponent": 1.0148332576175683,
+    "smallDnaPosition": 0.8779989083997572,
+    "topPosition": 0.005000000044217523
+   },
    "buffer": "TBE",
    "buffer_stated": true,
    "conditions": "2.0% TBE agarose, ethidium bromide",
@@ -1174,6 +1310,12 @@
      344.52
     ]
    ],
+   "bestPossible": {
+    "rms": 0.0013385900965181615,
+    "shapeExponent": 1.1197021841985562,
+    "smallDnaPosition": 0.9046818878110361,
+    "topPosition": 0.1849339730798858
+   },
    "buffer": "TAE",
    "buffer_stated": false,
    "conditions": "1% agarose (buffer not stated)",
@@ -1275,6 +1417,12 @@
      653.24
     ]
    ],
+   "bestPossible": {
+    "rms": 0.0017673810429156527,
+    "shapeExponent": 1.128900943428184,
+    "smallDnaPosition": 0.9019701589850835,
+    "topPosition": 0.1863389395307763
+   },
    "buffer": "TAE",
    "buffer_stated": false,
    "conditions": "1% agarose (buffer not stated)",
@@ -1361,6 +1509,12 @@
      647.86
     ]
    ],
+   "bestPossible": {
+    "rms": 0.0026296667673285836,
+    "shapeExponent": 1.108438632780968,
+    "smallDnaPosition": 0.9036032571761319,
+    "topPosition": 0.1768297275723194
+   },
    "buffer": "TAE",
    "buffer_stated": false,
    "conditions": "1% agarose (buffer not stated)",
@@ -1436,6 +1590,12 @@
      874.52
     ]
    ],
+   "bestPossible": {
+    "rms": 0.006385191620660596,
+    "shapeExponent": 1.011788565031415,
+    "smallDnaPosition": 0.915465253246301,
+    "topPosition": 0.00500000002284029
+   },
    "buffer": "TAE",
    "buffer_stated": false,
    "conditions": "2% agarose, 80 V, 3 h (buffer not stated); Promega BenchTop 100bp DNA Ladder G8291",
@@ -1506,6 +1666,12 @@
      903.99
     ]
    ],
+   "bestPossible": {
+    "rms": 0.00512978860575753,
+    "shapeExponent": 0.9353548491273795,
+    "smallDnaPosition": 0.9511791527783924,
+    "topPosition": 0.00500000061482242
+   },
    "buffer": "TAE",
    "buffer_stated": false,
    "conditions": "2% agarose, 80 V, 3 h (buffer not stated); Promega BenchTop phiX174 DNA/HaeIII Markers G7511 (281/271 bp doublet unresolved)",
@@ -1514,6 +1680,286 @@
    "origin": 118.0,
    "pct": 2.0,
    "source": "https://www.promega.com/-/media/files/resources/white-papers/quality-and-stability-of-dna-ladders-shipped-at-ambient-temperature.pdf"
+  },
+  {
+   "agreement": {
+    "maxAbs": 0.048356263641493265,
+    "mode": "absolute",
+    "pixelsPerGelLength": 528.9429904946719,
+    "residuals": [
+     0.023660729804088475,
+     0.01872096849147332,
+     0.016289792065935015,
+     0.01410773933571095,
+     0.01541355127197584,
+     0.014094716610648853,
+     0.01408442154322131,
+     0.007255115919438811,
+     -0.011051380946009753,
+     -0.048356263641493265
+    ],
+    "rms": 0.021265930314416048
+   },
+   "bands": [
+    [
+     700,
+     103.14
+    ],
+    [
+     500,
+     136.24
+    ],
+    [
+     400,
+     160.98
+    ],
+    [
+     300,
+     195.5
+    ],
+    [
+     200,
+     245.28
+    ],
+    [
+     150,
+     281.78
+    ],
+    [
+     100,
+     328.42
+    ],
+    [
+     75,
+     360.65
+    ],
+    [
+     50,
+     403.13
+    ],
+    [
+     25,
+     459.81
+    ]
+   ],
+   "bestPossible": {
+    "rms": 0.020734283992522334,
+    "shapeExponent": 1.083764999350367,
+    "smallDnaPosition": 0.8695811519729233,
+    "topPosition": 0.005000000001744165
+   },
+   "buffer": "TBE",
+   "buffer_stated": true,
+   "conditions": "3% agarose, 1X TBE, 5 V/cm, 1 h, 8 cm gel, 0.5 ug/lane; Thermo Scientific GeneRuler Low Range DNA Ladder (700-25 bp); well visible",
+   "id": "thermo-sm1191-3pct-tbe",
+   "ladder": null,
+   "origin": 16.63,
+   "pct": 3.0,
+   "source": "https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0013037_GeneRuler_LowRange_DNALadder_RTU_UG.pdf"
+  },
+  {
+   "agreement": {
+    "alpha": 580.7797125252902,
+    "beta": 38.81413190233579,
+    "maxAbs": 0.023505236558869703,
+    "mode": "affine",
+    "residuals": [
+     0.023505236558869703,
+     0.01631997411693357,
+     0.008213833728611536,
+     0.0004507277206569362,
+     -0.006610092435094991,
+     -0.013077502874477606,
+     -0.019722027132402002,
+     -0.01859013952176685,
+     -0.01275976412245699,
+     -0.00981545846588747,
+     -0.0012010841851287717,
+     0.017708174572330915,
+     0.015578122039810094
+    ],
+    "rms": 0.014284549769419012
+   },
+   "bands": [
+    [
+     1000,
+     152.68
+    ],
+    [
+     900,
+     164.42
+    ],
+    [
+     800,
+     178.33
+    ],
+    [
+     700,
+     194.59
+    ],
+    [
+     600,
+     213.94
+    ],
+    [
+     500,
+     237.7
+    ],
+    [
+     400,
+     268.12
+    ],
+    [
+     300,
+     305.86
+    ],
+    [
+     250,
+     328.29
+    ],
+    [
+     200,
+     356.41
+    ],
+    [
+     150,
+     388.71
+    ],
+    [
+     100,
+     425.2
+    ],
+    [
+     50,
+     477.3
+    ]
+   ],
+   "bestPossible": {
+    "rms": 0.007426787619919809,
+    "shapeExponent": 1.1683265250654906,
+    "smallDnaPosition": 0.8454908623273218,
+    "topPosition": 0.005000000005771943
+   },
+   "buffer": "TBE",
+   "buffer_stated": true,
+   "conditions": "2.5% agarose, 1X TBE, 5 V/cm, 1 h, 8 cm gel, 0.5 ug/lane; Thermo Scientific GeneRuler 50 bp DNA Ladder (1000-50 bp)",
+   "id": "thermo-sm0371-2.5pct-tbe",
+   "ladder": null,
+   "origin": null,
+   "pct": 2.5,
+   "source": "https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0013016_GeneRuler_50bp_DNALadder_50ug_UG.pdf"
+  },
+  {
+   "agreement": {
+    "alpha": 1106.1170541337635,
+    "beta": -33.191672534355,
+    "maxAbs": 0.025011041934819515,
+    "mode": "affine",
+    "residuals": [
+     0.025011041934819515,
+     0.009920336937145497,
+     0.0028178991976946237,
+     -0.0015880923812088804,
+     -0.004705360934446293,
+     -0.0035813696664084016,
+     -0.00638637513974049,
+     -0.010475045202690644,
+     -0.005818466999771226,
+     -0.0062710621568034626,
+     -0.005270676301986485,
+     -0.007591238385383881,
+     -0.0033103590318541384,
+     -0.0037378018015325086,
+     0.008714527455612426,
+     0.011065966664214315,
+     0.0012060758123388692
+    ],
+    "rms": 0.008755762671563715
+   },
+   "bands": [
+    [
+     1350,
+     68.19
+    ],
+    [
+     916,
+     125.29
+    ],
+    [
+     766,
+     157.05
+    ],
+    [
+     700,
+     174.99
+    ],
+    [
+     650,
+     190.09
+    ],
+    [
+     600,
+     203.99
+    ],
+    [
+     550,
+     222.72
+    ],
+    [
+     500,
+     244.91
+    ],
+    [
+     450,
+     264.21
+    ],
+    [
+     400,
+     291.04
+    ],
+    [
+     350,
+     321.94
+    ],
+    [
+     300,
+     361.73
+    ],
+    [
+     250,
+     405.65
+    ],
+    [
+     200,
+     464.6
+    ],
+    [
+     150,
+     530.83
+    ],
+    [
+     100,
+     626.72
+    ],
+    [
+     50,
+     761.99
+    ]
+   ],
+   "bestPossible": {
+    "rms": 0.00726594181929063,
+    "shapeExponent": 1.0714156096377812,
+    "smallDnaPosition": 0.8729412828467098,
+    "topPosition": 0.0050000000000000044
+   },
+   "buffer": "TBE",
+   "buffer_stated": true,
+   "conditions": "3% TBE agarose, ethidium bromide; NEB 50 bp DNA Ladder N3236 (1350-50 bp)",
+   "id": "neb-n3236-3pct-tbe",
+   "ladder": null,
+   "origin": null,
+   "pct": 3.0,
+   "source": "https://www.neb.com/en-us/products/n3236-50-bp-dna-ladder"
   }
  ],
  "meta": {

@@ -27,7 +27,7 @@ export interface FeatureClickInfo {
 }
 
 /** Which annotation layers to draw. Every layer defaults to visible when its data is given. */
-export interface MapLayers {
+export interface MapShowOptions {
   features?: boolean;
   enzymes?: boolean;
   primers?: boolean;

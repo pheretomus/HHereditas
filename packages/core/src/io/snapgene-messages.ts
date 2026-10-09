@@ -12,6 +12,28 @@ export const MAX_QUOTED_LENGTH = 80;
 /** Maximum number of distinct characters listed by {@link listCharacters}. */
 const MAX_LISTED_CHARACTERS = 10;
 
+/** Maximum number of values listed by {@link listQuoted}. */
+const MAX_LISTED_VALUES = 5;
+
+/**
+ * Values (e.g. field names) as a comma-separated list of quoted, clipped strings for a warning,
+ * e.g. `"Version", "genbank.taxonomy"`; only the first five are listed, followed by " and N more"
+ * when there are more.
+ */
+export function listQuoted(values: readonly string[]): string {
+  const shown = values.slice(0, MAX_LISTED_VALUES).map((v) => `"${clip(v)}"`).join(', ');
+  return values.length > MAX_LISTED_VALUES ? `${shown} and ${values.length - MAX_LISTED_VALUES} more` : shown;
+}
+
+/**
+ * Labels that the caller already made safe to show (e.g. `Feature "lacZ" /note`, with clipped
+ * names) as a comma-separated list; only the first five are listed, followed by " and N more".
+ */
+export function listLabels(labels: readonly string[]): string {
+  const shown = labels.slice(0, MAX_LISTED_VALUES).join(', ');
+  return labels.length > MAX_LISTED_VALUES ? `${shown} and ${labels.length - MAX_LISTED_VALUES} more` : shown;
+}
+
 /**
  * `text` for quoting in a warning: unchanged if it has at most `max` UTF-16 code units, else its
  * first `max` code units (never splitting a surrogate pair) followed by "… (N characters)",

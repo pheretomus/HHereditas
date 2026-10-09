@@ -11,7 +11,7 @@ import { formatBp, formatInt } from '../common/format';
 import type { BarPiece, LayoutFeature, LayoutPrimer, RowLayout, RowModel } from './layout';
 import { colCenter, colLeft, colRight, gapX } from './layout';
 import type { CodingInfo } from './translation';
-import { rowCodons } from './translation';
+import { residueTitle, rowCodons } from './translation';
 import styles from './SequenceView.module.css';
 
 /** Everything a row needs besides its layout; memoized by the view. */
@@ -26,6 +26,8 @@ export interface RowRenderContext {
   readonly primers: readonly LayoutPrimer[];
   /** Annealed part (5'->3') of each primer's sequence, '' when unknown. */
   readonly primerAnnealed: readonly string[];
+  /** 5' tail of each primer in display order (left to right, lower case), '' when none. */
+  readonly primerTails: readonly string[];
   readonly orfs: readonly Orf[];
   readonly ends: FragmentEnds | undefined;
   readonly showNumbers: boolean;
@@ -98,16 +100,73 @@ function featureTitle(f: LayoutFeature['feature'], length: number): string {
   return `${f.name}${dir}\n${f.type} · ${where} · ${formatBp(bases)}`;
 }
 
+/** An asterisk (stop codon) as three strokes centred on (cx, cy): font-independent and truly centred. */
+function asteriskPath(cx: number, cy: number, r: number): string {
+  const f = (n: number) => Math.round(n * 100) / 100;
+  const dx = r * 0.866;
+  const dy = r * 0.5;
+  return (
+    `M${f(cx)},${f(cy - r)}V${f(cy + r)}` +
+    `M${f(cx - dx)},${f(cy - dy)}L${f(cx + dx)},${f(cy + dy)}` +
+    `M${f(cx - dx)},${f(cy + dy)}L${f(cx + dx)},${f(cy - dy)}`
+  );
+}
+
+type Cols = ReadonlyArray<readonly [number, number]>;
+
+const NO_SITES: readonly number[] = Object.freeze([]);
+const NO_COLS: Cols = Object.freeze([]);
+
 interface RowContentProps {
   row: RowLayout;
   ctx: RowRenderContext;
   /** Index of the highlighted feature when it is in this row, else -1. */
   highlighted: number;
-  /** Index of the hovered enzyme site when its label is in this row, else -1. */
-  hoveredSite: number;
+  /**
+   * Enzyme sites (indices) of this row to emphasise: the hovered one and the selected ones (the
+   * selection is exactly their recognition site). Their labels turn accent and their cut lines
+   * are redrawn on top in the accent colour.
+   */
+  activeSites?: readonly number[];
+  /** Selected columns [c0, c1) of this row, given only when the row has a translation strip. */
+  translationSelection?: Cols;
+  /** The view has focus (selection colour of the translation highlight). */
+  selectionFocused?: boolean;
 }
 
-export const RowContent = memo(function RowContent({ row, ctx, highlighted, hoveredSite }: RowContentProps) {
+function sameCols(a: Cols, b: Cols): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1]) return false;
+  return true;
+}
+
+function sameSites(a: readonly number[], b: readonly number[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+function sameRowContentProps(prev: RowContentProps, next: RowContentProps): boolean {
+  return (
+    prev.row === next.row &&
+    prev.ctx === next.ctx &&
+    prev.highlighted === next.highlighted &&
+    sameSites(prev.activeSites ?? NO_SITES, next.activeSites ?? NO_SITES) &&
+    sameCols(prev.translationSelection ?? NO_COLS, next.translationSelection ?? NO_COLS) &&
+    (prev.selectionFocused ?? false) === (next.selectionFocused ?? false)
+  );
+}
+
+export const RowContent = memo(function RowContent({
+  row,
+  ctx,
+  highlighted,
+  activeSites = NO_SITES,
+  translationSelection = NO_COLS,
+  selectionFocused = false,
+}: RowContentProps) {
   const { model, seq } = ctx;
   const geo = model.geometry;
   const m = model.metrics;
@@ -141,7 +200,7 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
   for (const label of row.enzymeLabels) {
     const laneTop = y.enzymes + (row.enzymeLanes - 1 - label.lane) * m.enzymeLaneHeight;
     const site = ctx.enzymes[label.site];
-    const hovered = label.site === hoveredSite;
+    const hovered = activeSites.includes(label.site);
     const lx = Math.round(label.anchorX) + 0.5;
     items.push(
       <g key={`e${label.site}`} className={hovered ? `${styles.enzyme} ${styles.enzymeHover}` : styles.enzyme}>
@@ -198,15 +257,62 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
       chars.push(base);
       glyphX.push(colCenter(geo, col));
     }
-    const tailFlag =
-      p.fivePrime && site.tailLength > 0
-        ? fwd
-          ? `M${x0 + 1},${pillTop}l-4,-4`
-          : `M${x1 - 1},${pillTop + pillH}l4,4`
-        : null;
     const title = `${primer.name}${fwd ? ' →' : ' ←'}\nbinds ${formatRange(site.range, L)} · ${site.annealedLength} nt${
       site.mismatches ? ` · ${site.mismatches} mismatch${site.mismatches > 1 ? 'es' : ''}` : ''
     }${site.tailLength ? ` · ${site.tailLength} nt 5′ tail` : ''}${site.tm !== undefined ? ` · Tm ${site.tm.toFixed(1)} °C` : ''}`;
+    // 5' tail: a flap bent away from the template (up for forward primers, down for reverse ones)
+    // beside the annealed 5' end, holding the tail's bases (or its length when they do not fit);
+    // a tick at the 5' corner when there is no room at all
+    let tailNode: ReactNode = null;
+    if (p.fivePrime && site.tailLength > 0) {
+      if (p.tail) {
+        const tH = pillH - 2;
+        const tTop = fwd ? pillTop - 3 : pillTop + 5;
+        const tx0 = p.tail.x;
+        const tx1 = p.tail.x + p.tail.width;
+        const joint = fwd
+          ? `M${tx1},${tTop + tH / 2}L${x0 + 1},${pillTop + pillH / 2}`
+          : `M${x1 - 1},${pillTop + pillH / 2}L${tx0},${tTop + tH / 2}`;
+        const bases = p.tail.text === '' ? ctx.primerTails[p.primer] : '';
+        tailNode = (
+          <g className={styles.primerTail}>
+            <path className={styles.primerTailJoint} d={joint} />
+            <rect
+              className={`${styles.primerTailBox} ${styles.hit}`}
+              data-kind="primer"
+              data-index={p.primer}
+              x={tx0}
+              y={tTop}
+              width={p.tail.width}
+              height={tH}
+              rx={3}
+            >
+              <title>{title}</title>
+            </rect>
+            {bases ? (
+              <text
+                className={styles.primerTailBases}
+                x={[...bases].map((_, i) => Math.round((tx0 + 2 + (i + 0.5) * geo.charWidth) * 100) / 100).join(' ')}
+                y={baseline(tTop, tH, m.baseFontSize)}
+              >
+                {bases}
+              </text>
+            ) : (
+              <text className={styles.primerTailText} x={(tx0 + tx1) / 2} y={baseline(tTop, tH, 11)}>
+                {p.tail.text}
+              </text>
+            )}
+          </g>
+        );
+      } else {
+        tailNode = (
+          <path
+            className={styles.primerTailJoint}
+            d={fwd ? `M${x0 + 1},${pillTop}l-4,-4` : `M${x1 - 1},${pillTop + pillH}l4,4`}
+          />
+        );
+      }
+    }
     const outline = primerPath(x0, x1, pillTop, pillH, p.strand, p.tip, p.openStart, p.openEnd, m.primerTip);
     items.push(
       <g key={`p${p.primer}-${p.startCol}`} className={fwd ? styles.primerFwd : styles.primerRev}>
@@ -246,7 +352,7 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
               .join('')}
           </text>
         )}
-        {tailFlag && <path className={styles.primerTail} d={tailFlag} />}
+        {tailNode}
         {p.label && (
           <text
             className={`${styles.primerLabel} ${styles.hit}`}
@@ -322,50 +428,39 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
         const { shades, letters } = rowCodons(info, row.start, piece.bars);
         const barStarts = new Set(piece.bars.map((b) => b.startCol));
         const barEnds = new Set(piece.bars.map((b) => b.endCol));
+        // cells meet in the middle of group gaps, so the strip reads as one continuous band;
+        // at the ends of a bar they stop at the bar's edge
+        const edgeX = (c: number) => (barStarts.has(c) ? colLeft(geo, c) : barEnds.has(c) ? colRight(geo, c - 1) : gapX(geo, c, n));
         const trTop = barTop + m.featureBarHeight + 1;
         const trH = m.translationHeight - 2;
+        const trMid = trTop + trH / 2;
         const normal: string[] = [];
         const normalX: number[] = [];
-        const stops: string[] = [];
-        const stopX: number[] = [];
+        let stopGlyphs = '';
         for (const l of letters) {
-          if (l.aa === '*') {
-            stops.push('*');
-            stopX.push(colCenter(geo, l.col));
-          } else if (l.aa) {
+          if (l.aa === '*') stopGlyphs += asteriskPath(colCenter(geo, l.col), trMid, 3.4);
+          else if (l.aa) {
             normal.push(l.aa);
             normalX.push(colCenter(geo, l.col));
           }
         }
+        // the selected part of the strip (a clicked codon lights up together with its bases)
+        const picked: Array<[number, number]> = [];
+        if (translationSelection.length > 0) {
+          for (const s of shades) {
+            for (const [a, b] of translationSelection) {
+              const u = Math.max(a, s.c0);
+              const v = Math.min(b, s.c1);
+              if (v <= u) continue;
+              const prev = picked[picked.length - 1];
+              if (prev && prev[1] === u) prev[1] = v;
+              else picked.push([u, v]);
+            }
+          }
+        }
         children.push(
           <g key="tr" className={styles.translation}>
-            {shades.map((s) => {
-              // cells meet in the middle of group gaps, so the strip reads as one continuous band;
-              // at the ends of a bar they stop at the bar's edge
-              const x0 = barStarts.has(s.c0) ? colLeft(geo, s.c0) : gapX(geo, s.c0, n);
-              const x1 = barEnds.has(s.c1) ? colRight(geo, s.c1 - 1) : gapX(geo, s.c1, n);
-              return (
-                <rect
-                  key={`${s.codon}-${s.c0}`}
-                  className={s.codon % 2 === 0 ? styles.codonEven : styles.codonOdd}
-                  style={{ fill }}
-                  x={x0}
-                  y={trTop}
-                  width={Math.max(0.5, x1 - x0)}
-                  height={trH}
-                />
-              );
-            })}
-            {normal.length > 0 && (
-              <text className={styles.aminoAcids} x={normalX.join(' ')} y={baseline(trTop, trH, 11)}>
-                {normal.join('')}
-              </text>
-            )}
-            {stops.length > 0 && (
-              <text className={`${styles.aminoAcids} ${styles.stop}`} x={stopX.join(' ')} y={baseline(trTop, trH, 11)}>
-                {stops.join('')}
-              </text>
-            )}
+            {/* whole-strip hit area (partial codons included); codon cells above it carry their tooltips */}
             <rect
               className={styles.hitArea}
               data-kind="translation"
@@ -375,6 +470,46 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
               width={colRight(geo, piece.endCol - 1) - colLeft(geo, piece.startCol)}
               height={trH}
             />
+            {shades.map((s) => {
+              const x0 = edgeX(s.c0);
+              const x1 = edgeX(s.c1);
+              const stop = info.protein[s.codon] === '*';
+              return (
+                <rect
+                  key={`${s.codon}-${s.c0}`}
+                  className={stop ? styles.stopCell : s.codon % 2 === 0 ? styles.codonEven : styles.codonOdd}
+                  style={stop ? undefined : { fill }}
+                  x={x0}
+                  y={trTop}
+                  width={Math.max(0.5, x1 - x0)}
+                  height={trH}
+                  data-kind="translation"
+                  data-index={piece.feature}
+                >
+                  <title>{residueTitle(info, s.codon, seq)}</title>
+                </rect>
+              );
+            })}
+            {picked.map(([u, v]) => {
+              const x0 = Math.round(edgeX(u)) + 0.5;
+              const x1 = Math.round(edgeX(v)) - 0.5;
+              return (
+                <rect
+                  key={`sel${u}`}
+                  className={selectionFocused ? styles.translationSelection : styles.translationSelectionInactive}
+                  x={x0}
+                  y={trTop + 0.5}
+                  width={Math.max(0.5, x1 - x0)}
+                  height={trH - 1}
+                />
+              );
+            })}
+            {normal.length > 0 && (
+              <text className={styles.aminoAcids} x={normalX.join(' ')} y={baseline(trTop, trH, 11)}>
+                {normal.join('')}
+              </text>
+            )}
+            {stopGlyphs && <path className={styles.stopGlyph} style={{ stroke: FEATURE_LABEL_ON_FILL }} d={stopGlyphs} />}
           </g>,
         );
       }
@@ -410,13 +545,21 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
   }
 
   // ---- cut marks (drawn over the bases) --------------------------------------------------------
+  // 1 px lines on pixel centres; the cut lines of active (hovered / selected) sites are redrawn
+  // on top, 2 px wide in the accent colour, so overlapping steps can be told apart.
   let cuts = '';
+  let activeCuts = '';
+  const yMid = model.showComplement ? y.complement : y.strand + m.strandHeight;
+  const yCutBottom = model.showComplement ? strandBottom - 1 : yMid + 4;
   for (const c of row.cutMarks) {
-    const yMid = model.showComplement ? y.complement : y.strand + m.strandHeight;
-    const r = (v: number) => Math.round(v) + 0.5;
-    if (c.top !== null) cuts += `M${r(gapX(geo, c.top, n))},${y.strand + 1}V${yMid}`;
-    if (c.to > c.from) cuts += `M${r(gapX(geo, c.from, n))},${yMid}H${r(gapX(geo, c.to, n))}`;
-    if (c.bottom !== null) cuts += `M${r(gapX(geo, c.bottom, n))},${yMid}V${model.showComplement ? strandBottom - 1 : yMid + 4}`;
+    const active = activeSites.length > 0 && activeSites.includes(c.site);
+    const r = active ? (v: number) => Math.round(v) : (v: number) => Math.round(v) + 0.5;
+    let d = '';
+    if (c.top !== null) d += `M${r(gapX(geo, c.top, n))},${y.strand + 1}V${yMid}`;
+    if (c.to > c.from) d += `M${r(gapX(geo, c.from, n))},${yMid}H${r(gapX(geo, c.to, n))}`;
+    if (c.bottom !== null) d += `M${r(gapX(geo, c.bottom, n))},${yMid}V${yCutBottom}`;
+    if (active) activeCuts += d;
+    else cuts += d;
   }
 
   const number = ctx.showNumbers && n > 0 ? formatInt(row.start + 1) : null;
@@ -440,11 +583,12 @@ export const RowContent = memo(function RowContent({ row, ctx, highlighted, hove
         </text>
       )}
       {cuts && <path className={styles.cut} d={cuts} />}
+      {activeCuts && <path className={styles.cutActive} d={activeCuts} />}
       {featureItems}
       {orfItems}
     </svg>
   );
-});
+}, sameRowContentProps);
 
 interface RowBackdropProps {
   row: RowLayout;

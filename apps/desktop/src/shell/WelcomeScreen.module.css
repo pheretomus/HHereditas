@@ -18,6 +18,12 @@
   height: var(--hh-toolbar-height);
 }
 
+/* Window-drag surface behind the hero content. */
+.dragSurface {
+  position: absolute;
+  inset: 0;
+}
+
 /* ---- hero ---- */
 .hero {
   position: relative;
@@ -32,6 +38,7 @@
 }
 
 .heroInner {
+  position: relative; /* paints above the drag surface */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -329,7 +336,8 @@
   inset: 0;
   z-index: 5;
   display: grid;
-  padding: 14px;
+  /* Below the title-bar strip, so the macOS traffic lights stay in clear space. */
+  padding: var(--hh-toolbar-height) 14px 14px;
   background: color-mix(in srgb, var(--hh-bg-content) 70%, transparent);
   pointer-events: none;
   animation: fadeIn var(--hh-duration-fast) var(--hh-ease);

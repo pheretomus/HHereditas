@@ -44,7 +44,7 @@ import {
   thinArrowPath,
 } from './geometry';
 import { type TextMeasurer, truncateToWidth } from './measure';
-import type { MapLayers } from './types';
+import type { MapShowOptions } from './types';
 
 // ---------------------------------------------------------------------------
 // Lane packing
@@ -140,6 +140,11 @@ export interface FeatureItem {
   extent: Range;
   /** Bases covered (sum of segment lengths). */
   length: number;
+  /**
+   * The pieces the feature is drawn as (normalized): its segments, with consecutive segments
+   * that continue each other merged (see {@link featurePieces}).
+   */
+  pieces: Range[];
   lane: number;
   /** False when the name is just the feature type (an unlabelled annotation). */
   named: boolean;
@@ -163,6 +168,11 @@ export interface PrimerItem {
   site: PrimerBindingSite;
   name: string;
   lane: number;
+  /**
+   * Room reserved on the lane (normalized): the binding site, lengthened at its 5' end to at
+   * least PRIMER_MIN_FRACTION of the molecule so short primers can be drawn as visible arrows.
+   */
+  extent: Range;
 }
 
 export interface OrfItem {
@@ -188,7 +198,7 @@ export interface MapModelInput {
   enzymeSites?: readonly EnzymeSite[];
   primerSites?: readonly PrimerBindingSite[];
   orfs?: readonly Orf[];
-  layers?: MapLayers;
+  layers?: MapShowOptions;
 }
 
 /**
@@ -199,6 +209,48 @@ export interface MapModelInput {
 export function cutLabelPosition(p: number, length: number, topology: Topology): number {
   if (p <= 0) return topology === 'circular' ? length : 0;
   return p;
+}
+
+/**
+ * Fraction of the molecule reserved for each primer arrow on its lane (about PRIMER_MIN_PX on
+ * a map of radius 150 px), so that short primers drawn longer than they are never touch.
+ */
+const PRIMER_MIN_FRACTION = 0.015;
+
+/** A primer binding site lengthened at its 5' end to at least `minBp` (normalized). */
+function primerExtent(r: Range, strand: 1 | -1, minBp: number, length: number, topology: Topology): Range {
+  if (r.end - r.start >= minBp || length <= 0) return r;
+  const want = Math.min(minBp, length);
+  if (topology === 'circular') {
+    const grown = strand === 1 ? { start: r.end - want, end: r.end } : { start: r.start, end: r.start + want };
+    return normalizeRange(grown, length, topology);
+  }
+  const start = strand === 1 ? Math.max(0, r.end - want) : Math.min(r.start, length - want);
+  return { start, end: start + want };
+}
+
+/**
+ * The pieces a feature is drawn as: its segments (normalized), with consecutive segments that
+ * continue each other merged into one. A GenBank join split at the origin of a circular
+ * molecule, e.g. join(4701..5000,1..200), is one continuous feature and is drawn without a seam.
+ */
+export function featurePieces(f: Feature, length: number, topology: Topology): Range[] {
+  const out: Range[] = [];
+  const circular = topology === 'circular' && length > 0;
+  for (const seg of f.segments) {
+    const r = normalizeRange(seg, length, topology);
+    const prev = out[out.length - 1];
+    if (prev && r.end > r.start && prev.end > prev.start) {
+      const continues = circular ? mod(prev.end, length) === r.start : prev.end === r.start;
+      const total = prev.end - prev.start + (r.end - r.start);
+      if (continues && (!circular || total <= length)) {
+        prev.end = prev.start + total;
+        continue;
+      }
+    }
+    out.push({ start: r.start, end: r.end });
+  }
+  return out;
 }
 
 export function buildMapModel(input: MapModelInput): MapModel {
@@ -230,6 +282,7 @@ export function buildMapModel(input: MapModelInput): MapModel {
         feature,
         extent,
         length: featureLength(feature),
+        pieces: featurePieces(feature, length, topology),
         lane: 0,
         named: name !== '' && name !== feature.type,
       });
@@ -267,12 +320,16 @@ export function buildMapModel(input: MapModelInput): MapModel {
 
   if (layers.primers !== false && input.primerSites) {
     const names = new Map(record.primers.map((p) => [p.id, p.name] as const));
-    const ranges = input.primerSites.map((s) => normalizeRange(s.range, length, topology));
-    const lanes = assignLanes(ranges, length, topology);
+    const minBp = Math.max(1, Math.round(length * PRIMER_MIN_FRACTION));
+    const extents = input.primerSites.map((s) =>
+      primerExtent(normalizeRange(s.range, length, topology), s.strand, minBp, length, topology),
+    );
+    const lanes = assignLanes(extents, length, topology, Math.ceil(minBp / 4));
     model.primers = input.primerSites.map((site, i) => ({
       site,
       name: names.get(site.primerId)?.trim() || 'Primer',
       lane: lanes[i],
+      extent: extents[i],
     }));
     model.primerLanes = laneCountOf(lanes);
   }
@@ -311,7 +368,7 @@ export interface FeatureShape {
   /** Angles of the overall extent (continuous: a1 may exceed 360). */
   a0: number;
   a1: number;
-  /** Angles of each drawn segment (for hit testing). */
+  /** Angles of each drawn piece (item.pieces: contiguous segments merged), for hit testing. */
   segments: Array<{ a0: number; a1: number }>;
   /** Body path (all segments). */
   d: string;
@@ -502,10 +559,13 @@ export interface GeometryOptions {
 
 // Radial constants (px).
 const GAP0 = 3; // backbone -> outer edge of feature lane 0
-const PRIMER_OFFSET = 4; // backbone -> inner edge of primer lane 0
-const PRIMER_W = 6; // arrow head width (the shaft is thinner)
+const PRIMER_OFFSET = 6; // backbone -> inner edge of primer lane 0 (clear of the cut ticks)
+const PRIMER_W = 7; // arrow head width (the shaft is thinner)
 const PRIMER_SHAFT = 2.5;
-const PRIMER_STEP = 7.5;
+const PRIMER_STEP = 9;
+const PRIMER_HEAD = 6; // arrow head length
+/** Shortest primer arrow drawn (px): a 20-mer on a large plasmid is otherwise a dot. */
+const PRIMER_MIN_PX = 14;
 const MAX_PRIMER_LANES = 4;
 const TICK_IN = 3; // enzyme tick: inside the backbone
 const TICK_OUT = 5; // enzyme tick: outside the backbone
@@ -626,6 +686,16 @@ function widenToPx(a0: number, a1: number, r: number, minPx: number): { a0: numb
   return { a0: mid - min / 2, a1: mid + min / 2 };
 }
 
+/**
+ * Make an arrow at least `minPx` long by extending its 5' end: the tip stays exactly at the
+ * 3' end (a1 for the top strand, a0 for the bottom strand), where a primer is extended.
+ */
+function lengthenTail(a0: number, a1: number, r: number, minPx: number, strand: 1 | -1): { a0: number; a1: number } {
+  const min = pxToDegrees(minPx, r);
+  if (a1 - a0 >= min) return { a0, a1 };
+  return strand === 1 ? { a0: a1 - min, a1 } : { a0, a1: a0 + min };
+}
+
 function featureName(f: Feature): string {
   const name = f.name.replace(/\s+/g, ' ').trim();
   return name || f.type;
@@ -635,13 +705,11 @@ function tickLabelText(p: number, length: number): string {
   return length >= 100_000 ? formatCompactBp(p) : formatInt(p);
 }
 
-/** Index of the longest segment (the one that carries the label). */
-function longestSegment(f: Feature): number {
+/** Index of the longest piece (the one that carries the label). */
+function longestPiece(pieces: readonly Range[]): number {
   let best = 0;
-  for (let k = 1; k < f.segments.length; k++) {
-    const s = f.segments[k];
-    const b = f.segments[best];
-    if (s.end - s.start > b.end - b.start) best = k;
+  for (let k = 1; k < pieces.length; k++) {
+    if (pieces[k].end - pieces[k].start > pieces[best].end - pieces[best].start) best = k;
   }
   return best;
 }
@@ -738,8 +806,7 @@ function labelCandidates(ctx: Context, R: number, plan: RadialPlan): LabelCandid
     if (seen.has(dedupe)) return;
     seen.add(dedupe);
     const f = item.feature;
-    const seg = normalizeRange(f.segments[longestSegment(f)], L, model.topology);
-    const a = rangeAngles(scale, seg);
+    const a = rangeAngles(scale, item.pieces[longestPiece(item.pieces)]);
     out.push({
       key: `f:${f.id}`,
       ref: { kind: 'feature', index: i },
@@ -852,7 +919,7 @@ export function computeGeometry(model: MapModel, opts: GeometryOptions): MapGeom
     enzymeWidth: model.enzymes.map((e) => measure(e.label, fontSize, enzymeWeight(e))),
     primerWidth: model.primers.map((p) => measure(p.name, fontSize, PRIMER_WEIGHT)),
     featureSpan: model.features.map((f) => {
-      const s = f.feature.segments[longestSegment(f.feature)];
+      const s = f.pieces[longestPiece(f.pieces)];
       return (s.end - s.start) * dpb;
     }),
   };
@@ -929,11 +996,11 @@ function buildGeometry(
     const { rIn, rOut } = laneRadii(plan, R, item.lane);
     const rMid = (rIn + rOut) / 2;
     const ext = rangeAngles(scale, item.extent);
-    const segs = f.segments.map((s) => {
-      const a = rangeAngles(scale, normalizeRange(s, L, model.topology));
+    const segs = item.pieces.map((s) => {
+      const a = rangeAngles(scale, s);
       return widenToPx(a.a0, a.a1, rMid, 2);
     });
-    // The 3' end: last segment for the top strand, first segment for the bottom strand.
+    // The 3' end: last piece for the top strand, first piece for the bottom strand.
     const headSeg = f.strand === 1 ? segs.length - 1 : f.strand === -1 ? 0 : -1;
     const d = segs
       .map((s, k) => arrowPath(cx, cy, rIn, rOut, s.a0, s.a1, k === headSeg ? (f.strand as 1 | -1) : 0, head))
@@ -967,7 +1034,8 @@ function buildGeometry(
     };
     if (insideFits(ctx, R, plan, i)) {
       const text = ctx.featureNames[i];
-      shape.inside = insideLabel(shape, longestSegment(f), plan, head, cx, cy, text, measure(text, plan.insideFont, FEATURE_WEIGHT), `f${i}`);
+      const piece = longestPiece(item.pieces);
+      shape.inside = insideLabel(shape, piece, plan, head, cx, cy, text, measure(text, plan.insideFont, FEATURE_WEIGHT), `f${i}`);
     }
     return shape;
   });
@@ -1001,8 +1069,12 @@ function buildGeometry(
     const k = Math.min(item.lane, MAX_PRIMER_LANES - 1);
     const rIn = R + PRIMER_OFFSET + k * PRIMER_STEP;
     const rOut = rIn + PRIMER_W;
+    const rMid = (rIn + rOut) / 2;
     const ra = rangeAngles(scale, normalizeRange(item.site.range, L, model.topology));
-    const a = widenToPx(ra.a0, ra.a1, rOut, 4);
+    // Never longer than the room reserved on the lane (tiny maps): arrows on a lane never touch.
+    const reserved = rangeAngles(scale, item.extent);
+    const minPx = Math.min(PRIMER_MIN_PX, arcLength(rMid, reserved.a1 - reserved.a0));
+    const a = lengthenTail(ra.a0, ra.a1, rMid, minPx, item.site.strand);
     return {
       index,
       item,
@@ -1010,7 +1082,7 @@ function buildGeometry(
       rOut,
       a0: a.a0,
       a1: a.a1,
-      d: thinArrowPath(cx, cy, (rIn + rOut) / 2, PRIMER_SHAFT, PRIMER_W, 6, a.a0, a.a1, item.site.strand),
+      d: thinArrowPath(cx, cy, rMid, PRIMER_SHAFT, PRIMER_W, PRIMER_HEAD, a.a0, a.a1, item.site.strand),
     };
   });
 

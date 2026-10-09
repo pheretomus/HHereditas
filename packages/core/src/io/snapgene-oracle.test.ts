@@ -18,6 +18,7 @@ import { parseSnapGene } from './snapgene';
 import {
   DOCUMENTED_DEVIATIONS,
   FIXTURE_DIR,
+  NON_QUALIFIER_DEVIATIONS,
   ORACLE_DIR,
   type OracleEntry,
   type Tally,
@@ -54,7 +55,7 @@ function checkAgainstOracle(data: Uint8Array, fileName: string, entry: OracleEnt
   expect(recordProblems(record), fileName).toEqual([]);
   expect(comparableRecord(record), fileName).toEqual(comparableExpected(entry.expected));
 
-  const problems = compareRecordWithBiopython(record, entry.biopython, tally);
+  const problems = compareRecordWithBiopython(record, entry, tally);
   entry.expected.features.forEach((expectedFeature, i) => {
     problems.push(...compareFeatureWithBiopython(record.features[i], expectedFeature, record.seq.length, tally));
   });
@@ -112,7 +113,9 @@ describe('SnapGene oracle summary', () => {
   it('explains every disagreement with Biopython by a documented deviation', () => {
     const categories = Object.keys(totals).filter((k) => !['features compared', 'location same', 'files compared', 'same'].includes(k) && !k.startsWith('file rejected') && !k.startsWith('feature-not-compared') && !k.startsWith('comments same'));
     for (const category of categories) expect(DOCUMENTED_DEVIATIONS, category).toHaveProperty(category);
-    const qualifierValues = ['same', ...Object.keys(DOCUMENTED_DEVIATIONS).filter((k) => k !== 'strand-0')].reduce((n, k) => n + (totals[k] ?? 0), 0);
+    const qualifierValues = ['same', ...Object.keys(DOCUMENTED_DEVIATIONS).filter((k) => !NON_QUALIFIER_DEVIATIONS.includes(k))].reduce((n, k) => n + (totals[k] ?? 0), 0);
+    // The only file with several Notes packets (a handmade case) is read as one merged packet.
+    expect(totals['notes-merged']).toBe(1);
     expect(totals.same / qualifierValues).toBeGreaterThan(0.4);
     // Printed for the module report (vitest shows it with --reporter=verbose or on failure).
     console.info('SnapGene oracle agreement:', JSON.stringify({ qualifierValues, ...totals }, null, 1));

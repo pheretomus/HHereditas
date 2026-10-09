@@ -77,13 +77,20 @@ describe('SegmentedControl', () => {
     render(<Harness onChange={onChange} />);
     await user.click(screen.getByRole('radio', { name: 'Sequence' }));
     expect(onChange).toHaveBeenLastCalledWith('sequence');
-    // Radix moves focus on the next tick and selects only while the arrow key is held down,
-    // as with a real key press: hold the key across a tick.
-    await user.keyboard('{ArrowLeft>}');
-    await act(() => new Promise((r) => setTimeout(r, 5)));
-    await user.keyboard('{/ArrowLeft}');
+    // A quick tap (key released before the next tick) must select too, not just move focus.
+    await user.keyboard('{ArrowLeft}');
     expect(onChange).toHaveBeenLastCalledWith('map');
     expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Map' }));
+    // Wraps around and skips the disabled segment.
+    await user.keyboard('{ArrowLeft}');
+    expect(onChange).toHaveBeenLastCalledWith('sequence');
+    await user.keyboard('{ArrowRight}');
+    expect(onChange).toHaveBeenLastCalledWith('map');
+    await user.keyboard('{End}');
+    expect(onChange).toHaveBeenLastCalledWith('sequence');
+    expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Sequence' }));
+    await user.keyboard('{Home}');
+    expect(onChange).toHaveBeenLastCalledWith('map');
   });
 });
 
@@ -275,22 +282,75 @@ describe('Menu', () => {
   });
 });
 
+/**
+ * Tauri 2.12's drag-region rule (tauri/src/window/scripts/drag.js): walk up from the click
+ * target; a clickable element without the attribute blocks the drag; "deep" makes the whole
+ * subtree draggable; a bare attribute only counts when it is on the clicked element itself.
+ */
+function tauriWouldDrag(target: Element): boolean {
+  const clickable = (el: Element) =>
+    ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL', 'SUMMARY'].includes(el.tagName) ||
+    (el.hasAttribute('tabindex') && el.getAttribute('tabindex') !== '-1') ||
+    ['button', 'link', 'menuitem', 'tab', 'checkbox', 'radio', 'switch', 'option'].includes(el.getAttribute('role') ?? '');
+  for (let el: Element | null = target; el; el = el.parentElement) {
+    const attr = el.getAttribute('data-tauri-drag-region');
+    if (clickable(el) && attr === null) return false;
+    if (attr === null) continue;
+    if (attr === 'false') return false;
+    if (attr === 'deep') return true;
+    return el === target;
+  }
+  return false;
+}
+
 describe('Toolbar', () => {
   it('marks the bar and its passive parts as window drag regions', () => {
     const { container } = render(
       <Toolbar aria-label="Document">
-        <ToolbarTitle title="pFA6a-kanMX6" subtitle="3,938 bp · circular" />
+        <ToolbarTitle title="pFA6a-kanMX6" subtitle="3,938 bp · circular" accessory={<span>Edited</span>} />
         <ToolbarSpacer />
         <ToolbarGroup label="Tools">
-          <button type="button">x</button>
+          <button type="button">
+            <svg data-testid="icon" />x
+          </button>
         </ToolbarGroup>
       </Toolbar>,
     );
     const bar = screen.getByRole('toolbar', { name: 'Document' });
-    expect(bar.hasAttribute('data-tauri-drag-region')).toBe(true);
+    expect(bar.getAttribute('data-tauri-drag-region')).toBe('deep');
+    // passive parts are drag regions themselves too (older Tauri versions only look at the target)
     expect(container.querySelectorAll('[data-tauri-drag-region]').length).toBeGreaterThanOrEqual(6);
     expect(screen.getByRole('button', { name: 'x' }).hasAttribute('data-tauri-drag-region')).toBe(false);
-    expect(screen.getByText('3,938 bp · circular')).toBeTruthy();
+    // what Tauri does with a mouse-down on each part
+    expect(tauriWouldDrag(bar)).toBe(true);
+    expect(tauriWouldDrag(screen.getByText('pFA6a-kanMX6'))).toBe(true);
+    expect(tauriWouldDrag(screen.getByText('3,938 bp · circular'))).toBe(true);
+    expect(tauriWouldDrag(screen.getByText('Edited'))).toBe(true);
+    expect(tauriWouldDrag(screen.getByRole('group', { name: 'Tools' }))).toBe(true);
+    expect(tauriWouldDrag(screen.getByRole('button', { name: 'x' }))).toBe(false);
+    expect(tauriWouldDrag(screen.getByTestId('icon'))).toBe(false);
+  });
+
+  it('never drags from inside fields and segmented controls', () => {
+    render(
+      <Toolbar aria-label="Document">
+        <SegmentedControl
+          aria-label="View"
+          value="map"
+          onValueChange={() => undefined}
+          options={[
+            { value: 'map', label: 'Map' },
+            { value: 'sequence', label: 'Sequence' },
+          ]}
+        />
+        <SearchField aria-label="Search" status="3 of 12" defaultValue="GAATTC" />
+      </Toolbar>,
+    );
+    const group = screen.getByRole('radiogroup', { name: 'View' });
+    expect(tauriWouldDrag(group)).toBe(false); // the padding between segments
+    const input = screen.getByRole('searchbox', { name: 'Search' });
+    expect(tauriWouldDrag(input.parentElement!)).toBe(false); // the field frame
+    expect(tauriWouldDrag(screen.getByText('3 of 12'))).toBe(false);
   });
 });
 

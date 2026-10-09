@@ -2,7 +2,9 @@
  * Helpers the UI uses to choose which enzymes to display: cutter counts and catalogue filters.
  * Counts are taken from `findSites` output (see `search.ts`); "cuts" are distinct cleavage
  * events (`countCuts`), so a BaeI site cut on both sides counts 2, and a site near the end of a
- * linear molecule that cannot be cleaved counts 0.
+ * linear molecule that cannot be cleaved counts 0. For a linear record with single-stranded ends,
+ * find the sites with its ends (`findSites(seq, 'linear', enzymes, { ends })`): a site inside an
+ * overhang then counts 0, as in `digest` with the same ends.
  */
 import type { EndKind, EnzymeSite } from '../types';
 import type { RestrictionEnzyme } from './enzyme';

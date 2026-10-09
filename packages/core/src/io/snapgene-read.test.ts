@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { featureSequence } from '../seq/features';
 import { reverseComplement } from '../seq/alphabet';
+import { translateFeature } from '../seq/translate';
 import type { Feature, SeqRecord } from '../types';
 import type { ParseResult } from './types';
 import { encodeUtf8 } from './snapgene-binary';
@@ -315,6 +316,18 @@ describe('features', () => {
     expect(translation).not.toMatch(/[,*]/);
     // Reverse CDS: the N-terminal signal peptide is the rightmost segment, i.e. segment 1 counted 5'->3'.
     expect(ampR.qualifiers[0]).toEqual({ key: 'parts', value: '1:signal sequence' });
+  });
+
+  it('turns SnapGene\'s "?" for an ambiguous codon into the INSDC "X" in /translation, matching translateFeature (reviewed defect)', () => {
+    // Bases 1-12: ATG NCA AAA TAA; 13-21: reverse complement of ATG NCA AAA. SnapGene stored "M?K*", "M?,K*", "M?K".
+    const { record, warnings } = readOne(caseFile('translation_ambiguous'));
+    expect(warnings).toEqual([]);
+    const stored = record.features.map((f) => f.qualifiers.find((q) => q.key === 'translation')?.value);
+    expect(stored).toEqual(['MXK', 'MXK', 'MXK']);
+    for (const cds of record.features) expect(translateFeature(record, cds, { toStop: true }), cds.name).toBe('MXK');
+    // The reviewed reproduction: "M?*" on ATG NCA TAA.
+    const small = readOne(file(cookie(), dna('ATGNCATAA'), features('<Feature name="orf" directionality="1" type="CDS"><Segment range="1-9" type="standard"/><Q name="translation"><V text="M?*"/></Q></Feature>')));
+    expect(small.record.features[0].qualifiers[0]).toEqual({ key: 'translation', value: 'MX' });
   });
 
   it('reads every qualifier value form', () => {

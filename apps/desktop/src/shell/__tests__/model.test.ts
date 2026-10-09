@@ -15,7 +15,8 @@ import {
   summarizeSequence,
 } from '../selectionSummary';
 import { enzymeRows, featureRows, matchesFilter, primerRows } from '../sidebarModel';
-import { toolbarDensity } from '../ToolbarContent';
+import { enzymeMenuChoices, searchFieldWidth, toolbarDensity } from '../ToolbarContent';
+import { keyColumnWidth, qualifiersFromRows, sameQualifiers } from '../QualifierEditor';
 
 function naive(seq: string, start: number, end: number) {
   const c = { a: 0, c: 0, g: 0, t: 0, s: 0, w: 0, other: 0 };
@@ -228,5 +229,51 @@ describe('toolbarDensity', () => {
     expect(toolbarDensity(820)).toBe('regular');
     expect(toolbarDensity(700)).toBe('compact');
     expect(toolbarDensity(560)).toBe('tight');
+  });
+
+  it('narrows the search field with a compact toolbar', () => {
+    expect(searchFieldWidth('regular', 1000)).toBe(210);
+    expect(searchFieldWidth('compact', 800)).toBe(170);
+    expect(searchFieldWidth('compact', 712)).toBe(157);
+    expect(searchFieldWidth('compact', 652)).toBe(150);
+    expect(searchFieldWidth('tight', 400)).toBe(150);
+  });
+});
+
+describe('qualifier editing model', () => {
+  it('turns edit rows into qualifiers: keyless rows dropped, keys trimmed, valueless kept null', () => {
+    expect(
+      qualifiersFromRows([
+        { key: ' gene ', value: 'bla', wasNull: false },
+        { key: '', value: 'orphan value', wasNull: false },
+        { key: 'pseudo', value: '', wasNull: true },
+        { key: 'note', value: '', wasNull: false },
+      ]),
+    ).toEqual([
+      { key: 'gene', value: 'bla' },
+      { key: 'pseudo', value: null },
+      { key: 'note', value: '' },
+    ]);
+  });
+
+  it('compares qualifier lists by key and value in order', () => {
+    const a = [{ key: 'gene', value: 'bla' }];
+    expect(sameQualifiers(a, [{ key: 'gene', value: 'bla' }])).toBe(true);
+    expect(sameQualifiers(a, [{ key: 'gene', value: null }])).toBe(false);
+    expect(sameQualifiers(a, [])).toBe(false);
+  });
+
+  it('sizes the key column to the longest key, within limits', () => {
+    expect(keyColumnWidth(['gene', 'note'])).toBe(60);
+    expect(keyColumnWidth(['codon_start', 'translation'])).toBe(92);
+    expect(keyColumnWidth(['a_very_long_qualifier_key'])).toBe(112);
+  });
+});
+
+describe('enzymeMenuChoices', () => {
+  it('adds the custom choice only while it is current, before None', () => {
+    expect(enzymeMenuChoices(['unique', 'common', 'none'], 'unique')).toEqual(['unique', 'common', 'none']);
+    expect(enzymeMenuChoices(['unique', 'common', 'none'], 'custom')).toEqual(['unique', 'common', 'custom', 'none']);
+    expect(enzymeMenuChoices(['unique', 'unique'], 'custom')).toEqual(['unique', 'custom']);
   });
 });

@@ -4,14 +4,16 @@
  *
  * MODEL (complete digest):
  *  - EVENTS. Every occurrence of a recognition site (see `search.ts`) gives one cleavage event per
- *    cut pair of the enzyme: the top strand is cut at gap position `top`, the bottom strand at
- *    `bottom` (top-strand coordinates). The bases between the two cuts,
+ *    cut pair of the enzyme (on a circle so small that two cut pairs of a site cut at the same gaps
+ *    modulo L, these are one event, as in `findSites`): the top strand is cut at gap position
+ *    `top`, the bottom strand at `bottom` (top-strand coordinates). The bases between the two cuts,
  *    [min(top, bottom), max(top, bottom)), become single-stranded: the event's "cut zone".
  *  - 1. CAN THE EVENT CUT? Decided for every recognition site separately.
  *    Linear molecules: only if its cut zone lies inside the double-stranded part of the molecule
  *    with at least one base pair to spare on each side AND its recognition site is fully
  *    double-stranded; otherwise it is skipped with reason 'end'. With blunt ends this is
- *    Biopython's rule: both cuts in [1, L - 1].
+ *    Biopython's rule: both cuts in [1, L - 1]. The rule lives in `ends.ts` and is shared with
+ *    `findSites`, which given the same `ends` lists exactly these events in `site.cuts`.
  *    Circular molecules: an event whose overhang would be as long as the molecule is skipped
  *    (reason 'overhang-too-long').
  *  - 2. BREAKS. The remaining events that make the same double-strand break (same top and bottom:
@@ -49,13 +51,16 @@
  * FragmentEnds convention, `parentRange` is that extent in parent coordinates (circular:
  * normalized start in [0, L), end may exceed L; for a circle cut only once the fragment is
  * L + overhang bases long, so the range is longer than the circle). For every fragment
- * `sliceRange(parent, parentRange) === seq`.
+ * `sliceRange(parent, parentRange) === seq`. Every object of a result is new (none is shared
+ * between two places of the result, frozen, or taken from the inputs): callers may modify results.
  */
-import type { DnaEnd, EndKind, FragmentEnds, Range, Topology } from '../types';
+import type { DnaEnd, FragmentEnds, Range, Topology } from '../types';
 import { complementBase } from '../seq/alphabet';
 import { mod, sliceRange } from '../seq/range';
 import type { RestrictionEnzyme } from './enzyme';
-import { scanEnzymeSites } from './search';
+import type { PairedRegion, StrandBoundary } from './ends';
+import { BLUNT_ENDS, END_KINDS, endBoundary, linearEndProblem, pairedRegion } from './ends';
+import { circularGap, scanEnzymeSites } from './search';
 
 /** A cleavage event at a fragment end, in parent coordinates (gap positions, top-strand coordinates). */
 export interface DigestCut {
@@ -138,9 +143,6 @@ export interface DigestReport {
   skipped: SkippedCleavage[];
 }
 
-const BLUNT: DnaEnd = Object.freeze({ kind: 'blunt', length: 0 });
-const BLUNT_ENDS: FragmentEnds = Object.freeze({ left: BLUNT, right: BLUNT });
-
 /** A cleavage event of one recognition site with unwrapped positions; [lo, hi] is its cut zone. */
 interface Cleavage {
   enzyme: string;
@@ -191,10 +193,8 @@ interface Resolution {
   readonly skipped: SkippedCleavage[];
 }
 
-/** Fragment boundary: a break or an original end of a linear molecule. */
-interface Boundary {
-  top: number;
-  bottom: number;
+/** Fragment boundary: a break (with its cut) or an original end of a linear molecule. */
+interface Boundary extends StrandBoundary {
   cut?: DigestCut;
 }
 
@@ -223,38 +223,12 @@ function endOf(boundary: Boundary): DnaEnd {
   return { kind: d > 0 ? '5prime' : '3prime', length: Math.abs(d) };
 }
 
-/** Boundary equivalent to an original end of a linear molecule of length L. */
-function endBoundary(end: DnaEnd, side: 'left' | 'right', L: number): Boundary {
-  const n = end.kind === 'blunt' ? 0 : end.length;
-  if (side === 'left') {
-    return end.kind === '3prime' ? { top: n, bottom: 0 } : { top: 0, bottom: n };
-  }
-  return end.kind === '3prime' ? { top: L, bottom: L - n } : { top: L - n, bottom: L };
-}
-
-const END_KINDS: readonly EndKind[] = ['blunt', '5prime', '3prime'];
-
-/** Throws unless `ends` are valid single-stranded ends of a linear duplex of length L >= 1. */
-function checkEnds(ends: FragmentEnds, L: number): void {
-  for (const end of [ends.left, ends.right]) {
-    if (!END_KINDS.includes(end.kind)) throw new Error(`Invalid end kind '${String(end.kind)}'`);
-    if (!Number.isInteger(end.length) || end.length < 0) throw new Error(`Invalid end length ${end.length}`);
-    if (end.kind === 'blunt' && end.length !== 0) throw new Error('A blunt end must have length 0');
-  }
-  const single = ends.left.length + ends.right.length;
-  if (single > L) {
-    throw new Error(`Single-stranded ends (${ends.left.length} + ${ends.right.length}) are longer than the molecule (${L})`);
-  }
-  if (single === L) {
-    throw new Error(`Single-stranded ends (${ends.left.length} + ${ends.right.length}) leave no base pair in a molecule of ${L} bases`);
-  }
-}
-
+/** A new DigestCut for a break or an event (circular: positions normalized into [0, L)). */
 function toCut(c: { enzyme: string; top: number; bottom: number }, L: number, circular: boolean): DigestCut {
   return {
     enzyme: c.enzyme,
-    top: circular ? mod(c.top, L) : c.top,
-    bottom: circular ? mod(c.bottom, L) : c.bottom,
+    top: circular ? circularGap(c.top, L) : c.top,
+    bottom: circular ? circularGap(c.bottom, L) : c.bottom,
   };
 }
 
@@ -265,7 +239,7 @@ function sitePosition(c: Cleavage, L: number, circular: boolean): number {
 
 function skip(c: Cleavage, L: number, circular: boolean, reason: SkipReason, message: string, blockedBy?: DigestCut): SkippedCleavage {
   const cut = toCut(c, L, circular);
-  const start = circular ? mod(c.siteStart, L) : c.siteStart;
+  const start = circular ? circularGap(c.siteStart, L) : c.siteStart;
   return {
     enzyme: c.enzyme,
     site: { start, end: start + c.siteSize },
@@ -278,12 +252,26 @@ function skip(c: Cleavage, L: number, circular: boolean, reason: SkipReason, mes
   };
 }
 
-/** Every cleavage event of every site, unwrapped so that circular cut zones start in [0, L); sorted by {@link compareEvents}. */
+/** True if one of `events[from]` .. the last event cuts at the same gaps of a circle of length L. */
+function hasCircularEvent(events: readonly Cleavage[], from: number, top: number, bottom: number, L: number): boolean {
+  for (let i = from; i < events.length; i++) {
+    if (mod(events[i].top - top, L) === 0 && mod(events[i].bottom - bottom, L) === 0) return true;
+  }
+  return false;
+}
+
+/**
+ * Every cleavage event of every site, unwrapped so that circular cut zones start in [0, L); sorted
+ * by {@link compareEvents}. On a very small circle two cut pairs of one site can cut at the same
+ * gaps (equal modulo L, e.g. TstI's two events on a 32-bp circle): that is one event, listed once
+ * (the first in left-to-right order), exactly as `findSites` lists the site's cuts.
+ */
 function collectCleavages(seq: string, topology: Topology, enzymes: readonly RestrictionEnzyme[]): Cleavage[] {
   const L = seq.length;
   const circular = topology === 'circular';
   const events: Cleavage[] = [];
   scanEnzymeSites(seq, topology, enzymes, (enzyme, pattern, start) => {
+    const siteEvents = events.length;
     for (const c of pattern.cuts) {
       let top = start + c.top;
       let bottom = start + c.bottom;
@@ -292,6 +280,7 @@ function collectCleavages(seq: string, topology: Topology, enzymes: readonly Res
         const shift = mod(lo, L) - lo;
         top += shift;
         bottom += shift;
+        if (hasCircularEvent(events, siteEvents, top, bottom, L)) continue;
       }
       events.push({
         enzyme: enzyme.name,
@@ -390,14 +379,14 @@ function walkDirection(r: Resolution, start: number, end: number): 1 | -1 {
 /** Records every event of `brk` as skipped because the applied break `blocker` conflicts with it. */
 function reportConflict(r: Resolution, brk: Break, blocker: Break): void {
   const by = r.events[blocker.from];
-  const blockedBy = toCut(blocker, r.L, r.circular);
   for (let i = brk.from; i < brk.to; i++) {
     const e = r.events[i];
     const message =
       `${e.enzyme} (site at ${sitePosition(e, r.L, r.circular)}) cannot cut: its cut zone leaves no base pair between it ` +
       `and the ${blocker.enzyme} cut (site at ${sitePosition(by, r.L, r.circular)}), which is applied instead ` +
       '(in a real digest either cut may happen first)';
-    r.skipped.push(skip(e, r.L, r.circular, 'conflict', message, blockedBy));
+    // each skipped event gets its own blockedBy object (callers may modify results)
+    r.skipped.push(skip(e, r.L, r.circular, 'conflict', message, toCut(blocker, r.L, r.circular)));
   }
 }
 
@@ -544,6 +533,11 @@ function resolveWholeCircle(r: Resolution, breaks: readonly Break[]): Break[] {
 // Fragments
 // ---------------------------------------------------------------------------
 
+/**
+ * Linear fragment between two boundaries; `range` must be a new object. A boundary's cut is the
+ * right cut of one fragment and the left cut of the next (or both cuts of a circle cut once), so
+ * it is copied for each use: callers may modify one fragment without affecting another.
+ */
 function makeFragment(parent: string, range: Range, left: Boundary, right: Boundary): DigestFragment {
   const seq = sliceRange(parent, range);
   return {
@@ -552,26 +546,26 @@ function makeFragment(parent: string, range: Range, left: Boundary, right: Bound
     ends: { left: endOf(left), right: endOf(right) },
     parentRange: range,
     length: seq.length,
-    ...(left.cut !== undefined ? { leftCut: left.cut } : {}),
-    ...(right.cut !== undefined ? { rightCut: right.cut } : {}),
+    ...(left.cut !== undefined ? { leftCut: { ...left.cut } } : {}),
+    ...(right.cut !== undefined ? { rightCut: { ...right.cut } } : {}),
   };
 }
 
-function digestLinear(seq: string, events: readonly Cleavage[], ends: FragmentEnds): DigestReport {
+/** Linear digest; `paired` is the base-paired part of the molecule given its `ends` (see ends.ts). */
+function digestLinear(seq: string, events: readonly Cleavage[], ends: FragmentEnds, paired: PairedRegion): DigestReport {
   const L = seq.length;
-  checkEnds(ends, L);
-  const left = endBoundary(ends.left, 'left', L);
-  const right = endBoundary(ends.right, 'right', L);
-  const dsStart = Math.max(left.top, left.bottom);
-  const dsEnd = Math.min(right.top, right.bottom);
+  const left: Boundary = endBoundary(ends.left, 'left', L);
+  const right: Boundary = endBoundary(ends.right, 'right', L);
   const skipped: SkippedCleavage[] = [];
   const applicable: Cleavage[] = [];
   for (const e of events) {
-    if (e.lo <= dsStart || e.hi >= dsEnd) {
+    // the rule of the site search (findSites with the same ends lists exactly the applicable events)
+    const problem = linearEndProblem(e.top, e.bottom, e.siteStart, e.siteStart + e.siteSize, paired);
+    if (problem === 'cut') {
       skipped.push(
         skip(e, L, false, 'end', `${e.enzyme} (site at ${e.siteStart + 1}) cannot cut: its cut (top ${e.top}, bottom ${e.bottom}) is not inside the double-stranded part of the molecule`),
       );
-    } else if (e.siteStart < dsStart || e.siteStart + e.siteSize > dsEnd) {
+    } else if (problem === 'site') {
       skipped.push(skip(e, L, false, 'end', `${e.enzyme} (site at ${e.siteStart + 1}) cannot cut: its recognition site is not fully double-stranded`));
     } else {
       applicable.push(e);
@@ -608,7 +602,7 @@ function digestCircular(seq: string, events: readonly Cleavage[]): DigestReport 
     const whole: DigestFragment = {
       seq,
       topology: 'circular',
-      ends: { left: BLUNT, right: BLUNT },
+      ends: { left: { kind: 'blunt', length: 0 }, right: { kind: 'blunt', length: 0 } },
       parentRange: { start: 0, end: L },
       length: L,
     };
@@ -630,7 +624,7 @@ function digestCircular(seq: string, events: readonly Cleavage[]): DigestReport 
   for (let i = 0; i < kept.length; i++) {
     const a = kept[i];
     const nextHi = i + 1 < kept.length ? kept[i + 1].hi : kept[0].hi + L;
-    const start = mod(a.lo, L);
+    const start = circularGap(a.lo, L);
     const range = { start, end: start + (nextHi - a.lo) };
     fragments.push(makeFragment(seq, range, boundaries[i], boundaries[(i + 1) % kept.length]));
   }
@@ -654,8 +648,10 @@ export function digestDetailed(
     collectCleavages(seq, topology, enzymes); // still validates the enzymes
     return { fragments: [], skipped: [] };
   }
-  const events = collectCleavages(seq, topology, enzymes);
-  return topology === 'circular' ? digestCircular(seq, events) : digestLinear(seq, events, options?.ends ?? BLUNT_ENDS);
+  if (topology === 'circular') return digestCircular(seq, collectCleavages(seq, topology, enzymes));
+  const ends = options?.ends ?? BLUNT_ENDS;
+  const paired = pairedRegion(ends, seq.length); // validates the ends
+  return digestLinear(seq, collectCleavages(seq, topology, enzymes), ends, paired);
 }
 
 /**
@@ -675,14 +671,47 @@ export function digest(
   return digestDetailed(seq, topology, enzymes, options).fragments;
 }
 
-/** Fragment lengths in bases (full duplex extents, i.e. {@link DigestFragment.length}), largest first, for gel lanes. */
+/**
+ * Fragment lengths in bases (full duplex extents, i.e. {@link DigestFragment.length}), largest
+ * first, for gel lanes. Sizes alone do not tell whether a circular molecule was cut: an uncut
+ * plasmid of L bp gives [L], exactly like a linear molecule of L bp, although on a gel it runs as
+ * supercoiled and nicked (open-circular) forms, not as a linear band. Gel code must use
+ * {@link digestSizesWithTopology} (or the `topology` of {@link digest}'s fragments) instead.
+ */
 export function digestSizes(
   seq: string,
   topology: Topology,
   enzymes: readonly RestrictionEnzyme[],
   options?: DigestOptions,
 ): number[] {
+  return digestSizesWithTopology(seq, topology, enzymes, options).map((f) => f.size);
+}
+
+/** One product of a digest as a gel lane needs it (see {@link digestSizesWithTopology}). */
+export interface DigestSize {
+  /** Length in bases: {@link DigestFragment.length} (full duplex extent, overhangs included). */
+  size: number;
+  /**
+   * 'circular' only for an uncut circular molecule (no enzyme cut it): on a gel it runs as
+   * supercoiled DNA (the main form of a plasmid prep) and/or nicked open-circular DNA, depending
+   * on the sample, not at the position of a linear molecule of the same size. 'linear' otherwise.
+   */
+  topology: Topology;
+}
+
+/**
+ * Sizes and topologies of the products of {@link digest}, largest first (ties keep parent order),
+ * for gel lanes: unlike {@link digestSizes} it tells an uncut plasmid (one 'circular' entry) from
+ * a linearized one or a linear molecule ('linear' entries). The conformation an uncut circle takes
+ * on the gel (supercoiled, nicked) is not decided here; see {@link DigestSize.topology}.
+ */
+export function digestSizesWithTopology(
+  seq: string,
+  topology: Topology,
+  enzymes: readonly RestrictionEnzyme[],
+  options?: DigestOptions,
+): DigestSize[] {
   return digest(seq, topology, enzymes, options)
-    .map((f) => f.length)
-    .sort((a, b) => b - a);
+    .map((f) => ({ size: f.length, topology: f.topology }))
+    .sort((a, b) => b.size - a.size);
 }

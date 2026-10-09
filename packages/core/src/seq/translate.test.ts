@@ -1,21 +1,24 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   ECOLI_GENBANK,
   HAS_ECOLI,
   HAS_VENV,
+  ORACLE_DIR,
   REPO_ROOT,
   VENV_PYTHON,
   loadOracle,
+  parseGcPrt,
   randomString,
   readGenbankSequence,
   seededRandom,
 } from '../../test/oracle/seqtools/oracle';
 import type { Feature, Qualifier, Range, SeqRecord, Strand, Topology } from '../types';
-import { reverseComplement } from './alphabet';
+import { IUPAC_DNA, reverseComplement } from './alphabet';
 import { GENETIC_CODES } from './codon-tables';
-import { makeFeature, makeRecord } from './features';
+import { featureSequence, makeFeature, makeRecord } from './features';
 import {
   NUCLEOTIDE_MASK,
   TranslationError,
@@ -234,11 +237,73 @@ describe('translate', () => {
     // the internal reading is unchanged
     expect(translate('GTNAAATAA', { table: 11 })).toBe('VK*');
     expect(translate('MTCAAATAA', { table: 2 })).toBe('JK*');
-    // every reading agrees: ATR in table 21 is ATA (Met, not a start) or ATG (start)
-    expect(translate('ATRAAATAA', { table: 21, cds: true })).toBe('MK*');
+    // every reading agrees: ATR in table 21 is ATA (Met, not a start) or ATG (start). (AAA is Asn in
+    // table 21, the trematode mitochondrial code: Biopython translate('ATRAAATAA', table=21) = 'MN*'.)
+    expect(translate('ATRAAATAA', { table: 21, cds: true })).toBe('MN*');
     // all starts / no starts are unaffected
     expect(translate('NTGAAATAA', { table: 11, cds: true })).toBe('MK*'); // ATG CTG GTG TTG: all starts
     expect(translate('GCNAAATAA', { table: 11, cds: true })).toBe('AK*');
+  });
+
+  // The initiator rule against an independent implementation: a literal port of NCBI's start-residue
+  // consensus (C++ Toolkit src/objects/seqfeat/Genetic_code_table.cpp, CTrans_table::x_InitFsaTransl,
+  // which x_Translate / TranslateToProtein emit for the first codon of a 5'-complete coding region),
+  // run on the verbatim gc.prt 4.6, for every IUPAC codon of every table.
+  it("cds initiator equals NCBI's start-residue consensus except where it is documented to say more", () => {
+    const TCAG = 'TCAG';
+    /** NCBI: combine the sncbieaa flags of the expansions; disagreement -> X; all-stop -> default '-'. */
+    const ncbiStartResidue = (sncbieaa: string, codon: string): string => {
+      let orf = '';
+      for (const b1 of IUPAC_DNA[codon[0]]) {
+        for (const b2 of IUPAC_DNA[codon[1]]) {
+          for (const b3 of IUPAC_DNA[codon[2]]) {
+            const flag = sncbieaa[16 * TCAG.indexOf(b1) + 4 * TCAG.indexOf(b2) + TCAG.indexOf(b3)];
+            orf = orf === '' || orf === flag ? flag : 'X';
+          }
+        }
+      }
+      return orf === '*' ? '-' : orf; // m_OrfStart keeps its initial '-' when the consensus is '*'
+    };
+    const ncbi = parseGcPrt(readFileSync(path.join(ORACLE_DIR, 'ncbi_gc.prt'), 'ascii'));
+    const codons = allIupacCodons(codonsOracle.alphabet);
+    let agreeing = 0;
+    let mixedStarts = 0;
+    const allMet: string[] = []; // NCBI X, here M: start and non-start codons, all of them Met
+    const contextStops: string[] = []; // NCBI X, here the amino acid: no start, context stop + non-stop
+    for (const code of GENETIC_CODES) {
+      const ref = ncbi.get(code.id);
+      expect(ref, `table ${code.id}`).toBeDefined();
+      if (!ref) continue;
+      for (const codon of codons) {
+        const ours = translate(codon, { table: code.id, cds: true });
+        const internal = translate(codon, { table: code.id });
+        const theirs = ncbiStartResidue(ref.sncbieaa, codon);
+        if (theirs === '-') {
+          expect(ours, `${code.id} ${codon}`).toBe(internal); // not a start codon: its amino acid
+          continue;
+        }
+        if (theirs === 'X' && /[^X*]/.test(internal) && ours === 'X') mixedStarts++;
+        if (ours === theirs) {
+          agreeing++;
+        } else if (theirs === 'X' && ours === 'M' && internal === 'M') {
+          allMet.push(`${code.id}:${codon}`);
+        } else if (theirs === 'X' && ours === internal && [27, 28, 31].includes(code.id)) {
+          contextStops.push(`${code.id}:${codon}`);
+        } else {
+          expect.fail(`table ${code.id} ${codon}: NCBI start residue ${theirs}, here ${ours}`);
+        }
+      }
+    }
+    expect(agreeing).toBe(38047);
+    // the review's count: 193 (table, codon) pairs had been given their internal L, V, I or J
+    expect(mixedStarts).toBe(193);
+    expect(allMet).toEqual(['21:ATR']);
+    expect(contextStops).toHaveLength(20);
+    expect(contextStops).toContain('27:TGR');
+    for (const c of contextStops) {
+      const [table, codon] = c.split(':');
+      expect(translate(codon, { table: Number(table) }), c).not.toBe('X');
+    }
   });
 
   it('context-dependent stop codons (tables 27, 28, 31)', () => {
@@ -563,9 +628,12 @@ describe('translateFeature', () => {
     expect(() => translateFeature(rec, cds([{ start: 0, end: 9 }], 1, [{ key: 'transl_table', value: 'x' }]))).toThrow(
       TranslationError,
     );
+    // an unknown table id in the feature is feature data (TranslationError naming it, see the review
+    // tests below); an unknown options.table is the caller's error
     expect(() => translateFeature(rec, cds([{ start: 0, end: 9 }], 1, [{ key: 'transl_table', value: '7' }]))).toThrow(
-      RangeError,
+      TranslationError,
     );
+    expect(() => translateFeature(rec, cds([{ start: 0, end: 9 }], 1), { table: 7 })).toThrow(RangeError);
   });
 
   // Review regression: Number('') and Number('  ') are 0, so an empty /transl_table (GenBank
@@ -617,6 +685,11 @@ describe('translateFeature', () => {
       expect(() => translateFeature(rec, table(null))).toThrow(/geneX.*\/transl_table/);
       expect(() => translateFeature(rec, codonStart(null))).toThrow(TranslationError);
       expect(() => translateFeature(rec, codonStart(null))).toThrow(/geneX.*\/codon_start/);
+      // same for /transl_except (getQualifiers skips value-less qualifiers), unless it is not applied
+      const except = withQualifiers([{ key: 'transl_except', value: null }]);
+      expect(() => translateFeature(rec, except)).toThrow(TranslationError);
+      expect(() => translateFeature(rec, except)).toThrow(/geneX.*\/transl_except/);
+      expect(translateFeature(rec, except, { translExcept: false })).toBe('MKP*');
     });
 
     it('conflicting repeated values are rejected, repeated equal values accepted', () => {
@@ -791,7 +864,111 @@ describe('translateFeature: trailing partial codon of a coding feature (NCBI rul
         else count.droppedOneBase++;
       }
     }
-    expect(count).toEqual({ kept: 12, keptMinusStrand: 1, droppedTwoBases: 4, droppedOneBase: 3 });
+    // droppedOneBase: 3 partial-cds records, plus (final verification) the 3'-truncated last CDS of
+    // AF153454.1 and the four Drosophila mitochondrial CDSs of NC_024511.2 whose T stop codon is
+    // completed by polyadenylation (aa:TERM, two on each strand; /translation has no residue for it)
+    expect(count).toEqual({ kept: 12, keptMinusStrand: 1, droppedTwoBases: 4, droppedOneBase: 8 });
+  });
+
+  it('features.json holds real NCBI CDSs with Sec, Pyl and minus-strand TERM exceptions and tables 5 and 33', () => {
+    // records added by the final verification, see tools/oracle/seqtools_oracle.py; each CDS is
+    // compared with its /translation by the per-record tests above
+    const exceptions: string[] = [];
+    const tables = new Set<string>();
+    for (const r of featureOracle.records) {
+      for (const f of r.features) {
+        for (const q of f.qualifiers) {
+          if (q.key === 'transl_table' && q.value !== null) tables.add(q.value);
+          if (q.key === 'transl_except' && f.translation !== null) exceptions.push(`${r.id} ${f.strand} ${q.value}`);
+        }
+      }
+    }
+    expect(exceptions).toEqual(
+      expect.arrayContaining([
+        'AF153454.1 1 (pos:922..924,aa:Pyl)',
+        'NM_000581.4 1 (pos:220..222,aa:Sec)',
+        'NC_024511.2 1 (pos:1263,aa:TERM)',
+        'NC_024511.2 -1 (pos:complement(6409),aa:TERM)',
+        'NC_024511.2 -1 (pos:complement(8207),aa:TERM)',
+      ]),
+    );
+    expect([...tables].sort((a, b) => Number(a) - Number(b))).toEqual(['2', '4', '5', '11', '13', '33']);
+    // the Pyl and Sec residues really are in NCBI's /translation, where our exception puts them
+    const gpx1 = featureOracle.records.find((r) => r.id === 'NM_000581.4')?.features[0];
+    expect(gpx1?.translation?.[(219 - 75) / 3]).toBe('U');
+    const mtmb = featureOracle.records.find((r) => r.id === 'AF153454.1')?.features[0];
+    expect(mtmb?.translation?.[(921 - 0) / 3]).toBe('O');
+  });
+});
+
+// Verification: /transl_except positions are mapped into the feature's reading frame by
+// featureLocalIndex (segments in join order, origin wraps, strand flip, /codon_start). Here an
+// independent map (the parent index of every base of the feature's own sequence) picks a codon,
+// writes its positions in one of the INSDC forms, and the override must land exactly there.
+describe('translateFeature: /transl_except lands on the intended codon (seeded random)', () => {
+  it('for random strands, joins, origin-wrapping segments, codon_start and partial last codons', () => {
+    const rand = seededRandom(77007);
+    const seen = { checked: 0, wrapping: 0, splitCodons: 0, tails: 0 };
+    for (let n = 0; n < 2500; n++) {
+      const L = 20 + Math.floor(rand() * 60);
+      const topology: Topology = rand() < 0.6 ? 'circular' : 'linear';
+      const seq = randomString(rand, 'ACGT', L);
+      // lay down 1-3 non-overlapping segments walking 5'->3' along the top strand
+      const segments: Range[] = [];
+      let cursor = Math.floor(rand() * (topology === 'circular' ? L : L / 2));
+      const first = cursor;
+      for (let i = 1 + Math.floor(rand() * 3); i > 0; i--) {
+        const len = 4 + Math.floor(rand() * 12);
+        if (topology === 'linear' ? cursor + len > L : cursor + len - first > L) break;
+        const start = topology === 'circular' ? cursor % L : cursor;
+        segments.push({ start, end: start + len });
+        cursor += len + Math.floor(rand() * 4);
+      }
+      if (segments.length === 0) continue;
+      const strand = rand() < 0.5 ? 1 : -1;
+      const codonStart = 1 + Math.floor(rand() * 3);
+      const positions: number[] = [];
+      for (const s of segments) for (let p = s.start; p < s.end; p++) positions.push(p % L);
+      if (strand === -1) positions.reverse();
+      const offset = codonStart - 1;
+      const complete = Math.floor((positions.length - offset) / 3);
+      const tail = (positions.length - offset) % 3;
+      const onTail = tail > 0 && rand() < 0.3; // a stop codon completed by polyadenylation: aa:TERM
+      if (complete === 0 && !onTail) continue;
+      const k = onTail ? complete : Math.floor(rand() * complete);
+      const codon = positions.slice(offset + 3 * k, offset + 3 * k + (onTail ? tail : 3));
+      const sorted = [...codon].sort((a, b) => a - b);
+      const contiguous = sorted.every((p, i) => i === 0 || p === sorted[i - 1] + 1);
+      let location =
+        contiguous && rand() < 0.6
+          ? sorted.length === 1
+            ? `${sorted[0] + 1}`
+            : `${sorted[0] + 1}..${sorted[sorted.length - 1] + 1}`
+          : `join(${codon.map((p) => p + 1).join(',')})`;
+      if (strand === -1 && rand() < 0.7) location = `complement(${location})`;
+      const feature = makeFeature({
+        type: 'CDS',
+        name: 'probe',
+        strand,
+        segments,
+        qualifiers: [
+          { key: 'codon_start', value: String(codonStart) },
+          { key: 'transl_except', value: `(pos:${location},aa:${onTail ? 'TERM' : 'Sec'})` },
+        ],
+      });
+      const plain = translate(featureSequence(feature, seq).slice(offset));
+      const expected = onTail ? `${plain}*` : `${plain.slice(0, k)}U${plain.slice(k + 1)}`;
+      const label = `${seq} ${topology} ${JSON.stringify(segments)} strand ${strand} codon_start ${codonStart} ${location}`;
+      expect(translateFeature(makeRecord({ seq, topology }), feature, { cds: false }), label).toBe(expected);
+      seen.checked++;
+      if (segments.some((s) => s.end > L)) seen.wrapping++;
+      if (!contiguous) seen.splitCodons++;
+      if (onTail) seen.tails++;
+    }
+    expect(seen.checked).toBeGreaterThan(2000);
+    expect(seen.wrapping).toBeGreaterThan(300);
+    expect(seen.splitCodons).toBeGreaterThan(100);
+    expect(seen.tails).toBeGreaterThan(300);
   });
 });
 

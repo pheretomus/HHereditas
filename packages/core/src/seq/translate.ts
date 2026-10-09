@@ -14,9 +14,9 @@
  */
 import type { Feature, SeqRecord, Topology } from '../types';
 import { IUPAC_DNA } from './alphabet';
-import { getGeneticCode } from './codon-tables';
+import { GENETIC_CODES, getGeneticCode } from './codon-tables';
 import type { GeneticCode } from './codon-tables';
-import { featureLength, featureSequence, getQualifier, getQualifiers } from './features';
+import { featureLength, featureSequence } from './features';
 import { mod, rangeContainsIndex } from './range';
 
 /** Thrown when a nucleotide sequence or feature cannot be translated (invalid character, bad qualifier, ...). */
@@ -232,7 +232,6 @@ export function compileGeneticCode(id: number): CompiledGeneticCode {
 // Translation
 // ---------------------------------------------------------------------------
 
-const CHAR_M = 'M'.charCodeAt(0);
 const CHAR_STOP = '*'.charCodeAt(0);
 const CHAR_X = 'X'.charCodeAt(0);
 /** Mask of N (any base), used to pad a trailing partial codon. */
@@ -340,12 +339,19 @@ export interface TranslateOptions {
   toStop?: boolean;
   /**
    * Treat the input (after skipping `frame` bases) as a complete coding sequence: the first codon
-   * is translated as M when it is a start codon of the table (every codon an ambiguous triplet may
-   * stand for must be a start codon), and, when the input is a whole number of codons, the last codon
-   * is translated as '*' when it is a stop codon of the table (matters only for context-dependent stop
-   * codons). Unlike Biopython's `cds=True` this never throws and keeps the final '*'. A trailing
-   * partial codon is still ignored (use {@link translateFeature} for NCBI's partial-codon rule).
-   * Default false.
+   * is read as an initiator, i.e. M when it is a start codon of the table, and, when the input is a
+   * whole number of codons, the last codon is translated as '*' when it is a stop codon of the table
+   * (matters only for context-dependent stop codons). An ambiguous initiator combines the readings of
+   * the codons it may stand for (M for a start codon, else its amino acid) with the usual rules: M
+   * when all are starts (NTG in table 11) or code for Met anyway (ATR in table 21: ATA is Met but not
+   * a start), its amino acid when none is a start, X when start and non-start codons mix (GTN in
+   * table 11 may be M or V). This is NCBI's start-residue consensus (C++ Toolkit
+   * CTrans_table::x_InitFsaTransl, used for the first codon of 5'-complete coding regions), except
+   * where NCBI's consensus of start/stop flags says less: NCBI gives X for ATR in table 21, no residue
+   * ('-') for codons that are not start codons, and X for codons mixing a context-dependent stop
+   * codon with non-stop codons (TGR in table 27); here these are M, the amino acid and the amino acid.
+   * Unlike Biopython's `cds=True` this never throws and keeps the final '*'. A trailing partial codon
+   * is still ignored (use {@link translateFeature} for NCBI's partial-codon rule). Default false.
    */
   cds?: boolean;
 }
@@ -437,26 +443,65 @@ function checkSegments(feature: Feature, L: number, topology: Topology): void {
   }
 }
 
-/** 0-based offset of the first complete codon from the /codon_start qualifier (1, 2 or 3; default 1). */
-function codonStartOffset(feature: Feature): number {
-  const value = getQualifier(feature.qualifiers, 'codon_start');
-  if (value === undefined) return 0;
-  const n = Number(value.trim());
-  if (n !== 1 && n !== 2 && n !== 3) {
-    throw new TranslationError(`Feature '${feature.name}' has /codon_start="${value}"; expected 1, 2 or 3`);
+/**
+ * The value of an integer qualifier of `feature` (/codon_start, /transl_table), or undefined when the
+ * feature has none. The INSDC feature table writes both as plain decimal integers; surrounding white
+ * space and leading zeros are accepted, anything else is rejected rather than guessed: '' and blanks
+ * (which `Number` would read as 0), signs, fractions, exponents and hexadecimal ('0x0B' is 11 for
+ * `Number`). A value-less occurrence (GenBank `/transl_table` without '=') and repeated occurrences
+ * with different values are errors too; repeats of the same value are accepted.
+ *
+ * @throws TranslationError naming the feature, the qualifier and the offending value.
+ */
+function integerQualifier(
+  feature: Feature,
+  key: string,
+  expected: string,
+): { value: number; written: string } | undefined {
+  let found: { value: number; written: string } | undefined;
+  for (const q of feature.qualifiers) {
+    if (q.key !== key) continue;
+    if (q.value === null) {
+      throw new TranslationError(`Feature '${feature.name}' has /${key} without a value; expected ${expected}`);
+    }
+    const text = q.value.trim();
+    if (!/^[0-9]+$/.test(text)) {
+      throw new TranslationError(`Feature '${feature.name}' has /${key}="${q.value}"; expected ${expected}`);
+    }
+    const value = Number(text);
+    if (found !== undefined && value !== found.value) {
+      throw new TranslationError(
+        `Feature '${feature.name}' has conflicting /${key} values "${found.written}" and "${q.value}"`,
+      );
+    }
+    found ??= { value, written: q.value };
   }
-  return n - 1;
+  return found;
 }
 
-/** Table id from the /transl_table qualifier, or undefined when absent. */
-function translTable(feature: Feature): number | undefined {
-  const value = getQualifier(feature.qualifiers, 'transl_table');
-  if (value === undefined) return undefined;
-  const n = Number(value.trim());
-  if (!Number.isInteger(n)) {
-    throw new TranslationError(`Feature '${feature.name}' has /transl_table="${value}"; expected an NCBI table id`);
+/** 0-based offset of the first complete codon from the /codon_start qualifier (1, 2 or 3; default 1). */
+function codonStartOffset(feature: Feature): number {
+  const q = integerQualifier(feature, 'codon_start', '1, 2 or 3');
+  if (q === undefined) return 0;
+  if (q.value !== 1 && q.value !== 2 && q.value !== 3) {
+    throw new TranslationError(`Feature '${feature.name}' has /codon_start="${q.written}"; expected 1, 2 or 3`);
   }
-  return n;
+  return q.value - 1;
+}
+
+/**
+ * Table id from the /transl_table qualifier, or undefined when absent. An id that is not an NCBI
+ * genetic code (0 and unassigned ids such as 7, 8 and 17-20) is an error in the feature, so it throws
+ * a TranslationError naming the feature, not the RangeError of {@link getGeneticCode}.
+ */
+function translTable(feature: Feature): number | undefined {
+  const q = integerQualifier(feature, 'transl_table', 'an NCBI table id');
+  if (q === undefined) return undefined;
+  if (GENETIC_CODES.some((c) => c.id === q.value)) return q.value;
+  const known = GENETIC_CODES.map((c) => c.id).join(', ');
+  throw new TranslationError(
+    `Feature '${feature.name}' has /transl_table="${q.written}": unknown NCBI genetic code; known tables: ${known}`,
+  );
 }
 
 /**
@@ -513,7 +558,14 @@ function featureLocalIndex(feature: Feature, p: number, L: number, topology: Top
 function translExceptions(feature: Feature, offset: number, L: number, topology: Topology): Map<number, string> {
   const out = new Map<number, string>();
   const total = featureLength(feature);
-  for (const raw of getQualifiers(feature.qualifiers, 'transl_except')) {
+  for (const { key, value: raw } of feature.qualifiers) {
+    if (key !== 'transl_except') continue;
+    if (raw === null) {
+      // getQualifiers would skip it; a value-less /transl_except is malformed, not absent
+      throw new TranslationError(
+        `Feature '${feature.name}' has /transl_except without a value; expected (pos:<location>,aa:<amino acid>)`,
+      );
+    }
     const fail = (why: string) =>
       new TranslationError(`Feature '${feature.name}': cannot apply /transl_except=${raw} (${why})`);
     const m = /^\(\s*pos:(.+),\s*aa:\s*([A-Za-z]+)\s*\)$/.exec(raw.trim());
@@ -545,7 +597,9 @@ function translExceptions(feature: Feature, offset: number, L: number, topology:
  * The feature's own 5'->3' sequence is built from its segments (joined in order, origin-wrapping
  * segments included, reverse-complemented for strand -1; strand 0 is read as +1). Then:
  *   - /codon_start (1, 2 or 3) gives the first complete codon;
- *   - /transl_table selects the genetic code (otherwise `options.table`, default 1);
+ *   - /transl_table selects the genetic code (otherwise `options.table`, default 1). Both qualifiers
+ *     are plain decimal integers (surrounding white space and leading zeros allowed); a repeated
+ *     qualifier must repeat the same value;
  *   - /transl_except overrides single codons (e.g. TGA -> U for selenocysteine, a stop codon
  *     completed by polyadenylation -> '*') unless `options.translExcept` is false. On an incomplete
  *     last codon it replaces the padded residue, or supplies the residue when there is none; NCBI
@@ -553,9 +607,10 @@ function translExceptions(feature: Feature, offset: number, L: number, topology:
  *   - coding features (`options.cds`, default `feature.type === 'CDS'`) are translated like NCBI
  *     translates coding regions (C++ Toolkit, src/objmgr/util/sequence.cpp, CSeqTranslator), so
  *     the result equals the GenBank /translation (plus a final '*' for a stop codon):
- *       - the first codon is M when it is a start codon of the table, but only when the feature is
- *         5' complete (/codon_start=1 and no fuzzy 5' end): `check_start = is_5prime_complete &&
- *         frame == 0`. Unlike Biopython, a 5'-partial CDS keeps the amino acid of its first codon;
+ *       - the first codon is read as an initiator (M when it is a start codon of the table; for an
+ *         ambiguous codon see {@link TranslateOptions.cds}), but only when the feature is 5' complete
+ *         (/codon_start=1 and no fuzzy 5' end): `check_start = is_5prime_complete && frame == 0`.
+ *         Unlike Biopython, a 5'-partial CDS keeps the amino acid of its first codon;
  *       - the last codon of a 3'-complete feature is '*' when it is a (context-dependent) stop codon;
  *       - a trailing partial codon (1 or 2 bases, typically at the end of a 3'-partial CDS) is
  *         padded with N, and its amino acid is kept unless it is X ("if padding was needed, trim
@@ -567,8 +622,10 @@ function translExceptions(feature: Feature, offset: number, L: number, topology:
  *
  * @throws TranslationError for protein records; segments that are not valid ranges of the record
  *   (types.ts conventions; on a circular record an empty segment must start below L or be {L, L});
- *   invalid characters; unparsable /codon_start, /transl_table or /transl_except values.
- * @throws RangeError for an unknown genetic code.
+ *   invalid characters; /codon_start, /transl_table or /transl_except values that are missing
+ *   (value-less qualifier), unparsable or conflicting, and a /transl_table that is not an NCBI genetic
+ *   code. Every message names the feature, so a caller translating many features can report it.
+ * @throws RangeError for an unknown `options.table` (the caller's setting, not feature data).
  */
 export function translateFeature(rec: SeqRecord, feature: Feature, options: TranslateFeatureOptions = {}): string {
   if (rec.molecule === 'protein') {

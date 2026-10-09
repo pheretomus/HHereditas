@@ -8,7 +8,8 @@ Generates deterministic JSON fixtures in packages/core/test/oracle/primers/:
                 plus long (> 60 nt, GC% formula) sequences, self-complementary oligos and
                 DMSO / formamide cases. Biopython `MeltingTemp.Tm_NN` is recorded as a
                 secondary sanity check (`santalucia`) and as the reference for the published
-                Owczarzy 2008 equation (`owczarzy2008`, Biopython salt correction method 7).
+                Owczarzy 2008 equation (`owczarzy2008`, Biopython salt correction method 7),
+                also without monovalent ions and with dNTP >= Mg2+ (`biopythonNoMonovalent`).
   binding.json  brute-force reference of the anchored primer-binding semantics documented in
                 src/primers/binding.ts on random templates with planted sites (mismatches,
                 origin-spanning sites, reverse primers, 5' tails, IUPAC codes), plus templates
@@ -183,6 +184,23 @@ def gen_tm() -> None:
         mv, dv, dntp, dna = random_conditions(rng)
         biopython.append([seq, mv, dv, dntp, dna, bio_tm(seq, mv, dv, dntp, dna, 5),
                           bio_tm(seq, mv, dv, dntp, dna, 7)])
+    # Owczarzy 2008 without monovalent ions (Biopython method 7 only: the other methods need a
+    # Na+ equivalent > 0). Its free-Mg2+ model (Ka = 3e4 /M) leaves some Mg2+ free even when
+    # dNTP >= Mg2+, so these conditions have a defined Tm. Separate RNG: the rows above are unchanged.
+    rng_mg = random.Random(2026_1016)
+    biopython_no_mv = []
+    for _ in range(300):
+        length = rng_mg.randint(8, 60)
+        seq = random_oligo(rng_mg, length, rng_mg.uniform(0.1, 0.9))
+        if rng_mg.random() < 0.1:
+            half = seq[: length // 2]
+            seq = half + revcomp(half)
+        dv = round(rng_mg.uniform(0.05, 5), 3)
+        # half of the cases have dNTP >= Mg2+ (all Mg2+ chelated in primer3's model)
+        dntp = round(rng_mg.uniform(dv, max(dv, 1.0) + 0.5), 3) if rng_mg.random() < 0.5 \
+            else round(rng_mg.uniform(0, min(dv, 1.0)), 3)
+        dna = round(rng_mg.uniform(25, 500), 3)
+        biopython_no_mv.append([seq, 0, dv, dntp, dna, bio_tm(seq, 0, dv, dntp, dna, 7)])
 
     write_json('tm.json', {
         'generator': 'tools/oracle/primers_oracle.py tm',
@@ -198,6 +216,8 @@ def gen_tm() -> None:
         'additives': additives,
         'biopythonColumns': ['seq', 'mv_mM', 'dv_mM', 'dntp_mM', 'dna_nM', 'tm_bio_saltcorr5', 'tm_bio_saltcorr7'],
         'biopython': biopython,
+        'biopythonNoMonovalentColumns': ['seq', 'mv_mM', 'dv_mM', 'dntp_mM', 'dna_nM', 'tm_bio_saltcorr7'],
+        'biopythonNoMonovalent': biopython_no_mv,
     })
 
 
@@ -213,7 +233,8 @@ IUPAC_COMPLEMENT = {
     'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C', 'R': 'Y', 'Y': 'R', 'S': 'S', 'W': 'W',
     'K': 'M', 'M': 'K', 'B': 'V', 'V': 'B', 'D': 'H', 'H': 'D', 'N': 'N',
 }
-RESUME_MATCHES = 2  # matches that must follow an accepted mismatch (one nearest-neighbour stack)
+RESUME_MATCHES = 2  # matches that must follow a mismatch inside the region (mismatches stay isolated)
+MISMATCH_COST = 3  # the region ends where matches - MISMATCH_COST * mismatches is largest (shortest on ties)
 
 
 def iupac_accepts(pattern: str, base: str) -> bool:
@@ -256,16 +277,26 @@ def brute_force_sites(template: str, circular: bool, primer: str, min_anneal: in
 
             if limit < anchor or not all(ok(k) for k in range(anchor)):
                 continue
-            k, mismatches = anchor, 0
-            while k < limit:
-                if ok(k):
-                    k += 1
-                elif (mismatches < max_mismatches and k + RESUME_MATCHES < limit
-                      and all(ok(k + j) for j in range(1, RESUME_MATCHES + 1))):
-                    mismatches += 1
-                    k += 1 + RESUME_MATCHES
-                else:
-                    break
+            # Declarative reference (binding.ts walks instead): among the prefix lengths k >= anchor
+            # (primer bases from the 3' end) whose mismatches number at most max_mismatches and are
+            # each followed, inside the prefix, by RESUME_MATCHES matches, the annealed region is the
+            # one maximising matches - MISMATCH_COST * mismatches, the shortest on ties.
+            flags: list[bool] = []
+            mismatch_positions: list[int] = []
+            k, mismatches, best = anchor, 0, anchor
+            for length in range(anchor, limit + 1):
+                while len(flags) < length:
+                    flags.append(ok(len(flags)))
+                    if not flags[-1]:
+                        mismatch_positions.append(len(flags) - 1)
+                if len(mismatch_positions) > max_mismatches:
+                    break  # every longer prefix has at least as many mismatches
+                if not all(w + RESUME_MATCHES < length and all(flags[w + j] for j in range(1, RESUME_MATCHES + 1))
+                           for w in mismatch_positions):
+                    continue
+                score = length - (MISMATCH_COST + 1) * len(mismatch_positions)
+                if score > best:
+                    k, mismatches, best = length, len(mismatch_positions), score
             if k < min_anneal:
                 continue
             start = (q - k + 1) % L if strand == 1 else q
@@ -403,11 +434,89 @@ def gen_binding() -> None:
             'sites': brute_force_sites(shown, circular, primer, options['minAnneal'], options['anchor3'],
                                        options['maxMismatches']),
         })
+    # 5'-tailed primers on a perfect site whose tail mismatches the template at its 3'-terminal base
+    # and then matches it by chance for exactly r = 0..7 bases: the MISMATCH_COST boundary (a single
+    # mismatch is only annealed with >= 4 supporting matches). Separate RNG: earlier inputs unchanged.
+    rng_tails = random.Random(2026_1011)
+    for case_index in range(64):
+        r = case_index % 8
+        strand = 1 if (case_index // 8) % 2 == 0 else -1
+        circular = (case_index // 16) % 2 == 1
+        core_len, tail_len = 20, 12
+        L = rng_tails.randint(80, 300)
+        t = random_oligo(rng_tails, L, rng_tails.uniform(0.3, 0.7))
+        start = rng_tails.randint(tail_len + 1, L - core_len - tail_len - 1)
+        core_top = t[start:start + core_len]
+
+        def facing(i: int) -> str:
+            """The base the i-th tail base (from the tail's 3' end) must be to match the template."""
+            return t[start - 1 - i] if strand == 1 else COMPLEMENT[t[start + core_len + i]]
+
+        tail_from_3 = []
+        for i in range(tail_len):
+            if i == 0 or i == r + 1:
+                tail_from_3.append(rng_tails.choice([b for b in 'ACGT' if b != facing(i)]))
+            elif i <= r:
+                tail_from_3.append(facing(i))
+            else:
+                tail_from_3.append(rng_tails.choice('ACGT'))
+        primer = ''.join(reversed(tail_from_3)) + (core_top if strand == 1 else revcomp(core_top))
+        options = {'minAnneal': 15, 'anchor3': 5, 'maxMismatches': 1 + (case_index // 32)}
+        cases.append({
+            'template': t,
+            'topology': 'circular' if circular else 'linear',
+            'primer': primer,
+            'options': options,
+            'sites': brute_force_sites(t, circular, primer, options['minAnneal'], options['anchor3'],
+                                       options['maxMismatches']),
+        })
+    # Primers with a degenerate 3' end (random-priming primers such as FR26RV-N: a specific 5' part
+    # plus an N run) on templates with planted, mutated copies: binding.ts cannot seed these with an
+    # exact 3' anchor and uses pigeonhole seeds over the minAnneal window instead. Separate RNG.
+    rng_deg = random.Random(2026_1015)
+    degenerate_option_sets = [
+        {'minAnneal': 15, 'anchor3': 5, 'maxMismatches': 1},
+        {'minAnneal': 15, 'anchor3': 5, 'maxMismatches': 2},
+        {'minAnneal': 14, 'anchor3': 3, 'maxMismatches': 3},
+        {'minAnneal': 15, 'anchor3': 0, 'maxMismatches': 2},
+        {'minAnneal': 12, 'anchor3': 5, 'maxMismatches': 0},
+    ]
+    for case_index in range(80):
+        circular = case_index % 2 == 1
+        L = rng_deg.randint(60, 600)
+        t = list(random_oligo(rng_deg, L, rng_deg.uniform(0.3, 0.7)))
+        n_run = rng_deg.randint(2, 9)
+        specific = list(random_oligo(rng_deg, rng_deg.randint(8, 18), 0.5))
+        if rng_deg.random() < 0.3:  # some ambiguity codes in the specific part too
+            for _ in range(rng_deg.randint(1, 3)):
+                specific[rng_deg.randrange(len(specific))] = rng_deg.choice('RYSWKMBDHV')
+        primer = ''.join(specific) + 'N' * n_run
+        for _ in range(rng_deg.randint(1, 4)):
+            text = expand_one(rng_deg, primer)
+            if rng_deg.random() < 0.7:
+                text = mutate(rng_deg, text, rng_deg.randint(1, 3), n_run)
+            strand = rng_deg.choice((1, -1))
+            if circular and rng_deg.random() < 0.4:
+                start = (L - rng_deg.randint(1, len(text) - 1)) % L  # across the origin
+            else:
+                start = rng_deg.randint(0, L - len(text))
+            plant(t, start, text if strand == 1 else ''.join(IUPAC_COMPLEMENT[c] for c in reversed(text)))
+        template = ''.join(t)
+        options = degenerate_option_sets[case_index % len(degenerate_option_sets)]
+        cases.append({
+            'template': template,
+            'topology': 'circular' if circular else 'linear',
+            'primer': primer,
+            'options': options,
+            'sites': brute_force_sites(template, circular, primer, options['minAnneal'], options['anchor3'],
+                                       options['maxMismatches']),
+        })
     total_sites = sum(len(c['sites']) for c in cases)
     write_json('binding.json', {
         'generator': 'tools/oracle/primers_oracle.py binding',
         'oracle': 'brute-force Python reference of the anchored binding semantics (every position, both strands)',
         'resumeMatches': RESUME_MATCHES,
+        'mismatchCost': MISMATCH_COST,
         'totalSites': total_sites,
         'cases': cases,
     })
@@ -536,6 +645,24 @@ def gen_thal() -> None:
         else:
             s2 = random_oligo(rng, rng.randint(8, 40), rng.uniform(0.2, 0.8))
         ends.append(thal_row([s1, s2], thal_conditions(rng), primer3.calc_end_stability))
+    # Primers against long low-complexity partners (repeats with planted, indel-mutated complements):
+    # where the loop pruning of thal.ts fillDimer is most active and loops are still accepted.
+    # Separate RNG: the cases above are unchanged.
+    rng_long = random.Random(2026_1014)
+    for case_index in range(40):
+        s1 = random_oligo(rng_long, rng_long.randint(15, 60), rng_long.uniform(0.2, 0.8))
+        unit = rng_long.choice(('GC', 'AT', 'GGC', 'A', 'CA', 'GCGCAT', 'CCG'))
+        background = list((unit * 1000)[:rng_long.randint(200, 700)])
+        for _ in range(rng_long.randint(1, 3)):
+            planted = mutate_indels(rng_long, revcomp(s1), rng_long.randint(0, 4))
+            k = rng_long.randrange(0, max(1, len(background) - len(planted)))
+            background[k:k + len(planted)] = list(planted)
+        s2 = ''.join(background)
+        pair = [s1, s2] if case_index % 2 == 0 else [s2, s1]
+        if case_index < 30:
+            heterodimers.append(thal_row(pair, thal_conditions(rng_long), primer3.calc_heterodimer))
+        else:
+            ends.append(thal_row([s1, s2], thal_conditions(rng_long), primer3.calc_end_stability))
     write_json('thal.json', {
         'generator': 'tools/oracle/primers_oracle.py thal',
         'oracle': f'primer3-py {primer3.__version__} calc_hairpin / calc_homodimer / calc_heterodimer / '

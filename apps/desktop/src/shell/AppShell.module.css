@@ -105,6 +105,18 @@
 }
 
 /* ---- inactive window: chrome loses contrast and accent, like a background macOS window ---- */
+/* Controls and selections inside the window drop the accent colour (pop-up indicators,
+   checkboxes, switches, sidebar icons, text selection in the visualizations). Portaled
+   menus and popovers are unaffected: they only exist while the window is active. */
+.window[data-inactive] {
+  --hh-accent: var(--hh-gray);
+  --hh-accent-hover: var(--hh-gray);
+  --hh-accent-soft: color-mix(in srgb, var(--hh-gray) 16%, transparent);
+  --hh-seq-selection: color-mix(in srgb, var(--hh-gray) 26%, transparent);
+  --hh-seq-selection-edge: var(--hh-gray);
+  --hh-seq-caret: var(--hh-gray);
+}
+
 .window[data-inactive] .titlebar > * {
   opacity: 0.55;
   filter: saturate(0);

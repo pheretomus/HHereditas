@@ -55,7 +55,8 @@ export type { TmExtreme } from './tm-extremes';
  *    above ~1 mM, which the published model does not predict.
  *  - 'owczarzy2008': the published Owczarzy 2008 model (eq. 16 including the length term, eq. 22
  *    below the [Mg2+]^0.5/[Mon+] = 0.22 crossover, free Mg2+ from the Mg2+:dNTP association
- *    constant Ka = 3×10^4 M^-1, R = 1.987), matching Biopython `Tm_NN(saltcorr=7)`. It can differ
+ *    constant Ka = 3×10^4 M^-1, R = 1.987), matching Biopython `Tm_NN(saltcorr=7)`, also without
+ *    monovalent ions and with [dNTP] >= [Mg2+] (the Ka model always leaves some Mg2+ free). It can differ
  *    from 'owczarzy' by several °C: over 8–60-mers with 10–200 mM Mon+, 0–5 mM Mg2+ and 0–1 mM dNTP
  *    the median difference is +0.8 °C where Mg2+ dominates (5th–95th percentile −2.2 to +3.7 °C),
  *    with extremes of about −8 °C (short oligos at low free Mg2+, where the length term is large)
@@ -106,7 +107,12 @@ const SALT_METHODS: readonly SaltCorrectionMethod[] = ['schildkraut', 'santaluci
 /**
  * Merge `conditions` over {@link DEFAULT_TM_CONDITIONS} and validate them.
  * Throws a RangeError for negative or non-finite concentrations, a non-positive oligo
- * concentration, an unknown salt correction, or conditions without any cation.
+ * concentration, an unknown salt correction, or conditions without free cations in the selected
+ * model: primer3's models ('schildkraut', 'santalucia', 'owczarzy') take free Mg2+ = [Mg2+] − [dNTP],
+ * so they need monovalent ions or Mg2+ > dNTP; 'owczarzy2008' derives free Mg2+ from the
+ * Mg2+:dNTP association constant, which always leaves some free, so it only needs monovalent ions
+ * or any Mg2+. (The GC% formula above `nnMaxLength`, {@link thermo} and the structure checks use
+ * primer3's Na+ equivalent whatever the method and check it themselves.)
  */
 export function resolveTmConditions(conditions?: Partial<TmConditions>): TmConditions {
   const c: TmConditions = { ...DEFAULT_TM_CONDITIONS };
@@ -140,10 +146,32 @@ export function resolveTmConditions(conditions?: Partial<TmConditions>): TmCondi
   if (!SALT_METHODS.includes(c.saltCorrection)) {
     throw new RangeError(`Unknown salt correction '${String(c.saltCorrection)}'`);
   }
-  if (c.monovalentMilliMolar === 0 && c.divalentMilliMolar <= c.dntpMilliMolar) {
+  if (c.saltCorrection === 'owczarzy2008') {
+    if (c.monovalentMilliMolar === 0 && c.divalentMilliMolar === 0) {
+      throw new RangeError('Tm conditions contain no cations (monovalent = 0 and Mg2+ = 0)');
+    }
+  } else if (!hasPrimer3FreeCations(c)) {
     throw new RangeError('Tm conditions contain no free cations (monovalent = 0 and Mg2+ <= dNTP)');
   }
   return c;
+}
+
+/** Whether primer3's Na+ equivalent, monovalent + 120·√([Mg2+] − [dNTP]), is positive. */
+function hasPrimer3FreeCations(c: TmConditions): boolean {
+  return c.monovalentMilliMolar > 0 || c.divalentMilliMolar > c.dntpMilliMolar;
+}
+
+/**
+ * Throws a RangeError naming `what` when primer3's Na+ equivalent of `c` is 0. Only reachable with
+ * 'owczarzy2008' (see {@link resolveTmConditions}), whose own free-Mg2+ model is not used by `what`.
+ */
+function requirePrimer3FreeCations(c: TmConditions, what: string): void {
+  if (!hasPrimer3FreeCations(c)) {
+    throw new RangeError(
+      `${what} uses primer3's Na+ equivalent (monovalent + 120·√(Mg2+ − dNTP)), which needs free cations: ` +
+        'these conditions have monovalent = 0 and Mg2+ <= dNTP',
+    );
+  }
 }
 
 /**
@@ -158,7 +186,11 @@ export function divalentToMonovalentMilliMolar(divalentMilliMolar: number, dntpM
   return 120 * Math.sqrt(divalent - dntp);
 }
 
-/** [Na+] equivalent of a set of conditions in millimolar: monovalent + 120·√([Mg2+] − [dNTP]). */
+/**
+ * primer3's [Na+] equivalent of a set of conditions in millimolar: monovalent + 120·√([Mg2+] − [dNTP])
+ * (0 for 'owczarzy2008' conditions without monovalent ions and with Mg2+ <= dNTP, which that
+ * method accepts because its own free-Mg2+ model differs).
+ */
 export function sodiumEquivalentMilliMolar(conditions?: Partial<TmConditions>): number {
   const c = resolveTmConditions(conditions);
   return c.monovalentMilliMolar + divalentToMonovalentMilliMolar(c.divalentMilliMolar, c.dntpMilliMolar);
@@ -289,6 +321,7 @@ function countGc(seq: string): number {
 
 /** primer3 `long_seq_tm` (GC% formula); `gc` may be fractional (expected count of a degenerate oligo). */
 function longSequenceTm(gc: number, n: number, c: TmConditions): number {
+  requirePrimer3FreeCations(c, 'The GC% formula used above nnMaxLength (raise nnMaxLength to use the nearest-neighbour model)');
   const salt = c.monovalentMilliMolar + divalentToMonovalentMilliMolar(c.divalentMilliMolar, c.dntpMilliMolar);
   return (
     81.5 -
@@ -686,10 +719,13 @@ export interface DuplexThermo {
  * 1 M NaCl standard state. Degenerate oligos give the mean over their expansions (exact up to
  * {@link TM_EXACT_EXPANSION_LIMIT} expansions, sampled above). Fewer than 2 nt give NaN values.
  * The nearest-neighbour sums are used at every length (no long-sequence formula here).
+ * Throws a RangeError when the Na+ equivalent is 0 (possible only with 'owczarzy2008' conditions
+ * without monovalent ions and Mg2+ <= dNTP, see {@link resolveTmConditions}).
  */
 export function thermo(seq: string, conditions?: Partial<TmConditions>): DuplexThermo {
   const c = resolveTmConditions(conditions);
   const s = prepareSequence(seq);
+  requirePrimer3FreeCations(c, "thermo()'s SantaLucia salt correction of ΔS°");
   if (s.length < 2) return { dH: NaN, dS: NaN, dG37: NaN };
   const saltTerm =
     0.368 *

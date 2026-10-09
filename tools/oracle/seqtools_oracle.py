@@ -38,6 +38,17 @@ trailing bases with N and keeps the residue unless it is X (GC -> A kept; GA -> 
 one base dropped).
 They cover both strands (LC910909.1 complement(<1..65)), /codon_start 1-3, tables 1, 2, 4, 11 and 13
 and a joined CDS (PZ798277.1).
+Four more records (same URL, downloaded 2026-10-08) were added by the final verification of the
+module for /transl_except cases and genetic codes the records above lack. They come from a check of
+1,035 CDSs of 69 NCBI records in 14 genetic codes, all of which translateFeature translates exactly
+as their /translation:
+  NC_024511.2  Drosophila melanogaster mitochondrion, table 5: stop codons completed by
+               polyadenylation (aa:TERM on a 1-base tail) on both strands, e.g.
+               complement(6409..8125) with /transl_except=(pos:complement(6409),aa:TERM), and the
+               5'-partial COX1 <1474..3009
+  MF374802.1   Cephalodiscus hodgsoni mitochondrion, table 33 (Cephalodiscidae Mitochondrial)
+  AF153454.1   Methanosarcina barkeri, table 11: pyrrolysine, /transl_except=(pos:922..924,aa:Pyl)
+  NM_000581.4  human GPX1 mRNA: selenocysteine, /transl_except=(pos:220..222,aa:Sec)
 """
 import json
 import random

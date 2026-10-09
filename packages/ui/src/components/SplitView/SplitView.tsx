@@ -139,10 +139,18 @@ export function SplitView({ orientation = 'horizontal', children, animated = tru
     return { current, max: maxPaneSize(current, flexible) };
   };
 
-  const applyDesired = (targetIndex: number, desired: number, maxAllowed: number) => {
+  /**
+   * `restoreSize`: size to keep for re-expanding when this change collapses the pane. A drag
+   * passes through the minimum size before it snaps closed; showing the pane again should
+   * bring back the width it had before the drag (as macOS does), not the minimum.
+   */
+  const applyDesired = (targetIndex: number, desired: number, maxAllowed: number, restoreSize?: number) => {
     const target = panes[targetIndex];
     const r = resolvePaneResize(desired, target, maxAllowed);
     if (r.collapsed) {
+      if (restoreSize !== undefined && restoreSize >= target.min) {
+        setPaneSize(target, Math.round(Math.min(restoreSize, target.max)));
+      }
       setPaneCollapsed(target, true);
       return;
     }
@@ -182,7 +190,7 @@ export function SplitView({ orientation = 'horizontal', children, animated = tru
     const d = drag.current;
     if (!d || e.pointerId !== d.pointerId) return;
     const pos = horizontal ? e.clientX : e.clientY;
-    applyDesired(d.targetIndex, d.startSize + d.sign * (pos - d.startPos), d.maxAllowed);
+    applyDesired(d.targetIndex, d.startSize + d.sign * (pos - d.startPos), d.maxAllowed, d.startSize);
   };
 
   const endDrag = (e: PointerEvent<HTMLDivElement>) => {

@@ -31,6 +31,12 @@
  *     edit, i.e. s < a and a + d < e (circular-aware). Hence for an insertion at gap g:
  *     e <= g -> unchanged; s >= g -> shifted by n; s < g < e -> grows by n. A segment that merely
  *     touches the edited region (or is trimmed by it) does not absorb the inserted bases.
+ *     Exception (see CONTIGUOUS RUNS below): when the segment is ADJACENT to another segment of the
+ *     same feature, the rule applies to the contiguous stretch they form together, so bases
+ *     inserted exactly at the junction of two adjacent segments (e.g. at the origin, for an
+ *     origin-crossing feature written as the join [s, L) + [0, e)) join the feature. This
+ *     generalizes the rule "an insertion inside a feature extends it" to every way of writing the
+ *     same bases; for a feature without adjacent segments it is exactly the rule above.
  *   - Zero-length segments (between-base sites, s = e) at gap p: removed when p lies strictly
  *     inside D; at the left boundary of D (or exactly at an insertion gap) they stay on the left
  *     (5') side of the inserted bases; at the right boundary of D they go to the right side.
@@ -53,15 +59,21 @@
  *
  * QUALIFIERS (see qualifiers.ts): position-bearing qualifiers (/transl_except, /anticodon,
  * /rpt_unit_range, /tag_peptide) move with their bases and are dropped when one of their bases
- * is deleted or replaced, or bases are inserted between two of them. When the edit removes bases
- * from a feature's 5' end (its first bases in 5'->3' order: the left end for strand 1 / 0, the
- * right end for strand -1), /codon_start is updated so that the remaining codons are read in the
- * same frame (an edit inside the feature, which shifts the frame of what follows, changes nothing).
+ * is deleted or replaced, or when bases inserted INTO THE FEATURE land between two adjacent bases
+ * of theirs (bases inserted outside the feature, e.g. at the junction of the two ends of a feature
+ * covering a whole circle, cannot change a codon of it and only move them). When the edit removes
+ * bases from a feature's 5' end (its first bases in 5'->3' order: the left end for strand 1 / 0,
+ * the right end for strand -1), /codon_start is updated so that the remaining codons are read in
+ * the same frame (an edit inside the feature, which shifts the frame of what follows, changes
+ * nothing).
+ * When the edit changes the feature's bases (some of them deleted or replaced, or inserted bases
+ * joining it), its /translation no longer matches them and is dropped; a feature that is only
+ * moved keeps it.
  */
-import type { Feature, Range, Topology } from '../types';
+import type { Feature, Qualifier, Range, Topology } from '../types';
 import { mod } from '../seq/range';
-import { assertCount, checkGap, checkRange, overlapLength } from './internal';
-import { hasPositionalQualifiers, remapPositionalQualifiers, shiftCodonStart } from './qualifiers';
+import { assertCount, checkGap, checkRange, copyQualifiers, overlapLength } from './internal';
+import { dropTranslation, hasPositionalQualifiers, remapPositionalQualifiers, shiftCodonStart } from './qualifiers';
 import type { BaseMap } from './qualifiers';
 
 /**
@@ -103,9 +115,15 @@ export interface EditPlan {
 }
 
 /**
- * Which side of the inserted bases a gap goes to when it sits exactly at the insertion point
- * (or strictly inside a deleted region): 'left' = before them (default, used for zero-length
- * features), 'right' = after them (e.g. a caret after typing).
+ * Which side of the inserted bases a gap goes to when the edit collapses it onto the insertion
+ * point: a gap exactly at an insertion gap, strictly inside a deleted region, or at the LEFT
+ * boundary of a deleted region.
+ *   'left'  (default, used for zero-length features): before the inserted bases, next to the base
+ *           on its left;
+ *   'right': after the inserted bases (e.g. the caret after typing or pasting over a selection,
+ *           whichever end of the selection the caret was at).
+ * A gap at the RIGHT boundary of a deleted region always goes after the inserted bases, next to the
+ * base on its right (the only one of its neighbours that survives).
  */
 export type GapBias = 'left' | 'right';
 
@@ -180,10 +198,9 @@ function remapGapWithPlan(plan: EditPlan, gap: number, bias: GapBias): { gap: nu
   const off = ring ? mod(p - a, L) : p - a; // offset of the gap from the start of the edit
   let out: number;
   let inside = false;
-  if (d === 0 && off === 0) {
-    out = bias === 'left' ? insertAt : insertAt + n; // exactly at an insertion gap
-  } else if (off === 0) {
-    out = insertAt; // left boundary of the deleted region: before the inserted bases
+  if (off === 0) {
+    // exactly at an insertion gap, or at the left boundary of the deleted region
+    out = bias === 'left' ? insertAt : insertAt + n;
   } else if (off > 0 && off < d) {
     inside = true; // strictly inside the deleted region: collapses onto the insertion point
     out = bias === 'left' ? insertAt : insertAt + n;
@@ -305,18 +322,42 @@ function absorbingSegment(plan: EditPlan, run: readonly Range[], losses: readonl
   return isRing(plan) && plan.insertAt === 0 ? holding(aU + d) : holding(aU - 1);
 }
 
+/** The segments of a feature after an edit (removed ones omitted, same order). */
+interface RemappedSegments {
+  segments: Range[];
+  /**
+   * True when the feature's bases change: some of its bases are deleted (or replaced), or inserted
+   * bases join it. False when its bases are only moved (zero-length segments do not count).
+   */
+  changed: boolean;
+  /** True when inserted bases join the feature (some segment absorbs them). */
+  grew: boolean;
+}
+
 /**
  * Remap the segments of one feature (see "segment rules" and "contiguous runs" in the module
  * notes). Removed segments are omitted; the result is in the same order.
  */
-function remapSegments(plan: EditPlan, segments: readonly Range[]): Range[] {
+function remapSegments(plan: EditPlan, segments: readonly Range[]): RemappedSegments {
   const out: Range[] = [];
   const ring = isRing(plan);
+  let changed = false;
+  let grew = false;
   for (let i = 0; i < segments.length; ) {
     const count = runLength(segments, i, plan);
     if (count === 1) {
-      const r = remapRangeWithPlan(plan, segments[i]);
+      const seg = segments[i];
+      const r = remapRangeWithPlan(plan, seg);
       if (r !== null) out.push(r);
+      if (seg.end > seg.start) {
+        // a non-empty segment changes when it loses bases (or all of them) or absorbs inserted ones
+        const kept = r === null ? 0 : segmentLoss(plan, seg.start, seg.end).kept;
+        if (kept !== seg.end - seg.start) changed = true;
+        if (r !== null && r.end - r.start > kept) {
+          changed = true;
+          grew = true;
+        }
+      }
       i++;
       continue;
     }
@@ -325,11 +366,17 @@ function remapSegments(plan: EditPlan, segments: readonly Range[]): Range[] {
     let total = 0;
     for (const seg of run) total += seg.end - seg.start;
     const image = remapRangeWithPlan(plan, { start: run[0].start, end: run[0].start + total });
-    if (image === null) continue;
+    const losses = run.map((seg) => segmentLoss(plan, seg.start, seg.end));
+    const kept = losses.reduce((acc, x) => acc + x.kept, 0);
+    if (image === null) {
+      changed = true;
+      continue;
+    }
     // The run's surviving bases stay contiguous in run order (with the inserted bases between
     // them when the edit is strictly inside the run): cut its image into the segments' shares.
-    const losses = run.map((seg) => segmentLoss(plan, seg.start, seg.end));
-    const absorbed = image.end - image.start - losses.reduce((acc, x) => acc + x.kept, 0);
+    const absorbed = image.end - image.start - kept;
+    if (kept !== total || absorbed > 0) changed = true;
+    if (absorbed > 0) grew = true;
     const absorber = absorbed > 0 ? absorbingSegment(plan, run, losses, run[0].start) : -1;
     let offset = 0;
     losses.forEach((loss, k) => {
@@ -341,7 +388,7 @@ function remapSegments(plan: EditPlan, segments: readonly Range[]): Range[] {
       offset += length;
     });
   }
-  return out;
+  return { segments: out, changed, grew };
 }
 
 /**
@@ -364,8 +411,15 @@ function fivePrimeLoss(plan: EditPlan, f: Feature): number {
   return lost;
 }
 
-/** How the edit moves bases, for position-bearing qualifiers: deleted bases have no new index. */
-function editBaseMap(plan: EditPlan): BaseMap {
+/**
+ * How the edit moves bases, for position-bearing qualifiers: deleted bases have no new index.
+ * The map is a translation on each stretch between its breaks: before / inside / after the
+ * deleted region, or (deletion crossing the origin) the surviving arc. `cuts`: the inserted bases
+ * joined the feature, so a location two of whose adjacent bases they separate is cut (dropped).
+ * Bases inserted outside the feature (e.g. at the junction of the two ends of a feature covering
+ * the whole circle) cannot change a codon of it: its locations just move with their bases.
+ */
+function editBaseMap(plan: EditPlan, cuts: boolean): BaseMap {
   const { start: a, deleted: d, oldLength: L } = plan;
   const ring = isRing(plan);
   const circular = plan.topology === 'circular';
@@ -374,25 +428,33 @@ function editBaseMap(plan: EditPlan): BaseMap {
       const off = ring ? mod(x - a, L) : x - a;
       return off >= 0 && off < d ? null : newBaseIndex(plan, x);
     },
+    breaks: plan.wrapsOrigin ? [a + d - L, a] : [a, a + d],
     oldLength: L,
     oldCircular: circular,
     newLength: plan.newLength,
     newCircular: circular,
     flip: false,
-    dropIfSplit: true,
+    dropIfSplit: cuts,
   };
 }
 
 /** Remap a list of features with a validated plan; dropped features are omitted. Returns deep copies. */
 export function remapFeaturesWithPlan(features: readonly Feature[], plan: EditPlan): Feature[] {
   const out: Feature[] = [];
-  let map: BaseMap | undefined;
+  // built on first use: most features carry no position-bearing qualifier
+  let cutting: BaseMap | undefined;
+  let moving: BaseMap | undefined;
   for (const f of features) {
-    const segments = remapSegments(plan, f.segments);
+    const { segments, changed, grew } = remapSegments(plan, f.segments);
     if (segments.length === 0) continue;
-    let qualifiers = hasPositionalQualifiers(f.qualifiers)
-      ? remapPositionalQualifiers(f.qualifiers, (map ??= editBaseMap(plan)))
-      : f.qualifiers.map((q) => ({ key: q.key, value: q.value }));
+    let qualifiers: Qualifier[];
+    if (hasPositionalQualifiers(f.qualifiers)) {
+      const map = grew ? (cutting ??= editBaseMap(plan, true)) : (moving ??= editBaseMap(plan, false));
+      qualifiers = remapPositionalQualifiers(f.qualifiers, map);
+    } else {
+      qualifiers = copyQualifiers(f.qualifiers);
+    }
+    if (changed) qualifiers = dropTranslation(qualifiers);
     qualifiers = shiftCodonStart(f.type, qualifiers, fivePrimeLoss(plan, f));
     out.push({ ...f, segments, qualifiers });
   }
@@ -404,6 +466,8 @@ export function remapFeaturesWithPlan(features: readonly Feature[], plan: EditPl
  * the exact rules). Returns new feature objects in the input order; features that lose all of
  * their segments are omitted. Inputs are not modified. Throws a RangeError for an invalid edit.
  * Feature segments must be normalized ranges for the OLD molecule.
+ * This is the preview of an edit: insertBases / deleteRange / replaceRange produce exactly these
+ * features (plus, for a record payload, the payload's own features).
  */
 export function remapFeatures(
   features: readonly Feature[],
@@ -415,9 +479,14 @@ export function remapFeatures(
 }
 
 /**
- * Remap one normalized range (e.g. a selection) through an edit, with the same rules as a
- * feature segment. Returns null when nothing of it survives. Throws a RangeError when `range`
- * is not a valid normalized range of the old molecule (e.g. a stale selection).
+ * Remap one normalized range (e.g. a selection) through an edit, with the rules of a feature made
+ * of this single segment ("segment rules" in the module notes). Returns null when nothing of it
+ * survives. A segment of a multi-segment feature that is adjacent to another segment of the same
+ * feature (e.g. one half of an origin-crossing join [s, L) + [0, e)) follows the contiguous-run
+ * rule instead, which can differ for an edit at the junction: preview features with
+ * {@link remapFeatures}, which gives exactly the features of the edited record. Throws a RangeError
+ * when `range` is not a valid normalized range of the old molecule (e.g. a stale selection); the
+ * empty range {L, L} of a circular molecule is the same as {0, 0}.
  */
 export function remapRange(range: Range, edit: SequenceEdit, oldLength: number, topology: Topology): Range | null {
   const plan = planEdit(edit, oldLength, topology);
@@ -425,11 +494,12 @@ export function remapRange(range: Range, edit: SequenceEdit, oldLength: number, 
 }
 
 /**
- * Remap a gap position (caret, cut site) through an edit. A gap strictly inside the deleted
- * region, or exactly at the insertion point, goes to the `bias` side of the inserted bases
- * ('left' = before, the default; 'right' = after, e.g. a caret after typing). Gaps at the left /
- * right boundary of a deleted region go before / after the inserted bases.
- * Circular results are normalized into [0, newLength).
+ * Remap a gap position (caret, cut site) through an edit. A gap exactly at an insertion gap,
+ * strictly inside the deleted region or at its left boundary goes to the `bias` side of the
+ * inserted bases ('left' = before them, the default; 'right' = after them, e.g. a caret after
+ * typing over a selection); a gap at the right boundary of a deleted region goes after them (see
+ * {@link GapBias}). Circular results are normalized into [0, newLength). Throws a RangeError for an
+ * invalid edit or a gap outside [0, oldLength].
  */
 export function remapGap(
   gap: number,
@@ -439,6 +509,5 @@ export function remapGap(
   bias: GapBias = 'left',
 ): number {
   const plan = planEdit(edit, oldLength, topology);
-  checkGap(gap, oldLength, 'remapGap');
-  return remapGapWithPlan(plan, gap, bias).gap;
+  return remapGapWithPlan(plan, checkGap(gap, oldLength, 'remapGap'), bias).gap;
 }

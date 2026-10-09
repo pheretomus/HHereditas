@@ -76,7 +76,7 @@ describe.skipIf(!available)('SnapGene writer vs Biopython (live oracle)', () => 
         expect(entry.expected, path).not.toBeNull();
         if (entry.expected === null) continue;
         expect(comparableRecord(ours), path).toEqual(comparableExpected(entry.expected));
-        const problems = compareRecordWithBiopython(ours, entry.biopython, tally);
+        const problems = compareRecordWithBiopython(ours, entry, tally);
         entry.expected.features.forEach((f, i) => problems.push(...compareFeatureWithBiopython(ours.features[i], f, ours.seq.length, tally)));
         expect(problems, path).toEqual([]);
         // What Biopython read is what was written.

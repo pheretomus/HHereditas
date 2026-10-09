@@ -126,8 +126,10 @@ export function demoPrimersFor(record: SeqRecord): { record: SeqRecord; primerSi
   add('p1', 'KanMX-F', 1, Math.min(470, L - 30), 22, 'GATCGGATCC', [4]);
   add('p2', 'TEF-R', -1, Math.min(392, L - 30), 21);
   add('p3', 'Check-F', 1, Math.min(1300, L - 30), 20);
-  add('p4', 'Check-R', -1, Math.min(1326, L - 30), 20, '', [17]);
+  // a NotI site as a 5' tail on a reverse primer, and a long HiFi/Gibson-style overlap
+  add('p4', 'Check-R', -1, Math.min(1326, L - 30), 20, 'GCGGCCGC', [17]);
   if (circular) add('p5', 'Origin-F', 1, L - 9, 20);
+  add('p6', 'HiFi-F', 1, Math.min(2105, L - 30), 22, 'TCCACTAGTTCTAGAGCGGCCGCC');
   return { record: { ...record, primers: [...record.primers, ...primers] }, primerSites: sites };
 }
 

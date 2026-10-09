@@ -1,10 +1,11 @@
 /**
  * Immutable sequence edits on a SeqRecord: insert, delete and replace bases.
  *
- * Feature coordinates are remapped with the rules documented in `remap.ts` (insertion inside a
- * segment extends it, insertion at a boundary does not; deleted bases are trimmed away; origin
- * handling on circular molecules). Inputs are never modified; the result shares no mutable
- * object with the input and keeps the record's id, name, description, primers and meta.
+ * Feature coordinates are remapped with the rules documented in `remap.ts` (an insertion strictly
+ * inside a segment extends it and one at its boundary does not, where adjacent segments of one
+ * feature count as one contiguous stretch; deleted bases are trimmed away; origin handling on
+ * circular molecules). Inputs are never modified; the result shares no mutable object with the
+ * input and keeps the record's id, name, description, primers and meta.
  *
  * Sticky ends (linear records with `ends`): the single-stranded bases of an end are tracked
  * like a region anchored at its terminus.
@@ -22,8 +23,9 @@
  * when it is written with T. An edit therefore never mixes T and U in one sequence.
  *
  * Feature qualifiers follow the bases (see remap.ts and qualifiers.ts): position-bearing
- * qualifiers such as /transl_except move with their bases, and /codon_start keeps the reading
- * frame of a feature whose 5' end is trimmed.
+ * qualifiers such as /transl_except move with their bases, /codon_start keeps the reading
+ * frame of a feature whose 5' end is trimmed, and /translation is dropped from a feature whose
+ * bases the edit changes (it would describe the old protein).
  */
 import type { Feature, FragmentEnds, Range, SeqRecord } from '../types';
 import type { EditPlan } from './remap';
@@ -89,6 +91,7 @@ function placeInserted(f: Feature, plan: EditPlan, payloadLength: number): Featu
   if (hasPositionalQualifiers(f.qualifiers)) {
     placed.qualifiers = remapPositionalQualifiers(f.qualifiers, {
       base: (x) => x + offset,
+      breaks: [],
       oldLength: payloadLength,
       oldCircular: false, // a circular payload was opened at its origin
       newLength: plan.newLength,
@@ -147,6 +150,12 @@ function applyEdit(rec: SeqRecord, plan: EditPlan, payload: Payload): SeqRecord 
  * shifted by n; s < gap < e -> grows by n. Zero-length segments at the gap stay before the
  * insertion. On circular records gap 0 is the same place as gap L and the insertion is
  * appended at L: the origin stays at the original first base and origin-crossing segments grow.
+ * Adjacent segments of one feature (the next starts where the previous ends, e.g. an
+ * origin-crossing feature written as the join [s, L) + [0, e)) count as one contiguous stretch:
+ * an insertion at their junction is strictly inside the stretch and joins the feature (it is
+ * added to the segment before the gap; at the origin of a circular record, appended at L, that is
+ * the segment ending at L), exactly as for the same bases written as one segment. See the
+ * "contiguous runs" notes in remap.ts. /translation is dropped from a feature that grows.
  * Throws a RangeError when `gap` is not an integer in [0, L].
  */
 export function insertBases(rec: SeqRecord, gap: number, insert: string | SeqRecord): SeqRecord {
@@ -164,7 +173,9 @@ export function insertBases(rec: SeqRecord, gap: number, insert: string | SeqRec
  * non-origin deletion unchanged and shifts everything else by a constant.)
  * Features: deleted bases are trimmed from each segment (partial flags unchanged); segments left
  * without bases disappear, and so do features left without segments; zero-length segments
- * strictly inside the deleted region disappear. Throws a RangeError for an invalid range.
+ * strictly inside the deleted region disappear. A feature that loses bases also loses its
+ * /translation, and its /codon_start is updated when it loses bases at its 5' end. Throws a
+ * RangeError for an invalid range (the empty range {L, L} of a circular record is {0, 0}).
  */
 export function deleteRange(rec: SeqRecord, range: Range): SeqRecord {
   const plan = planEdit({ kind: 'delete', range }, rec.seq.length, rec.topology);
@@ -178,8 +189,11 @@ export function deleteRange(rec: SeqRecord, range: Range): SeqRecord {
  * segment STRICTLY containing the replaced region (s < range.start and range.end < e,
  * circular-aware) keeps covering the replacement. Segments that only touch or partly overlap the
  * region are trimmed and do not cover the replacement; a segment exactly equal to the region is
- * removed. Zero-length segments at the left / right boundary of the region end up before / after
- * the replacement.
+ * removed. As for insertions, adjacent segments of one feature count as one contiguous stretch:
+ * a region strictly inside the stretch is covered even when it touches or spans the junction of
+ * two of its segments (see "contiguous runs" in remap.ts). Zero-length segments at the left /
+ * right boundary of the region end up before / after the replacement. /translation is dropped
+ * from every feature whose bases are replaced (or that covers the replacement).
  * Origin: if the replaced region contains the original first base, the replacement starts the new
  * sequence (if the replacement is empty, the first base after the region does). An empty
  * `range` makes this exactly `insertBases(rec, range.start, replacement)`; an empty replacement

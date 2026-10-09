@@ -8,6 +8,11 @@ sub-pixel precision with a parabola). `origin` is the row of the well when the p
 fits an affine map between model position and pixel row). Merged doublets are entered at their mean
 size (NEB 500/517 bp -> 508; phiX174 281/271 bp -> 276). Buffers marked buffer_stated=False were not
 given by the vendor and are assumed to be TAE. Pure data, no dependencies.
+
+The last three photographs (high-percentage TBE gels, ids in HOLDOUT_IDS) were added on 2026-10-08 for
+review findings F8/F18 (packages/core/src/gel): measured with the same method (NumPy fallback of
+gel_measure_bands.py, which reproduces the SciPy rows of thermo-sm1331-1pct-tae to 0.01 px) and used
+both for the calibration and, fitted without them, as an out-of-sample check (gel_oracle.calibrate()).
 """
 
 VENDOR_GELS = [
@@ -110,4 +115,31 @@ VENDOR_GELS = [
          source="https://www.promega.com/-/media/files/resources/white-papers/quality-and-stability-of-dna-ladders-shipped-at-ambient-temperature.pdf",
          bands=[(1353, 400.10), (1078, 456.55), (872, 493.56), (603, 563.54), (310, 694.29), (276, 718.42),
                 (234, 750.61), (194, 781.57), (118, 851.46), (72, 903.99)]),
+    # ---- added 2026-10-08 (review findings F8/F18): high-percentage TBE gels
+    dict(id="thermo-sm1191-3pct-tbe", ladder=None, pct=3.0, buffer="TBE", buffer_stated=True,
+         conditions="3% agarose, 1X TBE, 5 V/cm, 1 h, 8 cm gel, 0.5 ug/lane; Thermo Scientific GeneRuler Low Range "
+                    "DNA Ladder (700-25 bp); well visible",
+         origin=16.63,
+         source="https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0013037_GeneRuler_LowRange_DNALadder_RTU_UG.pdf",
+         bands=[(700, 103.14), (500, 136.24), (400, 160.98), (300, 195.50), (200, 245.28), (150, 281.78),
+                (100, 328.42), (75, 360.65), (50, 403.13), (25, 459.81)]),
+    dict(id="thermo-sm0371-2.5pct-tbe", ladder=None, pct=2.5, buffer="TBE", buffer_stated=True,
+         conditions="2.5% agarose, 1X TBE, 5 V/cm, 1 h, 8 cm gel, 0.5 ug/lane; Thermo Scientific GeneRuler 50 bp "
+                    "DNA Ladder (1000-50 bp)",
+         origin=None,
+         source="https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0013016_GeneRuler_50bp_DNALadder_50ug_UG.pdf",
+         bands=[(1000, 152.68), (900, 164.42), (800, 178.33), (700, 194.59), (600, 213.94), (500, 237.70),
+                (400, 268.12), (300, 305.86), (250, 328.29), (200, 356.41), (150, 388.71), (100, 425.20),
+                (50, 477.30)]),
+    dict(id="neb-n3236-3pct-tbe", ladder=None, pct=3.0, buffer="TBE", buffer_stated=True,
+         conditions="3% TBE agarose, ethidium bromide; NEB 50 bp DNA Ladder N3236 (1350-50 bp)",
+         origin=None,
+         source="https://www.neb.com/en-us/products/n3236-50-bp-dna-ladder",
+         bands=[(1350, 68.19), (916, 125.29), (766, 157.05), (700, 174.99), (650, 190.09), (600, 203.99),
+                (550, 222.72), (500, 244.91), (450, 264.21), (400, 291.04), (350, 321.94), (300, 361.73),
+                (250, 405.65), (200, 464.60), (150, 530.83), (100, 626.72), (50, 761.99)]),
 ]
+
+#: Photographs added for review findings F8/F18; gel_oracle.calibrate() also fits without them and reports
+#: how well that calibration predicts them (out-of-sample check).
+HOLDOUT_IDS = ("thermo-sm1191-3pct-tbe", "thermo-sm0371-2.5pct-tbe", "neb-n3236-3pct-tbe")

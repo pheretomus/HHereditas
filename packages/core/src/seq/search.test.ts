@@ -9,7 +9,8 @@ import {
   seededRandom,
 } from '../../test/oracle/seqtools/oracle';
 import type { SearchHit, Topology } from '../types';
-import { iupacMatches, reverseComplement } from './alphabet';
+import { IUPAC_DNA, iupacMatches, reverseComplement } from './alphabet';
+import { GENETIC_CODES, getGeneticCode } from './codon-tables';
 import { makeFeature, makeRecord } from './features';
 import { findOrfs } from './orf';
 import { sliceRange } from './range';
@@ -435,6 +436,35 @@ describe('searchProtein', () => {
       expect(altStartHits).toBeGreaterThan(20);
     });
 
+    it('finds exactly the windows a brute-force scan finds (seeded random, both strands, circular wrap)', () => {
+      const rand = seededRandom(2718);
+      let extra = 0;
+      for (let n = 0; n < 60; n++) {
+        const seq = randomString(rand, rand() < 0.2 ? 'ACGTNRY' : 'ACGT', 20 + Math.floor(rand() * 200));
+        const topology: Topology = rand() < 0.5 ? 'circular' : 'linear';
+        const table = [1, 2, 4, 11, 13][n % 5];
+        const peptide = randomString(rand, 'MMMVLI', 1) + randomString(rand, 'ACDEFGHIKLMNPQRSTVWY', Math.floor(rand() * 2));
+        const L = seq.length;
+        const w = 3 * peptide.length;
+        const expected: string[] = [];
+        for (let p = 0; p < (topology === 'circular' ? L : L - w + 1); p++) {
+          for (const strand of [1, -1] as const) {
+            const window = sliceRange(seq, { start: p, end: p + w });
+            const own = strand === 1 ? window : reverseComplement(window);
+            const internal = translate(own, { table });
+            const asInitiator = translate(own.slice(0, 3), { table, cds: true }) + internal.slice(1);
+            if (internal === peptide || asInitiator === peptide) expected.push(`${p}${strand === 1 ? '+' : '-'}`);
+          }
+        }
+        const hits = searchProtein(seq, topology, peptide, { table, nTerminal: true });
+        expect(hits.map((h) => `${h.range.start}${h.strand === 1 ? '+' : '-'}`).sort(), `${table} ${peptide} ${seq}`).toEqual(
+          expected.sort(),
+        );
+        extra += hits.length - searchProtein(seq, topology, peptide, { table }).length;
+      }
+      expect(extra).toBeGreaterThan(10); // windows found only through an alternative start codon
+    });
+
     it('validates the option', () => {
       expect(() => searchProtein('ATG', 'linear', 'M', { nTerminal: 'yes' as unknown as boolean })).toThrow(RangeError);
     });
@@ -453,6 +483,149 @@ describe('searchProtein', () => {
         expect(h.frame).toBe(h.strand === 1 ? h.range.start % 3 : (((L - h.range.end) % L) + L) % L % 3);
       }
     }
+  });
+});
+
+// Verification: TypeScript brute forces written from the TSDoc definitions, using only IUPAC_DNA and
+// getGeneticCode (not the mask tables of search.ts / translate.ts), on short molecules where the
+// edge cases are dense: windows across the origin, queries as long as the molecule, IUPAC codes on
+// both sides, palindromes, every genetic code, U / O / '*' and ambiguity letters, nTerminal.
+describe('search vs TypeScript brute forces on short molecules', () => {
+  const expansions = (codon: string): string[] => {
+    const out: string[] = [];
+    for (const a of IUPAC_DNA[codon[0]]) for (const b of IUPAC_DNA[codon[1]]) for (const c of IUPAC_DNA[codon[2]]) out.push(a + b + c);
+    return out;
+  };
+
+  it('searchSequence: 2000 seeded cases (IUPAC, lower case and U, palindromes, query length up to L)', () => {
+    const rand = seededRandom(99002);
+    let hits = 0;
+    for (let n = 0; n < 2000; n++) {
+      const L = Math.floor(rand() * 30);
+      const seq = randomString(rand, rand() < 0.3 ? 'ACGTRYSWKMBDHVNacgtu' : 'ACGT', L);
+      const m = 1 + Math.floor(rand() * Math.max(1, L + 1));
+      let query = randomString(rand, rand() < 0.4 ? 'ACGTRYSWKMBDHVN' : 'ACGT', m);
+      if (rand() < 0.2) {
+        const half = randomString(rand, 'ACGTRYSWKMBDHVN', Math.max(1, m >> 1));
+        query = half + reverseComplement(half);
+      }
+      if (rand() < 0.3 && L > 0) {
+        const p = Math.floor(rand() * L);
+        query = '';
+        for (let i = 0; i < Math.min(m, L); i++) query += seq[(p + i) % L];
+        query = query.toUpperCase().replace(/U/g, 'T');
+        if (rand() < 0.5) query = reverseComplement(query);
+      }
+      const topology: Topology = rand() < 0.5 ? 'circular' : 'linear';
+      const strands = (['both', 'both', 'top', 'bottom'] as const)[Math.floor(rand() * 4)];
+      const k = Math.floor(rand() * 4);
+      const iupac = rand() < 0.75;
+      // brute force: every window, both requested strands, a palindrome only once (as strand 1)
+      const s = seq.toUpperCase().replace(/U/g, 'T');
+      const q = query.toUpperCase().replace(/U/g, 'T');
+      const rc = reverseComplement(q);
+      const searched: (1 | -1)[] = strands === 'top' ? [1] : strands === 'bottom' ? [-1] : rc === q ? [1] : [1, -1];
+      const matches = (code: string, base: string) =>
+        iupac ? [...(IUPAC_DNA[base] ?? '?')].every((b) => (IUPAC_DNA[code] ?? '').includes(b)) : code === base;
+      const expected: SearchHit[] = [];
+      if (q.length <= L) {
+        for (let p = 0; p < (topology === 'circular' ? L : L - q.length + 1); p++) {
+          for (const strand of searched) {
+            const pattern = strand === 1 ? q : rc;
+            let mm = 0;
+            for (let i = 0; i < pattern.length; i++) if (!matches(pattern[i], s[(p + i) % L])) mm++;
+            if (mm <= k) expected.push({ range: { start: p, end: p + q.length }, strand, mismatches: mm });
+          }
+        }
+      }
+      const label = `${seq} ${topology} ${query} ${strands} k=${k} iupac=${iupac}`;
+      expect(searchSequence(seq, topology, query, { strands, maxMismatches: k, iupac }), label).toEqual(expected);
+      hits += expected.length;
+    }
+    expect(hits).toBeGreaterThan(3000);
+  });
+
+  it('searchProtein: 1000 seeded cases (every table, B/Z/J/X, U/O/*, nTerminal, circular wrap)', () => {
+    const tables = GENETIC_CODES.map((c) => c.id);
+    /** Biopython-style reading of a possibly ambiguous codon; `initiator`: start codons read as M. */
+    const read = (codon: string, table: number, initiator: boolean): string => {
+      const code = getGeneticCode(table);
+      const residues = new Set<string>();
+      let stops = 0;
+      const all = expansions(codon);
+      for (const e of all) {
+        const r = initiator && code.startCodons.includes(e) ? 'M' : code.forwardTable[e];
+        if (r === undefined) stops++;
+        else residues.add(r);
+      }
+      if (stops === all.length) return '*';
+      if (stops > 0) return 'X';
+      if (residues.size === 1) return [...residues][0];
+      for (const [letter, members] of [['B', 'DN'], ['J', 'IL'], ['Z', 'EQ']]) {
+        if ([...residues].every((r) => members.includes(r))) return letter;
+      }
+      return 'X';
+    };
+    const accepts: Record<string, string> = { B: 'BDN', Z: 'ZEQ', J: 'JIL', X: 'ACDEFGHIKLMNPQRSTVWYBZJX' };
+    const letterMatches = (letter: string, codon: string, table: number, nTerminalFirst: boolean): boolean => {
+      if (letter === 'U') return codon === 'TGA';
+      if (letter === 'O') return codon === 'TAG';
+      if (letter === '*') return expansions(codon).every((e) => getGeneticCode(table).stopCodons.includes(e));
+      const ok = (r: string) => (accepts[letter] ?? letter).includes(r);
+      return ok(read(codon, table, false)) || (nTerminalFirst && ok(read(codon, table, true)));
+    };
+    const soup = ['ATG', 'TGA', 'TAG', 'TAA', 'GTG', 'TTG', 'CTG', 'ATT', 'GAY', 'CAR', 'MTT', 'NNN', 'TGR', 'RAY', 'GCN', 'AGA'];
+    const rand = seededRandom(99003);
+    let hits = 0;
+    for (let n = 0; n < 1000; n++) {
+      const L = Math.floor(rand() * 45);
+      let seq = '';
+      while (seq.length < L) seq += rand() < 0.5 ? soup[Math.floor(rand() * soup.length)] : randomString(rand, 'ACGT', 1);
+      seq = seq.slice(0, L);
+      const topology: Topology = rand() < 0.5 ? 'circular' : 'linear';
+      const table = tables[Math.floor(rand() * tables.length)];
+      const nTerminal = rand() < 0.5;
+      const n3 = 1 + Math.floor(rand() * 3);
+      let peptide = '';
+      if (L >= 3 * n3 && rand() < 0.7) {
+        // derived from a window, so most cases have hits
+        const own = rand() < 0.5 ? seq : reverseComplement(seq);
+        const p = Math.floor(rand() * (topology === 'circular' ? L : L - 3 * n3 + 1));
+        for (let i = 0; i < n3; i++) {
+          const codon = own[(p + 3 * i) % L] + own[(p + 3 * i + 1) % L] + own[(p + 3 * i + 2) % L];
+          const r = rand();
+          if (r < 0.15) peptide += 'X';
+          else if (r < 0.25 && codon === 'TGA') peptide += 'U';
+          else if (r < 0.25 && codon === 'TAG') peptide += 'O';
+          else peptide += read(codon, table, i === 0 && nTerminal && r < 0.6);
+        }
+      } else {
+        peptide = randomString(rand, 'ACDEFGHIKLMNPQRSTVWYBZJXUO*m', n3);
+      }
+      const upper = peptide.toUpperCase();
+      const width = 3 * upper.length;
+      const expected: ProteinSearchHit[] = [];
+      if (width <= L) {
+        for (const strand of [1, -1] as const) {
+          const own = strand === 1 ? seq : reverseComplement(seq);
+          for (let p = 0; p < (topology === 'circular' ? L : L - width + 1); p++) {
+            let ok = true;
+            for (let i = 0; i < upper.length && ok; i++) {
+              const codon = own[(p + 3 * i) % L] + own[(p + 3 * i + 1) % L] + own[(p + 3 * i + 2) % L];
+              ok = letterMatches(upper[i], codon, table, i === 0 && nTerminal);
+            }
+            if (!ok) continue;
+            const start = strand === 1 ? p : (L - p - width + L) % L;
+            expected.push(hitAt(start, start + width, strand, (p % 3) as 0 | 1 | 2));
+          }
+        }
+      }
+      expected.sort((a, b) => a.range.start - b.range.start || b.strand - a.strand || a.range.end - b.range.end);
+      const label = `${seq} ${topology} ${peptide} table ${table} nTerminal=${nTerminal}`;
+      expect(searchProtein(seq, topology, peptide, { table, nTerminal }), label).toEqual(expected);
+      hits += expected.length;
+    }
+    expect(hits).toBeGreaterThan(3000);
   });
 });
 

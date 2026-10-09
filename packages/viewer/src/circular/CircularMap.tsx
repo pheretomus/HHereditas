@@ -23,7 +23,7 @@ import {
 } from 'react';
 import { FEATURE_LABEL_ON_FILL } from '../common/colors';
 import { formatBp, formatInt, formatPosition } from '../common/format';
-import { useElementSize } from '../common/useElementSize';
+import { type ElementSize, useElementSize } from '../common/useElementSize';
 import {
   type SequenceSelection,
   caretAt,
@@ -56,7 +56,7 @@ import {
   placeLabels,
 } from './layout';
 import { type TextMeasurer, createCanvasMeasurer } from './measure';
-import type { FeatureClickInfo, MapLayers, MapTarget } from './types';
+import type { FeatureClickInfo, MapShowOptions, MapTarget } from './types';
 
 export interface CircularMapProps {
   record: SeqRecord;
@@ -76,7 +76,7 @@ export interface CircularMapProps {
   onPrimerClick?: (primerId: string) => void;
   onContextMenu?: (target: MapTarget, event: ReactMouseEvent) => void;
   /** Layers to draw; each defaults to visible when its data is given. */
-  show?: MapLayers;
+  show?: MapShowOptions;
   className?: string;
   /** Map rotation in degrees, clockwise; 0 (default) puts the origin at 12 o'clock. */
   rotation?: number;
@@ -85,6 +85,46 @@ export interface CircularMapProps {
 const EMPTY: readonly never[] = [];
 /** Pointer travel (px) before a press in the ring becomes a drag selection. */
 const DRAG_THRESHOLD = 3;
+/**
+ * Maps with more annotations than this follow a live resize lazily: their drawing is scaled
+ * while the container keeps changing size and laid out again once it settles (re-rendering
+ * thousands of paths on every resize step would make resizing stutter).
+ */
+const HEAVY_ITEMS = 800;
+/** Quiet time (ms) after the last size change before a heavy map is laid out again. */
+const RESIZE_SETTLE_MS = 150;
+
+/**
+ * Size to lay the map out at. Light maps follow the container immediately; heavy ones keep
+ * their last layout size until the container has stopped changing for RESIZE_SETTLE_MS.
+ */
+function useLayoutSize(size: ElementSize, lazy: boolean): ElementSize {
+  const [settled, setSettled] = useState<ElementSize | null>(null);
+  useEffect(() => {
+    if (!lazy) {
+      // Forget it, so a map that becomes heavy later starts from its current size.
+      if (settled) setSettled(null);
+      return;
+    }
+    if (settled === size) return;
+    if (!isUsableSize(settled)) {
+      setSettled(size); // first layout: no delay
+      return;
+    }
+    const timer = setTimeout(() => setSettled(size), RESIZE_SETTLE_MS);
+    return () => clearTimeout(timer);
+  }, [lazy, size, settled]);
+  return lazy && isUsableSize(settled) ? settled : size;
+}
+
+function isUsableSize(s: ElementSize | null): s is ElementSize {
+  return !!s && s.width > 0 && s.height > 0;
+}
+
+function sameSelection(a: SequenceSelection | null, b: SequenceSelection | null): boolean {
+  if (!a || !b) return a === b;
+  return a.caret === b.caret && a.range.start === b.range.start && a.range.end === b.range.end;
+}
 
 function cn(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(' ');
@@ -222,7 +262,7 @@ export function CircularMap(props: CircularMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const { width, height } = useElementSize(containerRef);
+  const containerSize = useElementSize(containerRef);
   const idPrefix = `hhcm${useId().replace(/[^a-zA-Z0-9_-]/g, '')}-`;
 
   // Uncontrolled fallback.
@@ -254,6 +294,8 @@ export function CircularMap(props: CircularMapProps) {
     [record, enzymeSites, primerSites, orfs, showFeatures, showEnzymes, showPrimers, showOrfs],
   );
 
+  const heavy = model.features.length + model.enzymes.length + model.primers.length + model.orfs.length > HEAVY_ITEMS;
+  const { width, height } = useLayoutSize(containerSize, heavy);
   const geom = useMemo(
     () => computeGeometry(model, { width, height, rotation, measure }),
     [model, width, height, rotation, measure],
@@ -309,6 +351,7 @@ export function CircularMap(props: CircularMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geom]);
 
+  /** Tooltip next to the pointer (container coordinates), flipped to stay inside the map. */
   const positionTooltip = () => {
     const el = tooltipRef.current;
     const p = pointerRef.current;
@@ -317,8 +360,8 @@ export function CircularMap(props: CircularMapProps) {
     const h = el.offsetHeight;
     let x = p.x + 14;
     let y = p.y + 18;
-    if (x + w > width - 6) x = Math.max(6, p.x - 14 - w);
-    if (y + h > height - 6) y = Math.max(6, p.y - 12 - h);
+    if (x + w > containerSize.width - 6) x = Math.max(6, p.x - 14 - w);
+    if (y + h > containerSize.height - 6) y = Math.max(6, p.y - 12 - h);
     el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
   };
   useLayoutEffect(positionTooltip);
@@ -329,12 +372,31 @@ export function CircularMap(props: CircularMapProps) {
     if (selection === undefined) setOwnSelection(next);
     onSelectionChange?.(next);
   };
+  /** Emit only real changes (pointer moves within one base report nothing). */
+  const emitChange = (next: SequenceSelection | null) => {
+    if (!sameSelection(next, selRef.current)) emit(next);
+  };
 
   const pressRef = useRef<Press | null>(null);
   const suppressClickRef = useRef(false);
 
+  /**
+   * Pointer position in layout (viewBox) coordinates. Equal to the position in the element
+   * except while a heavy map is scaled during a live resize (see useLayoutSize).
+   */
   const localPoint = (e: { clientX: number; clientY: number }) => {
     const rect = svgRef.current?.getBoundingClientRect();
+    const x = e.clientX - (rect?.left ?? 0);
+    const y = e.clientY - (rect?.top ?? 0);
+    if (!rect || !geom || rect.width <= 0 || rect.height <= 0) return { x, y };
+    const s = Math.min(rect.width / geom.width, rect.height / geom.height);
+    if (!(s > 0) || Math.abs(s - 1) < 1e-6) return { x, y };
+    return { x: (x - (rect.width - geom.width * s) / 2) / s, y: (y - (rect.height - geom.height * s) / 2) / s };
+  };
+
+  /** Pointer position in the container (for the tooltip, which is not scaled). */
+  const containerPoint = (e: { clientX: number; clientY: number }) => {
+    const rect = containerRef.current?.getBoundingClientRect();
     return { x: e.clientX - (rect?.left ?? 0), y: e.clientY - (rect?.top ?? 0) };
   };
 
@@ -385,7 +447,7 @@ export function CircularMap(props: CircularMapProps) {
   const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (!geom) return;
     const p = localPoint(e);
-    pointerRef.current = p;
+    pointerRef.current = containerPoint(e);
     const d = pressRef.current;
     if (d && d.pointerId === e.pointerId) {
       if (!d.draggable) return;
@@ -409,7 +471,7 @@ export function CircularMap(props: CircularMapProps) {
         d.head = Math.abs(gap - d.head) > L / 2 ? (d.head < L / 2 ? 0 : L) : gap;
       }
       d.lastAngle = angle;
-      emit(dragSelection(d, geom));
+      emitChange(dragSelection(d, geom));
       return;
     }
     const hit = hitTest(geom, placement, p.x, p.y);
@@ -432,7 +494,7 @@ export function CircularMap(props: CircularMapProps) {
     if (d.dragging) {
       // The click that follows a drag must not also act on what is under the pointer.
       suppressClickRef.current = true;
-      if (geom) emit(dragSelection(d, geom));
+      if (geom) emitChange(dragSelection(d, geom));
     }
   };
 
@@ -509,6 +571,7 @@ export function CircularMap(props: CircularMapProps) {
   };
 
   const L = model.length;
+  const scaled = !!geom && (geom.width !== containerSize.width || geom.height !== containerSize.height);
   const nFeatures = record.features.length;
   const ariaLabel = `Plasmid map of ${record.name || 'Untitled'}, ${formatBp(L)}${
     record.topology === 'linear' ? ', linear' : ''
@@ -526,7 +589,9 @@ export function CircularMap(props: CircularMapProps) {
     ? ''
     : sel.range.end > sel.range.start
       ? `Selected ${formatRangeText(sel.range, L)}, ${formatBp(Math.min(L, sel.range.end - sel.range.start))}`
-      : `Caret after base ${formatInt(sel.caret)}`;
+      : sel.caret <= 0 || (record.topology === 'circular' && sel.caret >= L)
+        ? `Caret at the ${record.topology === 'circular' ? 'origin' : 'start'}`
+        : `Caret after base ${formatInt(sel.caret)}`;
 
   return (
     <div
@@ -547,9 +612,12 @@ export function CircularMap(props: CircularMapProps) {
         <svg
           ref={svgRef}
           className={styles.svg}
-          width={geom.width}
-          height={geom.height}
+          // Drawn at its layout size (1:1, crisp). A heavy map that is waiting for a live resize
+          // to settle is scaled to the container meanwhile (see useLayoutSize).
+          width={scaled ? '100%' : geom.width}
+          height={scaled ? '100%' : geom.height}
           viewBox={`0 0 ${geom.width} ${geom.height}`}
+          preserveAspectRatio="xMidYMid meet"
           aria-hidden="true"
           data-testid="circular-map-svg"
           onPointerDown={onPointerDown}
@@ -805,8 +873,15 @@ const LabelLayer = memo(function LabelLayer({
   );
 });
 
+/** Every site of the hovered enzyme: hovering one cut shows where else the enzyme cuts. */
+function sitesOfSameEnzyme(geom: MapGeometry, hover: HitResult | null) {
+  if (hover?.kind !== 'enzyme') return [];
+  const name = hover.shape.item.site.enzyme;
+  return geom.enzymes.filter((e) => e.item.site.enzyme === name);
+}
+
 /** Keys of the outside labels and feature ids to emphasise for the hover / highlight state. */
-function emphasis(hover: HitResult | null, highlightedFeatureId: string | null) {
+function emphasis(geom: MapGeometry, hover: HitResult | null, highlightedFeatureId: string | null) {
   const labelKeys: string[] = [];
   const featureIds: Array<[string, 'hover' | 'highlight']> = [];
   if (highlightedFeatureId) {
@@ -816,8 +891,9 @@ function emphasis(hover: HitResult | null, highlightedFeatureId: string | null) 
   if (hover?.kind === 'feature') {
     featureIds.push([hover.shape.id, 'hover']);
     labelKeys.push(`f:${hover.shape.id}`);
-  } else if (hover?.kind === 'enzyme') labelKeys.push(`e:${hover.shape.index}`);
-  else if (hover?.kind === 'primer') labelKeys.push(`p:${hover.shape.index}`);
+  } else if (hover?.kind === 'enzyme') {
+    for (const e of sitesOfSameEnzyme(geom, hover)) labelKeys.push(`e:${e.index}`);
+  } else if (hover?.kind === 'primer') labelKeys.push(`p:${hover.shape.index}`);
   return { labelKeys, featureIds };
 }
 
@@ -829,10 +905,10 @@ interface HoverProps {
 }
 
 /** Under the labels: a soft pill behind each emphasised label and its leader drawn darker. */
-function HoverLabelLayer({ placement, hover, highlightedFeatureId }: HoverProps) {
+function HoverLabelLayer({ geom, placement, hover, highlightedFeatureId }: HoverProps) {
   if (!placement || (!hover && !highlightedFeatureId)) return null;
   const parts: ReactNode[] = [];
-  for (const key of emphasis(hover, highlightedFeatureId).labelKeys) {
+  for (const key of emphasis(geom, hover, highlightedFeatureId).labelKeys) {
     const l = placement.byKey.get(key);
     if (!l) continue;
     const b = l.box;
@@ -856,7 +932,7 @@ function HoverLabelLayer({ placement, hover, highlightedFeatureId }: HoverProps)
 function HoverShapeLayer({ geom, hover, highlightedFeatureId }: HoverProps) {
   if (!hover && !highlightedFeatureId) return null;
   const parts: ReactNode[] = [];
-  for (const [id, kind] of emphasis(hover, highlightedFeatureId).featureIds) {
+  for (const [id, kind] of emphasis(geom, hover, highlightedFeatureId).featureIds) {
     const f = geom.features.find((s) => s.id === id);
     if (f) {
       parts.push(
@@ -864,7 +940,9 @@ function HoverShapeLayer({ geom, hover, highlightedFeatureId }: HoverProps) {
       );
     }
   }
-  if (hover?.kind === 'enzyme') parts.push(<path key="tick" className={styles.hoverTick} d={hover.shape.d} />);
+  for (const e of sitesOfSameEnzyme(geom, hover)) {
+    parts.push(<path key={`tick-${e.index}`} className={styles.hoverTick} d={e.d} />);
+  }
   if (hover?.kind === 'primer' || hover?.kind === 'orf') {
     parts.push(<path key="shape" className={styles.hoverShape} d={hover.shape.d} />);
   }
@@ -880,7 +958,8 @@ function TooltipContent({ hit, geom }: { hit: HitResult; geom: MapGeometry }) {
   switch (hit.kind) {
     case 'feature': {
       const f = hit.shape.item.feature;
-      const parts = f.segments.length;
+      // Pieces, not raw segments: a join split at the origin is one continuous feature.
+      const parts = hit.shape.item.pieces.length;
       return (
         <>
           <div className={styles.ttTitle}>

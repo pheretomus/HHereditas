@@ -4,14 +4,12 @@
  */
 
 .root {
-  /* The map's background; text halos use it to keep labels legible over leader lines. */
-  --linear-map-bg: var(--hh-bg-content);
   position: relative;
   width: 100%;
   height: 100%;
   min-height: 140px;
   overflow: hidden;
-  background: var(--linear-map-bg);
+  background: var(--hh-bg-content);
   color: var(--hh-text);
   font-family: var(--hh-font-ui);
   -webkit-user-select: none;
@@ -110,14 +108,6 @@
 .featureLabel {
   font-size: var(--hh-text-sm);
   font-weight: var(--hh-weight-medium);
-}
-
-/* Labels outside bars may sit over enzyme leaders: a halo in the background colour keeps them clear. */
-.halo {
-  paint-order: stroke;
-  stroke: var(--linear-map-bg);
-  stroke-width: 3px;
-  stroke-linejoin: round;
 }
 
 .featureLabelOutside {

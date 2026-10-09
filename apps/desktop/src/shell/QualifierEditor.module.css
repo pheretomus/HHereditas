@@ -1,0 +1,81 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 6px;
+  box-shadow: inset 0 var(--hh-hairline) 0 var(--hh-separator);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.subheading {
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-semibold);
+}
+
+/* Quiet text button (macOS inspectors use plain accent text for Edit / Done). */
+.toggle {
+  margin-right: -6px;
+  padding: 0 6px;
+  color: var(--hh-accent);
+  font-size: var(--hh-text-sm);
+}
+
+.toggle[aria-pressed='true'] {
+  font-weight: var(--hh-weight-semibold);
+}
+
+.none {
+  color: var(--hh-text-tertiary);
+}
+
+.empty {
+  margin: 0;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.grid {
+  display: grid;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.keyField input {
+  font-size: var(--hh-text-sm);
+  letter-spacing: 0;
+}
+
+.remove {
+  color: var(--hh-text-tertiary);
+}
+
+.remove:hover:not(:disabled) {
+  color: var(--hh-red);
+}
+
+.add {
+  margin-left: -6px;
+  padding: 0 6px;
+  color: var(--hh-accent);
+}
+
+/* The plain variant tints its icon grey; here the whole control is accent text. */
+.add :where(span) {
+  color: inherit;
+}

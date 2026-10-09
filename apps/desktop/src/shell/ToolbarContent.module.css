@@ -5,8 +5,14 @@
   padding: 0 10px 0 8px;
 }
 
+/* Narrow windows: a little less air between items before anything has to shrink. */
+.toolbar:is([data-density='compact'], [data-density='tight']) {
+  gap: 6px;
+}
+
 .title {
-  flex: 0 1 auto;
+  /* The title gives way last: the search field shrinks to its minimum first. */
+  flex: 0 0.25 auto;
   min-width: 48px;
   max-width: 320px;
 }

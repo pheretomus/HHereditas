@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { RadioGroup } from 'radix-ui';
 import { cx } from '../../lib/cx';
 import type { ControlSize } from '../Button';
@@ -85,6 +85,29 @@ export function SegmentedControl<T extends string = string>({
     return () => cancelAnimationFrame(id);
   }, [thumb, animate]);
 
+  /**
+   * Arrow keys / Home / End move to a segment AND choose it (radio-group pattern). Radix
+   * selects on the focus that follows a key press only while the key is still held, which
+   * misses quick taps; handling the keys here makes the choice deterministic.
+   */
+  const onItemKeyDown = (e: KeyboardEvent<HTMLButtonElement>, from: T) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || disabled) return;
+    const enabled = options.filter((o) => !o.disabled);
+    if (enabled.length === 0) return;
+    const index = enabled.findIndex((o) => o.value === from);
+    let next: SegmentedOption<T> | undefined;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = enabled[(index + 1) % enabled.length];
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = enabled[(index - 1 + enabled.length) % enabled.length];
+    else if (e.key === 'Home') next = enabled[0];
+    else if (e.key === 'End') next = enabled[enabled.length - 1];
+    if (!next) return;
+    e.preventDefault(); // also skips Radix's own roving-focus handling of this key
+    const target = next.value;
+    const segments = rootRef.current?.querySelectorAll<HTMLElement>('[data-segment]') ?? [];
+    for (const el of segments) if (el.dataset.value === target) el.focus();
+    if (target !== value) onValueChange(target);
+  };
+
   return (
     <RadioGroup.Root
       ref={rootRef}
@@ -95,6 +118,7 @@ export function SegmentedControl<T extends string = string>({
       loop
       disabled={disabled}
       aria-label={ariaLabel}
+      data-tauri-drag-region="false"
       className={cx(styles.root, styles[size], fill && styles.fill, iconOnly && styles.iconOnly, className)}
     >
       {thumb ? (
@@ -111,8 +135,10 @@ export function SegmentedControl<T extends string = string>({
             value={opt.value}
             disabled={opt.disabled}
             data-segment=""
+            data-value={opt.value}
             aria-label={iconOnly || !opt.label ? opt.label : undefined}
             className={styles.item}
+            onKeyDown={(e) => onItemKeyDown(e, opt.value)}
           >
             {opt.icon ? (
               <span className={styles.icon} aria-hidden>

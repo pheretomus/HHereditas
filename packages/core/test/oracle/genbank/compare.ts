@@ -133,6 +133,8 @@ export interface CanonicalRecord {
   /** Plain COMMENT lines (structured-comment tables removed), empty lines dropped. */
   commentLines: string[];
   structuredComment: Record<string, Record<string, string>>;
+  /** CONTIG section text (Biopython: annotations['contig']), or null. */
+  contig: string | null;
   features: CanonicalFeature[];
 }
 
@@ -271,6 +273,7 @@ export function canonicalFromOurs(r: SeqRecord): CanonicalRecord {
     taxonomy: splitTaxonomy(meta.extras?.[GENBANK_EXTRA_KEYS.taxonomy]),
     commentLines: comments.plain,
     structuredComment: comments.structured,
+    contig: meta.extras?.[GENBANK_EXTRA_KEYS.contig] ?? null,
     features: r.features.map((f) => ({
       type: f.type,
       location: {
@@ -307,6 +310,7 @@ export function canonicalFromOracle(r: OracleRecord): CanonicalRecord {
     taxonomy: r.taxonomy ?? [],
     commentLines: (r.comment ?? '').split('\n').filter((l) => l.trim() !== ''),
     structuredComment: r.structuredComment ?? {},
+    contig: r.contig,
     features: (r.features ?? []).map((f) => ({
       type: f.type,
       location: canonicalFromOracleLocation(f.location, r.seqLength, circular, protein),
@@ -377,6 +381,7 @@ export function diffRecords(
   check('taxonomy', expected.taxonomy, actual.taxonomy);
   check('comment', expected.commentLines, actual.commentLines);
   check('structuredComment', expected.structuredComment, actual.structuredComment);
+  check('contig', expected.contig, actual.contig);
 
   let k = 0;
   expected.features.forEach((ef, index) => {

@@ -16,6 +16,11 @@
   animation: appear var(--hh-duration-fast) var(--hh-ease);
 }
 
+/* A closing help tag fades quickly instead of lingering while the next one appears. */
+.content[data-state='closed'] {
+  animation: disappear 90ms var(--hh-ease) forwards;
+}
+
 .text {
   min-width: 0;
 }
@@ -31,5 +36,11 @@
   from {
     opacity: 0;
     transform: scale(0.97);
+  }
+}
+
+@keyframes disappear {
+  to {
+    opacity: 0;
   }
 }

@@ -1,20 +1,23 @@
 /**
- * Integration: GenBank records (read by the GenBank reader of this package) saved as SnapGene
- * files and read back. Checks that nothing is lost silently: everything the writer keeps reads
- * back identically, and every feature or segment it drops is reported in a warning.
- * Uses every GenBank fixture, plus the 11.7 MB E. coli genome when it is present (it is
- * gitignored). Skipped when the GenBank reader is not available.
+ * Integration with the GenBank reader and writer of this package:
+ *  - GenBank records saved as SnapGene files and read back. Checks that nothing is lost silently:
+ *    everything the writer keeps (features, metadata) reads back identically, and every feature,
+ *    segment, reverse colour or metadata field it drops is reported in a warning. Uses every GenBank
+ *    fixture, plus the 11.7 MB E. coli genome when it is present (it is gitignored).
+ *  - SnapGene records exported as GenBank keep the reading frame SnapGene translates in.
+ * Skipped when the GenBank reader / writer is not available.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { featureLabel } from '../seq/features';
 import { normalizeRange } from '../seq/range';
+import { translateFeature } from '../seq/translate';
 import type { Feature, Range, SeqRecord } from '../types';
 import type { ParseResult } from './types';
 import { parseSnapGene, writeSnapGeneWithWarnings } from './snapgene';
 import { looksLikeHtml } from './snapgene-markup';
-import { CORE_DIR, recordProblems } from '../../test/oracle/snapgene/testkit';
+import { CORE_DIR, PMD19_LACZ, PMD20_LACZ, libraryExcerptFile, recordProblems } from '../../test/oracle/snapgene/testkit';
 
 type GenbankReader = (text: string) => ParseResult;
 
@@ -45,7 +48,7 @@ function writableSegment(s: Range, L: number, circular: boolean): Range | undefi
 function readBackValue(key: string, value: string | null): string | null {
   if (value === null) return null;
   let v = looksLikeHtml(value) ? value.replace(/\s+/g, ' ').trim() : value.replace(/\r\n|\r|\n/g, ' ').trim();
-  if (key === 'translation') v = v.replace(/,/g, '').replace(/\*$/, '');
+  if (key === 'translation') v = v.replace(/,/g, '').replace(/\*$/, '').replace(/\?/g, 'X');
   return v;
 }
 
@@ -89,7 +92,7 @@ function checkRecord(record: SeqRecord, label: string): { features: number; drop
     const got = back.features[i];
     const where = `${label} feature ${i} (${f.type} ${f.name})`;
     const segments = f.segments.map((s) => writableSegment(s, L, circular)).filter((s): s is Range => s !== undefined);
-    if (segments.length < f.segments.length) expect(warnings.some((w) => w.message.includes('not written') || w.message.includes('normalized')), where).toBe(true);
+    if (segments.length < f.segments.length) expect(warnings.some((w) => /^Feature ".*": segment .*; not written\.$/.test(w.message)), where).toBe(true);
     const name = f.name.trim() !== '' ? f.name.replace(/\r\n|\r|\n/g, ' ').trim() : featureLabel(f.type, f.qualifiers);
     expect(got.type, where).toBe(f.type.trim() !== '' ? f.type : 'misc_feature');
     expect(got.strand, where).toBe(f.strand);
@@ -101,8 +104,70 @@ function checkRecord(record: SeqRecord, label: string): { features: number; drop
   if (record.features.some((f) => f.partialStart === true || f.partialEnd === true)) {
     expect(warnings.some((w) => w.message.includes('partial (fuzzy) ends')), label).toBe(true);
   }
+  const reverseColors = kept.filter((f, i) => f.reverseColor !== undefined && f.reverseColor.toLowerCase() !== back.features[i].color).length;
+  expect(warnings.some((w) => w.message.startsWith(`${reverseColors} feature(s) have a reverse colour`)), label).toBe(reverseColors > 0);
+  checkMeta(record, back, warnings.map((w) => w.message), label);
   return { features: kept.length, dropped, warnings: warnings.length };
 }
+
+/** Text as the SnapGene reader returns a one-line field (line breaks become spaces, ends trimmed); undefined when blank. */
+function oneLine(value: string | undefined): string | undefined {
+  const text = value?.replace(/\r\n|\r|\n/g, ' ').trim();
+  return text === '' ? undefined : text;
+}
+
+/** Metadata (reviewed defect: never compared): what a SnapGene file stores reads back, the rest is reported. */
+function checkMeta(record: SeqRecord, back: SeqRecord, messages: string[], label: string): void {
+  const meta = record.meta;
+  expect(back.meta.accession, label).toBe(oneLine(meta.accession));
+  expect(back.meta.organism, label).toBe(oneLine(meta.organism));
+  const division = meta.division?.trim().toUpperCase();
+  if (division !== undefined && /^[A-Z]{3}$/.test(division)) expect(back.meta.division, label).toBe(division);
+  // Several comments become one; multi-line comments are stored as HTML, whose spacing is not kept.
+  const words = (texts: readonly string[] | undefined) => (texts ?? []).join(' ').split(/\s+/).filter((w) => w !== '');
+  expect(words(back.meta.comments), label).toEqual(words(meta.comments));
+  // ...and when that changes their spacing (double spaces, aligned columns), it is reported (verification defect: silent).
+  const comments = (meta.comments ?? []).filter((c) => c.trim() !== '').join('\n').replace(/\r\n?/g, '\n').trim();
+  if ((back.meta.comments ?? []).join('\n') !== comments) {
+    expect(messages.some((m) => m.includes(' text value(s) lose line breaks or spacing in the SnapGene file')), `${label}: comment spacing`).toBe(true);
+  }
+  const reported = (prefix: string) => messages.some((m) => m.startsWith(prefix));
+  expect(reported('The sequence version '), `${label}: VERSION`).toBe(oneLine(meta.version) !== undefined);
+  expect(reported('The keywords '), `${label}: KEYWORDS`).toBe(oneLine(meta.keywords) !== undefined);
+  expect(reported('The source '), `${label}: SOURCE`).toBe(oneLine(meta.source) !== undefined);
+  const headerLines = (meta.extraHeaderLines ?? []).filter((line) => line.trim() !== '').length;
+  expect(reported(`${headerLines} GenBank header line(s)`), `${label}: other header lines`).toBe(headerLines > 0);
+  const genbankExtras = Object.keys(meta.extras ?? {});
+  expect(reported(`${genbankExtras.length} field(s) of meta.extras were not written`), `${label}: extras`).toBe(genbankExtras.length > 0);
+  for (const key of genbankExtras.slice(0, 5)) expect(messages.join('\n'), label).toContain(`"${key}"`);
+}
+
+type GenbankWriter = (record: SeqRecord) => string;
+
+async function loadGenbankWriter(): Promise<GenbankWriter | undefined> {
+  try {
+    const module = (await import('./genbank')) as { writeGenbank?: unknown };
+    return typeof module.writeGenbank === 'function' ? (module.writeGenbank as GenbankWriter) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+describe('SnapGene -> GenBank', async () => {
+  const writeGenbank = await loadGenbankWriter();
+
+  it.skipIf(writeGenbank === undefined)('exports the reading frame SnapGene translates in, not a stale /codon_start (reviewed defect, T-Vector pMD20 / pMD19 lacZα)', () => {
+    if (writeGenbank === undefined) return;
+    for (const excerpt of [PMD20_LACZ, PMD19_LACZ]) {
+      const record = parseSnapGene(libraryExcerptFile(excerpt), { fileName: 'library.dna' }).records[0];
+      const text = writeGenbank(record);
+      expect(text).toContain('/codon_start=2');
+      expect(text).not.toContain('/codon_start=1');
+      // The exported frame gives SnapGene's own /translation (HHereditas' translation engine, standard code).
+      expect(translateFeature(record, record.features[0], { toStop: true })).toBe(excerpt.translation);
+    }
+  });
+});
 
 describe('GenBank -> SnapGene -> record', async () => {
   const parseGenbank = await loadGenbankReader();

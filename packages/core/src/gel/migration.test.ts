@@ -8,6 +8,10 @@ import {
   FORM_SIZE_FACTOR,
   RESOLVING_WINDOW_BP,
   SMALL_DNA_POSITION,
+  SHAPE_EXPONENT,
+  TBE_HIGH_SHAPE_EXPONENT,
+  TBE_HIGH_SMALL_DNA_POSITION,
+  TBE_SHAPE_RAMP_PERCENT,
   formSizeFactor,
   gelParameters,
   migrate,
@@ -69,7 +73,10 @@ describe('migrate: basic behaviour', () => {
       for (const agarosePercent of PERCENTS) {
         const g = gelParameters(agarosePercent, buffer);
         expect(g.topPosition).toBeGreaterThan(0);
-        expect(g.bottomPosition).toBe(SMALL_DNA_POSITION);
+        // the bottom asymptote: SMALL_DNA_POSITION, or for TBE above 1 % its ramp (see 'TBE curve shape')
+        if (buffer === 'TAE' || agarosePercent <= TBE_SHAPE_RAMP_PERCENT.from) expect(g.bottomPosition).toBe(SMALL_DNA_POSITION);
+        expect(g.bottomPosition).toBeGreaterThanOrEqual(TBE_HIGH_SMALL_DNA_POSITION);
+        expect(g.bottomPosition).toBeLessThanOrEqual(SMALL_DNA_POSITION);
         expect(g.bottomPosition).toBeLessThan(1);
         for (const s of SIZES) {
           const p = migrate(s, { agarosePercent, buffer });
@@ -346,5 +353,64 @@ describe('property tests (seeded random)', () => {
       else if (a > b) expect(pa).toBeLessThan(pb);
       else expect(pa).toBe(pb);
     }
+  });
+});
+
+describe('review: calibration tables are deeply frozen (F16)', () => {
+  it('every row is frozen: a stray write throws and cannot change the model', () => {
+    expect(Object.isFrozen(DYE_COMIGRATION_BP)).toBe(true);
+    for (const buffer of BUFFERS) {
+      expect(Object.isFrozen(DYE_COMIGRATION_BP[buffer])).toBe(true);
+      for (const row of DYE_COMIGRATION_BP[buffer]) expect(Object.isFrozen(row), `${buffer} ${row[0]}`).toBe(true);
+    }
+    expect(Object.isFrozen(RESOLVING_WINDOW_BP)).toBe(true);
+    for (const row of RESOLVING_WINDOW_BP) expect(Object.isFrozen(row), `${row[0]}`).toBe(true);
+
+    const before = migrate(1000);
+    const windowBefore = resolvingWindow(1);
+    const dyeRow = DYE_COMIGRATION_BP.TAE[5] as unknown as number[]; // [1.0, 370, 4160]
+    const windowRow = RESOLVING_WINDOW_BP[2] as unknown as number[]; // [1.0, 500, 10000]
+    try {
+      expect(() => {
+        dyeRow[1] = 3700;
+      }).toThrow(TypeError);
+      expect(() => {
+        windowRow[1] = 5;
+      }).toThrow(TypeError);
+      expect(migrate(1000)).toBe(before);
+      expect(resolvingWindow(1)).toEqual(windowBefore);
+    } finally {
+      // keep later tests meaningful should the rows ever become writable again
+      if (!Object.isFrozen(dyeRow)) dyeRow[1] = 370;
+      if (!Object.isFrozen(windowRow)) windowRow[1] = 500;
+    }
+  });
+});
+
+describe('TBE curve shape (review findings F8/F18)', () => {
+  it('is the shared shape up to 1 %, the high-% TBE shape from 2 %, linear in between; TAE is unaffected', () => {
+    expect(TBE_SHAPE_RAMP_PERCENT).toEqual({ from: 1, to: 2 });
+    for (const agarosePercent of PERCENTS) {
+      const tae = gelParameters(agarosePercent, 'TAE');
+      expect(tae.exponent).toBe(SHAPE_EXPONENT);
+      expect(tae.bottomPosition).toBe(SMALL_DNA_POSITION);
+      const tbe = gelParameters(agarosePercent, 'TBE');
+      const t = Math.min(1, Math.max(0, (agarosePercent - 1) / (2 - 1)));
+      expect(tbe.exponent, `${agarosePercent}%`).toBeCloseTo(SHAPE_EXPONENT + t * (TBE_HIGH_SHAPE_EXPONENT - SHAPE_EXPONENT), 14);
+      expect(tbe.bottomPosition, `${agarosePercent}%`).toBeCloseTo(SMALL_DNA_POSITION + t * (TBE_HIGH_SMALL_DNA_POSITION - SMALL_DNA_POSITION), 14);
+    }
+    // the ends are exact
+    expect(gelParameters(1, 'TBE').exponent).toBe(SHAPE_EXPONENT);
+    expect(gelParameters(2, 'TBE').exponent).toBe(TBE_HIGH_SHAPE_EXPONENT);
+    expect(gelParameters(3, 'TBE').bottomPosition).toBe(TBE_HIGH_SMALL_DNA_POSITION);
+  });
+
+  it('places large fragments of high-% TBE gels lower than before (3 % TBE, 700 bp; was 0.240, photo ~0.16)', () => {
+    // standard run (bromophenol blue at 0.775): the GeneRuler Low Range photograph puts 700 bp at ~0.16
+    expect(migrate(700, { agarosePercent: 3, buffer: 'TBE' })).toBeLessThan(0.2);
+    // ... while long DNA still compresses below the well, never above it
+    const g = gelParameters(3, 'TBE');
+    expect(g.topPosition).toBeGreaterThan(0.005);
+    expect(migrate(1e6, { agarosePercent: 3, buffer: 'TBE' })).toBeGreaterThan(0);
   });
 });

@@ -18,6 +18,7 @@ import {
   contentOffsetY,
   enzymeRowsToReserve,
   featureBarTop,
+  leaderPath,
   strandExtents,
   strandGapFor,
 } from './layout';
@@ -146,6 +147,9 @@ describe('computeVerticalLayout', () => {
     expect(strandGapFor(LETTER_PX_PER_BASE)).toBe(METRICS.letterBand);
     expect(strandGapFor(6.5)).toBeGreaterThan(METRICS.strandGap);
     expect(strandGapFor(6.5)).toBeLessThan(METRICS.letterBand);
+    // single-stranded molecules: no gap until letters need a band
+    expect(strandGapFor(1, true)).toBe(0);
+    expect(strandGapFor(LETTER_PX_PER_BASE, true)).toBe(METRICS.singleLetterBand);
   });
 });
 
@@ -201,6 +205,56 @@ describe('computeView: plasmids and fragments', () => {
     expect(byName('TEF terminator')?.placement).not.toBe('inside');
   });
 
+  it('keeps every feature label next to the visible part of its own bar', () => {
+    const rec = SAMPLES.linear.record;
+    const L = rec.seq.length;
+    // 2,712..3,395: 'KS primer' (2,668..2,685) lies just left of the window, in the off-screen
+    // drawing margin; 'pBR322ori-F' lies just right of 1,855..4,108
+    for (const vp of [{ start: 2712, end: 3395 }, { start: 1855, end: 4108 }, { start: 0, end: L }, { start: 4000, end: 4400 }]) {
+      for (const width of [WIDTH, 900]) {
+        const { view, features } = setup(rec, { viewport: vp, width });
+        for (const l of view.features.labels) {
+          const e = features!.entries[l.entry];
+          const pieces = e.extent.end > L ? [{ start: e.extent.start, end: L }, { start: 0, end: e.extent.end - L }] : [e.extent];
+          const near = pieces.some((p) => {
+            let x0 = view.scale.x(p.start);
+            let x1 = view.scale.x(p.end);
+            if (x1 - x0 < MIN_BAR_PX) [x0, x1] = [(x0 + x1) / 2 - MIN_BAR_PX / 2, (x0 + x1) / 2 + MIN_BAR_PX / 2];
+            const visL = Math.max(0, x0);
+            const visR = Math.min(width, x1);
+            if (visR - visL < 1) return false;
+            return Math.max(0, l.left - visR, visL - l.right) <= 4.5;
+          });
+          if (!near) throw new Error(`label "${l.text}" is detached from its bar at ${vp.start}..${vp.end} (${width}px)`);
+        }
+      }
+    }
+    const { view, features } = setup(rec, { viewport: { start: 2712, end: 3395 } });
+    const ksForward = featureEntryIndex(features, 'addgene-11664-linear_f14');
+    expect(view.features.labels.some((l) => l.entry === ksForward)).toBe(false);
+  });
+
+  it('labels a pinned feature even inside a density band', () => {
+    const features = Array.from({ length: 400 }, (_, i) => ({
+      id: `d${i}`,
+      type: 'CDS',
+      name: `gene${i}`,
+      strand: 1 as const,
+      segments: [{ start: 1000 + i * 150, end: 1000 + i * 150 + 100 }],
+      qualifiers: [],
+    }));
+    const rec: SeqRecord = { id: 'dense', name: 'dense', description: '', seq: 'A'.repeat(1_000_000), topology: 'linear', molecule: 'DNA', features, primers: [], meta: {} };
+    const { input, view, features: set } = setup(rec);
+    // all in one lane, far below a pixel each: drawn as density, unlabelled
+    expect(set!.above.length).toBe(1);
+    expect(view.features.density.length).toBeGreaterThan(0);
+    expect(view.features.labels.length).toBe(0);
+    const pinnedView = computeView({ ...input, pinnedFeatureIds: new Set(['d200']) });
+    const label = pinnedView.features.labels.find((l) => set!.entries[l.entry].feature.id === 'd200');
+    expect(label?.text).toBe('gene200');
+    expect(label?.placement).toBe('outside');
+  });
+
   it('keeps tiny features visible as slim solid bars in their own colour', () => {
     const { view } = setup(SAMPLES.pBR322.record);
     // pBR322 has 4-6 bp binding sites: far below a pixel at this zoom, yet drawn solid
@@ -232,6 +286,35 @@ describe('computeView: plasmids and fragments', () => {
     expect(at(plotWidth / 5).letters).toBeNull();
   });
 
+  it('gives RNA and protein one line under their letters, clear of the features', () => {
+    const rec: SeqRecord = {
+      id: 'rna',
+      name: 'sgRNA',
+      description: '',
+      seq: 'GUUUUAGAGCUAGAAAUAGCAAGUUAAAAUAAGGCUAGUCCGUUAUCAACUUGAAAAAGUGGCACCGAGUCGGUGCUUUU',
+      topology: 'linear',
+      molecule: 'RNA',
+      features: [{ id: 'r', type: 'misc_RNA', name: 'scaffold', strand: 1, segments: [{ start: 0, end: 76 }], qualifiers: [] }],
+      primers: [],
+      meta: {},
+    };
+    // 80 nt across the map: letter zoom
+    const { view } = setup(rec);
+    expect(view.letters?.top?.text).toBe(rec.seq);
+    expect(view.letters!.bottom).toBeNull();
+    expect(view.backbone.single).toBe(true);
+    expect(view.backbone.bottom).toBeNull();
+    const fs = view.letters!.fontSize;
+    const barBottom = featureBarTop(view.v, 'above', 0) + METRICS.featureBarHeight;
+    expect(view.letters!.topY - fs / 2).toBeGreaterThan(barBottom);
+    expect(view.letters!.topY + fs / 2).toBeLessThan(view.backbone.topY);
+    expect(view.backbone.topY).toBe(view.v.bottomStrandY);
+    // zoomed out (a long protein), the band is closed and there are no letters
+    const long = setup({ ...rec, molecule: 'protein', seq: 'M'.repeat(5000), features: [] }).view;
+    expect(long.letters).toBeNull();
+    expect(long.v.bottomStrandY - long.v.topStrandY).toBe(0);
+  });
+
   it('draws staggered cuts between the strands at letter zoom', () => {
     const { record, enzymeSites } = SAMPLES.pFA6a;
     const s = setup(record, { viewport: { start: 22, end: 86 }, enzymeSites });
@@ -250,6 +333,38 @@ describe('computeView: plasmids and fragments', () => {
     }
     const ecoRV = labels.find((l) => l.text.startsWith('EcoRV'));
     expect(ecoRV?.unique).toBe(true);
+  });
+});
+
+describe('enzyme leaders', () => {
+  const box = (left: number, right: number, top: number, bottom: number): TextBox => ({ key: 'b', text: '', x: left, y: top, anchor: 'start', left, right, top, bottom });
+
+  it('run straight down when nothing is in the way', () => {
+    expect(leaderPath(10, 0, 100, [box(20, 60, 40, 50)])).toBe('M10 0V100');
+  });
+
+  it('stop short of the labels they pass', () => {
+    expect(leaderPath(30, 0, 100, [box(20, 60, 40, 50)])).toBe('M30 0V39M30 51V100');
+    // overlapping boxes merge into one gap; a box at the end ends the leader early
+    expect(leaderPath(30, 0, 100, [box(20, 60, 40, 50), box(25, 35, 45, 58), box(0, 40, 95, 110)])).toBe('M30 0V39M30 59V94');
+  });
+
+  it('never cross an outside feature label or a primer label on any sample', () => {
+    const segments = (d: string) =>
+      [...d.matchAll(/M([\d.-]+) ([\d.-]+)V([\d.-]+)/g)].map((m) => ({ x: +m[1], y0: +m[2], y1: +m[3] }));
+    for (const name of ['pFA6a', 'pBAD30', 'pBR322', 'linear'] as const) {
+      const { record, enzymeSites } = SAMPLES[name];
+      for (const width of [WIDTH, 900]) {
+        const s = setup(record, { width, enzymeSites });
+        const obstacles = [...s.view.features.labels.filter((l) => l.placement !== 'inside'), ...s.view.primers.labels];
+        for (const seg of s.view.enzymes.labels.flatMap((l) => segments(l.leader))) {
+          for (const b of obstacles) {
+            const crosses = seg.x >= b.left && seg.x <= b.right && seg.y0 < b.bottom && seg.y1 > b.top;
+            if (crosses) throw new Error(`a leader at x=${seg.x} crosses "${b.text}" (${name}, ${width}px)`);
+          }
+        }
+      }
+    }
   });
 });
 

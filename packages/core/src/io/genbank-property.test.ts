@@ -10,6 +10,7 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { SeqRecord } from '../types';
+import { makeFeature, makeRecord } from '../seq/features';
 import { parseGenbank, writeGenbank } from './genbank';
 import { canonicalFromOracle, canonicalFromOurs, diffRecords, type OracleFile } from '../../test/oracle/genbank/compare';
 import { Gen, randomRecord, rng } from '../../test/oracle/genbank/random-records';
@@ -80,6 +81,40 @@ describe.skipIf(!existsSync(PYTHON))('live oracle: Biopython reads random writte
         expect(dump.warnings, w.text).toEqual([]);
         const ours = canonicalFromOurs(parseGenbank(w.text).records[0]);
         expect(diffRecords(canonicalFromOracle(dump.records[0]), ours), w.text).toEqual([]);
+      }
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120_000);
+
+  it('for /translation values with escaped quotes at every wrapping position (review finding)', () => {
+    // /translation is wrapped anywhere; a line must never end inside an escaped "" pair.
+    const dir = mkdtempSync(join(tmpdir(), 'hhereditas-genbank-translation-'));
+    try {
+      const written: { path: string; text: string; value: string }[] = [];
+      for (let at = 30; at < 130; at++) {
+        for (const quotes of ['"', '""', '"""']) {
+          const value = 'M'.repeat(at) + quotes + 'K'.repeat(20);
+          const record = makeRecord({
+            name: 't',
+            seq: 'ACGT'.repeat(10),
+            features: [makeFeature({ type: 'CDS', segments: [{ start: 0, end: 12 }], qualifiers: [{ key: 'translation', value }] })],
+          });
+          const path = join(dir, `t${written.length}.gb`);
+          const text = writeGenbank(record, { date: DATE });
+          writeFileSync(path, text);
+          written.push({ path, text, value });
+        }
+      }
+      const dumps = JSON.parse(
+        execFileSync(PYTHON, [ORACLE_SCRIPT, '--dump', ...written.map((w) => w.path)], { encoding: 'utf8', maxBuffer: 256 << 20 }),
+      ) as Record<string, OracleFile>;
+      for (const w of written) {
+        const dump = dumps[w.path];
+        expect(dump.error, w.text).toBeNull();
+        expect(dump.warnings, w.text).toEqual([]);
+        expect(dump.records[0].features?.[0].qualifiers, w.text).toEqual([['translation', w.value]]);
+        expect(diffRecords(canonicalFromOracle(dump.records[0]), canonicalFromOurs(parseGenbank(w.text).records[0])), w.text).toEqual([]);
       }
     } finally {
       rmSync(dir, { recursive: true, force: true });

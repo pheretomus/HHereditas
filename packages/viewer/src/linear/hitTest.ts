@@ -156,6 +156,29 @@ export function featureOutline(view: ViewModel, set: TrackSet<FeatureEntry>, ent
   return d;
 }
 
+/**
+ * True when at least `minPx` of the feature is on screen (narrow features count as drawn, at
+ * least MIN_BAR_PX wide). Parts in the off-screen drawing margin do not count.
+ */
+export function featureOnScreen(view: ViewModel, set: TrackSet<FeatureEntry>, entryIndex: number, minPx = 1): boolean {
+  const entry = set.entries[entryIndex];
+  if (!entry) return false;
+  const L = view.seqLength;
+  const { scale, width } = view;
+  const pieces =
+    entry.extent.end > L
+      ? [
+          { start: entry.extent.start, end: L },
+          { start: 0, end: entry.extent.end - L },
+        ]
+      : [entry.extent];
+  return pieces.some((p) => {
+    const c = (scale.x(p.start) + scale.x(p.end)) / 2;
+    const half = Math.max(MIN_BAR_PX, scale.x(p.end) - scale.x(p.start)) / 2;
+    return Math.min(width, c + half) - Math.max(0, c - half) >= minPx;
+  });
+}
+
 /** Index (into the track entries) of the feature with this id, or -1. */
 export function featureEntryIndex(set: TrackSet<FeatureEntry> | null, id: string | null | undefined): number {
   if (!set || !id) return -1;

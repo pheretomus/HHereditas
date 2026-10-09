@@ -353,7 +353,8 @@ def qualifier_value(v_attrs: dict, key: str) -> str:
     else:
         value = ""
     if key == "translation":
-        value = value.replace(",", "")
+        # SnapGene's segment separators and final stop go; its "?" (codon with ambiguous bases) is INSDC "X".
+        value = value.replace(",", "").replace("?", "X")
         if value.endswith("*"):
             value = value[:-1]
     return value
@@ -887,6 +888,23 @@ def case_files() -> dict:
         cookie_packet()
         + dna_packet(seq60, 0x02)
         + features_packet([feature_xml("label one", "CDS", [("1-60", "#993366", "standard", None)], forms, "1")])
+        + notes_basic()
+    )
+
+    # SnapGene writes "?" for a codon with ambiguous bases (SnapGene library: pAd/BLOCK-iT-DEST AmpR, codon NCA;
+    # pJW168 Rep101(Ts), codon YAT); INSDC /translation uses "X". Bases 1-12: ATG NCA AAA TAA; bases 13-21
+    # are the reverse complement of ATG NCA AAA.
+    cds_color = "#993366"
+    cases["translation_ambiguous"] = (
+        cookie_packet()
+        + dna_packet("ATGNCAAAATAATTTTGNCAT", 0x02)
+        + features_packet(
+            [
+                feature_xml("orf", "CDS", [("1-12", cds_color, "standard", None)], [("translation", [[("text", "M?K*")]])], "1"),
+                feature_xml("split orf", "CDS", [("1-6", cds_color, "standard", None), ("7-12", cds_color, "standard", None)], [("translation", [[("text", "M?,K*")]])], "1"),
+                feature_xml("reverse", "CDS", [("13-21", cds_color, "standard", None)], [("translation", [[("text", "M?K")]])], "2", [("readingFrame", "-1")]),
+            ]
+        )
         + notes_basic()
     )
 

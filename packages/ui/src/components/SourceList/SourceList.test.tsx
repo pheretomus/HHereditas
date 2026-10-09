@@ -116,6 +116,20 @@ describe('SourceList', () => {
     expect(onActivate).toHaveBeenLastCalledWith('f:ori');
   });
 
+  it('reports right-clicks and outlines the row whose context menu is open, without selecting it', () => {
+    const onItemContextMenu = vi.fn();
+    const { rerender } = render(
+      <SourceList aria-label="Sidebar" sections={sections} selectedId="f:ori" onItemContextMenu={(item) => onItemContextMenu(item.id)} />,
+    );
+    fireEvent.contextMenu(screen.getByRole('treeitem', { name: 'AmpR' }));
+    expect(onItemContextMenu).toHaveBeenCalledWith('f:amp');
+    rerender(<SourceList aria-label="Sidebar" sections={sections} selectedId="f:ori" contextMenuItemId="f:amp" />);
+    const row = screen.getByRole('treeitem', { name: 'AmpR' });
+    expect(row.hasAttribute('data-context-target')).toBe(true);
+    expect(row.getAttribute('aria-selected')).toBe('false');
+    expect(screen.getByRole('treeitem', { name: 'ori' }).hasAttribute('data-context-target')).toBe(false);
+  });
+
   it('does not select disabled rows', () => {
     const onSelect = vi.fn();
     render(<Harness onSelect={onSelect} />);

@@ -15,8 +15,8 @@ export type GelTextMeasurer = (text: string, role: GelTextRole) => number;
 const ROLE_FONT: Readonly<Record<GelTextRole, { sizeVar: string; size: number; weightVar: string; weight: number }>> = {
   ladder: { sizeVar: '--hh-text-sm', size: 11, weightVar: '--hh-weight-regular', weight: 400 },
   ladderStrong: { sizeVar: '--hh-text-sm', size: 11, weightVar: '--hh-weight-semibold', weight: 600 },
-  // Lane labels are measured in the selected (semibold) weight, the widest one.
-  lane: { sizeVar: '--hh-text-sm', size: 11, weightVar: '--hh-weight-semibold', weight: 600 },
+  // Lane labels keep their weight when selected (selection is shown by colour only).
+  lane: { sizeVar: '--hh-text-sm', size: 11, weightVar: '--hh-weight-medium', weight: 500 },
   size: { sizeVar: '--hh-text-xs', size: 10, weightVar: '--hh-weight-regular', weight: 400 },
   sizeStrong: { sizeVar: '--hh-text-xs', size: 10, weightVar: '--hh-weight-semibold', weight: 600 },
 };

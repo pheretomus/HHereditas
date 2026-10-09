@@ -48,6 +48,33 @@ export function readGenbankSequence(file: string): string {
     .toUpperCase();
 }
 
+/** One table of NCBI's gc.prt: names, amino acids and start/stop flags of the 64 codons in TCAG order. */
+export interface GcPrtTable {
+  names: string[];
+  /** Amino acid of each codon ('*' = stop). */
+  ncbieaa: string;
+  /** 'M' for a start codon, '*' for a stop codon, '-' otherwise. */
+  sncbieaa: string;
+}
+
+/** Parse NCBI's gc.prt (ASN.1 text, e.g. test/oracle/seqtools/ncbi_gc.prt) into table id -> table. */
+export function parseGcPrt(text: string): Map<number, GcPrtTable> {
+  const body = text
+    .split('\n')
+    .filter((line) => !line.trimStart().startsWith('--'))
+    .join('\n');
+  const out = new Map<number, GcPrtTable>();
+  for (const block of body.match(/\{[^{}]*\}/g) ?? []) {
+    const id = /\bid\s+(\d+)/.exec(block);
+    const aa = /\bncbieaa\s+"([^"]+)"/.exec(block);
+    const starts = /\bsncbieaa\s+"([^"]+)"/.exec(block);
+    if (!id || !aa || !starts) continue;
+    const names = [...block.matchAll(/name\s+"([^"]*)"/g)].map((m) => m[1].replace(/\s+/g, ' '));
+    out.set(Number(id[1]), { names, ncbieaa: aa[1], sncbieaa: starts[1] });
+  }
+  return out;
+}
+
 /** Deterministic pseudo-random generator (mulberry32) for property tests. */
 export function seededRandom(seed: number): () => number {
   let a = seed >>> 0;

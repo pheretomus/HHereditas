@@ -38,8 +38,13 @@ export interface SidebarProps {
   onSelectItem?: (item: SidebarItemRef) => void;
   /** Double-click or Return on an annotation (e.g. zoom to it). */
   onActivateItem?: (item: SidebarItemRef) => void;
-  /** Right-click on an annotation (show a ContextMenu). */
+  /**
+   * Right-click on an annotation. Wrap the Sidebar in a ContextMenu (its trigger receives the
+   * same event) and remember the item here to build the menu for it.
+   */
   onItemContextMenu?: (item: SidebarItemRef, event: MouseEvent) => void;
+  /** The annotation whose context menu is open (outlined); null once the menu closes. */
+  contextMenuItem?: SidebarItemRef | null;
   /** Collapsed annotation sections (controlled). */
   collapsedSections?: readonly SidebarSectionId[];
   defaultCollapsedSections?: readonly SidebarSectionId[];
@@ -89,6 +94,7 @@ export function Sidebar({
   onSelectItem,
   onActivateItem,
   onItemContextMenu,
+  contextMenuItem = null,
   collapsedSections,
   defaultCollapsedSections,
   onCollapsedSectionsChange,
@@ -229,6 +235,7 @@ export function Sidebar({
             aria-label="Annotations"
             sections={annotationSections}
             selectedId={selectedKey}
+            contextMenuItemId={contextMenuItem ? refKey(contextMenuItem) : null}
             onSelect={(item) => {
               const ref = parseKey(item.id);
               if (ref) onSelectItem?.(ref);

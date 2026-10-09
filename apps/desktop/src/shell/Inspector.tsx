@@ -1,6 +1,6 @@
 import { useEffect, useId, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, Crosshair, Ellipsis, Minus, Trash2 } from 'lucide-react';
-import type { Feature, MoleculeType, Strand, Topology } from '@hhereditas/core';
+import type { Feature, MoleculeType, Qualifier, Strand, Topology } from '@hhereditas/core';
 import { featureLength } from '@hhereditas/core';
 import { featureFill, featureTypeColor, formatInt } from '@hhereditas/viewer';
 import {
@@ -21,7 +21,8 @@ import {
   type PropertyItem,
 } from '@hhereditas/ui';
 import { FeatureColorWell } from './FeatureColorWell';
-import { featureTypeOptions, qualifierLabel } from './featureTypes';
+import { QualifierEditor } from './QualifierEditor';
+import { featureTypeOptions } from './featureTypes';
 import { formatLength, formatPercent } from './format';
 import { describeCaret, formatSelectionRange, type BaseComposition, type SelectionSummary } from './selectionSummary';
 import styles from './Inspector.module.css';
@@ -35,6 +36,8 @@ export interface FeatureEdit {
   strand?: Strand;
   /** '#rrggbb', or null to go back to the type's colour. */
   color?: string | null;
+  /** The complete new qualifier list (file order kept; added qualifiers at the end). */
+  qualifiers?: Qualifier[];
 }
 
 export interface InspectorProps {
@@ -42,6 +45,11 @@ export interface InspectorProps {
   selection?: SelectionSummary | null;
   /** Melting temperature of the selected bases in °C, when the app computes one. */
   tm?: number | null;
+  /**
+   * Extra rows for the Selection card while bases are selected (e.g. molecular weight, the
+   * translation of the selection), after Range / Length / GC / Tm.
+   */
+  selectionDetails?: readonly PropertyItem[];
   /** Whole-sequence composition, shown by the Analysis card when no bases are selected. */
   sequenceComposition?: BaseComposition | null;
   /** The feature to inspect (usually the selected one). */
@@ -52,10 +60,20 @@ export interface InspectorProps {
   molecule?: MoleculeType;
   /** Commits Feature-card edits. Omit for a read-only card. */
   onFeatureChange?: (featureId: string, edit: FeatureEdit) => void;
+  /**
+   * Live colour while the user drags in the system colour panel ("Other…"), before it is
+   * committed through onFeatureChange; use it to preview the colour in the visualizations.
+   */
+  onFeatureColorPreview?: (featureId: string, color: string) => void;
   onZoomToFeature?: (featureId: string) => void;
   onDeleteFeature?: (featureId: string) => void;
   /** Buttons at the foot of the Analysis card (e.g. Find ORFs, Translate). */
   analysisActions?: ReactNode;
+  /**
+   * Extra cards between the Feature and Analysis cards, e.g. a Primer card:
+   * <Disclosure title="Primer"><PropertyList … /></Disclosure>.
+   */
+  children?: ReactNode;
   /** Collapsed cards (controlled). */
   collapsedCards?: readonly InspectorCardId[];
   defaultCollapsedCards?: readonly InspectorCardId[];
@@ -84,15 +102,18 @@ export function formatFeatureLocation(feature: Pick<Feature, 'segments'>, sequen
 export function Inspector({
   selection,
   tm,
+  selectionDetails,
   sequenceComposition,
   feature,
   sequenceLength,
   topology = 'circular',
   molecule,
   onFeatureChange,
+  onFeatureColorPreview,
   onZoomToFeature,
   onDeleteFeature,
   analysisActions,
+  children,
   collapsedCards,
   defaultCollapsedCards,
   onCollapsedCardsChange,
@@ -121,7 +142,7 @@ export function Inspector({
   return (
     <div className={cx(styles.inspector, className)}>
       <Disclosure title="Selection" {...cardProps('selection')}>
-        <SelectionCard summary={selection} tm={tm} molecule={molecule} />
+        <SelectionCard summary={selection} tm={tm} molecule={molecule} details={selectionDetails} />
       </Disclosure>
       {feature ? (
         <Disclosure
@@ -142,9 +163,11 @@ export function Inspector({
             topology={topology}
             molecule={molecule}
             onChange={onFeatureChange ? (edit) => onFeatureChange(feature.id, edit) : undefined}
+            onColorPreview={onFeatureColorPreview ? (color) => onFeatureColorPreview(feature.id, color) : undefined}
           />
         </Disclosure>
       ) : null}
+      {children}
       <Disclosure title="Analysis" {...cardProps('analysis')}>
         <AnalysisCard
           composition={molecule === 'protein' ? null : composition}
@@ -160,7 +183,17 @@ export function Inspector({
 // Selection
 // ---------------------------------------------------------------------------------------
 
-function SelectionCard({ summary, tm, molecule }: { summary: SelectionSummary; tm?: number | null; molecule?: MoleculeType }) {
+function SelectionCard({
+  summary,
+  tm,
+  molecule,
+  details,
+}: {
+  summary: SelectionSummary;
+  tm?: number | null;
+  molecule?: MoleculeType;
+  details?: readonly PropertyItem[];
+}) {
   if (!summary.hasBases) {
     return (
       <div className={styles.stack}>
@@ -198,6 +231,7 @@ function SelectionCard({ summary, tm, molecule }: { summary: SelectionSummary; t
       },
     );
   }
+  if (details) items.push(...details);
   return <PropertyList labelWidth={LABEL_WIDTH} items={items} />;
 }
 
@@ -286,12 +320,14 @@ function FeatureCard({
   topology,
   molecule,
   onChange,
+  onColorPreview,
 }: {
   feature: Feature;
   sequenceLength: number;
   topology: Topology;
   molecule?: MoleculeType;
   onChange?: (edit: FeatureEdit) => void;
+  onColorPreview?: (color: string) => void;
 }) {
   const ids = useId();
   const readOnly = !onChange;
@@ -301,17 +337,6 @@ function FeatureCard({
     icon: <span className={styles.typeDot} style={{ background: featureTypeColor(o.value) }} />,
   }));
   const location = formatFeatureLocation(feature, sequenceLength);
-  // The qualifier the name came from (/label="AmpR") would only repeat the Name field.
-  const qualifiers: PropertyItem[] = feature.qualifiers
-    .filter((q) => q.value !== null && q.value !== '' && !(q.key === 'label' && q.value === feature.name))
-    .map((q, i) => ({
-      key: `${q.key}-${i}`,
-      label: qualifierLabel(q.key),
-      value: q.value ?? '',
-      mono: q.key === 'translation',
-      maxLines: q.key === 'translation' ? 4 : 6,
-    }));
-
   return (
     <div className={styles.stack}>
       <div className={styles.form} style={{ gridTemplateColumns: `${LABEL_WIDTH}px minmax(0, 1fr)` }}>
@@ -361,6 +386,7 @@ function FeatureCard({
             automaticColor={featureTypeColor(feature.type)}
             aria-labelledby={`${ids}-color`}
             onChange={onChange ? (color) => onChange({ color }) : undefined}
+            onPreview={onColorPreview}
           />
         </div>
       </div>
@@ -383,12 +409,14 @@ function FeatureCard({
             : []),
         ]}
       />
-      {qualifiers.length > 0 ? (
-        <div className={styles.qualifiers}>
-          <div className={styles.subheading}>Qualifiers</div>
-          <PropertyList labelWidth={LABEL_WIDTH} items={qualifiers} />
-        </div>
-      ) : null}
+      <QualifierEditor
+        qualifiers={feature.qualifiers}
+        // The qualifier the name came from (/label="AmpR") would only repeat the Name field.
+        isRedundant={(q) => q.key === 'label' && q.value === feature.name}
+        onChange={onChange ? (qualifiers) => onChange({ qualifiers }) : undefined}
+        labelWidth={LABEL_WIDTH}
+        resetKey={feature.id}
+      />
     </div>
   );
 }

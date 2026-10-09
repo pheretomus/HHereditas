@@ -52,11 +52,13 @@ function bruteForceSites(seq: string, topology: Topology, enzyme: RestrictionEnz
         else events.push({ top: p + n - c.bottom, bottom: p + n - c.top });
         if (palindromic) events.push({ top: p + n - c.bottom, bottom: p + n - c.top });
       }
-      // one entry per distinct double-strand break (after reduction modulo L on circles)
+      // one entry per distinct double-strand break (after reduction modulo L on circles; written
+      // without the shared mod(), which returns -0 for negative multiples of L: positions are +0)
+      const wrap = (x: number) => ((x % L) + L) % L;
       const seen = new Set<string>();
       const cuts: CutPair[] = [];
       for (const ev of events.sort((a, b) => Math.min(a.top, a.bottom) - Math.min(b.top, b.bottom) || Math.max(a.top, a.bottom) - Math.max(b.top, b.bottom) || a.top - b.top)) {
-        const cut = topology === 'circular' ? { top: mod(ev.top, L), bottom: mod(ev.bottom, L) } : ev;
+        const cut = topology === 'circular' ? { top: wrap(ev.top), bottom: wrap(ev.bottom) } : ev;
         const key = `${cut.top},${cut.bottom}`;
         if (seen.has(key)) continue;
         seen.add(key);

@@ -38,6 +38,15 @@ export interface ProteinSearchHit extends SearchHit {
 export interface ProteinSearchOptions {
   /** NCBI genetic code used to translate the sequence; default 1. */
   table?: number;
+  /**
+   * The peptide is the N-terminus of a protein (as in UniProt, a GenBank /translation or
+   * {@link translateFeature}): its first letter also matches the first codon read as an initiator,
+   * the way {@link translate} with `cds` reads it, so an initiator M matches every start codon of the
+   * table (GTG, TTG, ATT, ... besides ATG; about 10% of E. coli genes start with one of these).
+   * The internal translation of that codon still matches too, and the other letters are unaffected.
+   * Default false: every letter matches the internal translation only.
+   */
+  nTerminal?: boolean;
 }
 
 /** IUPAC letter of each 4-bit base mask (see NUCLEOTIDE_MASK); '' for 0. */
@@ -190,13 +199,16 @@ const TAG_KEY = codonKey(8, 1, 4); // masks of T, A, G
 /**
  * The codons of a genetic code grouped into classes that every peptide letter matches alike: same
  * translation, same stop status (in tables 27, 28 and 31 a context-dependent stop codon translates
- * to an amino acid but is still a stop codon), and TGA and TAG on their own (for U and O).
+ * to an amino acid but is still a stop codon), same reading as an initiator codon (for `nTerminal`),
+ * and TGA and TAG on their own (for U and O).
  */
 interface CodonClasses {
   /** Class (0 .. count - 1) of every codon key whose three masks are non-zero. */
   readonly ofKey: Uint8Array;
   /** Per class: character code of the translation. */
   readonly residue: readonly number[];
+  /** Per class: character code of the translation as an initiator codon ({@link CompiledGeneticCode.initiator}). */
+  readonly initiator: readonly number[];
   /** Per class: true when every codon its members may stand for is a stop codon of the table. */
   readonly stop: readonly boolean[];
   /** Per class: 'TGA' or 'TAG' for the class made of that codon alone, '' otherwise. */
@@ -205,12 +217,16 @@ interface CodonClasses {
 
 const codonClassCache = new Map<number, CodonClasses>();
 
-/** The codon classes of a genetic code, built on first use and cached (at most 28 for any NCBI table). */
+/**
+ * The codon classes of a genetic code, built on first use and cached: 26 to 33 classes for the NCBI
+ * tables, well below the 256 that the Uint8Array `ofKey` can number.
+ */
 function codonClassesOf(cc: CompiledGeneticCode): CodonClasses {
   const cached = codonClassCache.get(cc.code.id);
   if (cached !== undefined) return cached;
   const ofKey = new Uint8Array(4096);
   const residue: number[] = [];
+  const initiator: number[] = [];
   const stop: boolean[] = [];
   const codon: string[] = [];
   const bySignature = new Map<string, number>();
@@ -219,12 +235,14 @@ function codonClassesOf(cc: CompiledGeneticCode): CodonClasses {
       for (let m3 = 1; m3 < 16; m3++) {
         const key = codonKey(m1, m2, m3);
         const recoded = key === TGA_KEY ? 'TGA' : key === TAG_KEY ? 'TAG' : '';
-        const signature = `${cc.aa[key]} ${cc.stop[key]} ${recoded}`;
+        const signature = `${cc.aa[key]} ${cc.stop[key]} ${cc.initiator[key]} ${recoded}`;
         let c = bySignature.get(signature);
         if (c === undefined) {
           c = residue.length;
+          if (c > 255) throw new Error(`Genetic code ${cc.code.id}: more than 256 codon classes`);
           bySignature.set(signature, c);
           residue.push(cc.aa[key]);
+          initiator.push(cc.initiator[key]);
           stop.push(cc.stop[key] === 1);
           codon.push(recoded);
         }
@@ -232,7 +250,7 @@ function codonClassesOf(cc: CompiledGeneticCode): CodonClasses {
       }
     }
   }
-  const classes: CodonClasses = { ofKey, residue, stop, codon };
+  const classes: CodonClasses = { ofKey, residue, initiator, stop, codon };
   codonClassCache.set(cc.code.id, classes);
   return classes;
 }
@@ -249,14 +267,27 @@ function letterMatchesClass(letter: string, classes: CodonClasses, c: number): b
   return PEPTIDE_MATCHES[letter].includes(String.fromCharCode(classes.residue[c]));
 }
 
+/**
+ * Whether peptide letter `letter` matches the codons of class `c` read as an initiator codon
+ * ({@link ProteinSearchOptions.nTerminal}): amino-acid letters by the initiator reading (M for a start
+ * codon of the table). '*', U and O keep their meaning (a stop codon, TGA, TAG) and add nothing here.
+ */
+function letterMatchesInitiator(letter: string, classes: CodonClasses, c: number): boolean {
+  if (letter === '*' || RECODED_CODON[letter] !== undefined) return false;
+  return PEPTIDE_MATCHES[letter].includes(String.fromCharCode(classes.initiator[c]));
+}
+
 /** Upper-cased peptide letter at `i`: only ASCII a-z are folded (String#toUpperCase maps 'ı' to 'I'). */
 function peptideLetter(peptide: string, i: number): string {
   const c = peptide.charCodeAt(i);
   return c >= 0x61 && c <= 0x7a ? String.fromCharCode(c - 0x20) : peptide[i];
 }
 
-/** accept[i * classes.residue.length + c] = 1 when peptide position i matches the codons of class c. */
-function peptideAcceptTable(peptide: string, classes: CodonClasses): Uint8Array {
+/**
+ * accept[i * classes.residue.length + c] = 1 when peptide position i matches the codons of class c;
+ * with `nTerminal` position 0 also accepts the classes whose initiator reading it matches.
+ */
+function peptideAcceptTable(peptide: string, classes: CodonClasses, nTerminal: boolean): Uint8Array {
   const count = classes.residue.length;
   const acc = new Uint8Array(peptide.length * count);
   for (let i = 0; i < peptide.length; i++) {
@@ -267,7 +298,11 @@ function peptideAcceptTable(peptide: string, classes: CodonClasses): Uint8Array 
           `expected an amino-acid letter or '*'`,
       );
     }
-    for (let c = 0; c < count; c++) acc[i * count + c] = letterMatchesClass(letter, classes, c) ? 1 : 0;
+    for (let c = 0; c < count; c++) {
+      const matches =
+        letterMatchesClass(letter, classes, c) || (i === 0 && nTerminal && letterMatchesInitiator(letter, classes, c));
+      acc[i * count + c] = matches ? 1 : 0;
+    }
   }
   return acc;
 }
@@ -285,14 +320,18 @@ function peptideAcceptTable(peptide: string, classes: CodonClasses): Uint8Array 
  *     their amino acid (TGA in table 27 matches both W and '*');
  *   - U (selenocysteine) matches the codon TGA and O (pyrrolysine) the codon TAG, the stop codons that
  *     recoding reads as these amino acids, whatever the table translates them to (so a selenoprotein
- *     sequence from UniProt finds its own mRNA); ambiguous codons such as TGR do not match them.
+ *     sequence from UniProt finds its own mRNA); ambiguous codons such as TGR do not match them;
+ *   - with `nTerminal`, the first letter also matches its codon read as an initiator codon, so the
+ *     N-terminal Met of a protein matches an alternative start codon (GTG in table 11: M or V);
+ *     without it (the default) the first letter is matched like the others, and the N-terminal
+ *     peptide of a gene that starts with GTG, TTG, ... is not found.
  * Peptide letters are case-insensitive (ASCII). Ranges are DNA top-strand coordinates of the coding
  * bases (circular molecules: windows may cross the origin, end > L). Sorted by start, then strand
  * (1 first), then end.
  *
  * @throws TranslationError when the sequence contains a non-IUPAC character.
  * @throws RangeError for an invalid peptide character (the message names it and its 0-based UTF-16
- *   index) or an unknown table.
+ *   index), an unknown table or a non-boolean `nTerminal`.
  */
 export function searchProtein(
   seq: string,
@@ -302,9 +341,11 @@ export function searchProtein(
 ): ProteinSearchHit[] {
   const table = options.table ?? 1;
   if (!Number.isInteger(table)) throw new RangeError(`table must be an integer NCBI id, got ${table}`);
+  const nTerminal = options.nTerminal ?? false;
+  if (typeof nTerminal !== 'boolean') throw new RangeError(`nTerminal must be true or false, got ${String(nTerminal)}`);
   const classes = codonClassesOf(compileGeneticCode(table));
   const classCount = classes.residue.length;
-  const accept = peptideAcceptTable(peptide, classes);
+  const accept = peptideAcceptTable(peptide, classes, nTerminal);
   const n = peptide.length;
   const width = 3 * n;
   const L = seq.length;

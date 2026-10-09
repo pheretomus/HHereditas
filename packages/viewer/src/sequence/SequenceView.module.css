@@ -76,7 +76,11 @@
 }
 
 .complement {
-  fill: var(--hh-seq-text-complement);
+  /* Clearly lighter than the top strand but >= 4.5:1, also over the selection (light ~5.1:1 on
+     white, ~4.7:1 on the focused selection; dark ~6.4:1 / ~4.8:1). --hh-seq-text-complement is
+     only ~3:1 in the light theme; switch back once that token passes AA. */
+  fill: var(--hh-seq-text);
+  fill-opacity: 0.66;
 }
 
 .number {
@@ -84,7 +88,8 @@
   font-size: var(--hh-text-sm);
   font-variant-numeric: tabular-nums;
   text-anchor: end;
-  fill: var(--hh-seq-ruler);
+  /* --hh-seq-ruler is ~3:1 (light) / ~4.4:1 (dark); secondary text is 4.7:1 / 6.4:1 */
+  fill: var(--hh-text-secondary);
 }
 
 /* ---- enzymes -------------------------------------------------------------------------------- */
@@ -110,7 +115,8 @@
 
 .enzymeLabel {
   font-weight: var(--hh-weight-regular);
-  fill: var(--hh-enzyme-multi);
+  /* --hh-enzyme-multi is ~4:1 in the light theme; secondary text passes AA in both themes */
+  fill: var(--hh-text-secondary);
 }
 
 .enzymeLabelUnique {
@@ -135,6 +141,22 @@
   stroke-linecap: square;
   shape-rendering: crispEdges;
   pointer-events: none;
+  transition: stroke-opacity var(--hh-duration-fast) var(--hh-ease);
+}
+
+/* The hovered / selected site's stepped cut line, drawn on top of the others. */
+.cutActive {
+  fill: none;
+  stroke: var(--hh-accent);
+  stroke-width: 2;
+  stroke-linecap: square;
+  shape-rendering: crispEdges;
+  pointer-events: none;
+}
+
+/* While an enzyme is hovered the other cut lines step back, so its overhang reads clearly. */
+.root[data-enzyme-hover='true'] .cut {
+  stroke-opacity: 0.3;
 }
 
 /* ---- features ------------------------------------------------------------------------------- */
@@ -223,9 +245,33 @@
   pointer-events: none;
 }
 
-.stop {
+/* Stop codons: a solid red cell with a dark asterisk (about 5:1 in both themes), so a stop never
+   depends on hue alone. */
+.stopCell {
   fill: var(--hh-red);
-  font-weight: var(--hh-weight-bold);
+}
+
+.stopGlyph {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+/* Translation cells under the selection light up with their codon. */
+.translationSelection,
+.translationSelectionInactive {
+  pointer-events: none;
+}
+
+.translationSelection {
+  fill: var(--hh-seq-selection);
+  stroke: var(--hh-seq-selection-edge);
+  stroke-width: 1;
+}
+
+.translationSelectionInactive {
+  fill: var(--hh-bg-selected);
 }
 
 /* ---- primers -------------------------------------------------------------------------------- */
@@ -278,11 +324,49 @@
   font-weight: var(--hh-weight-bold);
 }
 
-.primerTail {
+/* 5' tail: a dashed, lighter flap bent away from the template; lower-case bases (they do not
+   anneal) in the primer colour at full strength so they stay readable. */
+.primerTailBox {
+  fill: var(--hh-seq-primer);
+  fill-opacity: 0.05;
+  stroke: var(--hh-seq-primer);
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+.primerFwd:hover .primerTailBox,
+.primerRev:hover .primerTailBox {
+  fill-opacity: 0.12;
+  stroke-opacity: 0.9;
+}
+
+.primerTailJoint {
   fill: none;
   stroke: var(--hh-seq-primer);
+  stroke-opacity: 0.7;
   stroke-width: 1.25;
   stroke-linecap: round;
+  pointer-events: none;
+}
+
+.primerTailBases {
+  font-family: var(--hh-font-mono);
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-medium);
+  font-variant-ligatures: none;
+  text-anchor: middle;
+  fill: var(--hh-seq-primer);
+  pointer-events: none;
+}
+
+.primerTailText {
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  text-anchor: middle;
+  fill: var(--hh-seq-primer);
   pointer-events: none;
 }
 
@@ -309,8 +393,9 @@
   fill: var(--hh-seq-selection);
 }
 
+/* Like macOS text views: the selection turns neutral grey while the view does not have focus. */
 .selectionInactive {
-  fill-opacity: 0.75;
+  fill: var(--hh-bg-selected);
 }
 
 .searchHit {
@@ -368,7 +453,7 @@
   font-family: var(--hh-font-ui);
   font-size: var(--hh-text-md);
   line-height: 17px;
-  color: var(--hh-text-tertiary);
+  color: var(--hh-text-secondary);
   pointer-events: none;
   white-space: nowrap;
 }

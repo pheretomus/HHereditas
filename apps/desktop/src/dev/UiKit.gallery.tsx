@@ -2,7 +2,7 @@
  * Design-system gallery: every @hhereditas/ui primitive in its states.
  * Open with ?gallery=UiKit&story=<name> (&theme=dark, &platform=mac|windows).
  */
-import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   ArrowLeft,
@@ -177,7 +177,11 @@ const VIEW_OPTIONS = [
 type View = (typeof VIEW_OPTIONS)[number]['value'];
 
 function Swatch({ color }: { color: string }) {
-  return <span style={{ width: 12, height: 12, borderRadius: 3, background: color, boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.15)' }} />;
+  return (
+    <span
+      style={{ width: 12, height: 12, borderRadius: 3, background: color, boxShadow: 'inset 0 0 0 var(--hh-hairline) var(--hh-separator-strong)' }}
+    />
+  );
 }
 
 function sourceSections(count = 7): SourceListSection[] {
@@ -643,6 +647,13 @@ function MenuStory() {
   const [enzymes, setEnzymes] = useState('unique');
   const [orfs, setOrfs] = useState(true);
   const [labels, setLabels] = useState(false);
+  // The Clone submenu is shown open for the gallery (hovering other items closes it as usual).
+  // Opened after mount: Radix closes submenus in the effect cleanup of StrictMode's re-mount.
+  const [cloneOpen, setCloneOpen] = useState(false);
+  useEffect(() => {
+    const id = window.setTimeout(() => setCloneOpen(true), 120);
+    return () => window.clearTimeout(id);
+  }, []);
   return (
     <Page title="Menus">
       <Section title="Dropdown menu" note="checkbox and radio items, separators, shortcuts, submenus">
@@ -670,7 +681,7 @@ function MenuStory() {
                   Show cut positions
                 </MenuCheckboxItem>
                 <MenuSeparator />
-                <MenuSub defaultOpen>
+                <MenuSub open={cloneOpen} onOpenChange={setCloneOpen}>
                   <MenuSubTrigger icon={<FlaskConical />}>Clone</MenuSubTrigger>
                   <MenuSubContent>
                     <MenuItem>Restriction cloning…</MenuItem>
@@ -697,12 +708,26 @@ function MenuStory() {
 }
 
 function ContextMenuStory() {
+  const area = useRef<HTMLDivElement>(null);
+  // Open the menu once on mount, as if the canvas had been right-clicked near its centre.
+  useEffect(() => {
+    const el = area.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const id = requestAnimationFrame(() =>
+      el.dispatchEvent(
+        new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: r.left + r.width * 0.38, clientY: r.top + 70, button: 2 }),
+      ),
+    );
+    return () => cancelAnimationFrame(id);
+  }, []);
   return (
     <Page title="Context menu">
       <Section title="Right-click the canvas">
-        <ContextMenu>
+        <ContextMenu modal={false}>
           <ContextMenuTrigger asChild>
             <div
+              ref={area}
               data-testid="context-area"
               style={{
                 height: 300,
@@ -1028,7 +1053,7 @@ function TableStory() {
   return (
     <Page title="Table">
       <Section title="Sortable, selectable, zebra-striped" note="click headers · ⌘/Ctrl-click · Shift-click · arrow keys">
-        <div style={{ height: 360, borderRadius: 'var(--hh-radius-lg)', overflow: 'hidden', boxShadow: 'inset 0 0 0 var(--hh-hairline) var(--hh-separator)' }}>
+        <div style={{ height: 360, borderRadius: 'var(--hh-radius-lg)', overflow: 'hidden', border: 'var(--hh-hairline) solid var(--hh-separator-strong)' }}>
           <Table
             aria-label="Features"
             columns={PART_COLUMNS}
@@ -1042,7 +1067,7 @@ function TableStory() {
         </div>
       </Section>
       <Section title="Empty">
-        <div style={{ height: 160, borderRadius: 'var(--hh-radius-lg)', overflow: 'hidden', boxShadow: 'inset 0 0 0 var(--hh-hairline) var(--hh-separator)' }}>
+        <div style={{ height: 160, borderRadius: 'var(--hh-radius-lg)', overflow: 'hidden', border: 'var(--hh-hairline) solid var(--hh-separator-strong)' }}>
           <Table
             aria-label="Primers"
             columns={PART_COLUMNS.slice(0, 3)}
@@ -1067,7 +1092,7 @@ function VirtualTableStory() {
   });
   return (
     <Page title="Table · 10,000 rows with @tanstack/react-virtual">
-      <div style={{ height: 520, borderRadius: 'var(--hh-radius-lg)', overflow: 'hidden', boxShadow: 'inset 0 0 0 var(--hh-hairline) var(--hh-separator)' }}>
+      <div style={{ height: 520, borderRadius: 'var(--hh-radius-lg)', overflow: 'hidden', border: 'var(--hh-hairline) solid var(--hh-separator-strong)' }}>
         <Table
           aria-label="Genes"
           columns={PART_COLUMNS}

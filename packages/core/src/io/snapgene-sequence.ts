@@ -26,7 +26,7 @@
 import { IUPAC_DNA } from '../seq/alphabet';
 import type { DnaEnd, FragmentEnds, SeqRecord, Topology } from '../types';
 import type { ParseWarning } from './types';
-import { childElements, escapeXmlText, plainToRichText, richTextToPlain, type XmlElement } from './snapgene-markup';
+import { childElements, escapeXmlText, richTextToPlain, storeOneLine, type XmlElement } from './snapgene-markup';
 import { clip, listCharacters } from './snapgene-messages';
 
 /** Bits of the DNA packet's flags byte (see the file comment for sources). */
@@ -240,9 +240,10 @@ function isValidEnd(end: DnaEnd | undefined): end is DnaEnd {
 /**
  * Build the `<AdditionalSequenceProperties>` packet payload text for a record. Sticky ends
  * are written only for linear records whose ends are well-formed and leave a double-stranded
- * part; anything else is written as blunt, with a warning.
+ * part; anything else is written as blunt, with a warning. End modifications whose line breaks
+ * or spacing will not read back are listed in `changedText`.
  */
-export function buildSequencePropertiesXml(record: SeqRecord, warnings: ParseWarning[]): string {
+export function buildSequencePropertiesXml(record: SeqRecord, warnings: ParseWarning[], changedText: string[] = []): string {
   let upstream = 0;
   let downstream = 0;
   const ends = record.ends;
@@ -266,7 +267,7 @@ export function buildSequencePropertiesXml(record: SeqRecord, warnings: ParseWar
   }
   const modification = (key: string) => {
     const value = record.meta.extras?.[key];
-    return escapeXmlText(plainToRichText(value !== undefined && value.trim() !== '' ? value : 'Unmodified'));
+    return escapeXmlText(value !== undefined && value.trim() !== '' ? storeOneLine(value, `meta.extras.${key}`, changedText) : 'Unmodified');
   };
   return (
     '<AdditionalSequenceProperties>' +

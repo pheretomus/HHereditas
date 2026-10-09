@@ -120,8 +120,14 @@ export function extendBy(sel: SequenceSelection, delta: number, ctx: EditingCont
 }
 
 /**
- * Shift+click / drag extension to gap `head`. Keeps the direction of a selection that already
- * wraps the origin; otherwise selects the bases between the anchor and the head.
+ * Shift+click / drag extension to gap `head`: the bases between the selection's anchor and the
+ * head (in text order).
+ *
+ * A selection that already wraps the origin of a circular record moves its head the short way
+ * round the circle to `head`, exactly as if the head had been moved there with shift+arrows
+ * (extendBy): it keeps wrapping while the head stays on the wrapping side of the anchor (anchor 3,
+ * head 3935 -> shift+click L-10 selects L-10..L+3) and flips through the anchor otherwise
+ * (shift+click 10 selects 3..10, not the complementary arc).
  */
 export function extendSelectionTo(
   sel: SequenceSelection | null | undefined,
@@ -130,11 +136,12 @@ export function extendSelectionTo(
 ): SequenceSelection {
   const L = ctx.length;
   if (!sel) return caretAt(head);
-  const anchor = selectionAnchor(sel, L, ctx.topology);
   if (isCircular(ctx) && sel.range.end > L) {
-    const forward = signedLength(sel, ctx) > 0;
-    return selectBetween(anchor, head, L, 'circular', forward);
+    let delta = mod(head - sel.caret, L);
+    if (delta > L / 2) delta -= L;
+    return extendBy(sel, delta, ctx);
   }
+  const anchor = selectionAnchor(sel, L, ctx.topology);
   return selectBetween(anchor, head, L, ctx.topology);
 }
 

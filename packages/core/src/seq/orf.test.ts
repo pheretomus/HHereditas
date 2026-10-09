@@ -8,7 +8,8 @@ import {
   seededRandom,
 } from '../../test/oracle/seqtools/oracle';
 import type { Orf, Topology } from '../types';
-import { reverseComplement } from './alphabet';
+import { IUPAC_DNA, reverseComplement } from './alphabet';
+import { GENETIC_CODES, getGeneticCode } from './codon-tables';
 import { findOrfs } from './orf';
 import type { FindOrfsOptions } from './orf';
 import { sliceRange } from './range';
@@ -339,6 +340,101 @@ describe('findOrfs invariants (seeded random)', () => {
         expect(got).toEqual(expected);
       }
     }
+  });
+});
+
+// Verification: a second brute force, in TypeScript, written from the definition in orf.ts using only
+// getGeneticCode and IUPAC_DNA (not the compiled lookup tables). Short molecules built from a soup of
+// start, stop and ambiguous codons make the circular cases (wrap, one-turn cap, frame cycle when
+// L % 3 != 0, two visits of one stop codon) dense; every table and option combination is drawn.
+describe('findOrfs vs a TypeScript brute force on short codon-soup molecules (all tables)', () => {
+  const expansions = (codon: string): string[] => {
+    const out: string[] = [];
+    for (const a of IUPAC_DNA[codon[0]]) for (const b of IUPAC_DNA[codon[1]]) for (const c of IUPAC_DNA[codon[2]]) out.push(a + b + c);
+    return out;
+  };
+
+  function bruteForceOrfs(seq: string, topology: Topology, o: Required<FindOrfsOptions>): Orf[] {
+    const L = seq.length;
+    const circular = topology === 'circular';
+    const code = getGeneticCode(o.table);
+    const isStop = (codon: string) => expansions(codon).every((e) => code.stopCodons.includes(e));
+    const isStart = (codon: string) =>
+      o.startCodons === 'ATG' ? codon === 'ATG' : expansions(codon).every((e) => code.startCodons.includes(e));
+    const out: Orf[] = [];
+    if (L < 3) return out;
+    const strands = o.strands === 'both' ? ([1, -1] as const) : o.strands === 'top' ? ([1] as const) : ([-1] as const);
+    for (const strand of strands) {
+      const s = strand === 1 ? seq : reverseComplement(seq);
+      const codonAt = (x: number) => s[x % L] + s[(x + 1) % L] + s[(x + 2) % L];
+      type Candidate = { a: number; b: number; aa: number; stop: boolean; family: string };
+      let found: Candidate[] = [];
+      for (let x = 0; x < (circular ? L : L - 2); x++) {
+        if (!isStart(codonAt(x))) continue;
+        let k = 1;
+        // linear: the codon must fit; circular: the ORF may cover at most one full turn
+        while ((circular ? 3 * k + 3 <= L : x + 3 * k + 3 <= L) && !isStop(codonAt(x + 3 * k))) k++;
+        if (circular ? 3 * k + 3 <= L : x + 3 * k + 3 <= L) {
+          found.push({ a: x, b: x + 3 * k + 3, aa: k, stop: true, family: `stop ${(x + 3 * k) % L}` });
+        } else if (o.allowNoStop) {
+          const codons = circular ? Math.floor(L / 3) : Math.floor((L - x) / 3);
+          const cycle = !circular || L % 3 === 0 ? x % 3 : 0;
+          found.push({ a: x, b: x + 3 * codons, aa: codons, stop: false, family: `open ${cycle}` });
+        }
+      }
+      if (!o.includeNested) {
+        const best = new Map<string, Candidate>();
+        for (const c of found) {
+          const b = best.get(c.family);
+          if (!b || c.aa > b.aa || (c.aa === b.aa && c.a < b.a)) best.set(c.family, c);
+        }
+        found = [...best.values()];
+      }
+      for (const c of found) {
+        if (c.aa < o.minAaLength) continue;
+        let start = c.a;
+        let end = c.b;
+        if (strand === -1) {
+          start = L - c.b;
+          end = L - c.a;
+          if (start < 0) {
+            start += L;
+            end += L;
+          }
+        }
+        out.push({ range: { start, end }, strand, frame: (c.a % 3) as 0 | 1 | 2, aaLength: c.aa, hasStop: c.stop });
+      }
+    }
+    return out.sort((x, y) => x.range.start - y.range.start || x.range.end - y.range.end || y.strand - x.strand);
+  }
+
+  it('agrees exactly on 4000 seeded cases', () => {
+    const rand = seededRandom(99001);
+    const soup = ['ATG', 'TAA', 'TAG', 'TGA', 'GTG', 'TTG', 'CTG', 'ATT', 'ATA', 'AGA', 'AGG', 'TCA', 'TTA', 'CCC', 'AAA', 'HTG', 'TAR', 'NNN', 'TRA'];
+    const tables = GENETIC_CODES.map((c) => c.id);
+    let orfs = 0;
+    let crossing = 0;
+    for (let n = 0; n < 4000; n++) {
+      const L = Math.floor(rand() * 70);
+      let seq = '';
+      while (seq.length < L) seq += rand() < 0.6 ? soup[Math.floor(rand() * soup.length)] : randomString(rand, 'ACGT', 1);
+      seq = seq.slice(0, L);
+      const topology: Topology = rand() < 0.6 ? 'circular' : 'linear';
+      const options: Required<FindOrfsOptions> = {
+        minAaLength: [0, 0, 0, 1, 2, 3][Math.floor(rand() * 6)],
+        table: tables[Math.floor(rand() * tables.length)],
+        startCodons: rand() < 0.5 ? 'ATG' : 'table',
+        strands: (['both', 'both', 'top', 'bottom'] as const)[Math.floor(rand() * 4)],
+        includeNested: rand() < 0.5,
+        allowNoStop: rand() < 0.5,
+      };
+      const expected = bruteForceOrfs(seq, topology, options);
+      expect(findOrfs(seq, topology, options), `${seq} ${topology} ${JSON.stringify(options)}`).toEqual(expected);
+      orfs += expected.length;
+      crossing += expected.filter((o) => o.range.end > L).length;
+    }
+    expect(orfs).toBeGreaterThan(3000);
+    expect(crossing).toBeGreaterThan(1000);
   });
 });
 

@@ -7,8 +7,12 @@ import type { MoleculeType, Topology } from '@hhereditas/core';
 /** What the main area shows: the map, the sequence, or the map above the sequence. */
 export type ViewMode = 'map' | 'sequence' | 'split';
 
-/** Which restriction sites are displayed (toolbar enzyme menu). */
-export type EnzymeDisplay = 'unique' | 'unique-dual' | 'common' | 'none' | 'custom';
+/**
+ * Which restriction sites are displayed (toolbar enzyme menu): single cutters, single and
+ * double cutters, a common lab set, all commercially available enzymes with ≥ 6 bp sites,
+ * none, or an enzyme list chosen by the user.
+ */
+export type EnzymeDisplay = 'unique' | 'unique-dual' | 'common' | 'commercial' | 'none' | 'custom';
 
 /** Commands of the toolbar's Actions menu. */
 export type ShellAction =

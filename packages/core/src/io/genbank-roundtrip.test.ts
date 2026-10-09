@@ -3,7 +3,8 @@
  *  - parse(write(parse(x))) equals parse(x) (ids ignored; LOCUS date/division/molecule token that
  *    the first write had to invent are checked separately);
  *  - write(parse(write(parse(x)))) is byte-identical to write(parse(x)) (the writer's output is a
- *    fixed point) and re-reading it produces no warning;
+ *    fixed point) and re-reading it produces no warning, except the placeholder warning of a
+ *    CONTIG entry (its sequence is not in the file, and must stay recognisable as such);
  *  - live oracle (skipped without the Python venv): Biopython 1.88 reads every written file exactly
  *    like it reads the original fixture (apart from the documented deviations), and exactly like
  *    our own reader reads the written file.
@@ -14,6 +15,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { SeqRecord } from '../types';
+import type { ParseWarning } from './types';
 import { GENBANK_EXTRA_KEYS, parseGenbank, writeGenbank } from './genbank';
 import { locusDivision } from './genbank-locus';
 import {
@@ -49,7 +51,28 @@ function withWriterDefaults(r: SeqRecord): SeqRecord {
   return { ...r, meta };
 }
 
+/**
+ * Warnings of re-reading a written record: none, except for a CONTIG entry whose sequence is
+ * still the N placeholder. The writer keeps its CONTIG section instead of writing the placeholder
+ * as an ORIGIN of 'n' (review finding: after one save the placeholder looked like real sequence),
+ * so reading the output reports the placeholder again, like reading the original did.
+ */
+function rereadWarnings(r: SeqRecord): ParseWarning[] {
+  if (r.meta.extras?.[GENBANK_EXTRA_KEYS.contig] === undefined || !/^N+$/.test(r.seq)) return [];
+  const message =
+    'CONTIG record: its sequence is assembled from other entries and is not in this file; ' +
+    `the sequence was filled with ${r.seq.length} N (LOCUS length)`;
+  return [{ message, line: 1, recordIndex: 0 }];
+}
+
 describe('GenBank round trip on every fixture', () => {
+  it('covers CONTIG entries (DS830848.gb, bad_origin_wrap.gb, bad_origin_wrap_linear.gb)', () => {
+    const contigs = files.filter((file) =>
+      parseGenbank(readFileSync(join(FIXTURES, file), 'utf8')).records.some((r) => rereadWarnings(r).length > 0),
+    );
+    expect(contigs).toEqual(['DS830848.gb', 'bad_origin_wrap.gb', 'bad_origin_wrap_linear.gb']);
+  });
+
   for (const file of files) {
     it(file, () => {
       const first = parseGenbank(readFileSync(join(FIXTURES, file), 'utf8'));
@@ -57,7 +80,7 @@ describe('GenBank round trip on every fixture', () => {
       for (const record of first.records) {
         const written = writeGenbank(record, { date: DATE });
         const second = parseGenbank(written);
-        expect(second.warnings).toEqual([]);
+        expect(second.warnings).toEqual(rereadWarnings(record));
         expect(second.records).toHaveLength(1);
         expect(withoutIds(second.records[0])).toEqual(withoutIds(withWriterDefaults(record)));
         expect(writeGenbank(second.records[0], { date: DATE })).toBe(written);

@@ -134,6 +134,25 @@ describe('selection extension', () => {
     expect(extendSelectionTo(sel(25, 33, 25), 20, circ(30))).toEqual(sel(20, 33, 20));
   });
 
+  it('moves the head of a wrapping selection the short way, flipping through the anchor (review: shift+click after wrap)', () => {
+    const L = 3938;
+    // caret at gap 3, shift+left x6: 3935..3941 with the anchor at gap 3
+    const wrapped = sel(3935, 3941, 3935);
+    // shift+click at gap 10: the 7 bases after the anchor, as the keyboard and a drag give, not 3,931 bp
+    expect(extendSelectionTo(wrapped, 10, circ(L))).toEqual(sel(3, 10, 10));
+    // a head that stays on the wrapping side keeps wrapping
+    expect(extendSelectionTo(wrapped, L - 10, circ(L))).toEqual(sel(L - 10, L + 3, L - 10));
+    // back onto the anchor: a caret
+    expect(extendSelectionTo(wrapped, 3, circ(L))).toEqual(caretAt(3));
+    // forward wrapping selection: extending further keeps it, crossing back over the anchor flips it
+    expect(extendSelectionTo(sel(25, 33, 3), 12, circ(30))).toEqual(sel(25, 42, 12));
+    expect(extendSelectionTo(sel(25, 33, 3), 22, circ(30))).toEqual(sel(22, 25, 22));
+    // consistent with the keyboard path from the same selection
+    let k = wrapped;
+    for (let i = 0; i < 13; i++) k = extendBy(k, 1, circ(L));
+    expect(k).toEqual(extendSelectionTo(wrapped, 10, circ(L)));
+  });
+
   it('covers the selection and an annotation (shift+click on a feature)', () => {
     expect(coverSelection(sel(5, 10, 10), { start: 20, end: 25 }, lin(30))).toEqual(sel(5, 25, 25));
     expect(coverSelection(sel(20, 25, 25), { start: 2, end: 6 }, lin(30))).toEqual(sel(2, 25, 2));

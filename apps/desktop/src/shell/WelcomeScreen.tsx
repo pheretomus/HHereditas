@@ -87,8 +87,11 @@ export function WelcomeScreen({
   return (
     <div className={cx(styles.welcome, className)} {...dragHandlers}>
       <section className={styles.hero} aria-label={`Welcome to ${appName}`}>
-        <div className={styles.dragStrip} data-tauri-drag-region="" />
-        <div className={styles.heroInner}>
+        {/* The hero's empty background drags the window (like Xcode's welcome window) while its
+            buttons keep their clicks. A surface behind the content, not the scrolling section
+            itself, so its scrollbar keeps working. */}
+        <div className={styles.dragSurface} data-tauri-drag-region="deep" />
+        <div className={styles.heroInner} data-tauri-drag-region="deep">
           <img src={appIcon} alt="" className={styles.mark} width={112} height={112} draggable={false} />
           <h1 className={styles.appName}>{appName}</h1>
           <p className={styles.tagline}>{tagline}</p>
@@ -110,14 +113,14 @@ export function WelcomeScreen({
             />
           </div>
         </div>
-        <p className={styles.dropHint}>
+        <p className={styles.dropHint} data-tauri-drag-region="deep">
           <FileDown aria-hidden />
           Drop files anywhere in this window to open them
         </p>
       </section>
 
       <aside className={styles.side} aria-label="Recent and sample documents">
-        <div className={styles.dragStrip} data-tauri-drag-region="" />
+        <div className={styles.dragStrip} data-tauri-drag-region="deep" />
         <div className={styles.sideScroll}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Recent</h2>

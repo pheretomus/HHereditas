@@ -33,7 +33,10 @@ function withPrimers(rec: SeqRecord, primers: Primer[]): SeqRecord {
   return rebuildRecord(rec, rec.seq, rec.topology, features, rec.ends && copyEnds(rec.ends), primers);
 }
 
-/** Validate a feature against `rec` (segments must already be normalized) and return a deep copy. */
+/**
+ * Validate a feature against `rec` (segments must already be normalized) and return a deep copy
+ * (negative zero in coordinates or strand, which passes the checks, is stored as +0).
+ */
 function validFeature(rec: SeqRecord, f: Feature, op: string): Feature {
   if (typeof f.id !== 'string' || f.id === '') throw new Error(`${op}: the feature needs a non-empty id`);
   if (typeof f.type !== 'string' || f.type === '') throw new Error(`${op}: feature '${f.id}' needs a non-empty type`);
@@ -45,7 +48,7 @@ function validFeature(rec: SeqRecord, f: Feature, op: string): Feature {
   }
   const L = rec.seq.length;
   const segments = f.segments.map((r) => checkRange(r, L, rec.topology, `${op} (feature '${f.id}')`));
-  return copyFeature(f, segments);
+  return { ...copyFeature(f, segments), strand: f.strand === 0 ? 0 : f.strand };
 }
 
 /** Validate a primer and return a copy with its sequence cleaned. */

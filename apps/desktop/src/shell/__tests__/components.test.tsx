@@ -119,6 +119,22 @@ describe('ToolbarContent', () => {
     expect(onChooseEnzymes).toHaveBeenCalled();
   });
 
+  it('lists the enzyme choices the app asks for, with its names', async () => {
+    const user = userEvent.setup();
+    render(
+      <ToolbarHarness
+        enzymeDisplay="custom"
+        enzymeDisplayOptions={['unique', 'commercial', 'none']}
+        enzymeDisplayLabels={{ unique: 'Unique 6+ cutters' }}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: 'Enzymes' }));
+    const names = screen.getAllByRole('menuitemradio').map((i) => i.textContent);
+    // the current custom choice is listed before "None"
+    expect(names).toEqual(['Unique 6+ cutters', 'Commercial (≥ 6 bp sites)', 'Chosen enzymes', 'None']);
+    expect(screen.getByRole('menuitemradio', { name: 'Chosen enzymes' }).getAttribute('aria-checked')).toBe('true');
+  });
+
   it('runs actions, including the Clone submenu', async () => {
     const user = userEvent.setup();
     const onAction = vi.fn();
@@ -132,6 +148,21 @@ describe('ToolbarContent', () => {
     await user.keyboard('{ArrowRight}');
     await user.click(await screen.findByRole('menuitem', { name: 'Gibson assembly…' }));
     expect(onAction).toHaveBeenLastCalledWith('clone-gibson');
+  });
+
+  it('shows shortcut hints, which the app can override', async () => {
+    const user = userEvent.setup();
+    document.documentElement.classList.add('hh-platform-mac');
+    render(<ToolbarHarness onAction={() => undefined} shortcuts={{ digest: 'Mod+Shift+D' }} />);
+    // defaults: the app-integration bindings (⌥⌘S sidebar, ⌘1-3 views)
+    await user.tab();
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Hide Sidebar' }));
+    expect((await screen.findAllByText('⌥⌘S')).length).toBeGreaterThan(0);
+    await user.tab();
+    expect((await screen.findAllByText('⌘1')).length).toBeGreaterThan(0);
+    // overridden: the Digest command's binding
+    await user.click(screen.getByRole('button', { name: 'Actions' }));
+    expect(screen.getByRole('menuitem', { name: 'Digest & gel…' }).textContent).toContain('⇧⌘D');
   });
 
   it('reports search input and submissions', async () => {
@@ -291,6 +322,46 @@ describe('Inspector', () => {
     expect(onFeatureChange).toHaveBeenLastCalledWith('f-amp', { color: null });
   });
 
+  it('previews colours from the system panel live and commits once, when it closes', async () => {
+    const user = userEvent.setup();
+    const onFeatureChange = vi.fn<(id: string, edit: FeatureEdit) => void>();
+    const onFeatureColorPreview = vi.fn();
+    const summary = summarizeSelection(SEQ, { range: { start: 2610, end: 3471 }, caret: 3471 });
+    render(
+      <Inspector
+        selection={summary}
+        feature={AMPR}
+        sequenceLength={4000}
+        onFeatureChange={onFeatureChange}
+        onFeatureColorPreview={onFeatureColorPreview}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: /Colour/ }));
+    const native = screen.getByLabelText('Other…') as HTMLInputElement;
+    // dragging in the panel: previews only (the well shows the colour being chosen)
+    fireEvent.input(native, { target: { value: '#123456' } });
+    fireEvent.input(native, { target: { value: '#2468AC' } });
+    expect(onFeatureColorPreview).toHaveBeenLastCalledWith('f-amp', '#2468ac');
+    expect(onFeatureChange).not.toHaveBeenCalled();
+    expect(screen.getByText('#2468AC')).toBeTruthy();
+    // the panel closes: one commit
+    fireEvent.change(native);
+    expect(onFeatureChange).toHaveBeenCalledTimes(1);
+    expect(onFeatureChange).toHaveBeenCalledWith('f-amp', { color: '#2468ac' });
+  });
+
+  it('commits a colour still shown in the system panel when the popover closes', async () => {
+    const user = userEvent.setup();
+    const onFeatureChange = vi.fn<(id: string, edit: FeatureEdit) => void>();
+    const summary = summarizeSelection(SEQ, { range: { start: 2610, end: 3471 }, caret: 3471 });
+    render(<Inspector selection={summary} feature={AMPR} sequenceLength={4000} onFeatureChange={onFeatureChange} />);
+    await user.click(screen.getByRole('button', { name: /Colour/ }));
+    fireEvent.input(screen.getByLabelText('Other…'), { target: { value: '#00aa55' } });
+    await user.keyboard('{Escape}');
+    expect(onFeatureChange).toHaveBeenCalledTimes(1);
+    expect(onFeatureChange).toHaveBeenCalledWith('f-amp', { color: '#00aa55' });
+  });
+
   it('shows location, length and qualifiers (without repeating the label)', () => {
     const summary = summarizeSelection(SEQ, { range: { start: 2610, end: 3471 }, caret: 3471 });
     render(<Inspector selection={summary} feature={AMPR} sequenceLength={4000} />);
@@ -301,6 +372,119 @@ describe('Inspector', () => {
     expect(screen.queryByText('Label')).toBeNull();
     // read-only without onFeatureChange
     expect((screen.getByRole('textbox', { name: 'Name' }) as HTMLInputElement).readOnly).toBe(true);
+  });
+
+  describe('qualifier editing', () => {
+    /** Applies edits like the app store would, so the card always shows the latest feature. */
+    function Editable({ onEdit }: { onEdit: (edit: FeatureEdit) => void }) {
+      const [feature, setFeature] = useState<Feature>(AMPR);
+      const summary = summarizeSelection(SEQ, { range: { start: 2610, end: 3471 }, caret: 3471 });
+      return (
+        <Inspector
+          selection={summary}
+          feature={feature}
+          sequenceLength={4000}
+          onFeatureChange={(_id, edit) => {
+            onEdit(edit);
+            setFeature((f) => ({ ...f, ...edit }) as Feature);
+          }}
+        />
+      );
+    }
+
+    it('turns the list into key/value fields and commits edits as a whole list', async () => {
+      const user = userEvent.setup();
+      const onEdit = vi.fn<(edit: FeatureEdit) => void>();
+      render(<Editable onEdit={onEdit} />);
+      expect(screen.queryByRole('textbox', { name: 'Value of product' })).toBeNull();
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      // every qualifier is editable, including the /label hidden in the read-only list
+      expect((screen.getByRole('textbox', { name: 'Key of label' }) as HTMLInputElement).value).toBe('label');
+      const product = screen.getByRole('textbox', { name: 'Value of product' });
+      await user.clear(product);
+      await user.type(product, 'TEM-1 beta-lactamase{Enter}');
+      expect(onEdit).toHaveBeenLastCalledWith({
+        qualifiers: [
+          { key: 'label', value: 'AmpR' },
+          { key: 'product', value: 'TEM-1 beta-lactamase' },
+          { key: 'translation', value: 'MSIQHFRVALIPFFAAFCLPVFA' },
+        ],
+      });
+      // Escape reverts text that is not committed yet
+      await user.type(product, ' X{Escape}');
+      expect((screen.getByRole('textbox', { name: 'Value of product' }) as HTMLInputElement).value).toBe('TEM-1 beta-lactamase');
+      await user.click(screen.getByRole('button', { name: 'Done' }));
+      expect(screen.getByText('TEM-1 beta-lactamase')).toBeTruthy();
+      expect(onEdit).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes and adds qualifiers', async () => {
+      const user = userEvent.setup();
+      const onEdit = vi.fn<(edit: FeatureEdit) => void>();
+      render(<Editable onEdit={onEdit} />);
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.click(screen.getByRole('button', { name: 'Remove translation' }));
+      expect(onEdit).toHaveBeenLastCalledWith({
+        qualifiers: [
+          { key: 'label', value: 'AmpR' },
+          { key: 'product', value: 'β-lactamase' },
+        ],
+      });
+      await user.click(screen.getByRole('button', { name: 'Add Qualifier' }));
+      // the new row's key field takes the keyboard; spaces become underscores
+      const key = screen.getByRole('textbox', { name: 'Key of new qualifier' });
+      expect(document.activeElement).toBe(key);
+      await user.type(key, 'gene name');
+      await user.tab();
+      await user.keyboard('bla{Enter}');
+      expect(onEdit).toHaveBeenLastCalledWith({
+        qualifiers: [
+          { key: 'label', value: 'AmpR' },
+          { key: 'product', value: 'β-lactamase' },
+          { key: 'gene_name', value: 'bla' },
+        ],
+      });
+    });
+
+    it('shows flags (valueless qualifiers) and writes a key added without a value as a flag', async () => {
+      const user = userEvent.setup();
+      const onFeatureChange = vi.fn<(id: string, edit: FeatureEdit) => void>();
+      const summary = summarizeSelection(SEQ, { range: { start: 2610, end: 3471 }, caret: 3471 });
+      const pseudo: Feature = { ...AMPR, qualifiers: [{ key: 'pseudo', value: null }] };
+      render(<Inspector selection={summary} feature={pseudo} sequenceLength={4000} onFeatureChange={onFeatureChange} />);
+      expect(screen.getByText('Pseudo').nextElementSibling!.textContent).toContain('Yes');
+      await user.click(screen.getByRole('button', { name: 'Edit' }));
+      await user.click(screen.getByRole('button', { name: 'Add Qualifier' }));
+      await user.keyboard('environmental_sample{Enter}');
+      expect(onFeatureChange).toHaveBeenLastCalledWith('f-amp', {
+        qualifiers: [
+          { key: 'pseudo', value: null },
+          { key: 'environmental_sample', value: null },
+        ],
+      });
+    });
+
+    it('is read-only without onFeatureChange', () => {
+      const summary = summarizeSelection(SEQ, { range: { start: 2610, end: 3471 }, caret: 3471 });
+      render(<Inspector selection={summary} feature={AMPR} sequenceLength={4000} />);
+      expect(screen.getByText('Qualifiers')).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
+    });
+  });
+
+  it('takes extra selection rows and extra cards from the app', () => {
+    const summary = summarizeSelection(SEQ, { range: { start: 395, end: 1256 }, caret: 1256 });
+    render(
+      <Inspector selection={summary} selectionDetails={[{ label: 'MW', value: '532.1 kDa' }]}>
+        <section aria-label="Primer card">Primer</section>
+      </Inspector>,
+    );
+    expect(screen.getByText('MW')).toBeTruthy();
+    expect(screen.getByText('532.1 kDa')).toBeTruthy();
+    const card = screen.getByRole('region', { name: 'Primer card' });
+    // between the Feature and Analysis cards: before Analysis
+    const analysis = screen.getByRole('button', { name: 'Analysis' });
+    expect(card.compareDocumentPosition(analysis) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('offers feature actions when callbacks are given', async () => {

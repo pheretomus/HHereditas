@@ -18,8 +18,8 @@ export {
 } from './tm';
 export type { DuplexThermo, SaltCorrectionMethod, TmConditions, TmExtreme, TmRange } from './tm';
 
-export { DEFAULT_BINDING_OPTIONS, findAllBindingSites, findBindingSites } from './binding';
-export type { BindingOptions } from './binding';
+export { DEFAULT_BINDING_OPTIONS, findAllBindingSites, findBindingSites, scanBindingSites } from './binding';
+export type { BindingOptions, BindingScan, PrimerBindingFailure } from './binding';
 
 export { DEFAULT_PRIMER_DESIGN, MAX_DESIGN_PRIMER_LENGTH, designPrimer, designPrimerPair } from './design';
 export type {

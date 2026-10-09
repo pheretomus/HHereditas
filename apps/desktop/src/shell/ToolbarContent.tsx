@@ -1,4 +1,4 @@
-import { useRef, type ReactNode, type Ref } from 'react';
+import { useMemo, useRef, type ReactNode, type Ref } from 'react';
 import {
   ArrowRightToLine,
   ChevronDown,
@@ -66,6 +66,13 @@ export interface ToolbarContentProps {
   onEnzymeDisplayChange: (display: EnzymeDisplay) => void;
   /** "Choose…" in the enzyme menu (open the enzyme chooser). */
   onChooseEnzymes?: () => void;
+  /**
+   * Choices of the enzyme menu, in order (default DEFAULT_ENZYME_DISPLAY_OPTIONS). 'custom'
+   * is listed automatically while it is the current display.
+   */
+  enzymeDisplayOptions?: readonly EnzymeDisplay[];
+  /** Names of the choices, overriding ENZYME_DISPLAY_LABELS (e.g. { unique: 'Unique 6+ cutters' }). */
+  enzymeDisplayLabels?: Partial<Record<EnzymeDisplay, string>>;
   /** Commands of the Actions menu. */
   onAction?: (action: ShellAction) => void;
   /** Sequence search (controlled when searchValue is given). */
@@ -79,8 +86,37 @@ export interface ToolbarContentProps {
   searchRef?: Ref<HTMLInputElement>;
   /** Disables the document commands (e.g. while a file loads). */
   disabled?: boolean;
+  /**
+   * Keyboard shortcuts shown in tooltips and menus (display only: the app binds the keys).
+   * Defaults: DEFAULT_TOOLBAR_SHORTCUTS. Pass the app's command bindings to keep them in sync.
+   */
+  shortcuts?: Partial<ToolbarShortcuts>;
   className?: string;
 }
+
+/** Platform-neutral shortcut strings ("Alt+Mod+S"; Mod = ⌘ on macOS, Ctrl elsewhere). */
+export interface ToolbarShortcuts {
+  toggleSidebar: string;
+  toggleInspector: string;
+  viewMap: string;
+  viewSequence: string;
+  viewSplit: string;
+  enzymes: string;
+  digest: string;
+  search: string;
+}
+
+/** The bindings listed in the app-integration spec. */
+export const DEFAULT_TOOLBAR_SHORTCUTS: Readonly<ToolbarShortcuts> = {
+  toggleSidebar: 'Alt+Mod+S',
+  toggleInspector: 'Alt+Mod+I',
+  viewMap: 'Mod+1',
+  viewSequence: 'Mod+2',
+  viewSplit: 'Mod+3',
+  enzymes: 'Mod+E',
+  digest: 'Mod+D',
+  search: 'Mod+F',
+};
 
 /** Widths (px) at which the toolbar gets denser. */
 export const TOOLBAR_DENSITY = { regular: 820, compact: 600 } as const;
@@ -91,19 +127,43 @@ export function toolbarDensity(width: number): ToolbarDensity {
   return width >= TOOLBAR_DENSITY.compact ? 'compact' : 'tight';
 }
 
+/** Search field width: 210 px in a regular toolbar; in a compact one it scales with the bar
+ *  (150–170 px: the placeholder still fits) so the document title keeps its room. */
+export function searchFieldWidth(density: ToolbarDensity, toolbarWidth: number): number {
+  if (density === 'regular') return 210;
+  return Math.round(Math.max(150, Math.min(170, toolbarWidth * 0.22)));
+}
+
 export const ENZYME_DISPLAY_LABELS: Readonly<Record<EnzymeDisplay, string>> = {
   unique: 'Unique cutters',
   'unique-dual': 'Unique & dual cutters',
   common: 'Common set',
+  commercial: 'Commercial (≥ 6 bp sites)',
   none: 'None',
   custom: 'Chosen enzymes',
 };
 
-const VIEW_OPTIONS: readonly SegmentedOption<ViewMode>[] = [
-  { value: 'map', label: 'Map', icon: <Donut />, shortcut: 'Mod+1' },
-  { value: 'sequence', label: 'Sequence', icon: <LetterText />, shortcut: 'Mod+2' },
-  { value: 'split', label: 'Split', icon: <Rows2 />, shortcut: 'Mod+3' },
-];
+/** The enzyme menu's choices unless the app passes its own. */
+export const DEFAULT_ENZYME_DISPLAY_OPTIONS: readonly EnzymeDisplay[] = ['unique', 'unique-dual', 'common', 'none'];
+
+/** Menu choices: the given ones, plus 'custom' (before 'none') while it is the current display. */
+export function enzymeMenuChoices(options: readonly EnzymeDisplay[], current: EnzymeDisplay): EnzymeDisplay[] {
+  const list = [...new Set(options)];
+  if (current === 'custom' && !list.includes('custom')) {
+    const none = list.indexOf('none');
+    list.splice(none >= 0 ? none : list.length, 0, 'custom');
+  }
+  return list;
+}
+
+function viewOptions(keys: ToolbarShortcuts): SegmentedOption<ViewMode>[] {
+  // Tooltips on every segment (not only when icon-only) so the shortcuts are discoverable.
+  return [
+    { value: 'map', label: 'Map', icon: <Donut />, tooltip: 'Map', shortcut: keys.viewMap },
+    { value: 'sequence', label: 'Sequence', icon: <LetterText />, tooltip: 'Sequence', shortcut: keys.viewSequence },
+    { value: 'split', label: 'Split', icon: <Rows2 />, tooltip: 'Map and Sequence', shortcut: keys.viewSplit },
+  ];
+}
 
 /**
  * The document window's toolbar items: sidebar toggle, title and subtitle, the Map |
@@ -124,6 +184,8 @@ export function ToolbarContent({
   enzymeDisplay,
   onEnzymeDisplayChange,
   onChooseEnzymes,
+  enzymeDisplayOptions = DEFAULT_ENZYME_DISPLAY_OPTIONS,
+  enzymeDisplayLabels,
   onAction,
   searchValue,
   onSearchChange,
@@ -131,12 +193,16 @@ export function ToolbarContent({
   searchStatus,
   searchRef,
   disabled = false,
+  shortcuts,
   className,
 }: ToolbarContentProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { width } = useElementSize(ref);
   const density = toolbarDensity(width);
   const run = (action: ShellAction) => () => onAction?.(action);
+  const keys = useMemo(() => ({ ...DEFAULT_TOOLBAR_SHORTCUTS, ...shortcuts }), [shortcuts]);
+  const enzymeLabel = (d: EnzymeDisplay) => enzymeDisplayLabels?.[d] ?? ENZYME_DISPLAY_LABELS[d];
+  const views = useMemo(() => viewOptions(keys), [keys]);
 
   const search = (
     <SearchField
@@ -148,7 +214,7 @@ export function ToolbarContent({
       onSubmit={onSearchSubmit}
       status={searchStatus}
       disabled={disabled}
-      width={density === 'regular' ? 210 : 160}
+      width={searchFieldWidth(density, width)}
       className={styles.search}
     />
   );
@@ -161,7 +227,7 @@ export function ToolbarContent({
           aria-label={sidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
           aria-expanded={sidebarVisible}
           aria-controls={SIDEBAR_PANE_ID}
-          shortcut="Ctrl+Mod+S"
+          shortcut={keys.toggleSidebar}
           onClick={onToggleSidebar}
           className={styles.paneToggle}
         />
@@ -177,7 +243,7 @@ export function ToolbarContent({
       <ToolbarSpacer />
       <SegmentedControl
         aria-label="View"
-        options={VIEW_OPTIONS}
+        options={views}
         value={view}
         onValueChange={onViewChange}
         iconOnly={density !== 'regular'}
@@ -186,7 +252,7 @@ export function ToolbarContent({
       <ToolbarSpacer />
       <ToolbarGroup label="Tools" className={styles.tools}>
         <Menu modal={false}>
-          <Tooltip content={`Enzymes: ${ENZYME_DISPLAY_LABELS[enzymeDisplay]}`}>
+          <Tooltip content={`Enzymes: ${enzymeLabel(enzymeDisplay)}`} shortcut={keys.enzymes}>
             <MenuTrigger asChild>
               <Button
                 variant="plain"
@@ -200,13 +266,11 @@ export function ToolbarContent({
           <MenuContent align="end">
             <MenuLabel>Show Enzymes</MenuLabel>
             <MenuRadioGroup value={enzymeDisplay} onValueChange={(v) => onEnzymeDisplayChange(v as EnzymeDisplay)}>
-              <MenuRadioItem value="unique">{ENZYME_DISPLAY_LABELS.unique}</MenuRadioItem>
-              <MenuRadioItem value="unique-dual">{ENZYME_DISPLAY_LABELS['unique-dual']}</MenuRadioItem>
-              <MenuRadioItem value="common">{ENZYME_DISPLAY_LABELS.common}</MenuRadioItem>
-              {enzymeDisplay === 'custom' ? (
-                <MenuRadioItem value="custom">{ENZYME_DISPLAY_LABELS.custom}</MenuRadioItem>
-              ) : null}
-              <MenuRadioItem value="none">{ENZYME_DISPLAY_LABELS.none}</MenuRadioItem>
+              {enzymeMenuChoices(enzymeDisplayOptions, enzymeDisplay).map((d) => (
+                <MenuRadioItem key={d} value={d}>
+                  {enzymeLabel(d)}
+                </MenuRadioItem>
+              ))}
             </MenuRadioGroup>
             <MenuSeparator />
             <MenuItem onSelect={() => onChooseEnzymes?.()} disabled={!onChooseEnzymes}>
@@ -236,7 +300,7 @@ export function ToolbarContent({
                 <MenuItem onSelect={run('clone-pcr')}>PCR…</MenuItem>
               </MenuSubContent>
             </MenuSub>
-            <MenuItem icon={<AlignVerticalSpaceAround />} onSelect={run('digest')}>
+            <MenuItem icon={<AlignVerticalSpaceAround />} shortcut={keys.digest} onSelect={run('digest')}>
               Digest &amp; gel…
             </MenuItem>
             <MenuItem icon={<ScanSearch />} onSelect={run('find-orfs')}>
@@ -251,7 +315,7 @@ export function ToolbarContent({
       </ToolbarGroup>
       {density === 'tight' ? (
         <Popover>
-          <Tooltip content="Search sequence" shortcut="Mod+F">
+          <Tooltip content="Search sequence" shortcut={keys.search}>
             <PopoverTrigger asChild>
               <IconButton icon={<Search />} aria-label="Search sequence" tooltip={false} disabled={disabled} />
             </PopoverTrigger>
@@ -269,7 +333,7 @@ export function ToolbarContent({
           aria-label={inspectorVisible ? 'Hide Inspector' : 'Show Inspector'}
           aria-expanded={inspectorVisible}
           aria-controls={INSPECTOR_PANE_ID}
-          shortcut="Alt+Mod+I"
+          shortcut={keys.toggleInspector}
           onClick={onToggleInspector}
           className={styles.paneToggle}
         />

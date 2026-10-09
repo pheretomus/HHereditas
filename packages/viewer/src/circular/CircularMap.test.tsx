@@ -1,4 +1,4 @@
-import type { EnzymeSite, SeqRecord } from '@hhereditas/core';
+import type { EnzymeSite, Feature, SeqRecord } from '@hhereditas/core';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -233,6 +233,21 @@ describe('CircularMap interaction', () => {
     expect(log.at(-1)).toEqual({ range: { start: Math.round(L * (1 - 20 / 360)), end: L + Math.round((10 / 360) * L) }, caret: Math.round(L * (1 - 20 / 360)) });
   });
 
+  it('reports a drag selection only when it changes', () => {
+    const log: Array<SequenceSelection | null> = [];
+    render(<Harness record={pFA6a.record} log={log} />);
+    const g = geometryOf({ record: pFA6a.record });
+    const r = g.radius * 0.5;
+    const p0 = at(g, 1000, r);
+    const p1 = at(g, 1100, r);
+    const p2 = at(g, 1200, r);
+    drag([p0, p1, p1, { clientX: p1.clientX + 0.01, clientY: p1.clientY }, p2, p2]);
+    expect(log).toEqual([
+      { range: { start: 1000, end: 1100 }, caret: 1100 },
+      { range: { start: 1000, end: 1200 }, caret: 1200 },
+    ]);
+  });
+
   it('can start a drag on top of a feature', () => {
     const log: Array<SequenceSelection | null> = [];
     const onFeatureClick = vi.fn();
@@ -304,6 +319,21 @@ describe('CircularMap interaction', () => {
     expect(log).toHaveLength(0); // enzyme clicks leave the selection alone
   });
 
+  it('shows every cut of the hovered enzyme', () => {
+    render(<CircularMap record={pFA6a.record} enzymeSites={pFA6a.enzymeSites} />);
+    const g = geometryOf({ record: pFA6a.record, enzymeSites: pFA6a.enzymeSites });
+    const multi = g.basePlacement.labels.find((l) => l.candidate.tone === 'enzyme')!;
+    const name = g.enzymes[multi.candidate.ref.index].item.site.enzyme;
+    const sites = g.enzymes.filter((e) => e.item.site.enzyme === name);
+    expect(sites.length).toBeGreaterThan(1);
+    const b = multi.box;
+    fireEvent.pointerMove(svg(), { clientX: (b.x0 + b.x1) / 2, clientY: (b.y0 + b.y1) / 2, pointerId: 1 });
+    expect(screen.getByRole('tooltip').textContent).toContain(name);
+    expect(svg().querySelectorAll(`.${styles.hoverTick}`)).toHaveLength(sites.length);
+    const shownLabels = sites.filter((e) => g.basePlacement.byKey.has(`e:${e.index}`)).length;
+    expect(svg().querySelectorAll(`.${styles.hoverLabel}`)).toHaveLength(shownLabels);
+  });
+
   it('reports what is under the pointer on context menu', () => {
     const onContextMenu = vi.fn();
     render(<CircularMap record={pFA6a.record} enzymeSites={pFA6a.enzymeSites} onContextMenu={onContextMenu} />);
@@ -357,6 +387,80 @@ describe('CircularMap interaction', () => {
     click({ clientX: pt.x, clientY: pt.y });
     expect(onPrimerClick).toHaveBeenCalledWith('p1');
     expect(log.at(-1)?.range).toEqual({ start: 2000, end: 2017 });
+  });
+});
+
+describe('CircularMap resizing', () => {
+  /** Stub ResizeObserver so tests can resize the map container. */
+  function stubResizeObserver() {
+    const callbacks: ResizeObserverCallback[] = [];
+    class FakeResizeObserver {
+      constructor(cb: ResizeObserverCallback) {
+        callbacks.push(cb);
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    return (width: number, height: number) =>
+      act(() => {
+        for (const cb of callbacks) cb([{ contentRect: { width, height } } as unknown as ResizeObserverEntry], {} as ResizeObserver);
+      });
+  }
+
+  /** 1,000 short features (a "heavy" map) plus one long named feature to click. */
+  function heavyRecord(): SeqRecord {
+    const features: Feature[] = Array.from({ length: 1000 }, (_, i) => ({
+      id: `f${i}`,
+      type: 'CDS',
+      name: `g${i}`,
+      strand: 1,
+      segments: [{ start: 20_000 + i * 25, end: 20_000 + i * 25 + 20 }],
+      qualifiers: [],
+    }));
+    features.push({ id: 'big', type: 'CDS', name: 'Big', strand: 1, segments: [{ start: 2000, end: 9000 }], qualifiers: [] });
+    return { ...pFA6a.record, id: 'heavy', seq: 'A'.repeat(50_000), features, primers: [] };
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('lays a light map out again as soon as its container changes size', () => {
+    const resize = stubResizeObserver();
+    render(<CircularMap record={pFA6a.record} />);
+    expect(svg().getAttribute('viewBox')).toBe(`0 0 ${W} ${H}`);
+    resize(600, 500);
+    expect(svg().getAttribute('viewBox')).toBe('0 0 600 500');
+    expect(svg().getAttribute('width')).toBe('600');
+  });
+
+  it('scales a heavy map during a live resize and lays it out once the size settles', () => {
+    vi.useFakeTimers();
+    const resize = stubResizeObserver();
+    const record = heavyRecord();
+    const onFeatureClick = vi.fn();
+    render(<CircularMap record={record} onFeatureClick={onFeatureClick} />);
+    expect(svg().getAttribute('viewBox')).toBe(`0 0 ${W} ${H}`);
+    resize(W / 2, H / 2);
+    // still the old layout, scaled to the container
+    expect(svg().getAttribute('viewBox')).toBe(`0 0 ${W} ${H}`);
+    expect(svg().getAttribute('width')).toBe('100%');
+    // pointer positions are mapped into the scaled drawing
+    vi.spyOn(SVGElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      x: 0, y: 0, left: 0, top: 0, right: W / 2, bottom: H / 2, width: W / 2, height: H / 2, toJSON: () => ({}),
+    } as DOMRect);
+    const g = geometryOf({ record });
+    const big = onFeature(g, 'Big');
+    click({ clientX: big.clientX / 2, clientY: big.clientY / 2 });
+    expect(onFeatureClick).toHaveBeenCalledWith('big', expect.objectContaining({ clickCount: 1 }));
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(svg().getAttribute('viewBox')).toBe(`0 0 ${W / 2} ${H / 2}`);
+    expect(svg().getAttribute('width')).toBe(String(W / 2));
   });
 });
 

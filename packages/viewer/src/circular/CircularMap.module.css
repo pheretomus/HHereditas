@@ -295,12 +295,12 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
+  z-index: var(--hh-z-tooltip);
   max-width: 280px;
   padding: 7px 10px 8px;
   border-radius: var(--hh-radius-md);
   background: var(--hh-bg-elevated);
-  box-shadow: var(--hh-shadow-popover);
+  box-shadow: var(--hh-shadow-tooltip);
   color: var(--hh-text);
   font-size: var(--hh-text-sm);
   line-height: 1.4;

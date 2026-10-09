@@ -1,13 +1,15 @@
 import type { EnzymeSite, Feature, SeqRecord } from '@hhereditas/core';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { formatInt } from '../common/format';
 import type { SequenceSelection } from '../selection';
 import { caretAt } from '../selection';
-import { DEFAULT_METRICS, autoBasesPerRow, buildRowModel, colCenter, colLeft, gapX } from './layout';
+import { DEFAULT_METRICS, autoBasesPerRow, buildRowModel, colCenter, colLeft, gapX, rowAtY } from './layout';
 import type { RowModel } from './layout';
 import { measureLabel } from './measure';
 import { SequenceView, type SequenceViewProps } from './SequenceView';
+import styles from './SequenceView.module.css';
 
 const W = 900;
 const H = 600;
@@ -154,6 +156,72 @@ describe('SequenceView rendering', () => {
     cleanup();
     const hidden = setup({ record: rec, show: { translations: false } });
     expect(hidden.container.textContent).not.toContain('MAKETVQ');
+  });
+});
+
+describe('SequenceView translations and enzymes (review fixes)', () => {
+  // M K * then filler: a CDS with a stop codon
+  const stopRec = record(120, {
+    seq: `ATGAAGTAA${'C'.repeat(111)}`,
+    features: [{ id: 'cds', type: 'CDS', name: 'tiny', strand: 1, segments: [{ start: 0, end: 9 }], qualifiers: [] }],
+  });
+
+  it('draws a stop codon as a solid cell with a centred asterisk', () => {
+    const { container } = setup({ record: stopRec });
+    const cells = container.querySelectorAll(`rect.${styles.stopCell}`);
+    expect(cells).toHaveLength(1);
+    const glyph = container.querySelector(`path.${styles.stopGlyph}`);
+    expect(glyph).not.toBeNull();
+    // no '*' text glyph left in the strip
+    expect([...container.querySelectorAll('text')].some((t) => t.textContent?.includes('*'))).toBe(false);
+  });
+
+  it('names each residue with its number and codon on hover', () => {
+    const { container } = setup({ record: stopRec });
+    const titles = [...container.querySelectorAll('rect[data-kind="translation"] > title')].map((t) => t.textContent);
+    expect(titles).toEqual(['Met 1 (ATG) · tiny', 'Lys 2 (AAG) · tiny', 'Stop 3 (TAA) · tiny']);
+  });
+
+  it('lights up the residue of a selected codon (focused: selection colour; unfocused: neutral)', () => {
+    const { container, input } = setup({ record: stopRec, selection: { range: { start: 3, end: 6 }, caret: 6 } });
+    const inactive = container.querySelectorAll(`rect.${styles.translationSelectionInactive}`);
+    expect(inactive).toHaveLength(1);
+    // the strand selection is neutral too while the view is not focused
+    expect(container.querySelector(`rect.${styles.selectionInactive}`)).not.toBeNull();
+    act(() => input.focus());
+    expect(container.querySelectorAll(`rect.${styles.translationSelection}`)).toHaveLength(1);
+    expect(container.querySelector(`rect.${styles.selectionInactive}`)).toBeNull();
+    // the highlight covers the codon cell exactly
+    const cell = [...container.querySelectorAll('rect[data-kind="translation"]')].find((r) => r.textContent?.startsWith('Lys'))!;
+    const sel = container.querySelector(`rect.${styles.translationSelection}`)!;
+    expect(Number(sel.getAttribute('x'))).toBeCloseTo(Math.round(Number(cell.getAttribute('x'))) + 0.5, 1);
+  });
+
+  it("draws a primer's 5' tail bases (lower case, not annealed) beside its 5' end", () => {
+    const rec = record(300);
+    const annealed = rec.seq.slice(40, 60);
+    const primed: SeqRecord = { ...rec, primers: [{ id: 'p', name: 'KanMX-F', sequence: `GATCGGATCC${annealed}` }] };
+    const site = { primerId: 'p', strand: 1 as const, range: { start: 40, end: 60 }, annealedLength: 20, mismatches: 0, tailLength: 10 };
+    const { container } = setup({ record: primed, primerSites: [site] });
+    const tail = container.querySelector(`text.${styles.primerTailBases}`);
+    expect(tail?.textContent).toBe('gatcggatcc');
+    expect(container.querySelector(`rect.${styles.primerTailBox}`)?.getAttribute('data-kind')).toBe('primer');
+  });
+
+  it('emphasises the cut line of a hovered or selected enzyme site', () => {
+    const rec = record(300);
+    const { container, scroller, rerender, onSelectionChange } = setup({ record: rec, enzymeSites: [ECO] });
+    expect(container.querySelector(`path.${styles.cutActive}`)).toBeNull();
+    fireEvent.mouseMove(container.querySelector('text[data-kind="enzyme"]')!);
+    expect(container.querySelector(`path.${styles.cutActive}`)).not.toBeNull();
+    expect(container.querySelector(`path.${styles.cut}`)).toBeNull(); // its only cut line moved on top
+    expect(scroller.parentElement!.getAttribute('data-enzyme-hover')).toBe('true');
+    fireEvent.mouseLeave(scroller);
+    expect(container.querySelector(`path.${styles.cutActive}`)).toBeNull();
+    // selected (the selection is exactly the recognition site): emphasised without hover
+    rerender(<SequenceView record={rec} enzymeSites={[ECO]} onSelectionChange={onSelectionChange} selection={{ range: { start: 60, end: 66 }, caret: 66 }} />);
+    expect(container.querySelector(`path.${styles.cutActive}`)).not.toBeNull();
+    expect(scroller.parentElement!.getAttribute('data-enzyme-hover')).toBeNull();
   });
 });
 
@@ -351,6 +419,86 @@ describe('SequenceView scrolling', () => {
     const after = expectedModel(rec, { basesPerRow: 50 });
     const base = before.rows[topRow].start;
     expect(scroller.scrollTop).toBeCloseTo(after.offsets[Math.floor(base / 50)], 0);
+  });
+
+  it('keeps the reading position through repeated changes of the bases per row (review: drift)', () => {
+    const rec = record(60_000);
+    const { scroller, rerender } = setup({ record: rec, basesPerRow: 60 });
+    const m60 = expectedModel(rec, { basesPerRow: 60 });
+    const r0 = 400; // the row of bases 24,000..24,059 at the top, 5 px into it
+    act(() => {
+      scroller.scrollTop = m60.offsets[r0] + 5;
+      fireEvent.scroll(scroller);
+    });
+    for (const n of [50, 70, 40, 90, 30, 60, 50, 70, 60]) {
+      rerender(<SequenceView record={rec} basesPerRow={n} />);
+      // the browser reports the restoring scrollTop write with a scroll event of its own
+      act(() => {
+        fireEvent.scroll(scroller);
+      });
+      const mdl = expectedModel(rec, { basesPerRow: n });
+      const top = mdl.rows[rowAtY(mdl, scroller.scrollTop)];
+      expect(top.start).toBeLessThanOrEqual(24_000);
+      expect(top.end).toBeGreaterThan(24_000);
+      expect(scroller.scrollTop - mdl.offsets[top.index]).toBeCloseTo(5, 0);
+    }
+    expect(scroller.scrollTop).toBeCloseTo(m60.offsets[r0] + 5, 0);
+  });
+
+  it('restores the exact pixel offset after a layout in which the anchor row was shorter', () => {
+    // a feature in the anchor row at 60 bases per row, in the next row at 50: the row is shorter there
+    const rec = record(60_000, {
+      features: [{ id: 'f', type: 'misc_feature', name: 'f', strand: 1, segments: [{ start: 24_050, end: 24_055 }], qualifiers: [] }],
+    });
+    const { scroller, rerender } = setup({ record: rec, basesPerRow: 60 });
+    const m60 = expectedModel(rec, { basesPerRow: 60 });
+    const m50 = expectedModel(rec, { basesPerRow: 50 });
+    const r0 = 400;
+    const offset = m60.rows[r0].height - 4; // near the bottom of the tall row
+    expect(m50.rows[480].height).toBeLessThan(offset); // will be clamped at 50 bases per row
+    act(() => {
+      scroller.scrollTop = m60.offsets[r0] + offset;
+      fireEvent.scroll(scroller);
+    });
+    rerender(<SequenceView record={rec} basesPerRow={50} />);
+    act(() => {
+      fireEvent.scroll(scroller);
+    });
+    expect(rowAtY(m50, scroller.scrollTop)).toBe(480); // still the row holding base 24,000
+    rerender(<SequenceView record={rec} basesPerRow={60} />);
+    act(() => {
+      fireEvent.scroll(scroller);
+    });
+    expect(scroller.scrollTop).toBeCloseTo(m60.offsets[r0] + offset, 0);
+  });
+
+  it('scrolls sideways to keep the caret visible when rows are wider than the view (review: horizontal reveal)', () => {
+    const rec = record(2_000);
+    const mdl = expectedModel(rec, { basesPerRow: 200 });
+    expect(mdl.geometry.width).toBeGreaterThan(W + 400);
+    function Stateful() {
+      const [sel, setSel] = useState<SequenceSelection | null>(caretAt(205));
+      return <SequenceView record={rec} basesPerRow={200} selection={sel} onSelectionChange={setSel} />;
+    }
+    render(<Stateful />);
+    const input = screen.getByRole('textbox') as HTMLTextAreaElement;
+    const scroller = input.parentElement!.parentElement as HTMLDivElement;
+    fireEvent.keyDown(input, { key: 'End' });
+    const x = gapX(mdl.geometry, 200, 200);
+    expect(scroller.scrollLeft).toBeGreaterThan(0);
+    expect(x).toBeGreaterThan(scroller.scrollLeft);
+    expect(x).toBeLessThan(scroller.scrollLeft + W);
+    fireEvent.keyDown(input, { key: 'Home' });
+    expect(scroller.scrollLeft).toBe(0); // back at the start of the row, row numbers included
+  });
+
+  it('reveals the caret once a controlled parent applies the new selection, even in a later render', () => {
+    const rec = record(2_000);
+    const { input, scroller, rerender, onSelectionChange } = setup({ record: rec, basesPerRow: 200, selection: caretAt(205) });
+    fireEvent.keyDown(input, { key: 'End' });
+    expect(scroller.scrollLeft).toBe(0); // not applied yet
+    rerender(<SequenceView record={rec} basesPerRow={200} onSelectionChange={onSelectionChange} selection={onSelectionChange.mock.calls.at(-1)![0]} />);
+    expect(scroller.scrollLeft).toBeGreaterThan(0);
   });
 
   it('starts at the top when another document is shown', () => {

@@ -29,7 +29,7 @@ import type { SequenceSelection } from '../selection';
 import { caretAt, selectBetween, selectRange } from '../selection';
 import { buildCutMarkers } from './enzymeLabels';
 import type { HitInput } from './hitTest';
-import { featureEntryIndex, featureOutline, hitTest, positionsAt } from './hitTest';
+import { featureEntryIndex, featureOnScreen, featureOutline, hitTest, positionsAt } from './hitTest';
 import type { FeatureEntry, ViewInput, ViewModel } from './layout';
 import {
   CUT_OVERSHOOT,
@@ -42,7 +42,7 @@ import {
   enzymeRowsToReserve,
 } from './layout';
 import styles from './LinearMap.module.css';
-import { HighlightLayer, MapContent, SelectionLayer } from './LinearMapLayers';
+import { HighlightLayer, MapContent, SelectionOverlay, SelectionUnderlay } from './LinearMapLayers';
 import { targetKey, tooltipContent } from './LinearMapTooltip';
 import { extendSelection, extendSelectionToRange } from './selectionGeometry';
 import { vlinePath } from './shapes';
@@ -84,6 +84,8 @@ export interface LinearMapProps {
    * Visible window in bp (fractional bounds allowed). Uncontrolled by default (the whole
    * record). When controlled, set it to fullViewport(length) to zoom to fit or to
    * viewportForRange(selection.range, …) to zoom to the selection; the map glides there.
+   * Zoom buttons can pass zoomViewport(viewport, 2 or 0.5, centre, length, 0): the map clamps
+   * whatever it receives to its own width and deepest zoom (and reports the clamped window).
    */
   viewport?: Range;
   onViewportChange?: (viewport: Range) => void;
@@ -248,10 +250,11 @@ export function LinearMap(props: LinearMapProps) {
     if (!baseInput || !baseView || !pinnedKey || !featureTrack) return baseView;
     const pinned = new Set(pinnedKey.split('\u0000'));
     const labelled = new Set(baseView.features.labels.map((l) => l.entry));
+    // A second pass (pinned labels placed first) only when a pinned feature on screen lost its label.
     const missing = [...pinned].some((id) => {
       const idx = featureEntryIndex(featureTrack, id);
       if (idx < 0 || labelled.has(idx)) return false;
-      return featureOutline(baseView, featureTrack, idx) !== '';
+      return featureOnScreen(baseView, featureTrack, idx);
     });
     return missing ? computeView({ ...baseInput, pinnedFeatureIds: pinned }) : baseView;
   }, [baseInput, baseView, pinnedKey, featureTrack]);
@@ -383,6 +386,21 @@ export function LinearMap(props: LinearMapProps) {
       goalVp.current = shown;
     }
   });
+
+  // A controlled viewport is shown clamped (no deeper than MAX_PX_PER_BASE, inside the record,
+  // tiny records centred). Tell the app once, so its state matches the screen: a zoom-out button
+  // then acts on what is visible. Runs only when the numbers change, so a parent that ignores
+  // the report is not asked again.
+  const targetStart = target.start;
+  const targetEnd = target.end;
+  useEffect(() => {
+    if (!controlled || width <= 0 || L <= 0) return;
+    const asked = { start: targetStart, end: targetEnd };
+    const c = clampViewport(asked, L, plotWidth);
+    if (sameViewport(c, asked)) return;
+    lastEmitted.current = c;
+    latest.current.props.onViewportChange?.(c);
+  }, [controlled, targetStart, targetEnd, L, plotWidth, width]);
 
   useEffect(() => () => stopAnimation(), []);
 
@@ -926,8 +944,9 @@ export function LinearMap(props: LinearMapProps) {
             aria-hidden="true"
           >
             <g transform={`translate(0 ${offsetY})`}>
+              <SelectionUnderlay view={view} selection={selection} />
               <MapContent view={view} />
-              <SelectionLayer view={view} selection={selection} />
+              <SelectionOverlay view={view} selection={selection} />
               <HighlightLayer ring={ring} hoverRing={hoverRing} enzyme={hotEnzyme.label} enzymeCuts={hotEnzyme.cuts} />
             </g>
           </svg>

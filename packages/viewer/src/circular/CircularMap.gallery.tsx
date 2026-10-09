@@ -2,7 +2,7 @@
  * Gallery stories for <CircularMap />. Open with
  *   /?gallery=CircularMap&story=<name>[&theme=dark]
  */
-import type { Orf, Primer, PrimerBindingSite, SeqRecord } from '@hhereditas/core';
+import type { EnzymeSite, Feature, Orf, Primer, PrimerBindingSite, SeqRecord } from '@hhereditas/core';
 import { type ReactNode, Profiler, useMemo, useState } from 'react';
 import { formatBp, formatInt } from '../common/format';
 import { SAMPLES } from '../fixtures';
@@ -180,6 +180,48 @@ const longNameRecord: SeqRecord = {
   name: 'pFA6a-kanMX6-GFP(S65T)-tADH1-modified-for-C-terminal-tagging-v2',
 };
 
+/** Awkward annotations on a small synthetic plasmid (robustness check). */
+const edgeRecord: SeqRecord = (() => {
+  const L = 3000;
+  const f = (id: string, name: string, type: string, strand: 1 | -1 | 0, segments: Array<[number, number]>): Feature => ({
+    id,
+    type,
+    name,
+    strand,
+    segments: segments.map(([start, end]) => ({ start, end })),
+    qualifiers: [],
+  });
+  const stack = Array.from({ length: 9 }, (_, i) =>
+    f(`stack${i}`, `stack ${i + 1}`, i % 2 ? 'misc_feature' : 'CDS', i % 3 === 0 ? -1 : 1, [[1500 + i * 15, 1900 - i * 10]]),
+  );
+  return {
+    id: 'edge',
+    name: 'edge-cases',
+    description: '',
+    seq: 'ACGT'.repeat(L / 4),
+    topology: 'circular',
+    molecule: 'DNA',
+    primers: [],
+    meta: {},
+    features: [
+      f('whole', 'whole plasmid', 'misc_feature', 0, [[0, L]]),
+      f('join', 'joined across origin', 'CDS', 1, [[2700, 3000], [0, 180]]),
+      f('split', 'three exons', 'CDS', -1, [[400, 520], [600, 700], [760, 900]]),
+      f('zero', 'insertion point', 'misc_feature', 0, [[1000, 1000]]),
+      f('nostrand', 'no strand', 'protein_bind', 0, [[1100, 1180]]),
+      f('gene', 'dup', 'gene', 1, [[2200, 2500]]),
+      f('cds', 'dup', 'CDS', 1, [[2200, 2500]]),
+      f('long', 'an annotation with a very long descriptive name that cannot fit anywhere near the map', 'misc_feature', 1, [[1250, 1290]]),
+      ...stack,
+    ],
+  };
+})();
+const edgeSites: EnzymeSite[] = [
+  { enzyme: 'NotI', range: { start: 2996, end: 3004 }, strand: 1, cuts: [{ top: 2998, bottom: 3002 }] },
+  { enzyme: 'BaeI', range: { start: 1950, end: 1970 }, strand: 1, cuts: [{ top: 1940, bottom: 1945 }, { top: 1985, bottom: 1980 }] },
+  { enzyme: 'Uncut', range: { start: 10, end: 16 }, strand: -1, cuts: [] },
+];
+
 const wrapSelection: SequenceSelection = { range: { start: 3700, end: pFA6aL + 260 }, caret: 260 };
 const ampR = SAMPLES.pFA6a.record.features.find((f) => f.name === 'AmpR')?.id ?? null;
 
@@ -236,6 +278,8 @@ export default {
     </Frame>
   ),
   'long-name': () => <Playground record={longNameRecord} enzymeSites={SAMPLES.pFA6a.enzymeSites} />,
+  /** Whole-circle, origin-spanning join, zero-length, strandless, duplicate and deeply stacked features. */
+  'edge-cases': () => <Playground record={edgeRecord} enzymeSites={edgeSites} />,
   'no-features': () => <Playground record={bareRecord} />,
   empty: () => <Playground record={emptyRecord} />,
   genome: () => <GenomeStory />,

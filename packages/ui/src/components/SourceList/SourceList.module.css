@@ -184,8 +184,20 @@
   opacity: 0.78;
 }
 
-/* Keyboard focus ring on the active row. */
-.root:focus-visible .item[data-active],
+/* The row whose context menu is open (macOS: an accent outline, the selection is unchanged). */
+.item[data-context-target] {
+  box-shadow: inset 0 0 0 2px var(--hh-accent);
+}
+
+.root[data-emphasis='auto']:focus-within .item[aria-selected='true'][data-context-target],
+.root[data-emphasis='on'] .item[aria-selected='true'][data-context-target] {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hh-accent-contrast) 75%, transparent);
+}
+
+/* Keyboard focus ring on the active row. A selected row needs none while its selection is
+   emphasized: the accent fill already says "this list has focus" (as in macOS sidebars). */
+.root:focus-visible .item[data-active]:not([aria-selected='true']),
+.root[data-emphasis='off']:focus-visible .item[data-active],
 .root:focus-visible .header[data-active] {
   box-shadow: 0 0 0 3px var(--hh-focus-ring);
 }

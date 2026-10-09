@@ -13,7 +13,7 @@
  */
 import type { SeqRecord } from '../types';
 import type { WarnFn } from './genbank-features';
-import { indentation } from './genbank-features';
+import { indentation, wrapLocation } from './genbank-features';
 import { appendAll } from './genbank-text';
 
 /** Keys of `RecordMeta.extras` used by the GenBank reader and writer. */
@@ -22,6 +22,16 @@ export const GENBANK_EXTRA_KEYS = Object.freeze({
   moleculeType: 'genbank.moleculeType',
   /** Taxonomic lineage from the ORGANISM block, e.g. 'Bacteria; Pseudomonadota; ...; Escherichia.' */
   taxonomy: 'genbank.taxonomy',
+  /**
+   * CONTIG section of a CON (assembly) entry, e.g. 'join(ABJB010667125.1:1..1311)': how the
+   * sequence is assembled from other entries (GenBank release notes 3.4.15; the text of
+   * Biopython 1.88's `annotations['contig']`: lines joined without separators). Such an entry has
+   * no sequence data, so the reader fills its sequence with N (protein: X) of the LOCUS length.
+   * The writer writes the CONTIG section back instead of an ORIGIN section for as long as the
+   * sequence consists of that placeholder letter only (like Biopython), and before the ORIGIN
+   * section once it holds real residues.
+   */
+  contig: 'genbank.contig',
 });
 
 /** Data column of header lines (0-based). */
@@ -49,10 +59,27 @@ export interface HeaderData {
   extraHeaderLines: string[];
 }
 
-/** Keyword or sub-keyword starting a header block, or null for continuation lines. */
+/**
+ * Sub-keywords of GenBank release notes 3.4.2 (ORGANISM under SOURCE; AUTHORS, CONSRTM, TITLE,
+ * JOURNAL, MEDLINE, PUBMED, REMARK under REFERENCE; the list of Biopython 1.88's
+ * `GenBankScanner._feed_header_lines`). They are written in column 3 or 4.
+ */
+const SUB_KEYWORDS: ReadonlySet<string> = new Set(['ORGANISM', 'AUTHORS', 'CONSRTM', 'TITLE', 'JOURNAL', 'MEDLINE', 'PUBMED', 'REMARK']);
+
+/**
+ * Keyword or sub-keyword starting a header block, or null for continuation lines.
+ * Any upper-case word after at most 3 blanks is a keyword. A sub-keyword is also recognised
+ * after 4 to 11 blanks: an over-indented ORGANISM line would otherwise continue the SOURCE block
+ * and the organism and lineage would be lost. (Biopython 1.88 reads the keyword as
+ * `line[:12].strip()`, so it accepts such lines as long as the word ends by column 12.)
+ * Lines indented by 12 or more blanks always continue the previous block.
+ */
 export function headerKeyword(line: string): string | null {
-  const m = /^ {0,3}([A-Z][A-Z0-9_]*)(?=\s|$)/.exec(line);
-  return m ? m[1] : null;
+  const m = /^( *)([A-Z][A-Z0-9_]*)(?=\s|$)/.exec(line);
+  if (m === null) return null;
+  const indent = m[1].length;
+  if (indent <= 3) return m[2];
+  return indent < DATA_COLUMN && SUB_KEYWORDS.has(m[2]) ? m[2] : null;
 }
 
 interface Block {
@@ -253,6 +280,16 @@ export function wrapWords(text: string, width: number): string[] {
 /** A keyword block with word-wrapped data (continuation lines indented to column 13). */
 function field(keyword: string, text: string): string[] {
   return wrapWords(text, DATA_WIDTH).map((part, k) => (k === 0 ? keyword.padEnd(DATA_COLUMN) : CONTINUATION) + part);
+}
+
+/**
+ * Lines of a CONTIG section: `CONTIG` and the text from column 13, wrapped after commas within
+ * 80 columns (like Biopython 1.88 `_InsdcWriter._split_contig`; text without a usable comma
+ * overflows instead of failing). Line breaks in the text become spaces.
+ */
+export function formatContig(contig: string): string[] {
+  const parts = wrapLocation(contig.replace(/\r\n|\r|\n/g, ' '), DATA_WIDTH);
+  return parts.map((part, k) => (k === 0 ? 'CONTIG'.padEnd(DATA_COLUMN) : CONTINUATION) + part);
 }
 
 /** Lines of one COMMENT block; only lines too long for the data columns are re-wrapped. */

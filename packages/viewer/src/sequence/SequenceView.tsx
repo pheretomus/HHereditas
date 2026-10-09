@@ -290,6 +290,16 @@ export function SequenceView(props: SequenceViewProps) {
       return s.length >= n ? s.slice(s.length - n).toUpperCase() : '';
     });
   }, [layoutPrimers, record.primers]);
+  /** 5' tail of each primer in display order (left to right), lower case: it does not anneal. */
+  const primerTails = useMemo(() => {
+    const byId = new Map(record.primers.map((p) => [p.id, p.sequence]));
+    return layoutPrimers.map(({ site }) => {
+      const s = byId.get(site.primerId) ?? '';
+      const tail = s.slice(0, Math.max(0, Math.min(site.tailLength, s.length))).toLowerCase();
+      // a reverse primer is drawn 3'->5' (like the bottom strand): its tail continues to the right
+      return site.strand === 1 ? tail : [...tail].reverse().join('');
+    });
+  }, [layoutPrimers, record.primers]);
   const visibleOrfs = showOrfs ? orfs : EMPTY;
 
   // Until the viewport has been measured (synchronously, before the first paint) the number of
@@ -351,13 +361,14 @@ export function SequenceView(props: SequenceViewProps) {
       enzymes,
       primers: layoutPrimers,
       primerAnnealed,
+      primerTails,
       orfs: visibleOrfs,
       ends: record.ends,
       showNumbers,
       coding,
       glyphXs,
     }),
-    [model, seq, topology, layoutFeatures, featureFills, featureStrokes, enzymes, layoutPrimers, primerAnnealed, visibleOrfs, record.ends, showNumbers, coding, glyphXs],
+    [model, seq, topology, layoutFeatures, featureFills, featureStrokes, enzymes, layoutPrimers, primerAnnealed, primerTails, visibleOrfs, record.ends, showNumbers, coding, glyphXs],
   );
 
   const hitBuckets = useMemo(() => bucketRangesByRow(searchHits, N, L, topology), [searchHits, N, L, topology]);
@@ -404,16 +415,24 @@ export function SequenceView(props: SequenceViewProps) {
   }, []);
 
   /**
-   * Scroll anchor: the first base of the row at the top of the viewport and the offset into that
-   * row. Restored whenever the model changes (resize, edits, layers toggled) so the text under the
+   * Scroll anchor: a base of the row at the top of the viewport and the offset into that row.
+   * Restored whenever the model changes (resize, edits, layers toggled) so the text under the
    * user's eyes stays put.
+   *
+   * The base is kept for as long as the top row contains it (only the offset follows the scroll
+   * position). Re-anchoring to the start of the row on every scroll event would lose up to N-1
+   * bases per change of the bases per row, because restoring the position fires a scroll event of
+   * its own; repeated resizes would then make the text drift down the screen.
    */
   const anchorRef = useRef<{ base: number; offset: number }>({ base: 0, offset: 0 });
   const updateAnchor = useCallback((el: HTMLElement) => {
     const { model: mdl, ratio: rt } = latest.current;
     const top = el.scrollTop * rt;
     const r = rowAtY(mdl, top);
-    anchorRef.current = { base: mdl.rows[r].start, offset: top - mdl.offsets[r] };
+    const row = mdl.rows[r];
+    const prev = anchorRef.current.base;
+    const base = prev >= row.start && prev < Math.max(row.end, row.start + 1) ? prev : row.start;
+    anchorRef.current = { base, offset: top - mdl.offsets[r] };
   }, []);
 
   /** Scroll the content (unscaled px) to `top`. */
@@ -431,10 +450,18 @@ export function SequenceView(props: SequenceViewProps) {
     [updateAnchor],
   );
 
+  /** scrollTop written by the anchor restore below; its scroll event must not move the anchor. */
+  const restoreEcho = useRef<number | null>(null);
+
   const onScroll = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
     setScrollTop(el.scrollTop);
+    const echo = restoreEcho.current;
+    restoreEcho.current = null;
+    // The scroll event of our own restoring write: keep the anchor exactly as the user left it.
+    // (A narrower layout may have clamped the offset to a shorter row; going back must not lose it.)
+    if (echo !== null && Math.abs(el.scrollTop - echo) < 0.5) return;
     updateAnchor(el);
   }, [updateAnchor]);
 
@@ -452,10 +479,13 @@ export function SequenceView(props: SequenceViewProps) {
     }
     const a = anchorRef.current;
     const r = rowOfBase(model, a.base);
-    const target = model.offsets[r] + Math.min(a.offset, model.rows[r].height);
+    // stay inside the anchor's row (so the scroll event that follows keeps the anchor base)
+    const target = model.offsets[r] + Math.max(0, Math.min(a.offset, model.rows[r].height - 1));
     const next = target / ratio;
-    if (Math.abs(el.scrollTop - next) >= 1) {
+    const before = el.scrollTop;
+    if (Math.abs(before - next) >= 1) {
       el.scrollTop = next;
+      if (el.scrollTop !== before) restoreEcho.current = el.scrollTop;
       setScrollTop(el.scrollTop);
     }
   }, [model, ratio, record.id]);
@@ -496,14 +526,45 @@ export function SequenceView(props: SequenceViewProps) {
     [revealContent],
   );
 
-  // keyboard moves and edits scroll the caret into view once the new layout is committed
-  const pendingReveal = useRef(false);
+  /**
+   * Scroll horizontally so that content x is visible (a fixed number of bases per row can make the
+   * rows wider than the view). Near the start of a row the row numbers are brought in too.
+   */
+  const revealX = useCallback((x: number) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const viewW = el.clientWidth;
+    const maxLeft = Math.max(0, latest.current.model.geometry.width - viewW);
+    if (viewW <= 0 || maxLeft <= 0) return;
+    const left = el.scrollLeft;
+    const margin = Math.min(48, viewW / 6);
+    let target = left;
+    if (x < left + margin) target = x - margin;
+    else if (x > left + viewW - margin) target = x - viewW + margin;
+    else return;
+    if (target <= latest.current.model.geometry.textLeft) target = 0;
+    el.scrollLeft = Math.max(0, Math.min(maxLeft, target));
+  }, []);
+
+  // Keyboard moves and edits scroll the caret into view once the new selection (and, after an
+  // edit, the new layout) is committed. A controlled parent may apply the selection in a later
+  // render than the one caused by the key press, so the reveal waits for its target.
+  const pendingReveal = useRef<{ target: SequenceSelection; from: SequenceSelection | null } | null>(null);
   useLayoutEffect(() => {
-    if (!pendingReveal.current) return;
-    pendingReveal.current = false;
+    const pending = pendingReveal.current;
+    if (!pending) return;
+    if (!sameSelection(selection, pending.target)) {
+      // not applied yet: keep waiting; replaced by another selection: drop the request
+      if (!sameSelection(selection, pending.from)) pendingReveal.current = null;
+      return;
+    }
+    pendingReveal.current = null;
     if (!selection) return;
     const gap = caretGap(selection, editCtx, affinity);
-    revealRow(rowOfGap(model, gap, affinity === 'upstream'), 'nearest');
+    const r = rowOfGap(model, gap, affinity === 'upstream');
+    revealRow(r, 'nearest');
+    const row = model.rows[r];
+    if (row) revealX(gapX(model.geometry, gap - row.start, row.end - row.start));
   });
 
   // scroll requests wait until the viewport has been measured (the row model depends on its width)
@@ -513,8 +574,10 @@ export function SequenceView(props: SequenceViewProps) {
     lastScrollRequest.current = scrollTo.requestId;
     if (L === 0) return;
     const pos = topology === 'circular' ? mod(Math.floor(scrollTo.position), L) : Math.max(0, Math.min(L - 1, Math.floor(scrollTo.position)));
-    revealRow(rowOfBase(model, pos), 'center');
-  }, [scrollTo, measured, model, topology, L, revealRow]);
+    const r = rowOfBase(model, pos);
+    revealRow(r, 'center');
+    revealX(colCenter(model.geometry, pos - model.rows[r].start));
+  }, [scrollTo, measured, model, topology, L, revealRow, revealX]);
 
   // ---- focus ----------------------------------------------------------------------------------
   const [focused, setFocused] = useState(false);
@@ -558,9 +621,10 @@ export function SequenceView(props: SequenceViewProps) {
       const el = scrollerRef.current;
       if (!d || !el) return;
       const rect = el.getBoundingClientRect();
+      const speed = (overshoot: number) => Math.min(AUTOSCROLL_MAX, 2 + overshoot * 0.4);
       let dy = 0;
-      if (d.clientY < rect.top + AUTOSCROLL_EDGE) dy = -Math.min(AUTOSCROLL_MAX, 2 + (rect.top + AUTOSCROLL_EDGE - d.clientY) * 0.4);
-      else if (d.clientY > rect.bottom - AUTOSCROLL_EDGE) dy = Math.min(AUTOSCROLL_MAX, 2 + (d.clientY - rect.bottom + AUTOSCROLL_EDGE) * 0.4);
+      if (d.clientY < rect.top + AUTOSCROLL_EDGE) dy = -speed(rect.top + AUTOSCROLL_EDGE - d.clientY);
+      else if (d.clientY > rect.bottom - AUTOSCROLL_EDGE) dy = speed(d.clientY - rect.bottom + AUTOSCROLL_EDGE);
       if (dy !== 0) {
         const before = el.scrollTop;
         el.scrollTop = before + dy;
@@ -568,6 +632,14 @@ export function SequenceView(props: SequenceViewProps) {
           setScrollTop(el.scrollTop);
           updateAnchor(el);
         }
+      }
+      // rows wider than the view (fixed bases per row) also scroll sideways at the left / right edge
+      if (latest.current.model.geometry.width > el.clientWidth + 1) {
+        const right = rect.left + (el.clientWidth || rect.width);
+        let dx = 0;
+        if (d.clientX < rect.left + AUTOSCROLL_EDGE) dx = -speed(rect.left + AUTOSCROLL_EDGE - d.clientX);
+        else if (d.clientX > right - AUTOSCROLL_EDGE) dx = speed(d.clientX - right + AUTOSCROLL_EDGE);
+        if (dx !== 0) el.scrollLeft += dx;
       }
       // every frame: the content under a still pointer changes while scrolling (auto-scroll, wheel)
       update();
@@ -739,8 +811,8 @@ export function SequenceView(props: SequenceViewProps) {
 
   const applyEdit = useCallback(
     (edit: SequenceEdit, next: SequenceSelection, aff: CaretAffinity) => {
+      pendingReveal.current = { target: next, from: latest.current.selection };
       onEdit?.(edit);
-      pendingReveal.current = true;
       lastEmitted.current = null;
       commitSelection(next, aff);
     },
@@ -779,7 +851,7 @@ export function SequenceView(props: SequenceViewProps) {
       switch (intent.type) {
         case 'select':
           e.preventDefault();
-          pendingReveal.current = true;
+          pendingReveal.current = { target: intent.selection, from: latest.current.selection };
           commitSelection(intent.selection, intent.affinity);
           break;
         case 'edit':
@@ -925,6 +997,25 @@ export function SequenceView(props: SequenceViewProps) {
   }, [highlightIndex, layoutFeatures, L, topology]);
   const hoveredRange = hoveredSite >= 0 ? (enzymes[hoveredSite]?.range ?? null) : null;
 
+  // Enzyme sites whose recognition site is exactly the selection (e.g. after clicking a label).
+  const selectedSites = useMemo<readonly number[]>(() => {
+    if (!hasSelectedBases(selection) || enzymes.length === 0 || L === 0) return EMPTY;
+    const r = normalizeRange(selection.range, L, topology);
+    const len = r.end - r.start;
+    const circ = topology === 'circular';
+    const out: number[] = [];
+    for (let i = 0; i < enzymes.length; i++) {
+      const s = enzymes[i].range;
+      if (s.end - s.start === len && (circ ? mod(s.start, L) : s.start) === r.start) out.push(i);
+    }
+    return out.length > 0 ? out : EMPTY;
+  }, [selection, enzymes, L, topology]);
+  // hovered and selected sites get their cut lines emphasised (sorted: compared by value per row)
+  const activeSites = useMemo<readonly number[]>(() => {
+    if (hoveredSite < 0 || selectedSites.includes(hoveredSite)) return selectedSites;
+    return [...selectedSites, hoveredSite].sort((a, b) => a - b);
+  }, [hoveredSite, selectedSites]);
+
   const rowsOut: ReactNode[] = [];
   for (let r = firstRow; r <= lastRow; r++) {
     const row = model.rows[r];
@@ -948,7 +1039,14 @@ export function SequenceView(props: SequenceViewProps) {
       if (hoveredRange) bands.push(...rangeColsInRow(hoveredRange, row.start, row.end, L, topology));
     }
     const rowHighlight = highlightIndex >= 0 && row.features.some((p) => p.feature === highlightIndex) ? highlightIndex : -1;
-    const rowHover = hoveredSite >= 0 && row.enzymeLabels.some((l) => l.site === hoveredSite) ? hoveredSite : -1;
+    let rowActive: readonly number[] = EMPTY;
+    if (activeSites.length > 0 && (row.enzymeLabels.length > 0 || row.cutMarks.length > 0)) {
+      const here = activeSites.filter(
+        (s) => row.enzymeLabels.some((l) => l.site === s) || row.cutMarks.some((c) => c.site === s),
+      );
+      if (here.length > 0) rowActive = here;
+    }
+    const trSelection = selCols.length > 0 && row.features.some((p) => p.translated) ? selCols : (EMPTY as never[]);
     const caretHere = !selected && caretRowIndex === r;
     rowsOut.push(
       <div key={r} className={styles.row} style={{ top: model.offsets[r] - shift, height: row.height }} data-row={r}>
@@ -961,7 +1059,14 @@ export function SequenceView(props: SequenceViewProps) {
           bands={bands}
           focused={focused}
         />
-        <RowContent row={row} ctx={renderCtx} highlighted={rowHighlight} hoveredSite={rowHover} />
+        <RowContent
+          row={row}
+          ctx={renderCtx}
+          highlighted={rowHighlight}
+          activeSites={rowActive}
+          translationSelection={trSelection}
+          selectionFocused={trSelection.length > 0 && focused}
+        />
         {caretHere && (
           <div
             key={`caret-${caretAbs}-${affinity}`}
@@ -995,6 +1100,7 @@ export function SequenceView(props: SequenceViewProps) {
       className={rootClass}
       data-focused={focused ? 'true' : undefined}
       data-keyboard-focus={keyboardFocus ? 'true' : undefined}
+      data-enzyme-hover={hoveredSite >= 0 ? 'true' : undefined}
     >
       <div
         ref={scrollerRef}

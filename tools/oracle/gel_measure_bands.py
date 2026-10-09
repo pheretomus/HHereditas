@@ -16,17 +16,24 @@ venv. This script documents and reproduces how they were measured:
   4. match every band of the hard-coded table to the nearest detected peak and report the
      difference (|delta| <= 1 px is expected).
 
-Requirements (NOT in the oracle venv; this script is optional): Pillow, NumPy, SciPy, PyMuPDF.
+Requirements (NOT in the oracle venv; this script is optional): Pillow and NumPy; SciPy and PyMuPDF for the
+original entries ('pdf-image' and 'pdf-clip' need PyMuPDF). Without SciPy the peak search falls back to a
+NumPy re-implementation of scipy.ndimage.minimum_filter1d / uniform_filter1d (mode 'reflect') and
+scipy.signal.find_peaks (prominence, distance=2), which reproduces the SciPy rows of
+thermo-sm1331-1pct-tae to 0.01 px. The 'pdf-xobject' and 'web' entries need neither SciPy nor PyMuPDF:
     python -m pip install pillow numpy scipy pymupdf
-    python tools/oracle/gel_measure_bands.py
+    python tools/oracle/gel_measure_bands.py                      # every photograph
+    python tools/oracle/gel_measure_bands.py --only id1,id2       # some of them
 Network access is needed on the first run only.
 """
 
 from __future__ import annotations
 
 import hashlib
+import re
 import sys
 import urllib.request
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -42,6 +49,7 @@ USER_AGENT = "Mozilla/5.0 (HHereditas oracle; band position measurement)"
 #   kind 'pdf-image': embedded image on `page` (1-based) whose placement contains `point` (PDF pt)
 #   kind 'pdf-clip':  page rendered at `zoom` inside `clip` (PDF pt)
 #   kind 'web':       a web image (webp/jpg)
+#   kind 'pdf-xobject': the embedded image of `size` (width, height) pixels, decoded without PyMuPDF
 # lane = (x0, x1) pixel columns of the lane, rows = (y0, y1) analysed rows, prom = minimum peak
 # prominence, bg = running-minimum window (pixels).
 MANIFEST: dict[str, dict] = {
@@ -62,6 +70,10 @@ MANIFEST: dict[str, dict] = {
     "enzynomics-dm001-1pct": dict(kind="web", url="http://www.enzynomics.com/data/editor/2010/2213e6130e39ce03575bc14edc6da3f2_1603334063_3635.jpg", lane=(44, 119), rows=(103, 686), prom=10, bg=21),
     "promega-g8291-2pct": dict(kind="pdf-clip", url="https://www.promega.com/-/media/files/resources/white-papers/quality-and-stability-of-dna-ladders-shipped-at-ambient-temperature.pdf", page=3, clip=(40, 95, 577, 525), zoom=3, lane=(85, 155), rows=(60, 1284), prom=6, bg=41),
     "promega-g7511-2pct": dict(kind="pdf-clip", url="https://www.promega.com/-/media/files/resources/white-papers/quality-and-stability-of-dna-ladders-shipped-at-ambient-temperature.pdf", page=3, clip=(40, 95, 577, 525), zoom=3, lane=(1262, 1338), rows=(60, 1284), prom=6, bg=41),
+    # added 2026-10-08 (review findings F8/F18)
+    "thermo-sm1191-3pct-tbe": dict(kind="pdf-xobject", url="https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0013037_GeneRuler_LowRange_DNALadder_RTU_UG.pdf", size=(677, 910), lane=(46, 128), rows=(10, 630), prom=6, bg=41),
+    "thermo-sm0371-2.5pct-tbe": dict(kind="pdf-xobject", url="https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0013016_GeneRuler_50bp_DNALadder_50ug_UG.pdf", size=(724, 915), lane=(38, 120), rows=(13, 625), prom=6, bg=41),
+    "neb-n3236-3pct-tbe": dict(kind="web", url="https://media.neb.com/asset/55e19020-b081-4c83-9a24-cbd9fd6dd8f9/Webp/N0556_N3236_50bpDNALadder.webp", lane=(158, 268), rows=(20, 805), prom=8, bg=31),
 }
 
 
@@ -76,6 +88,61 @@ def fetch(url: str) -> Path:
     return path
 
 
+def _unpredict_png(raw: bytes, width: int, colors: int, bpc: int) -> bytes:
+    """Undo PNG row predictors (FlateDecode /Predictor >= 10)."""
+    bpp = max(1, colors * bpc // 8)
+    stride = (width * colors * bpc + 7) // 8
+    rows, prev, i = [], bytearray(stride), 0
+    while i + 1 + stride <= len(raw):
+        ft, line = raw[i], bytearray(raw[i + 1:i + 1 + stride])
+        i += 1 + stride
+        for x in range(stride):
+            a = line[x - bpp] if x >= bpp else 0
+            b = prev[x]
+            c = prev[x - bpp] if x >= bpp else 0
+            if ft == 1:
+                line[x] = (line[x] + a) & 255
+            elif ft == 2:
+                line[x] = (line[x] + b) & 255
+            elif ft == 3:
+                line[x] = (line[x] + ((a + b) >> 1)) & 255
+            elif ft == 4:
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                line[x] = (line[x] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
+        rows.append(bytes(line))
+        prev = line
+    return b"".join(rows)
+
+
+def pdf_xobject_gray(path: Path, size: tuple[int, int]) -> np.ndarray:
+    """Grey levels of the embedded image of exactly `size` (width, height) pixels: DCTDecode (JPEG) or
+    FlateDecode DeviceRGB / DeviceGray, 8 bits per component. No PyMuPDF needed."""
+    from PIL import Image
+    import io
+
+    data = path.read_bytes()
+    w, h = size
+    for m in re.finditer(rb"\d+\s+0\s+obj\s*<<(.*?)>>\s*stream\r?\n", data, re.S):
+        d = m.group(1)
+        if not re.search(rb"/Subtype\s*/Image", d):
+            continue
+        width = re.search(rb"/Width\s+(\d+)", d)
+        height = re.search(rb"/Height\s+(\d+)", d)
+        if not (width and height and int(width.group(1)) == w and int(height.group(1)) == h):
+            continue
+        raw = data[m.end():data.find(b"endstream", m.end())].rstrip(b"\r\n")
+        if b"DCTDecode" in d:
+            return np.asarray(Image.open(io.BytesIO(raw)).convert("L"), dtype=float)
+        px = zlib.decompress(raw)
+        colors = 3 if b"DeviceRGB" in d else 1
+        if b"/Predictor" in d:
+            px = _unpredict_png(px, w, colors, 8)
+        arr = np.frombuffer(px[:w * h * colors], np.uint8).reshape((h, w, colors) if colors > 1 else (h, w))
+        return np.asarray(Image.fromarray(arr).convert("L"), dtype=float)
+    raise RuntimeError(f"no {w}x{h} image in {path}")
+
+
 def load_gray(spec: dict) -> np.ndarray:
     from PIL import Image
     import io
@@ -83,6 +150,8 @@ def load_gray(spec: dict) -> np.ndarray:
     path = fetch(spec["url"])
     if spec["kind"] == "web":
         return np.asarray(Image.open(path).convert("L"), dtype=float)
+    if spec["kind"] == "pdf-xobject":
+        return pdf_xobject_gray(path, spec["size"])
     import fitz  # PyMuPDF
 
     doc = fitz.open(path)
@@ -106,9 +175,67 @@ def load_gray(spec: dict) -> np.ndarray:
     raise RuntimeError(f"no image at {spec['point']} on page {spec['page']} of {spec['url']}")
 
 
+def _reflect(a: np.ndarray, n: int) -> np.ndarray:
+    """Pad like SciPy's mode 'reflect' (d c b a | a b c d | d c b a)."""
+    return np.concatenate([a[:n][::-1], a, a[-n:][::-1]])
+
+
+def np_minimum_filter1d(a: np.ndarray, size: int) -> np.ndarray:
+    p = _reflect(a, size // 2)
+    return np.array([p[i:i + size].min() for i in range(len(a))])
+
+
+def np_uniform_filter1d(a: np.ndarray, size: int) -> np.ndarray:
+    p = _reflect(a, size // 2)
+    c = np.concatenate([[0.0], np.cumsum(p)])
+    return (c[size:size + len(a)] - c[:len(a)]) / size
+
+
+def np_find_peaks(x: np.ndarray, prominence: float) -> np.ndarray:
+    """scipy.signal.find_peaks(x, prominence=prominence, distance=2): local maxima (plateaus -> middle),
+    the lower of two maxima closer than 2 samples dropped, then the prominence threshold."""
+    found, i, n = [], 1, len(x)
+    while i < n - 1:
+        if x[i - 1] < x[i]:
+            ahead = i + 1
+            while ahead < n - 1 and x[ahead] == x[i]:
+                ahead += 1
+            if x[ahead] < x[i]:
+                found.append((i + ahead - 1) // 2)
+                i = ahead
+        i += 1
+    pk = np.array(found, int)
+    keep = np.ones(len(pk), bool)
+    for k in np.argsort(x[pk])[::-1]:
+        if keep[k]:
+            for j in range(len(pk)):
+                if j != k and keep[j] and abs(pk[j] - pk[k]) < 2 and x[pk[j]] <= x[pk[k]]:
+                    keep[j] = False
+    pk = pk[keep]
+    prom = []
+    for p in pk:
+        i, lmin = p, x[p]
+        while i >= 0 and x[i] <= x[p]:
+            lmin = min(lmin, x[i])
+            i -= 1
+        j, rmin = p, x[p]
+        while j < n and x[j] <= x[p]:
+            rmin = min(rmin, x[j])
+            j += 1
+        prom.append(x[p] - max(lmin, rmin))
+    return pk[np.array(prom) >= prominence] if len(pk) else pk
+
+
 def peaks(gray: np.ndarray, spec: dict) -> list[float]:
-    from scipy.ndimage import minimum_filter1d, uniform_filter1d
-    from scipy.signal import find_peaks
+    try:
+        from scipy.ndimage import minimum_filter1d, uniform_filter1d
+        from scipy.signal import find_peaks
+    except ImportError:  # NumPy fallback (same results, see the module docstring)
+        minimum_filter1d, uniform_filter1d = np_minimum_filter1d, np_uniform_filter1d
+
+        def find_peaks(x, prominence, distance):
+            assert distance == 2
+            return np_find_peaks(x, prominence), {}
 
     x0, x1 = spec["lane"]
     y0, y1 = spec["rows"]
@@ -130,8 +257,16 @@ def peaks(gray: np.ndarray, spec: dict) -> list[float]:
 
 
 def main() -> int:
+    only = None
+    if len(sys.argv) > 2 and sys.argv[1] == "--only":
+        only = set(sys.argv[2].split(","))
+        unknown = only - set(MANIFEST)
+        if unknown:
+            raise SystemExit(f"unknown ids: {sorted(unknown)}")
     worst = 0.0
     for gel in VENDOR_GELS:
+        if only is not None and gel["id"] not in only:
+            continue
         spec = MANIFEST[gel["id"]]
         found = peaks(load_gray(spec), spec)
         diffs = []

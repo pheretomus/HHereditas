@@ -1,9 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import type { Primer, PrimerBindingSite, Topology } from '../types';
-import { complementBase, iupacMatches, reverseComplement } from '../seq/alphabet';
+import { IUPAC_DNA, complementBase, iupacMatches, reverseComplement } from '../seq/alphabet';
 import { mod, sliceRange } from '../seq/range';
-import { DEFAULT_BINDING_OPTIONS, findAllBindingSites, findBindingSites, type BindingOptions } from './binding';
+import { DEFAULT_BINDING_OPTIONS, findAllBindingSites, findBindingSites, scanBindingSites, type BindingOptions } from './binding';
 import { tm } from './tm';
 
 interface OracleSite {
@@ -23,7 +23,7 @@ interface OracleCase {
 }
 const oracle = JSON.parse(
   readFileSync(new URL('../../test/oracle/primers/binding.json', import.meta.url), 'utf8'),
-) as { resumeMatches: number; cases: OracleCase[] };
+) as { resumeMatches: number; mismatchCost: number; cases: OracleCase[] };
 
 const primer = (sequence: string, id = 'p1'): Primer => ({ id, name: id, sequence });
 
@@ -66,6 +66,7 @@ function genbankSequence(path: string): string {
 describe('findBindingSites vs brute-force reference (oracle)', () => {
   it(`agrees on ${oracle.cases.length} random/planted/edge cases`, () => {
     expect(oracle.resumeMatches).toBe(2);
+    expect(oracle.mismatchCost).toBe(3);
     let sites = 0;
     for (const c of oracle.cases) {
       const ours = findBindingSites(c.template, c.topology, primer(c.primer), { ...c.options, computeTm: false });
@@ -86,6 +87,11 @@ describe('findBindingSites vs brute-force reference (oracle)', () => {
     const withSites = oracle.cases.filter((c) => c.sites.length > 0);
     expect(withSites.filter((c) => c.template.includes('U')).length).toBeGreaterThan(10);
     expect(withSites.filter((c) => /[a-z]/.test(c.template)).length).toBeGreaterThan(10);
+    // primers with a degenerate 3' end (no exact 3' anchor to seed with), incl. mismatched sites
+    const degenerateEnds = oracle.cases.filter((c) => /NN$/.test(c.primer)).flatMap((c) => c.sites);
+    expect(degenerateEnds.filter((s) => s.mismatches > 0).length).toBeGreaterThan(30);
+    // tails that match the template by chance beyond a mismatch: grown into (>= 4 matches) or not
+    expect(all.filter((s) => s.mismatches > 0 && s.tailLength > 0).length).toBeGreaterThan(10);
   });
 });
 
@@ -213,6 +219,51 @@ describe('findBindingSites semantics', () => {
       annealedLength: 20,
       mismatches: 1,
     });
+  });
+
+  it("does not let chance matches in a 5' tail turn a perfect site into a mismatched one (review regression)", () => {
+    const annealed = 'ATGGCTAGCAAAGGAGAAGAAC'; // 22 nt, perfect match
+    const ecoRI = primer('GCGCGAATTC' + annealed, 'EcoRI-fwd');
+    // the tail's 3'-terminal C faces an A (mismatch); its next two bases (T, T) match the template by chance
+    const template = 'CCCCCCCCCCCCCCCCCCCCGTTA' + annealed + 'TTTTTCACTGGAGTTGTCCC';
+    const strict = findBindingSites(template, 'linear', ecoRI);
+    expect(strict).toEqual([
+      expect.objectContaining({ range: { start: 24, end: 46 }, annealedLength: 22, mismatches: 0, tailLength: 10 }),
+    ]);
+    expect(strict[0].tm).toBeCloseTo(tm(annealed), 12);
+    expect(tm(annealed)).toBeCloseTo(58.38, 2);
+    expect(findBindingSites(template, 'linear', ecoRI, { maxMismatches: 1 })).toEqual(strict);
+    expect(findBindingSites(template, 'linear', ecoRI, { maxMismatches: 2 })).toEqual(strict);
+    // with four matching tail bases beyond the mismatch the site does grow (three tie, and ties keep the shorter region)
+    const supported = 'CCCCCCCCCCCCCCCCCCCCGTTCA' + annealed + 'TTTTTCACTGGAGTTGTCCC';
+    const tail4 = primer('GCGCGAGTTCC' + annealed, 'tail4'); // 3'-terminal tail C faces A; then C, T, T, G match; A faces C
+    expect(findBindingSites(supported, 'linear', tail4)).toEqual([expect.objectContaining({ annealedLength: 22, tailLength: 11 })]);
+    expect(findBindingSites(supported, 'linear', tail4, { maxMismatches: 1 })).toEqual([
+      expect.objectContaining({ range: { start: 20, end: 47 }, annealedLength: 27, mismatches: 1, tailLength: 6 }),
+    ]);
+
+    // Random 10-nt tails whose 3'-terminal base mismatches: with RESUME_MATCHES alone, 1 in 16 perfect
+    // sites grew into the tail with a spurious mismatch (review: 259/4000, Tm up to +12.5 °C). Now a
+    // site only grows when at least four tail bases beyond the mismatch match (1 in 256).
+    const random = mulberry32(2025);
+    let grown = 0;
+    for (let trial = 0; trial < 2000; trial++) {
+      const t = randomDna(random, 200);
+      let tail = randomDna(random, 10);
+      if (tail[9] === t[89]) tail = tail.slice(0, 9) + complementBase(t[89]);
+      const p = primer(tail + t.slice(90, 110));
+      const exact = findBindingSites(t, 'linear', p).find((s) => s.strand === 1 && s.range.end === 110);
+      expect(exact).toMatchObject({ annealedLength: 20, mismatches: 0, tailLength: 10 });
+      const tolerant = findBindingSites(t, 'linear', p, { maxMismatches: 1 }).find((s) => s.strand === 1 && s.range.end === 110);
+      if (tolerant!.mismatches === 0) {
+        expect(tolerant).toEqual(exact);
+        continue;
+      }
+      grown++;
+      expect(tolerant!.annealedLength).toBeGreaterThanOrEqual(25);
+      expect(tail.slice(5, 9)).toBe(t.slice(85, 89)); // the four tail bases beyond the mismatch match
+    }
+    expect(grown).toBeLessThanOrEqual(20); // expected 2000 / 256 ≈ 8 (it was ≈ 125 with the old rule)
   });
 
   it('matches degenerate primers with IUPAC rules and resolves them for the Tm', () => {
@@ -365,6 +416,31 @@ describe('findAllBindingSites', () => {
     ]);
     expect(findAllBindingSites(template, 'linear', [])).toEqual([]);
   });
+
+  it("scanBindingSites keeps every other primer's sites when one primer fails (review regression)", () => {
+    const random = mulberry32(7);
+    const template = randomDna(random, 60_000);
+    const good = primer(template.slice(30_000, 30_022), 'good');
+    const degenerate: Primer = { id: 'deg', name: 'random-20', sequence: 'N'.repeat(20) }; // > 100 000 sites
+    const typo: Primer = { id: 'bad', name: 'typo', sequence: 'ACGTXACGTACGTACGTACG' };
+    const goodSites = findBindingSites(template, 'linear', good);
+    expect(goodSites).toHaveLength(1);
+    const scan = scanBindingSites(template, 'linear', [degenerate, good, typo, degenerate]);
+    expect(scan.sites).toEqual(goodSites);
+    expect(scan.failures).toEqual([
+      { primerId: 'deg', message: expect.stringMatching(/^Primer 'random-20' has more than 100000 binding sites/) },
+      { primerId: 'bad', message: expect.stringMatching(/^Primer 'typo' has a non-IUPAC character at position 4: 'X'/) },
+    ]);
+    // findAllBindingSites keeps its documented all-or-nothing contract: the failing primer's RangeError
+    expect(() => findAllBindingSites(template, 'linear', [good, degenerate])).toThrow(/random-20/);
+    // without failures both give the same sites; invalid options are not a per-primer failure
+    const other = primer(reverseComplement(template.slice(100, 125)), 'other');
+    expect(scanBindingSites(template, 'linear', [good, other])).toEqual({
+      sites: findAllBindingSites(template, 'linear', [good, other]),
+      failures: [],
+    });
+    expect(() => scanBindingSites(template, 'linear', [good], { minAnneal: -1 })).toThrow(RangeError);
+  });
 });
 
 describe('findBindingSites properties (seeded random)', () => {
@@ -392,6 +468,14 @@ describe('findBindingSites properties (seeded random)', () => {
         expect(mismatches).toBe(site.mismatches);
         expect(site.mismatches).toBeLessThanOrEqual(options.maxMismatches);
         expect(site.annealedLength + site.tailLength).toBe(p.length);
+        // the region ends where matches − 3 × mismatches is largest: every shorter prefix scores less
+        const fromThreeEnd = Array.from(top, (_, k) => {
+          const i = site.strand === 1 ? top.length - 1 - k : k;
+          return iupacMatches(asTop[i], top[i]);
+        });
+        const scores = [0];
+        for (const match of fromThreeEnd) scores.push(scores[scores.length - 1] + (match ? 1 : -3));
+        for (let j = 0; j < top.length; j++) expect(scores[top.length]).toBeGreaterThan(scores[j]);
         expect(site.range.start).toBeGreaterThanOrEqual(0);
         expect(site.range.start).toBeLessThan(L);
         if (topology === 'linear') expect(site.range.end).toBeLessThanOrEqual(L);
@@ -437,6 +521,79 @@ describe('findBindingSites properties (seeded random)', () => {
       expect(moved).toEqual(original);
     }
   });
+
+  it('the seeded search finds exactly the sites of an exhaustive scan (degenerate primers, mismatches, any options)', () => {
+    // Declarative reference, independent of the seeds and of the walk: at every template position and
+    // strand, among the prefix lengths (primer bases from the 3' end) whose anchor matches and whose
+    // mismatches (at most maxMismatches) are each followed by two matches inside the prefix, the region
+    // is the one maximising matches − 3 × mismatches (shortest on ties).
+    function exhaustive(template: string, circular: boolean, p: string, o: Required<Pick<BindingOptions, 'minAnneal' | 'anchor3' | 'maxMismatches'>>) {
+      const L = template.length;
+      const n = p.length;
+      const out: OracleSite[] = [];
+      const anchor = Math.min(o.anchor3, n);
+      for (const strand of [1, -1] as const) {
+        for (let q = 0; q < L; q++) {
+          const limit = circular ? Math.min(n, L) : Math.min(n, strand === 1 ? q + 1 : L - q);
+          if (limit < anchor) continue;
+          const ok = (k: number) => {
+            const i = strand === 1 ? q - k : q + k;
+            const t = template[circular ? mod(i, L) : i];
+            const pb = p[n - 1 - k];
+            return iupacMatches(strand === 1 ? pb : complementBase(pb), t);
+          };
+          const flags = Array.from({ length: limit }, (_, k) => ok(k));
+          if (flags.slice(0, anchor).some((f) => !f)) continue;
+          let best = { length: anchor, mismatches: 0, score: anchor };
+          for (let length = anchor + 1; length <= limit; length++) {
+            const mm = flags.slice(0, length).flatMap((f, k) => (f ? [] : [k]));
+            if (mm.length > o.maxMismatches) break;
+            if (!mm.every((w) => w + 2 < length && flags[w + 1] && flags[w + 2])) continue;
+            const score = length - 4 * mm.length;
+            if (score > best.score) best = { length, mismatches: mm.length, score };
+          }
+          if (best.length < Math.max(1, o.minAnneal)) continue;
+          const k = best.length;
+          const start = strand === 1 ? (circular ? mod(q - k + 1, L) : q - k + 1) : q;
+          out.push({ strand, start, end: start + k, annealedLength: k, mismatches: best.mismatches, tailLength: n - k });
+        }
+      }
+      return out.sort((a, b) => a.start - b.start || b.strand - a.strand || a.end - b.end);
+    }
+    const local = mulberry32(99);
+    const pick = (s: string) => s[Math.floor(local() * s.length)];
+    let total = 0;
+    for (let trial = 0; trial < 600; trial++) {
+      const L = 20 + Math.floor(local() * 250);
+      const t = Array.from({ length: L }, () => (local() < 0.01 ? pick('NRYSWKM') : pick('ACGT')));
+      const n = 6 + Math.floor(local() * 30);
+      let p = '';
+      for (let i = 0; i < n; i++) {
+        const fromThreeEnd = n - 1 - i;
+        if (trial % 3 === 0 && fromThreeEnd < 9 && local() < 0.8) p += 'N'; // random-priming style 3' end
+        else if (trial % 3 === 1 && local() < 0.3) p += pick('RYSWKMBDHVN');
+        else p += pick('ACGT');
+      }
+      // plant 1–3 copies (either strand, possibly across the origin) with ~8 % substitutions
+      for (let c = 0; c < 1 + Math.floor(local() * 3); c++) {
+        const s = Math.floor(local() * L);
+        const strand = local() < 0.5 ? 1 : -1;
+        for (let i = 0; i < Math.min(n, L); i++) {
+          const options = IUPAC_DNA[p[i]];
+          const b = local() < 0.08 ? pick('ACGT') : options[Math.floor(local() * options.length)];
+          if (strand === 1) t[(s + i) % L] = b;
+          else t[(s + n - 1 - i) % L] = complementBase(b);
+        }
+      }
+      const template = t.join('');
+      const circular = local() < 0.5;
+      const o = { minAnneal: 1 + Math.floor(local() * Math.min(n, 20)), anchor3: Math.floor(local() * 8), maxMismatches: Math.floor(local() * 4) };
+      const ours = strip(findBindingSites(template, circular ? 'circular' : 'linear', primer(p), { ...o, computeTm: false, maxSites: Infinity }));
+      expect(ours, `${circular} ${template} ${p} ${JSON.stringify(o)}`).toEqual(exhaustive(template, circular, p, o));
+      total += ours.length;
+    }
+    expect(total).toBeGreaterThan(5000);
+  });
 });
 
 describe('findBindingSites on real sequences and performance', () => {
@@ -478,6 +635,52 @@ describe('findBindingSites on real sequences and performance', () => {
       const elapsed = performance.now() - t0;
       expect(sites.some((s) => s.strand === 1 && s.range.start === 1_000_000)).toBe(true);
       expect(elapsed).toBeLessThan(1000);
+    }
+  });
+
+  // Primers whose 3' end is degenerate (random-priming primers such as the SISPA primer FR26RV-N,
+  // Djikeng et al. 2008) have no exact 3' anchor to search for; with mismatches allowed the search
+  // used to try every position (2–3.5 s on the genome). Pigeonhole seeds over the minAnneal window
+  // keep these fast (review regression).
+  const degenerateEnds: [string, BindingOptions][] = [
+    ['GTTTCCCAGTCACGATANNNNNNNNN', { maxMismatches: 1 }],
+    ['GTTTCCCAGTCACGATANNNNNNNNN', { maxMismatches: 2 }],
+    ['ACGATCGGATCCTTAGNNNNN', { maxMismatches: 1, computeTm: false }],
+    ['ACGTGGCATTGCAAGGCTAA', { maxMismatches: 3, anchor3: 0 }],
+  ];
+
+  it('degenerate 3′ ends with mismatches on a 4.6 Mb template in < 1 s (review regression)', { timeout: 60_000 }, () => {
+    const random = mulberry32(46);
+    const chunks: string[] = [];
+    for (let i = 0; i < 46; i++) chunks.push(randomDna(random, 100_000));
+    const template = chunks.join('');
+    // a planted site with one mismatch in the specific part of FR26RV-N (13 bases from the 3' end)
+    const planted = 'GTTTCCCAGTGACGATA' + 'CATGGTACA'; // ...GTCACG → GTGACG
+    const at = 2_345_678;
+    const withSite = template.slice(0, at) + planted + template.slice(at + planted.length);
+    findBindingSites(withSite, 'circular', primer('ACGTGGCATTGCAAGGCTAA', 'warm'));
+    for (const [sequence, options] of degenerateEnds) {
+      const t0 = performance.now();
+      const sites = findBindingSites(withSite, 'circular', primer(sequence, 'deg'), options);
+      const elapsed = performance.now() - t0;
+      expect(elapsed, `${sequence} ${JSON.stringify(options)}`).toBeLessThan(1000);
+      if (sequence.startsWith('GTTTCC')) {
+        expect(sites).toContainEqual(
+          expect.objectContaining({ strand: 1, range: { start: at, end: at + 26 }, mismatches: 1, tailLength: 0 }),
+        );
+      }
+    }
+  });
+
+  it.skipIf(!existsSync(ecoliPath))('degenerate 3′ ends with mismatches on the E. coli genome in < 1 s (review regression)', { timeout: 60_000 }, () => {
+    const genome = genbankSequence(ecoliPath);
+    findBindingSites(genome, 'circular', primer('ACGTGGCATTGCAAGGCTAA', 'warm'));
+    for (const [sequence, options] of degenerateEnds) {
+      const t0 = performance.now();
+      const sites = findBindingSites(genome, 'circular', primer(sequence, 'deg'), options);
+      const elapsed = performance.now() - t0;
+      expect(elapsed, `${sequence} ${JSON.stringify(options)}`).toBeLessThan(1000);
+      if (sequence === 'ACGATCGGATCCTTAGNNNNN') expect(sites.length).toBeLessThan(100);
     }
   });
 });

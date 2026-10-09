@@ -3,12 +3,19 @@
  * records. Open with ?gallery=Shell&story=<name> (&theme=dark, &platform=mac|windows).
  * The map and sequence areas are neutral placeholders until the visualizations land.
  */
-import { useMemo, useState, type ReactNode } from 'react';
-import { BookOpenText, ScanSearch } from 'lucide-react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { BookOpenText, Crosshair, Pencil, ScanSearch, Scissors, Trash2 } from 'lucide-react';
 import type { EnzymeSite, Feature, Range, SeqRecord } from '@hhereditas/core';
 import { featureExtent } from '@hhereditas/core';
 import { selectRange, type SequenceSelection } from '@hhereditas/viewer';
-import { Button } from '@hhereditas/ui';
+import {
+  Button,
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from '@hhereditas/ui';
 import { SAMPLES, type SampleName } from '../../../../packages/viewer/src/fixtures';
 import {
   AppShell,
@@ -54,7 +61,7 @@ function sampleRecord(name: SampleName): SeqRecord {
 /** The sites the enzyme menu choice displays (the real filtering lives in the app). */
 function sitesFor(sites: readonly EnzymeSite[], display: EnzymeDisplay): EnzymeSite[] {
   if (display === 'none') return [];
-  if (display === 'common' || display === 'custom') return [...sites];
+  if (display === 'common' || display === 'commercial' || display === 'custom') return [...sites];
   const counts = new Map(enzymeRows(sites).map((r) => [r.name, r.count]));
   const limit = display === 'unique' ? 1 : 2;
   return sites.filter((s) => (counts.get(s.enzyme) ?? 0) <= limit);
@@ -68,7 +75,7 @@ function countMatches(seq: string, query: string): number {
   return n;
 }
 
-/** A synthetic 4.6 Mb genome with ~4,500 features (performance check). */
+/** A synthetic 4.6 Mb genome with ~4,500 features (performance check; E. coli has ~4,600 genes). */
 function syntheticGenome(): { record: SeqRecord; enzymeSites: EnzymeSite[] } {
   const length = 4_641_652;
   let seed = 42;
@@ -85,7 +92,7 @@ function syntheticGenome(): { record: SeqRecord; enzymeSites: EnzymeSite[] } {
   const types = ['CDS', 'gene', 'promoter', 'terminator', 'misc_feature', 'rep_origin', 'ncRNA'];
   let pos = 190;
   for (let i = 0; pos < length - 3000; i++) {
-    const len = 240 + Math.floor(rnd() * 1800);
+    const len = 200 + Math.floor(rnd() * 1300);
     const type = i % 9 === 0 ? types[2 + (i % 5)] : 'CDS';
     const strand = rnd() > 0.5 ? 1 : -1;
     features.push({
@@ -99,7 +106,7 @@ function syntheticGenome(): { record: SeqRecord; enzymeSites: EnzymeSite[] } {
         { key: 'product', value: type === 'CDS' ? 'hypothetical protein' : type },
       ],
     });
-    pos += len + 40 + Math.floor(rnd() * 400);
+    pos += len + 20 + Math.floor(rnd() * 320);
   }
   const enzymeSites: EnzymeSite[] = [];
   const enzymes = ['NotI', 'AscI', 'PacI', 'SfiI', 'SwaI', 'PmeI', 'SbfI', 'FseI'];
@@ -235,6 +242,10 @@ function DocumentWindow({
     return { range: { start: 1256, end: 1256 }, caret: 1256 };
   });
 
+  // Context menu of the sidebar's annotation rows (see SidebarContextMenu).
+  const [menuItem, setMenuItem] = useState<SidebarItemRef | null>(null);
+  const menuHit = useRef<SidebarItemRef | null>(null);
+
   const index = useSequenceIndex(record.seq);
   const summary = useSelectionSummary(record, selection);
   const wholeComposition = useMemo(() => summarizeSequence(record, index ?? undefined), [record, index]);
@@ -272,6 +283,7 @@ function DocumentWindow({
         if (edit.type !== undefined) next.type = edit.type;
         if (edit.strand !== undefined) next.strand = edit.strand;
         if (edit.color !== undefined) next.color = edit.color ?? undefined;
+        if (edit.qualifiers !== undefined) next.qualifiers = edit.qualifiers;
         return next;
       }),
     }));
@@ -305,22 +317,28 @@ function DocumentWindow({
         />
       }
       sidebar={
-        <Sidebar
-          documents={documents}
-          activeDocumentId={big ? 'ecoli' : active}
-          onActivateDocument={(id) => {
-            if (big) return;
-            setActive(id as SampleName);
-            setSelectedItem(null);
-            setSelection({ range: { start: 0, end: 0 }, caret: 0 });
-          }}
-          onCloseDocument={() => undefined}
-          record={record}
-          enzymeSites={sites}
-          selectedItem={selectedItem}
-          onSelectItem={selectItem}
-          emphasized={windowActive ? undefined : false}
-        />
+        <SidebarContextMenu item={menuItem} onItemChange={setMenuItem} hit={menuHit} onSelect={selectItem}>
+          <Sidebar
+            documents={documents}
+            activeDocumentId={big ? 'ecoli' : active}
+            onActivateDocument={(id) => {
+              if (big) return;
+              setActive(id as SampleName);
+              setSelectedItem(null);
+              setSelection({ range: { start: 0, end: 0 }, caret: 0 });
+            }}
+            onCloseDocument={() => undefined}
+            record={record}
+            enzymeSites={sites}
+            selectedItem={selectedItem}
+            onSelectItem={selectItem}
+            onItemContextMenu={(item) => {
+              menuHit.current = item;
+            }}
+            contextMenuItem={menuItem}
+            emphasized={windowActive ? undefined : false}
+          />
+        </SidebarContextMenu>
       }
       inspector={
         <Inspector
@@ -356,6 +374,72 @@ function DocumentWindow({
   );
 }
 
+/**
+ * How the app attaches a context menu to sidebar rows: the row handler records the item
+ * (synchronously, before the event reaches the trigger), the trigger opens the menu only
+ * for rows, and the Sidebar outlines the row while its menu is open.
+ */
+function SidebarContextMenu({
+  item,
+  onItemChange,
+  hit,
+  onSelect,
+  children,
+}: {
+  item: SidebarItemRef | null;
+  onItemChange: (item: SidebarItemRef | null) => void;
+  hit: { current: SidebarItemRef | null };
+  onSelect: (item: SidebarItemRef) => void;
+  children: ReactNode;
+}) {
+  return (
+    <ContextMenu
+      modal={false}
+      onOpenChange={(open) => {
+        if (!open) onItemChange(null);
+      }}
+    >
+      <ContextMenuTrigger
+        asChild
+        onContextMenu={(e) => {
+          const target = hit.current;
+          hit.current = null;
+          if (!target) {
+            e.preventDefault(); // not on a row: no menu
+            return;
+          }
+          onItemChange(target);
+        }}
+      >
+        <div style={{ display: 'flex', flex: '1 1 auto', flexDirection: 'column', minHeight: 0 }}>{children}</div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        {item?.kind === 'enzyme' ? (
+          <>
+            <ContextMenuItem icon={<Crosshair />} onSelect={() => onSelect(item)}>
+              Select Site
+            </ContextMenuItem>
+            <ContextMenuItem icon={<Scissors />} shortcut="Mod+D">
+              Digest with {item.id}…
+            </ContextMenuItem>
+          </>
+        ) : (
+          <>
+            <ContextMenuItem icon={<Crosshair />} onSelect={() => item && onSelect(item)}>
+              {item?.kind === 'primer' ? 'Select Binding Site' : 'Select Feature'}
+            </ContextMenuItem>
+            <ContextMenuItem icon={<Pencil />}>{item?.kind === 'primer' ? 'Edit Primer…' : 'Edit Feature…'}</ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem icon={<Trash2 />} destructive shortcut="Backspace">
+              {item?.kind === 'primer' ? 'Delete Primer' : 'Delete Feature'}
+            </ContextMenuItem>
+          </>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
+
 function Welcome({ recent = true, drop = false }: { recent?: boolean; drop?: boolean }) {
   return (
     <WelcomeScreen
@@ -375,6 +459,26 @@ function Welcome({ recent = true, drop = false }: { recent?: boolean; drop?: boo
 
 const story = (node: ReactNode) => () => <Frame>{node}</Frame>;
 
+/**
+ * A window of a fixed size (e.g. the 960×620 minimum window of tauri.conf.json), centred on a
+ * neutral backdrop when the viewport is larger, so narrow layouts can be judged anywhere.
+ */
+const sizedStory = (node: ReactNode, width: number, height: number) => () => (
+  <div style={{ height: '100%', display: 'grid', placeItems: 'center', overflow: 'hidden', background: 'var(--hh-bg-subtle)' }}>
+    <div
+      style={{
+        position: 'relative',
+        width: `min(100%, ${width}px)`,
+        height: `min(100%, ${height}px)`,
+        overflow: 'hidden',
+        boxShadow: 'var(--hh-shadow-popover)',
+      }}
+    >
+      <Frame>{node}</Frame>
+    </div>
+  </div>
+);
+
 export default {
   welcome: story(<Welcome />),
   'welcome-first-run': story(<Welcome recent={false} />),
@@ -384,7 +488,8 @@ export default {
   sequence: story(<DocumentWindow view="sequence" select="TEF promoter" />),
   'no-selection': story(<DocumentWindow select={null} />),
   'focus-mode': story(<DocumentWindow sidebar={false} inspector={false} />),
-  narrow: story(<DocumentWindow view="split" />),
+  narrow: sizedStory(<DocumentWindow view="split" />, 960, 620),
+  'narrow-welcome': sizedStory(<Welcome />, 960, 620),
   'linear-record': story(<DocumentWindow sample="linear" select="DsRed-Express" />),
   'dense-annotations': story(<DocumentWindow sample="pBR322" select={null} />),
   searching: story(<DocumentWindow search="GAATTC" select={null} />),

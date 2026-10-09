@@ -1,0 +1,120 @@
+LOCUS       AF153454                2137 bp    DNA     linear   BCT 26-JUL-2016
+DEFINITION  Methanosarcina barkeri dimethylamine corrinoid protein
+            methyltransferase MtbB3 (mtbB3) gene, partial cds; putative
+            methylamine permease MtbP (mtbP) gene, complete cds; and unknown
+            gene.
+ACCESSION   AF153454
+VERSION     AF153454.1
+KEYWORDS    .
+SOURCE      Methanosarcina barkeri
+  ORGANISM  Methanosarcina barkeri
+            Archaea; Methanobacteriati; Methanobacteriota; Stenosarchaea group;
+            Methanomicrobia; Methanosarcinales; Methanosarcinaceae;
+            Methanosarcina.
+REFERENCE   1  (bases 1 to 2137)
+  AUTHORS   Paul,L., Ferguson,D.J. Jr. and Krzycki,J.A.
+  TITLE     The trimethylamine methyltransferase gene and multiple
+            dimethylamine methyltransferase genes of Methanosarcina barkeri
+            contain in-frame and read-through amber codons
+  JOURNAL   J. Bacteriol. 182 (9), 2520-2529 (2000)
+   PUBMED   10762254
+REFERENCE   2  (bases 1 to 2137)
+  AUTHORS   Soares,J.A., Zhang,L., Pitsch,R.L., Kleinholz,N.M., Jones,R.B.,
+            Wolff,J.J., Amster,J., Green-Church,K.B. and Krzycki,J.A.
+  TITLE     The residue mass of L-pyrrolysine in three distinct methylamine
+            methyltransferases
+  JOURNAL   J. Biol. Chem. 280 (44), 36962-36969 (2005)
+   PUBMED   16096277
+REFERENCE   3  (bases 1 to 2137)
+  AUTHORS   Paul,L. and Krzycki,J.A.
+  TITLE     Direct Submission
+  JOURNAL   Submitted (22-MAY-1999) Microbiology, Ohio State University, 484 W.
+            12th Avenue, Columbus, OH 43210, USA
+FEATURES             Location/Qualifiers
+     source          1..2137
+                     /organism="Methanosarcina barkeri"
+                     /mol_type="genomic DNA"
+                     /strain="MS"
+                     /type_material="type strain of Methanosarcina barkeri"
+                     /db_xref="taxon:2208"
+     gene            <1..1260
+                     /gene="mtbB3"
+     CDS             <1..1260
+                     /gene="mtbB3"
+                     /note="DMA methyltransferase; similar to other
+                     Methanosarcina barkeri strain MS DMA methyltransferases"
+                     /codon_start=1
+                     /transl_except=(pos:922..924,aa:Pyl)
+                     /transl_table=11
+                     /product="dimethylamine corrinoid protein
+                     methyltransferase MtbB3"
+                     /protein_id="AAD38791.2"
+                     /translation="KLAEILMMPGKTVSVEQGMEIPVTHDIGTIRLDGDQGNSGVGIP
+                     SSRLVGCMTHERAFGADTMELGHIDYSFKPVKPVVSNECQAMEVCQQNMVIPLFYGAM
+                     PNMGLYYTPDGPFENPGDLMKLFKIDKAKESMEHAAEHLTRDTVWVMQKLFASGADGV
+                     NFDTTGAAGDGDMYGTLYAIQALRKEFSDMYIEAGMAGEMVLGMHGELEYNGVRLAGL
+                     WPHEQAPLVAKAGANVFGPVCNTNTSKTSAWNLARAVTFIKAAVGASPIPCHVNMGMG
+                     VGGIPMLETPPIDAVTRASKAMVEIAGVDGIOIGVGDPMGMPISHIMASGMTGIRAAG
+                     DLVARMEFSKNMRIGEAKEYVAKKLGVDKMDLVDEHVMRELREELDIGIITSVPGAAK
+                     GIAAKMNIEKLLGIKINSCNLFRKQIA"
+     gene            1288..1845
+                     /gene="mtbP"
+     CDS             1288..1845
+                     /gene="mtbP"
+                     /note="transmembrane protein; similar to amino acid
+                     transporters"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="putative methylamine permease MtbP"
+                     /protein_id="AAD38792.1"
+                     /translation="MDNHNNPANHQNHTQIDWKSAEECSRANCELKELKRSIDWKQGL
+                     AIALGVPLLILPSIGYLTNYVWAFSIIIWGLTVLLGFFQNISFGELATVLPKASGLPG
+                     YTQIVFGSNTGNNTSEKSRLMGKFIGGFSAWSYWLGWSPVIGIYAILIGDYLHGLLPI
+                     FSVIPQTFFNLIVGALVFGYMIIIN"
+     CDS             1930..>2137
+                     /note="ORF1"
+                     /codon_start=1
+                     /transl_table=11
+                     /product="unknown"
+                     /protein_id="AAD38793.1"
+                     /translation="MDINPPKCTDIDYINFLIAASNVFSCTEAARCYPDIANAPSHDA
+                     FTRCLQRQPPDTEALWEEVKSYVKL"
+ORIGIN      
+        1 aagcttgcag agatcctcat gatgcccggc aagactgtta gtgtcgaaca gggtatggaa
+       61 attcctgtga cacacgacat cggtaccatt agacttgacg gtgaccaggg caacagtggt
+      121 gttggtattc cttccagccg tttagttggc tgcatgacgc acgagcgtgc ttttggtgct
+      181 gatacaatgg aactcgggca tattgattac agtttcaagc cggtaaaacc tgtcgtatca
+      241 aacgagtgcc aggcaatgga agtctgccag cagaacatgg ttattccact gttttacggt
+      301 gcgatgccca atatgggact ttactacaca cctgatggac cttttgagaa ccctggcgac
+      361 cttatgaagc tattcaagat tgacaaagca aaagaatcta tggaacacgc tgccgaacac
+      421 cttactagag acactgtttg ggttatgcag aaactttttg cttcaggggc cgatggagtt
+      481 aactttgata caaccggcgc agcaggcgac ggagatatgt acggcacact ttatgcaatc
+      541 caggccctta gaaaagagtt ttctgatatg tatattgaag ccggaatggc tggcgagatg
+      601 gtactcggta tgcacggaga actggaatat aatggagtac ggctcgcagg tttatggccg
+      661 catgaacagg ctccgcttgt tgcaaaagcc ggagcaaatg tatttggacc agtatgcaac
+      721 accaatacca gcaagacctc agcctggaac cttgctcgtg cagttacttt catcaaggct
+      781 gccgtaggag cttctccaat cccctgtcat gtaaatatgg gtatgggagt tggcggaatt
+      841 cccatgctcg aaacacctcc aattgatgcg gttaccagag caagcaaggc aatggtcgaa
+      901 atcgcaggcg tcgacggcat atagatcgga gtcggcgacc caatgggtat gccgatttcc
+      961 cacataatgg cttcaggtat gactggaata agagctgcag gagacctggt tgcaagaatg
+     1021 gagttctcaa agaatatgcg cataggcgag gcaaaagagt acgttgcaaa gaaacttggg
+     1081 gtcgacaaga tggaccttgt agatgagcac gttatgcgtg aactgcgtga ggaactcgat
+     1141 attggtatta taacgtcagt accaggcgct gcaaaaggta ttgctgcaaa gatgaacatc
+     1201 gaaaagttgc tcggtattaa gattaattcc tgcaacctct tcagaaagca gattgcctga
+     1261 aaaaaggagt tggaagaagg cgattttatg gacaatcata ataatcctgc taatcatcaa
+     1321 aatcacactc aaatagattg gaaatctgca gaagagtgca gcagggcaaa ctgcgagcta
+     1381 aaagaactta agagaagcat tgactggaaa cagggacttg caatagccct tggtgttcct
+     1441 ttattgattc tgccttccat aggctacctc accaattatg tctgggcttt ttcaataata
+     1501 atatggggct taaccgttct tctaggtttt ttccagaata tttcgttcgg agagcttgca
+     1561 actgttttac ccaaggcttc aggactacca ggttataccc agattgtttt tggttcgaat
+     1621 acaggtaaca acacaagcga aaaatccagg ctgatgggaa aattcatagg aggtttcagt
+     1681 gcctggagtt actggttagg ctggagcccg gtaattggaa tctatgcgat cctgataggg
+     1741 gattatctcc acggactgct tcctatcttt agcgttattc cccagacctt tttcaacctg
+     1801 atagtcggag cgcttgtatt tgggtacatg atcattataa actaggactt acgcagttaa
+     1861 aatgccgaaa acttgatatc tttataaata tacttatggc ttagtgtttc tctaaaaacg
+     1921 tacggagtta tggacataaa tccacctaag tgtaccgaca ttgactacat taattttctc
+     1981 attgcggctt ctaacgtttt tagctgtact gaagctgcta gatgttatcc agacatagct
+     2041 aatgctcctt ctcatgatgc ttttactcgt tgccttcaaa ggcaacctcc agacacggaa
+     2101 gcactatggg aggaagtaaa aagttatgtc aagcttg
+//
+

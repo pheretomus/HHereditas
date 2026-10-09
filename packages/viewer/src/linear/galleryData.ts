@@ -130,6 +130,64 @@ export function syntheticGenome(): { record: SeqRecord; enzymeSites: EnzymeSite[
   return genomeCache;
 }
 
+/**
+ * A 12 kb linear genomic locus with spliced genes on both strands (mRNA / CDS joins), a
+ * promoter, a polyA signal and a repeat: exercises multi-segment features (exons joined by
+ * intron lines), the arrow head on the 3' exon and dark custom colours (light label text).
+ */
+export function demoGeneLocus(): SeqRecord {
+  const random = rng(12_000);
+  const seq = randomSequence(12_000, random);
+  const f = (
+    id: string,
+    type: string,
+    name: string,
+    strand: 1 | -1 | 0,
+    segments: Array<[number, number]>,
+  ): Feature => ({
+    id,
+    type,
+    name,
+    strand,
+    segments: segments.map(([start, end]) => ({ start, end })),
+    qualifiers: [{ key: 'label', value: name }],
+  });
+  const exonsA: Array<[number, number]> = [
+    [900, 1240],
+    [2010, 2290],
+    [3400, 3910],
+    [5020, 5330],
+    [6150, 6900],
+  ];
+  const exonsB: Array<[number, number]> = [
+    [8100, 8600],
+    [9250, 9500],
+    [10400, 11300],
+  ];
+  return {
+    id: 'gene-locus',
+    name: 'Gene locus',
+    description: 'Synthetic genomic locus with spliced genes',
+    seq,
+    topology: 'linear',
+    molecule: 'DNA',
+    features: [
+      f('p1', 'promoter', 'Promoter', 1, [[420, 900]]),
+      f('g1', 'gene', 'ABC1', 1, [[900, 6900]]),
+      f('m1', 'mRNA', 'ABC1-201', 1, exonsA),
+      f('c1', 'CDS', 'ABC1 protein', 1, [[1080, 1240], [2010, 2290], [3400, 3910], [5020, 5330], [6150, 6420]]),
+      f('pa1', 'polyA_signal', 'polyA', 1, [[6870, 6876]]),
+      // custom colours from a file: dark fills get light label text
+      { ...f('r1', 'repeat_region', 'Alu', 0, [[7300, 7610]]), color: '#7a3b69' },
+      f('g2', 'gene', 'XYZ2', -1, [[8100, 11300]]),
+      f('m2', 'mRNA', 'XYZ2-201', -1, exonsB),
+      { ...f('c2', 'CDS', 'XYZ2 protein', -1, [[8400, 8600], [9250, 9500], [10400, 11020]]), color: '#2f4b9a' },
+    ],
+    primers: [],
+    meta: {},
+  };
+}
+
 /** Simple six-frame ORF scan (ATG..stop, at least `minAa` codons) for demos. */
 export function demoOrfs(seq: string, minAa = 120): Orf[] {
   const out: Orf[] = [];

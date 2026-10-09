@@ -162,9 +162,11 @@ function buildRecord(raw: RawFastaRecord, warn: (message: string, line: number) 
  *
  * Header: `>name description`, white space in the name replaced by '_' (the name must be a
  * single word), line breaks in the description replaced by spaces; circular records get the NCBI
- * modifier ` [topology=circular]`. The sequence is written as stored (upper case), wrapped at
- * `lineWidth` residues per line (default 70). Features, primers and other metadata cannot be
- * represented in FASTA and are not written.
+ * modifier ` [topology=circular]`. `[topology=...]` modifiers already present in the name or
+ * description are removed: a reader (this one, NCBI tools) would take them for the topology, so
+ * a linear record would be read back as circular. The sequence is written as stored (upper
+ * case), wrapped at `lineWidth` residues per line (default 70). Features, primers and other
+ * metadata cannot be represented in FASTA and are not written.
  */
 export function writeFasta(records: SeqRecord | readonly SeqRecord[], options: FastaWriteOptions = {}): string {
   const list: readonly SeqRecord[] = 'seq' in records ? [records] : records;
@@ -172,8 +174,8 @@ export function writeFasta(records: SeqRecord | readonly SeqRecord[], options: F
   const width = Number.isFinite(requested) && requested >= 1 ? Math.floor(requested) : 0;
   const out: string[] = [];
   for (const record of list) {
-    let header = '>' + (record.name.trim().replace(/\s+/g, '_') || 'Untitled');
-    const description = record.description.replace(/[\r\n]+/g, ' ').trim();
+    let header = '>' + (removeTopologyModifiers(record.name).header.replace(/\s+/g, '_') || 'Untitled');
+    const description = removeTopologyModifiers(record.description.replace(/[\r\n]+/g, ' ')).header;
     if (description !== '') header += ' ' + description;
     if (record.topology === 'circular') header += ' [topology=circular]';
     out.push(header);

@@ -44,6 +44,8 @@ export function TextField({
     <span
       className={cx(styles.field, styles[size], invalid && styles.invalid, disabled && styles.disabled, className)}
       style={width !== undefined ? { width, ...style } : style}
+      // The whole frame is part of the control: never a window drag area inside a toolbar.
+      data-tauri-drag-region="false"
       onPointerDown={(e) => {
         // Clicking the frame or an adornment focuses the input, like a native field.
         if (e.target instanceof HTMLElement && !e.target.closest('button, input, a, [role="button"]')) {

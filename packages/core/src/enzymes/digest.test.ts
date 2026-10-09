@@ -13,9 +13,9 @@ import {
 import type { DnaEnd, FragmentEnds, Topology } from '../types';
 import { iupacMatches, reverseComplement } from '../seq/alphabet';
 import { sliceRange } from '../seq/range';
-import { COMMERCIAL_ENZYMES, COMMON_ENZYMES, ENZYMES, getEnzyme, makeEnzyme } from './enzyme';
+import { COMMERCIAL_ENZYMES, COMMON_ENZYMES, ENZYMES, getEnzyme, isPalindromic, makeEnzyme } from './enzyme';
 import type { RestrictionEnzyme } from './enzyme';
-import { digest, digestDetailed, digestSizes } from './digest';
+import { digest, digestDetailed, digestSizes, digestSizesWithTopology } from './digest';
 import type { DigestCut, DigestFragment, DigestReport, SkippedCleavage } from './digest';
 import { findSites } from './search';
 
@@ -1021,9 +1021,406 @@ describe('review: digest results are fresh objects that callers may modify', () 
   });
 });
 
-describe('review: digestSizes for gel lanes (reviewer reproduction)', () => {
-  it('digestSizes distinguishes an uncut plasmid from a linear molecule', () => {
-    const plasmid = 'GAATTC' + 'ACGT'.repeat(500);
-    expect(digestSizes(plasmid, 'circular', [E('NotI')])).not.toEqual(digestSizes(plasmid, 'linear', []));
+describe('review: gel-lane sizes tell an uncut plasmid from a linear molecule', () => {
+  // The reviewer's reproduction asked digestSizes itself to differ between an uncut 2006-bp circle
+  // and a 2006-bp linear molecule. The spec fixes digestSizes(...) -> number[] (fragment lengths),
+  // and both molecules are 2006 bases long, so [2006] is the only correct answer for both: the
+  // conformation a gel lane needs comes from digestSizesWithTopology, which digestSizes' docs point to.
+  const plasmid = 'GAATTC' + 'ACGT'.repeat(500);
+
+  it('digestSizesWithTopology distinguishes an uncut plasmid from a linear molecule and from a linearized plasmid', () => {
+    const uncut = digestSizesWithTopology(plasmid, 'circular', [E('NotI')]); // no NotI site
+    expect(uncut).toEqual([{ size: 2006, topology: 'circular' }]);
+    expect(uncut).not.toEqual(digestSizesWithTopology(plasmid, 'linear', []));
+    expect(digestSizesWithTopology(plasmid, 'linear', [])).toEqual([{ size: 2006, topology: 'linear' }]);
+    // EcoRI linearizes it: one linear molecule of 2006 bp + 4-nt overhang (full duplex extent 2010)
+    expect(digestSizesWithTopology(plasmid, 'circular', [E('EcoRI')])).toEqual([{ size: 2010, topology: 'linear' }]);
+    // pUC19 (2686 bp): uncut by NotI, linearized by EcoRI, two linear fragments with PvuII
+    expect(digestSizesWithTopology(PUC19, 'circular', [E('NotI')])).toEqual([{ size: 2686, topology: 'circular' }]);
+    expect(digestSizesWithTopology(PUC19, 'circular', [E('EcoRI')])).toEqual([{ size: 2690, topology: 'linear' }]);
+    expect(digestSizesWithTopology(PUC19, 'circular', [E('PvuII')]).map((f) => f.topology)).toEqual(['linear', 'linear']);
+    // digestSizes keeps the spec's number[]: sizes alone cannot tell these lanes apart (documented)
+    expect(digestSizes(plasmid, 'circular', [E('NotI')])).toEqual([2006]);
+    expect(digestSizes(plasmid, 'linear', [])).toEqual([2006]);
+    expect(digestSizes(plasmid, 'circular', [E('EcoRI')])).toEqual([2010]);
+  });
+
+  it('gives the sizes of digestSizes with the topology of each product, largest first, as fresh objects', () => {
+    const rand = mulberry32(0x9e15);
+    const pool = ['EcoRI', 'BamHI', 'PstI', 'SmaI', 'BsaI', 'BaeI', 'MlyI', 'NotI', 'TspRI', 'MboI'].map(E);
+    let uncut = 0;
+    let cut = 0;
+    for (let trial = 0; trial < 300; trial++) {
+      const enzymes = Array.from({ length: randInt(rand, 0, 2) }, () => pool[randInt(rand, 0, pool.length - 1)]);
+      const L = randInt(rand, 1, 150);
+      let seq = randomDna(L, rand);
+      for (const e of enzymes) {
+        const text = instantiate(e.site, rand);
+        if (text.length <= L && rand() < 0.7) seq = plant(seq, randInt(rand, 0, L - 1), rand() < 0.5 ? text : reverseComplement(text));
+      }
+      for (const topology of ['linear', 'circular'] as const) {
+        const label = `${enzymes.map((e) => e.name).join('+')} ${topology} ${seq}`;
+        const entries = digestSizesWithTopology(seq, topology, enzymes);
+        const frags = digest(seq, topology, enzymes);
+        const lengths = frags.map((f) => f.length).sort((a, b) => b - a);
+        expect(entries.map((f) => f.size), label).toEqual(lengths); // largest first
+        expect(digestSizes(seq, topology, enzymes), label).toEqual(lengths);
+        expect(entries.map((f) => `${f.size}/${f.topology}`).sort(), label).toEqual(frags.map((f) => `${f.length}/${f.topology}`).sort());
+        const circular = topology === 'circular' && frags.length === 1 && frags[0].topology === 'circular';
+        expect(entries.some((f) => f.topology === 'circular'), label).toBe(circular);
+        expect(resultObjectProblems(entries), label).toEqual([]);
+        if (circular) uncut++;
+        else if (topology === 'circular') cut++;
+      }
+    }
+    expect(Math.min(uncut, cut)).toBeGreaterThan(30);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Final verification: fresh-eyes probes promoted to permanent tests
+// ---------------------------------------------------------------------------
+
+/** The distinct cleavage events of one site of `e` (both readings of a palindromic site). */
+function siteEvents(e: RestrictionEnzyme): { top: number; bottom: number }[] {
+  const n = e.site.length;
+  const all = isPalindromic(e.site) ? [...e.cuts, ...e.cuts.map((c) => ({ top: n - c.bottom, bottom: n - c.top }))] : [...e.cuts];
+  return all.filter((c, i) => all.findIndex((d) => d.top === c.top && d.bottom === c.bottom) === i);
+}
+
+describe('verification: cleavage events of one site that coincide on a very small circle are one event', () => {
+  it('lists the TstI event of a 32-bp circle once in skipped, as findSites lists it once', () => {
+    // TstI (8/13)CACNNNNNNTCC(12/7): its cut pairs (-8, -13) and (24, 19) lie 32 bp apart, so on a
+    // 32-bp circle they cut at the same gaps: one cleavage event. BsaXI's break (22, 19) is applied
+    // and blocks it. `skipped` used to list the TstI event twice.
+    const seq = 'CACAATACCTCCGACTCCCGGCAAGGAGTTCT';
+    expect(findSites(seq, 'circular', [E('TstI')]).map((s) => [s.range, s.cuts])).toEqual([[{ start: 0, end: 12 }, [{ top: 24, bottom: 19 }]]]);
+    const report = digestDetailed(seq, 'circular', [E('TstI'), E('BsaXI')]);
+    expect(report.fragments.map((f) => [f.parentRange, f.leftCut])).toEqual([[{ start: 19, end: 54 }, { enzyme: 'BsaXI', top: 22, bottom: 19 }]]);
+    expect(report.skipped.map((s) => [s.enzyme, s.site.start, s.top, s.bottom, s.reason])).toEqual([
+      ['TstI', 0, 24, 19, 'conflict'],
+      ['BsaXI', 1, 24, 21, 'conflict'],
+    ]);
+  });
+
+  it('accounts for every cleavage event of the site search exactly once (small circles, two events per site)', () => {
+    const rand = mulberry32(0x7e57c1);
+    // two-cut enzymes, and the palindromic sites with asymmetric cleavage (both readings cut)
+    const pool = ENZYMES.filter((e) => siteEvents(e).length > 1);
+    /** Circle length at which a site's leftmost and rightmost events cut at the same gaps. */
+    const coincidence = (e: RestrictionEnzyme) => {
+      const tops = siteEvents(e).map((c) => c.top);
+      return Math.max(...tops) - Math.min(...tops);
+    };
+    let coinciding = 0;
+    for (let trial = 0; trial < 400; trial++) {
+      const enzymes = Array.from({ length: randInt(rand, 1, 3) }, () => pool[randInt(rand, 0, pool.length - 1)]);
+      const first = enzymes[0];
+      const L = rand() < 0.5 && coincidence(first) >= Math.max(12, first.site.length) ? coincidence(first) : randInt(rand, 12, 48);
+      let seq = randomDna(L, rand);
+      for (const e of enzymes) {
+        const text = instantiate(e.site, rand);
+        if (text.length <= L) seq = plant(seq, randInt(rand, 0, L - 1), rand() < 0.5 ? text : reverseComplement(text));
+      }
+      const sites = findSites(seq, 'circular', enzymes);
+      const report = digestDetailed(seq, 'circular', enzymes);
+      // an event is applied (its break is a fragment end) or listed once in skipped, never both
+      const applied = new Set(report.fragments.flatMap((f) => (f.leftCut ? [`${f.leftCut.top},${f.leftCut.bottom}`] : [])));
+      const notApplied = sites.flatMap((s) =>
+        s.cuts.filter((c) => !applied.has(`${c.top},${c.bottom}`)).map((c) => `${s.enzyme}|${s.range.start}|${s.strand}|${c.top},${c.bottom}`),
+      );
+      const skipped = report.skipped.map((s) => `${s.enzyme}|${s.site.start}|${s.strand}|${s.top},${s.bottom}`);
+      expect(skipped.sort(), `${enzymes.map((e) => e.name).join('+')} ${seq}`).toEqual(notApplied.sort());
+      coinciding += sites.filter((s) => s.cuts.length < siteEvents(E(s.enzyme)).length).length;
+    }
+    expect(coinciding).toBeGreaterThan(20); // the coinciding case is exercised
+  });
+});
+
+describe('verification: published marker digests (their sizes are cut-to-cut lengths)', () => {
+  /**
+   * Top-strand length of a fragment, i.e. its cut-to-cut size: the convention of marker datasheets,
+   * whose sizes add up to the plasmid length. DigestFragment.length (the full duplex extent) also
+   * counts the overhang bases that exist only on the bottom strand.
+   */
+  const cutToCut = (f: DigestFragment) =>
+    f.length - (f.ends.left.kind === '3prime' ? f.ends.left.length : 0) - (f.ends.right.kind === '5prime' ? f.ends.right.length : 0);
+  const largestFirst = (sizes: number[]) => [...sizes].sort((a, b) => b - a);
+
+  it('pBR322 (J01749) + MspI gives the 26 fragments of Nippon Gene Marker 10', () => {
+    // Nippon Gene, "Marker 10 (pBR322/MspI digest)", datasheet HO1808:
+    // https://www.nippongene.com/siyaku/product/electrophoresis/tds/tds_marker-10.pdf
+    const published = [622, 527, 404, 307, 242, 238, 217, 201, 190, 180, 160, 160, 147, 147, 123, 110, 90, 76, 67, 34, 34, 26, 26, 15, 9, 9];
+    const pbr322 = genbankSequence(`${FIXTURES_DIR}/genbank/pBR322_J01749.gb`);
+    expect(published.reduce((a, b) => a + b, 0)).toBe(pbr322.length);
+    expect(largestFirst(digest(pbr322, 'circular', [E('MspI')]).map(cutToCut))).toEqual(published);
+    // digestSizes counts full duplex extents: each MspI fragment carries two 2-nt 5' overhangs
+    expect(digestSizes(pbr322, 'circular', [E('MspI')])).toEqual(published.map((size) => size + 2));
+  });
+
+  it('pUC19 (M77789) + MspI or its isoschizomer HpaII gives the 13 fragments of Thermo Scientific Marker 23', () => {
+    // Thermo Scientific "pUC19 DNA/MspI (HpaII) Marker, 23" (SM0221), user guide MAN0012992 Rev. C.00:
+    // https://assets.fishersci.com/TFS-Assets/LSG/manuals/MAN0012992_pUC19_DNA_MspI_HpaII_Marker_50ug_UG.pdf
+    const published = [501, 489, 404, 331, 242, 190, 147, 111, 110, 67, 34, 34, 26];
+    expect(published.reduce((a, b) => a + b, 0)).toBe(PUC19.length);
+    for (const name of ['MspI', 'HpaII']) {
+      expect(largestFirst(digest(PUC19, 'circular', [E(name)]).map(cutToCut)), name).toEqual(published);
+    }
+  });
+});
+
+/** One cleavage event of one recognition site, enumerated by brute force (see modelEvents). */
+interface ModelEvent {
+  enzyme: string;
+  site: number;
+  size: number;
+  strand: 1 | -1;
+  top: number;
+  bottom: number;
+  lo: number;
+  hi: number;
+}
+
+const modulo = (x: number, m: number) => ((x % m) + m) % m;
+
+/**
+ * Every cleavage event by brute force: every reading of every site at every position, where only
+ * A/C/G/T target bases match. Circular events are shifted so that their cut zone starts in [0, L);
+ * a site's events that cut at the same gaps are one event.
+ */
+function modelEvents(seq: string, topology: Topology, enzymes: readonly RestrictionEnzyme[]): ModelEvent[] {
+  const L = seq.length;
+  const target = seq.toUpperCase();
+  const events: ModelEvent[] = [];
+  const done = new Set<string>();
+  for (const e of enzymes) {
+    if (done.has(e.name)) continue;
+    done.add(e.name);
+    const n = e.site.length;
+    const mirrored = e.cuts.map((c) => ({ top: n - c.bottom, bottom: n - c.top }));
+    const readings: Array<[string, 1 | -1, readonly { top: number; bottom: number }[]]> = isPalindromic(e.site)
+      ? [[e.site, 1, [...e.cuts, ...mirrored]]]
+      : [[e.site, 1, e.cuts], [reverseComplement(e.site), -1, mirrored]];
+    const starts = topology === 'circular' ? (n <= L ? L : 0) : L - n + 1;
+    for (const [pattern, strand, cuts] of readings) {
+      for (let s = 0; s < starts; s++) {
+        let match = true;
+        for (let j = 0; j < n && match; j++) {
+          const base = target[(s + j) % L];
+          match = 'ACGT'.includes(base) && iupacMatches(pattern[j], base);
+        }
+        if (!match) continue;
+        const seen = new Set<string>();
+        for (const c of cuts) {
+          let top = s + c.top;
+          let bottom = s + c.bottom;
+          if (topology === 'circular') {
+            const shift = modulo(Math.min(top, bottom), L) - Math.min(top, bottom);
+            top += shift;
+            bottom += shift;
+          }
+          const key = topology === 'circular' ? `${modulo(top, L)},${modulo(bottom, L)}` : `${top},${bottom}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          events.push({ enzyme: e.name, site: s, size: n, strand, top, bottom, lo: Math.min(top, bottom), hi: Math.max(top, bottom) });
+        }
+      }
+    }
+  }
+  return events;
+}
+
+/**
+ * Products of a molecule rebuilt from single bases: every base of each strand present on the gap
+ * frame [x0, x1) is a node; neighbouring bases of a strand are joined unless a cut separates them;
+ * the two bases of a position are paired unless the position lies in a cut zone (the annealed bases
+ * of sticky ends come apart). Each connected group is one product; one without a base pair is unpaired.
+ */
+function modelProducts(
+  seq: string,
+  circular: boolean,
+  frame: { x0: number; x1: number; top: readonly [number, number]; bottom: readonly [number, number] },
+  breaks: readonly { top: number; bottom: number }[],
+): { products: string[]; unpaired: number } {
+  const { x0, x1 } = frame;
+  const L = seq.length;
+  const parent = Array.from({ length: 2 * (x1 - x0) }, (_, i) => i);
+  const find = (i: number): number => {
+    while (parent[i] !== i) i = parent[i] = parent[parent[i]];
+    return i;
+  };
+  const join = (a: number, b: number) => {
+    parent[find(a)] = find(b);
+  };
+  const node = (x: number, strand: 0 | 1) => 2 * (x - x0) + strand;
+  const present = (x: number, strand: 0 | 1) => (strand === 0 ? frame.top : frame.bottom)[0] <= x && x < (strand === 0 ? frame.top : frame.bottom)[1];
+  const cutTop = new Set(breaks.map((b) => b.top));
+  const cutBottom = new Set(breaks.map((b) => b.bottom));
+  const melted = (x: number) => breaks.some((b) => Math.min(b.top, b.bottom) <= x && x < Math.max(b.top, b.bottom));
+  const paired = (x: number) => present(x, 0) && present(x, 1) && !melted(x);
+  for (let x = x0; x < x1; x++) {
+    if (paired(x)) join(node(x, 0), node(x, 1));
+    if (x + 1 < x1) {
+      if (present(x, 0) && present(x + 1, 0) && !cutTop.has(x + 1)) join(node(x, 0), node(x + 1, 0));
+      if (present(x, 1) && present(x + 1, 1) && !cutBottom.has(x + 1)) join(node(x, 1), node(x + 1, 1));
+    }
+  }
+  const groups = new Map<number, { top: number[]; bottom: number[]; paired: boolean }>();
+  for (let x = x0; x < x1; x++) {
+    for (const strand of [0, 1] as const) {
+      if (!present(x, strand)) continue;
+      const root = find(node(x, strand));
+      let g = groups.get(root);
+      if (g === undefined) groups.set(root, (g = { top: [], bottom: [], paired: false }));
+      (strand === 0 ? g.top : g.bottom).push(x);
+      if (paired(x)) g.paired = true;
+    }
+  }
+  const products: Array<[number, string]> = [];
+  let unpaired = 0;
+  for (const g of groups.values()) {
+    if (!g.paired) {
+      unpaired++;
+      continue;
+    }
+    const [t0, t1, b0, b1] = [g.top[0], g.top[g.top.length - 1], g.bottom[0], g.bottom[g.bottom.length - 1]];
+    const lo = Math.min(t0, b0);
+    const hi = Math.max(t1, b1) + 1;
+    let text = '';
+    for (let x = lo; x < hi; x++) text += seq[circular ? modulo(x, L) : x];
+    const left = t0 < b0 ? `5prime${b0 - t0}` : b0 < t0 ? `3prime${t0 - b0}` : 'blunt0';
+    const right = b1 > t1 ? `5prime${b1 - t1}` : t1 > b1 ? `3prime${t1 - b1}` : 'blunt0';
+    const start = circular ? modulo(lo, L) : lo;
+    products.push([start, `${start}-${start + hi - lo}|${text}|${left}|${right}`]);
+  }
+  return { products: products.sort((a, b) => a[0] - b[0]).map(([, key]) => key), unpaired };
+}
+
+/** Everything the model says about one digest that disagrees with `report` (empty list = agreement). */
+function modelDisagreements(seq: string, topology: Topology, enzymes: readonly RestrictionEnzyme[], ends: FragmentEnds | undefined, report: DigestReport): string[] {
+  const problems: string[] = [];
+  const L = seq.length;
+  const circular = topology === 'circular';
+  const events = modelEvents(seq, topology, enzymes);
+  // linear: where each strand begins and ends, and the base-paired part [P0, P1)
+  const e = ends ?? { left: blunt, right: blunt };
+  const topStrand: [number, number] = [e.left.kind === '3prime' ? e.left.length : 0, e.right.kind === '5prime' ? L - e.right.length : L];
+  const bottomStrand: [number, number] = [e.left.kind === '5prime' ? e.left.length : 0, e.right.kind === '3prime' ? L - e.right.length : L];
+  const [P0, P1] = [Math.max(topStrand[0], bottomStrand[0]), Math.min(topStrand[1], bottomStrand[1])];
+  // can the event cut on its own: each product keeps a base pair, and the site is double-stranded
+  const canCut = (v: ModelEvent) => (circular ? v.hi - v.lo < L : P0 < v.lo && v.hi < P1 && P0 <= v.site && v.site + v.size <= P1);
+  const pair = (top: number, bottom: number) => (circular ? `${modulo(top, L)},${modulo(bottom, L)}` : `${top},${bottom}`);
+  const eventKey = (enzyme: string, site: number, strand: number, top: number, bottom: number) => `${enzyme}|${site}|${strand}|${pair(top, bottom)}`;
+
+  // breaks applied by the digest (fragment ends), each made by a site that can cut, credited to the first name
+  const credited = new Map<string, string>();
+  for (const f of report.fragments) for (const c of [f.leftCut, f.rightCut]) if (c) credited.set(pair(c.top, c.bottom), c.enzyme);
+  const breaks: ModelEvent[] = [];
+  for (const [p, enzyme] of credited) {
+    const makers = events.filter((v) => pair(v.top, v.bottom) === p && canCut(v));
+    if (makers.length === 0) problems.push(`applied break ${p} is made by no site that can cut`);
+    else {
+      if (makers.map((v) => v.enzyme).sort()[0] !== enzyme) problems.push(`break ${p} credited to ${enzyme}`);
+      breaks.push(makers[0]);
+    }
+  }
+  breaks.sort((a, b) => a.lo - b.lo);
+  const conflict = (a: ModelEvent, b: ModelEvent) => (circular ? [-L, 0, L] : [0]).some((d) => a.lo <= b.hi + d && b.lo + d <= a.hi);
+  for (let i = 0; i < breaks.length; i++) {
+    for (let j = i + 1; j < breaks.length; j++) if (conflict(breaks[i], breaks[j])) problems.push('two applied breaks leave no base pair between them');
+  }
+
+  // bookkeeping: an event that cannot cut is skipped ('end' / 'overhang-too-long'); one that can cut
+  // is applied (its break is made) or skipped as a conflict with an applied break that blocks it
+  const skipped = new Map(report.skipped.map((s) => [eventKey(s.enzyme, s.site.start, s.strand, s.top, s.bottom), s]));
+  let expectedSkips = 0;
+  for (const v of events) {
+    const key = eventKey(v.enzyme, v.site, v.strand, v.top, v.bottom);
+    const s = skipped.get(key);
+    if (!canCut(v)) {
+      expectedSkips++;
+      if (s?.reason !== (circular ? 'overhang-too-long' : 'end')) problems.push(`${key} cannot cut but is not skipped for it (${s?.reason})`);
+    } else if (credited.has(pair(v.top, v.bottom))) {
+      if (s !== undefined) problems.push(`${key} is applied and skipped`);
+    } else {
+      expectedSkips++;
+      const blockers = breaks.filter((b) => conflict(v, b));
+      if (blockers.length === 0) problems.push(`${key} could cut without a conflict but was dropped`);
+      if (s?.reason !== 'conflict') problems.push(`${key} is not skipped as a conflict (${s?.reason})`);
+      else if (!blockers.some((b) => s.blockedBy !== undefined && pair(b.top, b.bottom) === pair(s.blockedBy.top, s.blockedBy.bottom))) {
+        problems.push(`${key} is blocked by a break that does not conflict with it`);
+      }
+    }
+  }
+  if (report.skipped.length !== expectedSkips) problems.push(`${report.skipped.length} skipped entries, expected ${expectedSkips}`);
+
+  // the products of the applied breaks, rebuilt from single bases
+  let model: { products: string[]; unpaired: number };
+  if (circular && breaks.length === 0) model = { products: [`0-${L}|${seq}|blunt0|blunt0`], unpaired: 0 };
+  else if (circular) {
+    const [k, ...others] = breaks; // open the circle at the first break: a linear frame of L + overhang
+    model = modelProducts(seq, true, { x0: k.lo, x1: k.hi + L, top: [k.top, k.top + L], bottom: [k.bottom, k.bottom + L] }, others);
+  } else model = modelProducts(seq, false, { x0: 0, x1: L, top: topStrand, bottom: bottomStrand }, breaks);
+  if (model.unpaired > 0) problems.push(`${model.unpaired} unpaired product(s)`);
+  const ours = report.fragments.map((f) => `${f.parentRange.start}-${f.parentRange.end}|${f.seq}|${f.ends.left.kind}${f.ends.left.length}|${f.ends.right.kind}${f.ends.right.length}`);
+  if (ours.join(' ; ') !== model.products.join(' ; ')) problems.push(`fragments differ: ${ours.join(' ; ')} vs model ${model.products.join(' ; ')}`);
+  const uncut = circular && breaks.length === 0;
+  if (report.fragments.some((f) => f.topology !== (uncut ? 'circular' : 'linear'))) problems.push('wrong fragment topology');
+
+  // the site search with the same ends lists exactly the events that can cut (circles: every event)
+  const listed = findSites(seq, topology, enzymes, !circular && ends ? { ends } : {}).flatMap((s) =>
+    s.cuts.map((c) => eventKey(s.enzyme, s.range.start, s.strand, c.top, c.bottom)),
+  );
+  const cuttable = events.filter((v) => circular || canCut(v)).map((v) => eventKey(v.enzyme, v.site, v.strand, v.top, v.bottom));
+  if (listed.sort().join() !== cuttable.sort().join()) problems.push('findSites with these ends disagrees with the events that can cut');
+  return problems;
+}
+
+describe('verification: digests agree with an independent strand-level model', () => {
+  it('on random molecules with clustered Type IIS, two-cut and degenerate sites, sticky ends, N and lower case', () => {
+    const rand = mulberry32(0xf1a1);
+    const usable = ENZYMES.filter((e) => e.site.length >= 3);
+    const typeIIS = usable.filter((e) => e.cuts.some((c) => c.top < 0 || c.bottom < 0 || c.top > e.site.length || c.bottom > e.site.length));
+    const pools = [usable, typeIIS, typeIIS, usable.filter((e) => e.cuts.length > 1), usable.filter((e) => /[^ACGT]/.test(e.site))];
+    const seen = { conflict: 0, end: 0, linear: 0, circular: 0 };
+    for (let trial = 0; trial < 1500; trial++) {
+      const topology: Topology = rand() < 0.5 ? 'linear' : 'circular';
+      const u = rand();
+      const L = u < 0.2 ? randInt(rand, 1, 40) : u < 0.6 ? randInt(rand, 20, 150) : randInt(rand, 150, 600);
+      const enzymes = Array.from({ length: randInt(rand, 1, 4) }, () => {
+        const pool = pools[randInt(rand, 0, pools.length - 1)];
+        return pool[randInt(rand, 0, pool.length - 1)];
+      });
+      let seq = randomDna(L, rand);
+      const centre = randInt(rand, 0, L - 1);
+      for (let k = randInt(rand, 0, 6); k > 0; k--) {
+        const e = enzymes[randInt(rand, 0, enzymes.length - 1)];
+        const text = rand() < 0.5 ? instantiate(e.site, rand) : reverseComplement(instantiate(e.site, rand));
+        if (text.length > L) continue;
+        const v = rand();
+        // clustered (conflicts), at the ends (end rule), anywhere (across the origin on circles)
+        let pos = v < 0.4 ? centre + randInt(rand, -12, 12) : v < 0.7 ? (rand() < 0.5 ? randInt(rand, -3, 6) : L - text.length + randInt(rand, -6, 3)) : randInt(rand, 0, L - 1);
+        if (topology === 'linear') pos = Math.max(0, Math.min(L - text.length, pos));
+        seq = plant(seq, modulo(pos, L), text);
+      }
+      if (rand() < 0.1) seq = [...seq].map((c) => (rand() < 0.03 ? 'NRY'[randInt(rand, 0, 2)] : c)).join('');
+      if (rand() < 0.2) seq = [...seq].map((c) => (rand() < 0.5 ? c.toLowerCase() : c)).join('');
+      let ends: FragmentEnds | undefined;
+      if (topology === 'linear' && rand() < 0.6) {
+        const end = (): DnaEnd => {
+          const kind = (['blunt', '5prime', '3prime'] as const)[randInt(rand, 0, 2)];
+          return { kind, length: kind === 'blunt' ? 0 : randInt(rand, 0, 10) };
+        };
+        ends = { left: end(), right: end() };
+        if (ends.left.length + ends.right.length >= L) ends = undefined;
+      }
+      const report = digestDetailed(seq, topology, enzymes, ends ? { ends } : undefined);
+      const label = `${topology} [${enzymes.map((e) => e.name).join(',')}] ends=${JSON.stringify(ends)} ${seq}`;
+      expect(modelDisagreements(seq, topology, enzymes, ends, report), label).toEqual([]);
+      seen.conflict += report.skipped.filter((s) => s.reason === 'conflict').length;
+      seen.end += report.skipped.filter((s) => s.reason === 'end').length;
+      seen[topology]++;
+    }
+    expect(Math.min(seen.conflict, seen.end, seen.linear, seen.circular)).toBeGreaterThan(300);
   });
 });

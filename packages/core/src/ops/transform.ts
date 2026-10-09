@@ -30,8 +30,8 @@ import {
   withUracil,
   writesUracil,
 } from './internal';
-import { hasPositionalQualifiers, remapPositionalQualifiers, shiftCodonStart } from './qualifiers';
-import type { BaseMap } from './qualifiers';
+import { dropTranslation, hasPositionalQualifiers, remapPositionalQualifiers, shiftCodonStart } from './qualifiers';
+import type { BaseMap, LocationRun } from './qualifiers';
 
 // ---------------------------------------------------------------------------
 // extractRange
@@ -83,9 +83,15 @@ function segmentParts(seg: Range, a: number, len: number, L: number, ring: boole
   return parts;
 }
 
-/** True if base `y` lies in one of `segments` (linear coordinates). */
-function covers(segments: readonly Range[], y: number): boolean {
-  return segments.some((s) => s.start <= y && y < s.end);
+/** True if every base of the run lies in one of `segments` (linear coordinates). */
+function coversRun(segments: readonly Range[], run: LocationRun): boolean {
+  let x = run.first;
+  while (x <= run.last) {
+    const seg = segments.find((s) => s.start <= x && x < s.end);
+    if (seg === undefined) return false;
+    x = seg.end;
+  }
+  return true;
 }
 
 /**
@@ -93,7 +99,8 @@ function covers(segments: readonly Range[], y: number): boolean {
  * split where bases between two kept parts were lost (this happens when a region of a circular
  * molecule contains both ends of a feature but not its middle). The first piece keeps the id.
  * Each piece's /codon_start accounts for the bases it lost at its 5' end; position-bearing
- * qualifiers move into region coordinates and stay only on the piece holding all their bases.
+ * qualifiers move into region coordinates and stay only on the piece holding all their bases;
+ * a feature that loses bases loses its /translation.
  */
 function clipFeature(f: Feature, a: number, len: number, L: number, ring: boolean): Feature[] {
   // `from` / `to`: feature bases walked (in traversal order) before the piece's first base /
@@ -121,12 +128,15 @@ function clipFeature(f: Feature, a: number, len: number, L: number, ring: boolea
   if (pieces.length === 0) return [];
   const trailingLoss = lostSinceLastPart;
   const last = pieces.length - 1;
+  const clipped = pieces.length > 1 || leadingLoss || trailingLoss;
   const positional = hasPositionalQualifiers(f.qualifiers);
   const map: BaseMap = {
     base: (x) => {
       const o = ring ? mod(x - a, L) : x - a;
       return o >= 0 && o < len ? o : null;
     },
+    // ring: x - a wraps at a, the region ends at (a + len) mod L; linear: the region is [a, a + len)
+    breaks: ring ? [a, mod(a + len, L)] : [a, a + len],
     oldLength: L,
     oldCircular: ring,
     newLength: len,
@@ -136,8 +146,9 @@ function clipFeature(f: Feature, a: number, len: number, L: number, ring: boolea
   };
   return pieces.map((p, i) => {
     let qualifiers = positional
-      ? remapPositionalQualifiers(f.qualifiers, map, pieces.length > 1 ? (bases) => bases.every((y) => covers(p.segments, y)) : undefined)
+      ? remapPositionalQualifiers(f.qualifiers, map, pieces.length > 1 ? (runs) => runs.every((r) => coversRun(p.segments, r)) : undefined)
       : copyQualifiers(f.qualifiers);
+    if (clipped) qualifiers = dropTranslation(qualifiers);
     // 5' end: the left end for strand 1 / 0, the right end for strand -1
     qualifiers = shiftCodonStart(f.type, qualifiers, f.strand === -1 ? walked - p.to : p.from);
     const piece: Feature = { ...f, segments: p.segments, qualifiers };
@@ -163,9 +174,10 @@ function clipFeature(f: Feature, a: number, len: number, L: number, ring: boolea
  *
  * Qualifiers: a feature that loses bases at its 5' end (the left end for strand 1 / 0, the right
  * end for strand -1) gets its /codon_start updated so that its codons are read in the original
- * frame (a 'CDS' without /codon_start gets one when the new value is not 1); position-bearing
- * qualifiers (/transl_except, /anticodon, /rpt_unit_range, /tag_peptide) are rewritten in the new
- * record's coordinates, or dropped when some of their bases are not extracted (see qualifiers.ts).
+ * frame (a 'CDS' without /codon_start gets one when the new value is not 1); a clipped or split
+ * feature loses its /translation (it described the whole protein); position-bearing qualifiers
+ * (/transl_except, /anticodon, /rpt_unit_range, /tag_peptide) are rewritten in the new record's
+ * coordinates, or dropped when some of their bases are not extracted (see qualifiers.ts).
  *
  * The new record gets a new id, all primers (copied), blunt ends (no `ends`), the parent's meta
  * minus accession / version, topology 'linear'. Throws a RangeError for an invalid range,
@@ -221,6 +233,7 @@ export function rotateOrigin(rec: SeqRecord, newOrigin: number): SeqRecord {
   };
   const map: BaseMap = {
     base: (x) => mod(x - k, L),
+    breaks: [k],
     oldLength: L,
     oldCircular: true,
     newLength: L,
@@ -289,6 +302,7 @@ export function reverseComplementRecord(rec: SeqRecord): SeqRecord {
   const ring = rec.topology === 'circular' && L > 0;
   const map: BaseMap = {
     base: (x) => L - 1 - x,
+    breaks: [],
     oldLength: L,
     oldCircular: ring,
     newLength: L,
@@ -421,8 +435,12 @@ function placePart(f: Feature, offset: number, partLength: number, circular: boo
   const shifted = f.segments.map((r) => ({ start: r.start + offset, end: r.end + offset }));
   const g = copyFeature(f, circular ? shifted.map((r) => wrapOntoCircle(r, T)) : shifted);
   if (hasPositionalQualifiers(f.qualifiers)) {
+    // on a circle, part base x wraps to the start where x + offset reaches a multiple of T
+    const breaks: number[] = [];
+    if (circular) for (let x = T - mod(offset, T); x < partLength; x += T) breaks.push(x);
     g.qualifiers = remapPositionalQualifiers(f.qualifiers, {
       base: (x) => (circular ? mod(x + offset, T) : x + offset),
+      breaks,
       oldLength: partLength,
       oldCircular: false,
       newLength: T,
@@ -431,6 +449,8 @@ function placePart(f: Feature, offset: number, partLength: number, circular: boo
       dropIfSplit: false,
     });
   }
+  // A segment longer than the circle is clamped to one turn: the feature loses bases.
+  if (circular && shifted.some((r) => r.end - r.start > T)) g.qualifiers = dropTranslation(g.qualifiers);
   if (circular && f.strand === -1) {
     // Clamping keeps the left part of a segment longer than the circle: for strand -1 the right
     // end of the last segment is the feature's 5' end.
@@ -454,7 +474,8 @@ function placePart(f: Feature, offset: number, partLength: number, circular: boo
  * With `topology: 'circular'` the last part is also joined to the first by the same rule (the
  * shared overhang bases are kept once, at the start); features running past the new end wrap
  * around the origin, and a feature longer than the circle is clamped to one full turn (a
- * feature that loses its 5' bases that way gets its /codon_start updated, as in extractRange).
+ * feature that loses bases that way loses its /translation, and one that loses its 5' bases gets
+ * its /codon_start updated, as in extractRange).
  * Position-bearing qualifiers (/transl_except, /anticodon, ...) move with their bases.
  * RNA parts written with different letters for uracil (T in some, U in others) are joined
  * written with U, so that the product does not mix T and U.

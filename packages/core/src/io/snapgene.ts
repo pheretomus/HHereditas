@@ -21,7 +21,8 @@
  *    elements become spaces); plain values are kept verbatim even if they contain "<...>"
  *    (Biopython strips anything tag-like and decodes no references);
  *  - `<V text predef>` keeps the vocabulary prefix ("GI:238030067"; Biopython: "238030067");
- *  - /translation loses SnapGene's segment separators (",") and final "*";
+ *  - /translation loses SnapGene's segment separators (",") and final "*", and SnapGene's "?" for
+ *    a codon with ambiguous bases becomes the INSDC "X" (Biopython keeps all three);
  *  - repeated `<Q>` elements keep all values (Biopython keeps the last element);
  *    `<Q>` without `<V>` is a value-less qualifier and an empty `<V/>` an empty value;
  *  - SnapGene's readingFrame (the frame SnapGene translates a directional feature in) sets
@@ -31,11 +32,11 @@
  *  - description comes from Description (Biopython: Comments), division also from SequenceClass;
  *  - primers become `Primer` objects (Biopython: primer_bind features from binding sites).
  *
- * Robustness: the reader never throws on file data, and its own processing is linear in the
- * file size (no quadratic rescans or merges; results are appended one by one, never spread into
- * a call, whose argument count engines cap); quoted file content in warnings is clipped
- * (`snapgene-messages.ts`); XML packets that are not valid UTF-8 are decoded with U+FFFD
- * replacements and reported.
+ * Robustness: the reader never throws on file data, and its processing is linear in the file
+ * size (no quadratic rescans or merges; results are appended one by one, never spread into a
+ * call, whose argument count engines cap; XML well-formedness is checked in linear time, see
+ * `snapgene-markup.ts`); quoted file content in warnings is clipped (`snapgene-messages.ts`); XML
+ * packets that are not valid UTF-8 are decoded with U+FFFD replacements and reported.
  *
  * Normalisations by the writer (what a write -> read round trip changes): ids are new; the
  * name comes from the file name; LastModified and primers' dateAdded are `now` (Created too,
@@ -43,10 +44,16 @@
  * features without colour get SnapGene's default colour for their type; qualifiers with the
  * same key are grouped; the first /label is made equal to the name; on directional features, a
  * /codon_start that is not one reading frame (1, 2 or 3) reads back as the written readingFrame
- * (with a warning); value-less qualifiers next to valued ones with the same key, fuzzy ends,
- * reverse colours, empty segments and sticky ends on circular records are dropped (with
- * warnings); several comments become one; references read from a SnapGene file are not written
- * back.
+ * (with a warning); several comments become one; text loses blanks at either end and CR LF line
+ * breaks become LF. Changed with one warning that lists the fields: line breaks in one-line fields
+ * (names, descriptions, qualifier values) become spaces, and text stored as HTML (multi-line
+ * comments, text that looks like markup) loses runs of spaces, tabs and indentation (see
+ * `readsBackAsWritten` in `snapgene-markup.ts`). Dropped with a warning, which gives positions
+ * 1-based: value-less qualifiers next to valued ones with the same key, fuzzy ends, reverse
+ * colours, invalid or empty segments, sticky ends on circular records, the GenBank VERSION,
+ * KEYWORDS, SOURCE and other header lines (REFERENCE, DBLINK, ...), the reference summary read
+ * from a SnapGene file, and every other `meta.extras` field that no packet stores or whose name
+ * cannot be stored (see `snapgene-notes.ts`).
  */
 import { makeRecord } from '../seq/features';
 import type { Feature, Primer, RecordMeta, SeqRecord } from '../types';
@@ -67,7 +74,7 @@ import {
 } from './snapgene-binary';
 import { buildFeaturesXml, parseFeatures } from './snapgene-features';
 import { countXmlInvalidCharacters, parseXml, type XmlElement } from './snapgene-markup';
-import { clip } from './snapgene-messages';
+import { clip, listLabels } from './snapgene-messages';
 import { buildNotesXml, parseNotes } from './snapgene-notes';
 import { buildPrimersXml, parsePrimers } from './snapgene-primers';
 import { buildSequencePropertiesXml, encodeDnaPacket, parseDnaPacket, parseSequenceProperties, type SequenceProperties } from './snapgene-sequence';
@@ -301,14 +308,24 @@ export function writeSnapGeneWithWarnings(record: SeqRecord, options: SnapGeneWr
   const seqLength = record.seq.length;
   const text = (xml: string) => encodeUtf8(xml);
 
+  // Text fields that will not read back as written (line breaks, spacing), for one warning at the end.
+  const changedText: string[] = [];
   const dnaPayload = encodeDnaPacket(record.seq, record.topology, record.meta.extras, warnings);
-  const propertiesXml = buildSequencePropertiesXml(record, warnings);
-  const featuresXml = buildFeaturesXml(record.features, seqLength, record.topology, warnings);
-  const primersXml = buildPrimersXml(record.primers, now, warnings);
-  const notesXml = buildNotesXml(record, now);
+  const propertiesXml = buildSequencePropertiesXml(record, warnings, changedText);
+  const featuresXml = buildFeaturesXml(record.features, seqLength, record.topology, warnings, changedText);
+  const primersXml = buildPrimersXml(record.primers, now, warnings, changedText);
+  const notesXml = buildNotesXml(record, now, warnings, changedText);
   const unrepresentable = countUnrepresentableCharacters(record);
   if (unrepresentable > 0) {
     warnings.push({ message: `${unrepresentable} control character(s) that XML cannot represent were written as U+FFFD.` });
+  }
+  if (changedText.length > 0) {
+    warnings.push({
+      message:
+        `${changedText.length} text value(s) lose line breaks or spacing in the SnapGene file: line breaks in one-line fields ` +
+        `become spaces, and in text stored as HTML (multi-line comments, text that looks like markup) runs of spaces, tabs ` +
+        `or non-breaking spaces become one space (${listLabels([...new Set(changedText)])}).`,
+    });
   }
 
   // Packet order of files written by SnapGene (fixtures), without its enzyme caches (0x02, 0x03, 0x0D), which SnapGene rebuilds.

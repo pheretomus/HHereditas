@@ -331,6 +331,23 @@ describe('<LinearMap /> viewport', () => {
     expect(vp.end - vp.start).toBeLessThan((p.entry.extent.end - p.entry.extent.start) * 1.3);
   });
 
+  it('reports a controlled viewport it had to clamp, once', () => {
+    const onViewportChange = vi.fn();
+    // 10 bp across a 952 px plot is deeper than the deepest zoom
+    const { rerender } = render(<LinearMap record={pFA6a.record} viewport={{ start: 1000, end: 1010 }} onViewportChange={onViewportChange} />);
+    expect(onViewportChange).toHaveBeenCalledTimes(1);
+    const c: Range = onViewportChange.mock.calls[0][0];
+    expect(c).toEqual(clampViewport({ start: 1000, end: 1010 }, L, PLOT_W));
+    expect(c.end - c.start).toBeGreaterThan(10);
+    // a parent that keeps its own value is not asked again; one that takes the report is in sync
+    rerender(<LinearMap record={pFA6a.record} viewport={{ start: 1000, end: 1010 }} onViewportChange={onViewportChange} />);
+    rerender(<LinearMap record={pFA6a.record} viewport={c} onViewportChange={onViewportChange} />);
+    expect(onViewportChange).toHaveBeenCalledTimes(1);
+    // windows that need no clamping are not reported
+    rerender(<LinearMap record={pFA6a.record} viewport={{ start: 500, end: 1500 }} onViewportChange={onViewportChange} />);
+    expect(onViewportChange).toHaveBeenCalledTimes(1);
+  });
+
   it('follows a controlled viewport and resets an uncontrolled one for a new record', () => {
     const { container, rerender } = render(<LinearMap record={pFA6a.record} viewport={{ start: 0, end: 3938 }} />);
     const ticks = () => [...container.querySelectorAll('text')].map((t) => t.textContent);

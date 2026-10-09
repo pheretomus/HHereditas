@@ -143,6 +143,28 @@ describe('scale: a large genome whose ORIGIN keyword line is missing', () => {
   });
 });
 
+describe('scale: a chromosome-scale CON record (CONTIG, no sequence data)', () => {
+  it('is written with its CONTIG section, not with megabytes of N placeholder', () => {
+    // Reviewer repro (review finding): a 151 KB CON entry of 249 Mb was written back as 315 MB of
+    // 'n' in 4 s, without its CONTIG line. 10 Mb here keeps the test light.
+    const L = 10_000_000;
+    const text = [
+      `LOCUS       NC_000099          ${String(L).padStart(10)} bp    DNA     linear   CON 01-JAN-2020`,
+      'FEATURES             Location/Qualifiers',
+      `     source          1..${L}`,
+      `CONTIG      join(NT_000001.1:1..${L / 2},gap(100),NT_000002.1:1..${L / 2 - 100})`,
+      '//',
+    ].join('\n');
+    const record = parseGenbank(text).records[0];
+    expect(record.seq).toHaveLength(L);
+    const t0 = performance.now();
+    const written = writeGenbank(record, { date: '01-JAN-2020' });
+    expect(performance.now() - t0).toBeLessThan(2000);
+    expect(written.length).toBeLessThan(1000);
+    expect(written).toContain(`CONTIG      join(NT_000001.1:1..${L / 2},gap(100),NT_000002.1:1..${L / 2 - 100})\n//\n`);
+  });
+});
+
 describe('scale: linear-time reading', () => {
   it('reads a location written over tens of thousands of lines in linear time', () => {
     // Reviewer repro: an 80 000-part join wraps to ~26 000 lines. The quadratic assembly took
@@ -163,5 +185,24 @@ describe('scale: linear-time reading', () => {
     expect(r.warnings).toEqual([]);
     expect(r.records[0].features[0].segments).toEqual(segments);
     expect(elapsed).toBeLessThan(1000);
+  }, 60_000);
+
+  it('reads tens of thousands of feature key lines written in column 1 in linear time', () => {
+    // Verifier finding: each key line in column 1 starts a new feature inside the body of the
+    // feature before it. Copying the rest of that body at every such line would be quadratic
+    // (100 000 lines: minutes); sharing it keeps this ~4 MB table well under a second.
+    const n = 100_000;
+    const lines = ['LOCUS       col1                      12 bp    DNA     linear   SYN 01-JAN-2020', 'FEATURES             Location/Qualifiers'];
+    lines.push('     misc_feature    1..12');
+    for (let k = 0; k < n; k++) lines.push('gene            1..4', `                     /gene="g${k}"`);
+    lines.push('ORIGIN', '        1 acgtacgtac gt', '//');
+    const t0 = performance.now();
+    const r = parseGenbank(lines.join('\n'));
+    const elapsed = performance.now() - t0;
+    const features = r.records[0].features;
+    expect(features).toHaveLength(n + 1);
+    expect(features[n].name).toBe(`g${n - 1}`);
+    expect(r.warnings).toHaveLength(n);
+    expect(elapsed).toBeLessThan(2000);
   }, 60_000);
 });

@@ -16,7 +16,7 @@ import { IUPAC_DNA, normalizeDna } from '../seq/alphabet';
 import { newId } from '../seq/id';
 import type { Primer } from '../types';
 import type { ParseWarning } from './types';
-import { childElements, plainToRichText, richTextToPlain, xmlElement, type XmlElement } from './snapgene-markup';
+import { childElements, richTextToPlain, storeOneLine, xmlElement, type XmlElement } from './snapgene-markup';
 import { clip, listCharacters } from './snapgene-messages';
 
 /**
@@ -82,8 +82,9 @@ function isoSeconds(date: Date): string {
  * (invalid characters are dropped with a warning; primers left empty are not written).
  * No `<BindingSite>` elements are written, because HHereditas does not store binding sites
  * (they are computed); how SnapGene displays primers without them has not been verified.
+ * Names and descriptions whose line breaks or spacing will not read back are listed in `changedText`.
  */
-export function buildPrimersXml(primers: readonly Primer[], now: Date, warnings: ParseWarning[]): string {
+export function buildPrimersXml(primers: readonly Primer[], now: Date, warnings: ParseWarning[], changedText: string[] = []): string {
   const dateAdded = isoSeconds(now);
   const written: string[] = [];
   primers.forEach((primer, index) => {
@@ -96,11 +97,12 @@ export function buildPrimersXml(primers: readonly Primer[], now: Date, warnings:
       warnings.push({ message: `Primer "${clip(name)}" has no sequence; not written.` });
       return;
     }
-    const description = primer.description !== undefined && primer.description.trim() !== '' ? plainToRichText(primer.description.trim()) : undefined;
+    const who = `Primer "${clip(name)}"`;
+    const description = primer.description !== undefined && primer.description.trim() !== '' ? storeOneLine(primer.description.trim(), `${who} description`, changedText) : undefined;
     written.push(
       xmlElement('Primer', [
         ['recentID', String(written.length)],
-        ['name', plainToRichText(name)],
+        ['name', storeOneLine(name, `${who} name`, changedText)],
         ['sequence', seq],
         ['description', description],
         ['dateAdded', dateAdded],

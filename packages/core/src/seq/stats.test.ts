@@ -44,14 +44,23 @@ const insideBiopythonBracket = (root: number) => root > 4.05 + 1e-4 && root < 12
 /** Bisection to an interval of at most 1e-4, midpoint returned: at most 5e-5 from the root. */
 const PI_RESOLUTION = 5e-5 + 1e-12;
 
+/** The isoelectric point wherever it lies (the default reproduces Biopython's [4.05, 12] bisection). */
+const UNBOUNDED = { interval: 'unbounded' } as const;
+
+/** Biopython 1.88 ProteinAnalysis(p).isoelectric_point() when the root lies below 4.05 / above 12. */
+const BIOPYTHON_LOW_BOUND = 4.0500284194946286;
+const BIOPYTHON_HIGH_BOUND = 11.999967765808105;
+
 /** True when pI is within PI_RESOLUTION of a sign change of the net charge (the isoelectric point). */
 function isChargeRoot(protein: string, pI: number): boolean {
   return proteinChargeAtPh(protein, pI - PI_RESOLUTION) > 0 && proteinChargeAtPh(protein, pI + PI_RESOLUTION) <= 0;
 }
 
-/** Expect the pI of `protein` to be `root` (the charge function's root to 1e-9) within the bisection resolution. */
+/** Expect the unbounded pI of `protein` to be `root` (the charge function's root to 1e-9) within the bisection resolution. */
 function expectPi(protein: string, root: number): void {
-  expect(Math.abs(proteinIsoelectricPoint(protein) - root), protein.slice(0, 30)).toBeLessThan(PI_RESOLUTION + 1e-9);
+  expect(Math.abs(proteinIsoelectricPoint(protein, UNBOUNDED) - root), protein.slice(0, 30)).toBeLessThan(
+    PI_RESOLUTION + 1e-9,
+  );
 }
 
 describe('stats vs Biopython (stats.json)', () => {
@@ -75,16 +84,19 @@ describe('stats vs Biopython (stats.json)', () => {
 
   it(`protein molecular weight, pI, charge and extinction on ${oracle.proteins.length} proteins`, () => {
     let maxMw = 0;
+    let maxPi = 0;
     let maxPiInBracket = 0;
     let maxPiRoot = 0;
     let maxCharge = 0;
     let outsideBracket = 0;
     for (const c of oracle.proteins) {
       maxMw = Math.max(maxMw, Math.abs(proteinMolecularWeight(c.protein) - c.mw));
-      const pI = proteinIsoelectricPoint(c.protein);
-      maxPiRoot = Math.max(maxPiRoot, Math.abs(pI - c.pIRoot));
+      // default: Biopython's isoelectric_point(), bound included where the root lies outside [4.05, 12]
+      maxPi = Math.max(maxPi, Math.abs(proteinIsoelectricPoint(c.protein) - c.pI));
+      const root = proteinIsoelectricPoint(c.protein, UNBOUNDED);
+      maxPiRoot = Math.max(maxPiRoot, Math.abs(root - c.pIRoot));
       if (insideBiopythonBracket(c.pIRoot)) {
-        maxPiInBracket = Math.max(maxPiInBracket, Math.abs(pI - c.pI));
+        maxPiInBracket = Math.max(maxPiInBracket, Math.abs(root - c.pI));
       } else if (Math.abs(c.pIRoot - 4.05) > 1e-4 && Math.abs(c.pIRoot - 12) > 1e-4) {
         // Biopython returns its bracket bound, which is not an isoelectric point
         outsideBracket++;
@@ -96,17 +108,19 @@ describe('stats vs Biopython (stats.json)', () => {
       expect(proteinExtinctionCoefficient(c.protein)).toEqual({ reduced: c.extinction[0], oxidized: c.extinction[1] });
     }
     expect(maxMw).toBeLessThan(1e-6);
-    expect(maxPiInBracket).toBeLessThan(1e-9); // same bisection as Biopython: identical up to rounding
-    expect(maxPiRoot).toBeLessThan(PI_RESOLUTION); // and every pI is the isoelectric point
+    expect(maxPi).toBeLessThan(1e-9); // same bisection as Biopython: identical up to rounding, for every protein
+    expect(maxPiInBracket).toBeLessThan(1e-9); // 'unbounded' is the same bisection inside [4.05, 12]
+    expect(maxPiRoot).toBeLessThan(PI_RESOLUTION); // and with 'unbounded' every pI is the isoelectric point
     expect(outsideBracket).toBeGreaterThan(40); // the acidic / basic cases of the oracle are exercised
     expect(maxCharge).toBeLessThan(1e-9);
   });
 
   it(`pI and extinction ignore ambiguous residues like Biopython (${oracle.ambiguousProteins.length} proteins)`, () => {
     for (const c of oracle.ambiguousProteins) {
-      const pI = proteinIsoelectricPoint(c.protein);
-      expect(Math.abs(pI - c.pIRoot)).toBeLessThan(PI_RESOLUTION);
-      if (insideBiopythonBracket(c.pIRoot)) expect(pI).toBeCloseTo(c.pI, 9);
+      expect(proteinIsoelectricPoint(c.protein)).toBeCloseTo(c.pI, 9);
+      const root = proteinIsoelectricPoint(c.protein, UNBOUNDED);
+      expect(Math.abs(root - c.pIRoot)).toBeLessThan(PI_RESOLUTION);
+      if (insideBiopythonBracket(c.pIRoot)) expect(root).toBeCloseTo(c.pI, 9);
       expect(proteinExtinctionCoefficient(c.protein)).toEqual({ reduced: c.extinction[0], oxidized: c.extinction[1] });
     }
   });
@@ -300,31 +314,44 @@ describe('protein statistics', () => {
     }
   });
 
-  // Review regression: Biopython's bisection only searches [4.05, 12] and returned its bound for
-  // proteins whose isoelectric point lies outside (FLAG tag, poly-Asp, prothymosin alpha, protamine).
-  it('does not clamp pI to Biopython\'s bisection interval [4.05, 12]', () => {
+  it('validates the interval option', () => {
+    expect(() => proteinIsoelectricPoint('MK', { interval: 'wide' as 'unbounded' })).toThrow(RangeError);
+    expect(proteinIsoelectricPoint('', UNBOUNDED)).toBeNaN();
+    expect(proteinIsoelectricPoint('MKED*', UNBOUNDED)).toBe(proteinIsoelectricPoint('MKED'));
+  });
+
+  // Review regression (opt-in since the spec makes Biopython's result the default): Biopython's
+  // bisection only searches [4.05, 12] and returns its bound for proteins whose isoelectric point lies
+  // outside (FLAG tag, poly-Asp, prothymosin alpha, protamine). interval 'unbounded' finds the root.
+  it("interval 'unbounded' does not clamp pI to Biopython's bisection interval [4.05, 12]", () => {
     // roots of Biopython's charge_at_pH, bisected in Python to 1e-12
-    expectPi('DDDDDDDDDD', 3.079698908); // Biopython isoelectric_point(): 4.05003
-    expectPi('KKKKKKKKKKRRRRRRRR', 12.852109764); // Biopython isoelectric_point(): 11.99997
+    expectPi('DDDDDDDDDD', 3.079698908);
+    expectPi('KKKKKKKKKKRRRRRRRR', 12.852109764);
+    // the default is Biopython's isoelectric_point(), the bound of its interval here
+    expect(proteinIsoelectricPoint('DDDDDDDDDD')).toBeCloseTo(BIOPYTHON_LOW_BOUND, 9);
+    expect(proteinIsoelectricPoint('KKKKKKKKKKRRRRRRRR')).toBeCloseTo(BIOPYTHON_HIGH_BOUND, 9);
     for (const p of ['DDDDDDDDDD', 'KKKKKKKKKKRRRRRRRR', 'D', 'DD', 'R', 'RR', 'E'.repeat(10)]) {
-      expect(isChargeRoot(p, proteinIsoelectricPoint(p)), p).toBe(true);
+      expect(isChargeRoot(p, proteinIsoelectricPoint(p, UNBOUNDED)), p).toBe(true);
     }
   });
 
-  it('pI is a root of the charge model, not clamped at 4.05 (FLAG tag, prothymosin alpha)', () => {
+  it("interval 'unbounded': pI is a root of the charge model, not clamped at 4.05 (FLAG tag, prothymosin alpha)", () => {
     const FLAG = 'DYKDDDDK'; // ExPASy Compute pI/Mw: 3.97
     // prothymosin alpha, UniProt P06454
     const PTMA =
       'MSDAAVDTSSEITTKDLKEKKEVVEEAENGRDAPANGNAENEENGEQEADNEVDEEEEEGGEEEEEEEEGDGEEEDGDEDEEAESATGKRAAEDDEDDDVDTKKQKTDEDD';
     for (const p of [FLAG, PTMA]) {
-      const pI = proteinIsoelectricPoint(p);
+      const pI = proteinIsoelectricPoint(p, UNBOUNDED);
       expect(Math.abs(proteinChargeAtPh(p, pI))).toBeLessThan(0.01);
+      // Biopython's (default) result is its bound, where the net charge is clearly negative
+      expect(proteinIsoelectricPoint(p)).toBeCloseTo(BIOPYTHON_LOW_BOUND, 9);
+      expect(proteinChargeAtPh(p, proteinIsoelectricPoint(p))).toBeLessThan(-0.2);
     }
-    expect(proteinIsoelectricPoint(FLAG)).toBeCloseTo(3.97, 2);
-    expect(proteinIsoelectricPoint(PTMA)).toBeCloseTo(3.69, 1);
+    expect(proteinIsoelectricPoint(FLAG, UNBOUNDED)).toBeCloseTo(3.97, 2);
+    expect(proteinIsoelectricPoint(PTMA, UNBOUNDED)).toBeCloseTo(3.69, 1);
   });
 
-  it('agrees with ExPASy Compute pI/Mw where the two charge models coincide', () => {
+  it("interval 'unbounded' agrees with ExPASy Compute pI/Mw where the two charge models coincide", () => {
     // ExPASy Compute pI/Mw (https://web.expasy.org/compute_pi/, average resolution), queried 2026-10-08;
     // UniProt sequences P06454 (prothymosin alpha), P04553 (protamine P1), P07305 (histone H1.0).
     // ExPASy uses the same Bjellqvist pKs except a C-terminal pK of 3.55 for every residue (Biopython:
@@ -353,7 +380,7 @@ describe('protein statistics', () => {
       ['VAVWLAT', 5.49],
     ];
     for (const [p, expasy] of sameModel) {
-      const pI = proteinIsoelectricPoint(p);
+      const pI = proteinIsoelectricPoint(p, UNBOUNDED);
       expect(Math.abs(pI - expasy), p.slice(0, 20)).toBeLessThanOrEqual(0.005 + PI_RESOLUTION);
       expect(isChargeRoot(p, pI)).toBe(true);
     }
@@ -368,20 +395,27 @@ describe('protein statistics', () => {
     expectPi('D'.repeat(12000), -0.029156512);
   });
 
-  it('pI is the root of the charge, which decreases with pH (seeded random)', () => {
+  it("interval 'unbounded': pI is the root of the charge, which decreases with pH (seeded random)", () => {
     const rand = seededRandom(11);
+    let inside = 0;
     for (let i = 0; i < 100; i++) {
       const p = randomString(rand, 'ACDEFGHIKLMNPQRSTVWY', 1 + Math.floor(rand() * 300));
-      const pI = proteinIsoelectricPoint(p);
+      const pI = proteinIsoelectricPoint(p, UNBOUNDED);
       expect(isChargeRoot(p, pI), p).toBe(true);
       expect(Math.abs(proteinChargeAtPh(p, pI))).toBeLessThan(0.01);
       expect(proteinChargeAtPh(p, 3)).toBeGreaterThan(proteinChargeAtPh(p, 7));
       expect(proteinChargeAtPh(p, 7)).toBeGreaterThan(proteinChargeAtPh(p, 11));
+      // inside Biopython's interval the default is the very same number
+      if (insideBiopythonBracket(pI)) {
+        inside++;
+        expect(proteinIsoelectricPoint(p), p).toBe(pI);
+      }
     }
+    expect(inside).toBeGreaterThan(80);
     // very acidic and very basic compositions, including ones far outside [4.05, 12]
     for (let i = 0; i < 100; i++) {
       const p = randomString(rand, i % 2 === 0 ? 'DEDEDEK' : 'KRKRKRD', 1 + Math.floor(rand() * 2000));
-      expect(isChargeRoot(p, proteinIsoelectricPoint(p)), p.slice(0, 30)).toBe(true);
+      expect(isChargeRoot(p, proteinIsoelectricPoint(p, UNBOUNDED)), p.slice(0, 30)).toBe(true);
     }
   });
 

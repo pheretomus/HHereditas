@@ -2,7 +2,14 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { HAS_VENV, ORACLE_DIR, REPO_ROOT, VENV_PYTHON, loadOracle } from '../../test/oracle/seqtools/oracle';
+import {
+  HAS_VENV,
+  ORACLE_DIR,
+  REPO_ROOT,
+  VENV_PYTHON,
+  loadOracle,
+  parseGcPrt,
+} from '../../test/oracle/seqtools/oracle';
 import { GENETIC_CODES, NCBI_CODON_ORDER, getGeneticCode } from './codon-tables';
 
 interface OracleTable {
@@ -14,24 +21,6 @@ interface OracleTable {
 }
 
 const oracle = loadOracle<{ tables: OracleTable[] }>('tables.json');
-
-/** Parse NCBI's gc.prt (ASN.1 text) into id -> {names, ncbieaa, sncbieaa}. */
-function parseGcPrt(text: string): Map<number, { names: string[]; ncbieaa: string; sncbieaa: string }> {
-  const body = text
-    .split('\n')
-    .filter((line) => !line.trimStart().startsWith('--'))
-    .join('\n');
-  const out = new Map<number, { names: string[]; ncbieaa: string; sncbieaa: string }>();
-  for (const block of body.match(/\{[^{}]*\}/g) ?? []) {
-    const id = /\bid\s+(\d+)/.exec(block);
-    const aa = /\bncbieaa\s+"([^"]+)"/.exec(block);
-    const starts = /\bsncbieaa\s+"([^"]+)"/.exec(block);
-    if (!id || !aa || !starts) continue;
-    const names = [...block.matchAll(/name\s+"([^"]*)"/g)].map((m) => m[1].replace(/\s+/g, ' '));
-    out.set(Number(id[1]), { names, ncbieaa: aa[1], sncbieaa: starts[1] });
-  }
-  return out;
-}
 
 describe('NCBI_CODON_ORDER', () => {
   it('lists the 64 codons in TCAG order', () => {

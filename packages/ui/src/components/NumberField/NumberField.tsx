@@ -110,7 +110,7 @@ export function NumberField({
   };
 
   return (
-    <span className={cx(styles.root, className)} style={width !== undefined ? { width } : undefined}>
+    <span className={cx(styles.root, className)} style={width !== undefined ? { width } : undefined} data-tauri-drag-region="false">
       <TextField
         {...rest}
         ref={setRef}

@@ -85,19 +85,133 @@ function convertElement(name: string, node: FxpNode): XmlElement {
   return { name, attributes, children, text };
 }
 
+// ---------------------------------------------------------------------------
+// Well-formedness check in linear time
+// ---------------------------------------------------------------------------
+//
+// fast-xml-parser's XMLValidator (5.11.2, src/validator.js `scanAttributeTokens`) is quadratic in
+// one case: inside a tag, a '=' with no attribute name before it (`<Feature    =/>`,
+// `a="x"    ="y"`, `a=    =`) makes the attribute scanner restart one character further on and
+// rescan the whole whitespace run in front of the '=', so k blanks cost O(k^2) - minutes for a
+// 1 MB packet. All other inputs, and XMLParser itself, are linear (measured on 24 hostile
+// patterns). The validator only ever checks that whitespace is present, never how much there is
+// (its whitespace is exactly ' ', TAB, LF, CR), so it is run on a copy in which each whitespace run
+// directly in front of a '=' is shortened to its first character. That gives the same verdict in
+// linear time; the positions in its error messages are mapped back to the original text.
+
+/** Whitespace as fast-xml-parser's validator defines it (validator.js `isWhiteSpace`). */
+function isValidatorSpace(code: number): boolean {
+  return code === 0x20 || code === 0x09 || code === 0x0a || code === 0x0d;
+}
+
+const EQUALS_SIGN = 0x3d;
+
+/** A text with some whitespace runs shortened, and how to map its positions back. */
+interface ShortenedText {
+  text: string;
+  /** Index in `text` of the character kept from each shortened run, ascending. */
+  keptAt: number[];
+  /** Total number of characters removed by the runs up to and including run k. */
+  removedThrough: number[];
+}
+
+/** `source` with every whitespace run of 2+ characters directly in front of a '=' shortened to its first character. */
+function shortenSpaceBeforeEquals(source: string): ShortenedText {
+  const parts: string[] = [];
+  const keptAt: number[] = [];
+  const removedThrough: number[] = [];
+  let copiedTo = 0;
+  let length = 0;
+  let removed = 0;
+  let i = 0;
+  while (i < source.length) {
+    if (!isValidatorSpace(source.charCodeAt(i))) {
+      i++;
+      continue;
+    }
+    let end = i + 1;
+    while (end < source.length && isValidatorSpace(source.charCodeAt(end))) end++;
+    if (end - i > 1 && source.charCodeAt(end) === EQUALS_SIGN) {
+      parts.push(source.slice(copiedTo, i + 1));
+      length += i + 1 - copiedTo;
+      keptAt.push(length - 1);
+      removed += end - i - 1;
+      removedThrough.push(removed);
+      copiedTo = end;
+    }
+    i = end;
+  }
+  if (keptAt.length === 0) return { text: source, keptAt, removedThrough };
+  parts.push(source.slice(copiedTo));
+  return { text: parts.join(''), keptAt, removedThrough };
+}
+
+/** Index in `text` of a validator position (1-based line and column; lines end at '\n', as in validator.js). */
+function indexOfPosition(text: string, line: number, col: number): number {
+  let start = 0;
+  for (let n = 1; n < line; n++) {
+    const newline = text.indexOf('\n', start);
+    if (newline < 0) break;
+    start = newline + 1;
+  }
+  return start + col - 1;
+}
+
+/** The validator's 1-based line and column of `index` in `text` (validator.js `getLineNumberForPosition`). */
+function positionOfIndex(text: string, index: number): { line: number; col: number } {
+  let line = 1;
+  let start = 0;
+  for (let newline = text.indexOf('\n'); newline >= 0 && newline < index; newline = text.indexOf('\n', newline + 1)) {
+    line++;
+    start = newline + 1;
+  }
+  return { line, col: index - start + 1 };
+}
+
+/** Map a validator position in the shortened text to the same character's position in the original text. */
+function originalPosition(original: string, shortened: ShortenedText, line: number, col: number): { line: number; col: number } {
+  if (shortened.keptAt.length === 0) return { line, col };
+  const index = indexOfPosition(shortened.text, line, col);
+  // Characters removed in front of `index`: those of every run whose kept character comes before it.
+  let low = 0;
+  let high = shortened.keptAt.length;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if (shortened.keptAt[mid] < index) low = mid + 1;
+    else high = mid;
+  }
+  return positionOfIndex(original, index + (low === 0 ? 0 : shortened.removedThrough[low - 1]));
+}
+
+/**
+ * Check that `source` is well-formed XML, with the verdict and messages of fast-xml-parser's
+ * XMLValidator but in linear time (see above). Returns undefined when it is, else the validator's
+ * message with its position(s) in `source` (1-based line and column; exported for tests).
+ */
+export function wellFormednessError(source: string): string | undefined {
+  const text = source.charCodeAt(0) === 0xfeff ? source.slice(1) : source; // the validator skips a byte order mark
+  const shortened = shortenSpaceBeforeEquals(text);
+  const validation = XMLValidator.validate(shortened.text);
+  if (validation === true) return undefined;
+  const { msg, line, col } = validation.err;
+  const message = msg.replace(/\(opened in line (\d+), col (\d+)\)/, (_whole, openLine: string, openCol: string) => {
+    const opened = originalPosition(text, shortened, Number(openLine), Number(openCol));
+    return `(opened in line ${opened.line}, col ${opened.col})`;
+  });
+  if (col === undefined) return `${message} (line ${line})`;
+  const at = originalPosition(text, shortened, line, col);
+  return `${message} (line ${at.line}, column ${at.col})`;
+}
+
 /**
  * Parse an XML document and return its root element. The document is first checked for
- * well-formedness; malformed input yields `{ ok: false }` with the validator's message
- * (never an exception).
+ * well-formedness (in linear time); malformed input yields `{ ok: false }` with the validator's
+ * message (never an exception).
  */
 export function parseXml(source: string): XmlParseOutcome {
   try {
-    const validation = XMLValidator.validate(source);
-    if (validation !== true) {
-      const { msg, line, col } = validation.err;
-      const where = col === undefined ? `line ${line}` : `line ${line}, column ${col}`;
-      return { ok: false, error: `${msg} (${where})` };
-    }
+    const error = wellFormednessError(source);
+    if (error !== undefined) return { ok: false, error };
     const nodes: unknown = new XMLParser(PARSER_OPTIONS).parse(source);
     if (Array.isArray(nodes)) {
       for (const node of nodes as FxpNode[]) {
@@ -426,4 +540,28 @@ export function textToHtmlDocument(text: string): string {
  */
 export function plainToRichText(text: string): string {
   return looksLikeHtml(text) ? textToHtmlDocument(text) : text;
+}
+
+/**
+ * True if the reader gets `text` back from `stored` - the value as the writer stores it
+ * ({@link plainToRichText}, or {@link textToHtmlDocument} for multi-line comments) - read in
+ * `layout`, up to what never matters in free text: the line-break style (CR LF and CR read back as
+ * LF) and blanks at either end. False when the reader's layout changes the text: in 'line' layout
+ * every line break becomes a space, and in text stored as HTML runs of blanks (spaces, tabs,
+ * non-breaking spaces, ...) collapse to one space and blanks around line breaks are dropped, as in
+ * a browser. Linear time; lets the writer report such changes instead of making them silently.
+ */
+export function readsBackAsWritten(text: string, stored: string, layout: TextLayout): boolean {
+  return richTextToPlain(stored, layout) === normalizeLineBreaks(text).trim();
+}
+
+/**
+ * `text` encoded for a one-line SnapGene field (names, descriptions, qualifier values; see
+ * {@link plainToRichText}). When the reader will not get it back as written (see
+ * {@link readsBackAsWritten}), `label` - what the field is, for a warning - is added to `changed`.
+ */
+export function storeOneLine(text: string, label: string, changed: string[]): string {
+  const stored = plainToRichText(text);
+  if (!readsBackAsWritten(text, stored, 'line')) changed.push(label);
+  return stored;
 }

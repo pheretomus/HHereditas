@@ -167,7 +167,7 @@ export function fromBase64(text: string): Uint8Array {
 export const DOCUMENTED_DEVIATIONS: Readonly<Record<string, string>> = {
   html: 'SnapGene HTML rich text: we also decode character references (&amp;amp; -> &), collapse whitespace and render block elements as spaces; Biopython only strips tags',
   predef: 'controlled-vocabulary prefix kept: <V text="238030067" predef="GI"/> is "GI:238030067"; Biopython keeps only the text',
-  translation: 'SnapGene segment separators (",") and the final stop ("*") are removed from /translation',
+  translation: 'SnapGene segment separators (",") and the final stop ("*") are removed from /translation, and its "?" for a codon with ambiguous bases becomes the INSDC "X"',
   'plain-markup': 'plain values containing "<...>" are kept verbatim; Biopython strips anything tag-like even from plain text',
   'duplicate-q': 'several <Q> elements with the same name: we keep every value; Biopython keeps the last element only',
   'no-value': 'a <Q> without <V> is a value-less qualifier (null); Biopython stores an empty list',
@@ -175,7 +175,12 @@ export const DOCUMENTED_DEVIATIONS: Readonly<Record<string, string>> = {
   'reading-frame': "SnapGene's readingFrame sets /codon_start on directional features: frames 2/3 add it, and a stale /codon_start that disagrees is replaced; Biopython ignores readingFrame",
   'label-first': 'the SnapGene name is inserted as the first /label; Biopython adds a /name qualifier instead',
   'strand-0': 'directionality absent/0/3 is strand 0; Biopython reads it as +1',
+  'notes-merged':
+    'several Notes packets are read as one (later fields win, a field missing from a later packet keeps its earlier value); Biopython reads them one by one and takes the division from the last packet alone (UNC unless its Type is Synthetic)',
 };
+
+/** Deviations counted per feature or per file rather than per qualifier value. */
+export const NON_QUALIFIER_DEVIATIONS: readonly string[] = ['strand-0', 'notes-merged'];
 
 /** Tally of compared items, keyed by category. */
 export type Tally = Record<string, number>;
@@ -214,7 +219,7 @@ export function compareFeatureWithBiopython(ours: Feature, expected: ExpectedFea
     if (category === 'unexplained') problems.push(`${describe}: unexplained difference`);
     else if (category === 'same' && value !== String(bioValue)) problems.push(`${describe}: expected the same value`);
     else if (category === 'predef' && !(value ?? '').endsWith(`:${String(bioValue)}`)) problems.push(`${describe}: not a predef prefix`);
-    else if (category === 'translation' && value !== String(bioValue).replace(/,/g, '').replace(/\*$/, '')) problems.push(`${describe}: not a translation clean-up`);
+    else if (category === 'translation' && value !== String(bioValue).replace(/,/g, '').replace(/\*$/, '').replace(/\?/g, 'X')) problems.push(`${describe}: not a translation clean-up`);
     else if (!(category in DOCUMENTED_DEVIATIONS) && category !== 'same') problems.push(`${describe}: unknown category ${category}`);
   });
   return problems;
@@ -224,8 +229,12 @@ const MONTH_NUMBER: Readonly<Record<string, string>> = {
   JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12',
 };
 
-/** Compare record-level fields with Biopython's reading of the whole file. */
-export function compareRecordWithBiopython(ours: SeqRecord, bio: BiopythonFile, tally: Tally): string[] {
+/** SnapGene packet type of the Notes packets (0x06). */
+const NOTES_PACKET = 0x06;
+
+/** Compare record-level fields with Biopython's reading of the whole file (`entry.raw` tells how many Notes packets it has). */
+export function compareRecordWithBiopython(ours: SeqRecord, entry: Pick<OracleEntry, 'biopython' | 'raw'>, tally: Tally): string[] {
+  const bio = entry.biopython;
   if (bio.error !== undefined) {
     bump(tally, 'file rejected by Biopython');
     return [];
@@ -238,7 +247,10 @@ export function compareRecordWithBiopython(ours: SeqRecord, bio: BiopythonFile, 
   // Biopython derives the description from the Comments field; we read Description and keep Comments in meta.comments.
   if (bio.description !== '<unknown description>' && ours.meta.comments === undefined) problems.push('Biopython found Comments but we did not');
   if (bio.description !== '<unknown description>' && bio.description === ours.meta.comments?.[0]) bump(tally, 'comments same as Biopython description');
-  if ((bio.division === 'SYN') !== (ours.meta.division === 'SYN')) problems.push(`division ${String(ours.meta.division)} vs ${String(bio.division)}`);
+  // Biopython sets the division from each Notes packet in turn, so the last one decides; we merge the
+  // packets (snapgene-notes.ts), so with several Notes packets the divisions may differ ('notes-merged').
+  if (entry.raw.packets.filter(([type]) => type === NOTES_PACKET).length > 1) bump(tally, 'notes-merged');
+  else if ((bio.division === 'SYN') !== (ours.meta.division === 'SYN')) problems.push(`division ${String(ours.meta.division)} vs ${String(bio.division)}`);
   if (bio.date) {
     const [year, month, day] = bio.date.split('-');
     const ourDate = ours.meta.date === undefined ? undefined : `${ours.meta.date.slice(7)}-${MONTH_NUMBER[ours.meta.date.slice(3, 6)]}-${ours.meta.date.slice(0, 2)}`;

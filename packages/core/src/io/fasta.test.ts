@@ -146,6 +146,26 @@ describe('writeFasta', () => {
     expect(text).toBe('>p plasmid [topology=circular]\nACGT\n');
     expect(parseFasta(text).records[0].topology).toBe('circular');
   });
+
+  it('never lets modifier text in the name or description change the topology read back (verifier finding)', () => {
+    // A linear record whose description held '[topology=circular]' was written verbatim and read
+    // back (here and by NCBI tools) as circular, which changes every digest of the molecule.
+    const cases: [Partial<SeqRecord>, string][] = [
+      [{ name: 'pX', description: 'vector [topology=circular]', topology: 'linear' }, '>pX vector\nACGT\n'],
+      [{ name: 'pX[topology=circular]', description: '', topology: 'linear' }, '>pX\nACGT\n'],
+      [{ name: 'pX', description: 'see [Topology = Circular ] note', topology: 'linear' }, '>pX see note\nACGT\n'],
+      [{ name: 'pX', description: 'vector [topology=linear]', topology: 'circular' }, '>pX vector [topology=circular]\nACGT\n'],
+      [{ name: '[topology=linear]', description: '', topology: 'circular' }, '>Untitled [topology=circular]\nACGT\n'],
+    ];
+    for (const [fields, expected] of cases) {
+      const record = rec('ACGT', fields);
+      const text = writeFasta(record);
+      expect(text).toBe(expected);
+      const back = parseFasta(text);
+      expect(back.warnings).toEqual([]);
+      expect(back.records[0].topology).toBe(record.topology);
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------

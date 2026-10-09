@@ -228,6 +228,28 @@ describe('SnapGene reader/writer: linear time on crafted input', () => {
     expect(ms).toBeLessThan(LINEAR_TIME_BUDGET_MS);
   }, 120_000);
 
+  it('reads XML packets with long whitespace runs in front of a "=" without an attribute name (XMLValidator is quadratic there)', () => {
+    // The reviewed reproduction: 100 KB of blanks between the tag name and a '=' took 9.4 s.
+    const blanks = readTime(crafted('ACGTACGTAC', [0x0a, `<Features><Feature${' '.repeat(100_000)}=/></Features>`]));
+    expect(blanks.value.warnings.map((w) => w.message)).toEqual(['Feature #1 has no valid segment; feature skipped.']);
+    expect(blanks.ms).toBeLessThan(LINEAR_TIME_BUDGET_MS);
+    // 250 KB runs of tabs / line breaks after a value took about a minute; the packet is malformed and
+    // the reported position is the one in the original text (line 250 002 after 250 000 line breaks).
+    const tabs = readTime(crafted('ACGTACGTAC', [0x0a, `<Features><Feature name="x"${'\t'.repeat(250_000)}="y"><Segment range="1-4"/></Feature></Features>`]));
+    expect(tabs.value.warnings[0].message).toMatch(/^Could not read the features of the SnapGene file \(packet 0x0a at offset 35: Attribute '"y"' has no space in starting\. \(line 1, column 250029\)\)/);
+    expect(tabs.ms).toBeLessThan(LINEAR_TIME_BUDGET_MS);
+    const lines = readTime(crafted('ACGTACGTAC', [0x0a, `<Features>\n<Feature name="x"${'\n'.repeat(250_000)}="y"><Segment range="1-4"/></Feature></Features>`]));
+    expect(lines.value.warnings[0].message).toMatch(/\(packet 0x0a at offset 35: Attribute '"y"' has no space in starting\. \(line 250002, column 2\)\)/);
+    expect(lines.ms).toBeLessThan(LINEAR_TIME_BUDGET_MS);
+    // Any XML packet: primers, notes and sequence properties go through the same check.
+    const primers = readTime(crafted('ACGTACGTAC', [0x05, `<Primers><Primer name="p" sequence="ACGTAC"${' '.repeat(250_000)}=/></Primers>`]));
+    expect(primers.value.records[0].primers.map((p) => p.sequence)).toEqual(['ACGTAC']);
+    expect(primers.ms).toBeLessThan(LINEAR_TIME_BUDGET_MS);
+    const notes = readTime(crafted('ACGTACGTAC', [0x06, `<Notes><Description a=${'\r\n'.repeat(125_000)}=>kept</Description></Notes>`]));
+    expect(notes.value.warnings[0].message).toMatch(/^Could not read the notes of the SnapGene file \(packet 0x06 at offset 35: Attribute 'a' is without value\./);
+    expect(notes.ms).toBeLessThan(LINEAR_TIME_BUDGET_MS);
+  }, 120_000);
+
   it('writes a record read from a SnapGene file with 10 000 unknown notes fields that have attributes', () => {
     const extras: Record<string, string> = {};
     for (let i = 0; i < 10_000; i++) {
@@ -278,18 +300,21 @@ describe('SnapGene reader: warning size', () => {
   it('clips untrusted text quoted in warnings (names, ranges, attribute values, root elements)', () => {
     const long = 'n'.repeat(50_000);
     const feature = (attributes: string, segment = '<Segment range="1-2"/>') => `<Feature ${attributes}>${segment}</Feature>`;
-    const all = [
-      ...messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature(`name="${long}" directionality="${long}"`)}</Features>`])),
-      ...messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature('name="r"', `<Segment range="${long}"/>`)}</Features>`])),
-      ...messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature('name="r"', `<Segment range="9${' '.repeat(50_000)}-2"/>`)}</Features>`])),
-      ...messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature(`name="f" directionality="1" readingFrame="${long}"`)}</Features>`])),
-      ...messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature('name="f" directionality="1" readingFrame="2"', `<Segment range="1-9"/><Q name="codon_start"><V text="${long}"/></Q>`)}</Features>`])),
-      ...messages(crafted('ACGTACGTAC', [0x0a, `<${long}/>`])),
-      ...messages(crafted('ACGTACGTAC', [0x05, `<Primers><Primer name="${long}" sequence="ACx"/><Primer name="${long}"/></Primers>`])),
-      ...messages(crafted('ACGTACGTAC', [0x05, `<Primers><Primer name="p" sequence="${Array.from({ length: 5000 }, (_, i) => String.fromCodePoint(0x4e00 + i)).join('')}"/></Primers>`])),
-      ...messages(crafted('ACGTACGTAC', [0x08, `<AdditionalSequenceProperties><UpstreamStickiness>${long}</UpstreamStickiness></AdditionalSequenceProperties>`])),
+    const perFile = [
+      messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature(`name="${long}" directionality="${long}"`)}</Features>`])),
+      messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature('name="r"', `<Segment range="${long}"/>`)}</Features>`])),
+      messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature('name="r"', `<Segment range="9${' '.repeat(50_000)}-2"/>`)}</Features>`])),
+      messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature(`name="f" directionality="1" readingFrame="${long}"`)}</Features>`])),
+      messages(crafted('ACGTACGTAC', [0x0a, `<Features>${feature('name="f" directionality="1" readingFrame="2"', `<Segment range="1-9"/><Q name="codon_start"><V text="${long}"/></Q>`)}</Features>`])),
+      messages(crafted('ACGTACGTAC', [0x0a, `<${long}/>`])),
+      messages(crafted('ACGTACGTAC', [0x05, `<Primers><Primer name="${long}" sequence="ACx"/><Primer name="${long}"/></Primers>`])),
+      messages(crafted('ACGTACGTAC', [0x05, `<Primers><Primer name="p" sequence="${Array.from({ length: 5000 }, (_, i) => String.fromCodePoint(0x4e00 + i)).join('')}"/></Primers>`])),
+      messages(crafted('ACGTACGTAC', [0x08, `<AdditionalSequenceProperties><UpstreamStickiness>${long}</UpstreamStickiness></AdditionalSequenceProperties>`])),
     ];
-    expect(all).toHaveLength(11);
+    // Per file: directionality; invalid range + feature skipped; range wrapping a linear sequence;
+    // readingFrame; /codon_start; root element; removed characters + primer without sequence (twice); stickiness.
+    expect(perFile.map((m) => m.length)).toEqual([1, 2, 1, 1, 1, 1, 2, 2, 1]);
+    const all = perFile.flat();
     for (const message of all) expect(message.length, message.slice(0, 200)).toBeLessThan(500);
     // The clipped text says how long the original was.
     expect(all[0]).toMatch(/^Feature "n{60,}… \(50000 characters\)": unknown directionality "n{60,}… \(50000 characters\)"; read as non-directional\.$/);

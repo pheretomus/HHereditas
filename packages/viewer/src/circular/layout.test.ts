@@ -2,7 +2,7 @@ import type { EnzymeSite, Feature, Orf, PrimerBindingSite, Range, SeqRecord } fr
 import { mod, rangesOverlap } from '@hhereditas/core';
 import { describe, expect, it } from 'vitest';
 import { SAMPLES, type SampleName } from '../fixtures';
-import { arcLength, cartesianToPolar, distanceToSegment } from './geometry';
+import { arcLength, cartesianToPolar, distanceToSegment, positionToAngle } from './geometry';
 import {
   type LabelPlacement,
   type MapGeometry,
@@ -11,6 +11,7 @@ import {
   buildMapModel,
   computeGeometry,
   cutLabelPosition,
+  featurePieces,
   labelsOverlap,
   placeLabels,
   spreadPositions,
@@ -458,6 +459,88 @@ describe('geometry', () => {
     expect(shape.segments).toHaveLength(3);
     expect(shape.connectors.match(/M/g)).toHaveLength(2);
     expect(shape.d.match(/M/g)).toHaveLength(3);
+  });
+
+  it('draws short primers as visible arrows with the tip on the 3′ end, stacking neighbours that would touch', () => {
+    const L = 5000;
+    const primers = ['a', 'b', 'c'].map((id) => ({ id, name: id.toUpperCase(), sequence: 'ACGTACGTACGTACGTACGT' }));
+    const site = (primerId: string, start: number, strand: 1 | -1): PrimerBindingSite => ({
+      primerId,
+      strand,
+      range: { start, end: start + 20 },
+      annealedLength: 20,
+      mismatches: 0,
+      tailLength: 0,
+    });
+    // b starts 30 bp after a ends: disjoint, but their lengthened arrows would touch
+    const primerSites = [site('a', 1000, 1), site('b', 1050, 1), site('c', 3000, -1)];
+    const g = geometryFor(rec(L, [], { primers }), 900, 700, { primerSites });
+    const [a, b, c] = g.primers;
+    expect(a.item.lane).not.toBe(b.item.lane);
+    expect(c.item.lane).toBe(0);
+    for (const p of g.primers) {
+      expect(arcLength((p.rIn + p.rOut) / 2, p.a1 - p.a0)).toBeGreaterThanOrEqual(14 - 1e-6);
+    }
+    // the tip stays exactly on the 3' end: a1 for forward primers, a0 for reverse ones
+    expect(a.a1).toBeCloseTo(positionToAngle(g.scale, 1020), 9);
+    expect(c.a0).toBeCloseTo(positionToAngle(g.scale, 3000), 9);
+    // outside the backbone, clear of the enzyme cut ticks
+    expect(Math.min(...g.primers.map((p) => p.rIn))).toBeGreaterThan(g.radius + 5);
+  });
+
+  it('never lets primer arrows on the same lane overlap as drawn (random sites, all sizes)', () => {
+    const rand = rng(11);
+    const overlaps = (p: { a0: number; a1: number }, q: { a0: number; a1: number }) =>
+      mod(q.a0 - p.a0, 360) < p.a1 - p.a0 - 1e-6 || mod(p.a0 - q.a0, 360) < q.a1 - q.a0 - 1e-6;
+    for (let trial = 0; trial < 12; trial++) {
+      const L = 2000 + Math.floor(rand() * 9000);
+      const topology = trial % 3 === 2 ? 'linear' : 'circular';
+      const primers = [{ id: 'p', name: 'P', sequence: 'ACGT' }];
+      const primerSites: PrimerBindingSite[] = Array.from({ length: 6 + Math.floor(rand() * 8) }, () => {
+        const len = 16 + Math.floor(rand() * 14);
+        const start = Math.floor(rand() * (L - len));
+        return { primerId: 'p', strand: rand() < 0.5 ? 1 : -1, range: { start, end: start + len }, annealedLength: len, mismatches: 0, tailLength: 0 };
+      });
+      for (const [w, h] of [[400, 400], [900, 600], [1600, 1000]]) {
+        const g = geometryFor(rec(L, [], { primers, topology }), w, h, { primerSites });
+        for (let i = 0; i < g.primers.length; i++) {
+          for (let j = i + 1; j < g.primers.length; j++) {
+            const [p, q] = [g.primers[i], g.primers[j]];
+            // lanes beyond the third share the outermost one (MAX_PRIMER_LANES)
+            if (p.item.lane !== q.item.lane || p.item.lane >= 3) continue;
+            expect(overlaps(p, q)).toBe(false);
+          }
+        }
+      }
+    }
+  });
+
+  it('draws a join split at the origin as one continuous piece', () => {
+    const L = 3000;
+    const join: Feature = {
+      id: 'j',
+      type: 'CDS',
+      name: 'across origin',
+      strand: 1,
+      segments: [
+        { start: 2700, end: 3000 },
+        { start: 0, end: 180 },
+      ],
+      qualifiers: [],
+    };
+    expect(featurePieces(join, L, 'circular')).toEqual([{ start: 2700, end: 3180 }]);
+    // not contiguous, or contiguous only on a circular molecule: kept apart
+    expect(featurePieces(join, L, 'linear')).toHaveLength(2);
+    expect(featurePieces({ ...join, segments: [{ start: 0, end: 180 }, { start: 2700, end: 3000 }] }, L, 'circular')).toHaveLength(2);
+    expect(featurePieces({ ...join, segments: [{ start: 100, end: 200 }, { start: 200, end: 300 }] }, L, 'linear')).toEqual([
+      { start: 100, end: 300 },
+    ]);
+    const g = geometryFor(rec(L, [join]), 800, 800);
+    const shape = g.features[0];
+    expect(shape.segments).toHaveLength(1);
+    expect(shape.connectors).toBe('');
+    expect(shape.d.match(/M/g)).toHaveLength(1);
+    expect(shape.a1 - shape.a0).toBeCloseTo((480 / L) * 360, 9);
   });
 
   it('rotates every annotation with the map', () => {

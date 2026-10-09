@@ -4,8 +4,17 @@
  */
 export { AppShell, INSPECTOR_LIMITS, SIDEBAR_LIMITS } from './AppShell';
 export type { AppShellProps } from './AppShell';
-export { ToolbarContent, ENZYME_DISPLAY_LABELS, TOOLBAR_DENSITY, toolbarDensity } from './ToolbarContent';
-export type { ToolbarContentProps, ToolbarDensity } from './ToolbarContent';
+export {
+  ToolbarContent,
+  DEFAULT_ENZYME_DISPLAY_OPTIONS,
+  DEFAULT_TOOLBAR_SHORTCUTS,
+  ENZYME_DISPLAY_LABELS,
+  enzymeMenuChoices,
+  TOOLBAR_DENSITY,
+  searchFieldWidth,
+  toolbarDensity,
+} from './ToolbarContent';
+export type { ToolbarContentProps, ToolbarDensity, ToolbarShortcuts } from './ToolbarContent';
 export { Sidebar } from './Sidebar';
 export type { SidebarProps, SidebarSectionId } from './Sidebar';
 export { MainArea } from './MainArea';
@@ -14,7 +23,9 @@ export { VisualizationPlaceholder } from './VisualizationPlaceholder';
 export type { VisualizationPlaceholderProps } from './VisualizationPlaceholder';
 export { Inspector, CompositionBar, formatFeatureLocation } from './Inspector';
 export type { FeatureEdit, InspectorCardId, InspectorProps } from './Inspector';
-export { FeatureColorWell, readSwatchPalette } from './FeatureColorWell';
+export { QualifierEditor, keyColumnWidth, qualifiersFromRows, sameQualifiers } from './QualifierEditor';
+export type { QualifierEditorProps } from './QualifierEditor';
+export { FeatureColorWell, readSwatchPalette, resolveHexColor } from './FeatureColorWell';
 export type { FeatureColorWellProps } from './FeatureColorWell';
 export { StatusBar } from './StatusBar';
 export type { StatusBarProps } from './StatusBar';

@@ -10,8 +10,11 @@ export interface ToolbarProps extends ComponentPropsWithRef<'div'> {
 }
 
 /**
- * Horizontal bar of controls. The bar and its non-interactive children carry
- * `data-tauri-drag-region`, so empty toolbar space drags the window (Tauri).
+ * Horizontal bar of controls. Empty toolbar space drags the window (Tauri). The bar and its
+ * passive parts are `deep` drag regions: a mouse-down on any non-interactive descendant
+ * drags, while buttons, fields and other focusable controls keep their clicks. (A plain
+ * attribute on a wrapper would stop Tauri's ancestor walk and block the `deep` region for
+ * that wrapper's own children, so every passive wrapper uses `deep`.)
  */
 export function Toolbar({ size = 'window', className, children, ...rest }: ToolbarProps) {
   return (
@@ -19,7 +22,7 @@ export function Toolbar({ size = 'window', className, children, ...rest }: Toolb
       role="toolbar"
       aria-orientation="horizontal"
       data-hh-toolbar=""
-      data-tauri-drag-region=""
+      data-tauri-drag-region="deep"
       className={cx(styles.toolbar, styles[size], className)}
       {...rest}
     >
@@ -36,7 +39,7 @@ export interface ToolbarGroupProps extends ComponentPropsWithRef<'div'> {
 /** Visually groups related toolbar items (tighter spacing inside the group). */
 export function ToolbarGroup({ label, className, children, ...rest }: ToolbarGroupProps) {
   return (
-    <div role="group" aria-label={label} data-tauri-drag-region="" className={cx(styles.group, className)} {...rest}>
+    <div role="group" aria-label={label} data-tauri-drag-region="deep" className={cx(styles.group, className)} {...rest}>
       {children}
     </div>
   );
@@ -53,7 +56,7 @@ export function ToolbarSpacer({ width, className }: ToolbarSpacerProps) {
   return (
     <div
       aria-hidden
-      data-tauri-drag-region=""
+      data-tauri-drag-region="deep"
       className={cx(width === undefined ? styles.flexSpacer : styles.spacer, className)}
       style={width === undefined ? undefined : { width }}
     />
@@ -71,15 +74,15 @@ export interface ToolbarTitleProps extends Omit<ComponentPropsWithRef<'div'>, 't
 /** Window title with an optional subtitle, as in macOS unified toolbars. */
 export function ToolbarTitle({ title, subtitle, accessory, className, ...rest }: ToolbarTitleProps) {
   return (
-    <div data-tauri-drag-region="" className={cx(styles.title, className)} {...rest}>
-      <div data-tauri-drag-region="" className={styles.titleRow}>
-        <span data-tauri-drag-region="" className={styles.titleText}>
+    <div data-tauri-drag-region="deep" className={cx(styles.title, className)} {...rest}>
+      <div data-tauri-drag-region="deep" className={styles.titleRow}>
+        <span data-tauri-drag-region="deep" className={styles.titleText}>
           {title}
         </span>
         {accessory}
       </div>
       {subtitle != null ? (
-        <div data-tauri-drag-region="" className={styles.subtitle}>
+        <div data-tauri-drag-region="deep" className={styles.subtitle}>
           {subtitle}
         </div>
       ) : null}

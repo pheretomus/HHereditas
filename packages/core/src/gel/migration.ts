@@ -21,10 +21,17 @@
  *    ({@link DYE_COMIGRATION_BP}; Green & Sambrook 2012 as tabulated by Thermo Fisher) must sit at
  *    {@link BPB_POSITION} and at BPB_POSITION / {@link BPB_XC_SPEED_RATIO} (bromophenol blue runs
  *    ~2.2-fold faster than xylene cyanol FF at any agarose concentration; Sambrook & Russell p. 5.9);
- *  - {@link SHAPE_EXPONENT} and {@link SMALL_DNA_POSITION} are the two empirical constants, fitted to
- *    band positions measured on 17 reference gel photographs published by NEB, Thermo Fisher,
- *    Bioneer, Enzynomics and Promega (tools/oracle/gel_oracle.py; pooled RMS error 0.019 of the gel
- *    length / band span).
+ *  - the exponent and the bottom asymptote are empirical, fitted to band positions measured on 20
+ *    reference gel photographs published by NEB, Thermo Fisher, Bioneer, Enzynomics and Promega
+ *    (0.8-3 % agarose, TAE and TBE; tools/oracle/gel_oracle.py; pooled RMS error 0.015 of the gel
+ *    length / band span): {@link SHAPE_EXPONENT} and {@link SMALL_DNA_POSITION} for TAE gels and for
+ *    TBE gels up to 1 %; for TBE they change linearly with the agarose percentage to
+ *    {@link TBE_HIGH_SHAPE_EXPONENT} and {@link TBE_HIGH_SMALL_DNA_POSITION} at 2 % and above
+ *    ({@link TBE_SHAPE_RAMP_PERCENT}), because high-% TBE gels spread fragments of ~0.3-1.5 kb over
+ *    more of the lane than one shared shape predicts (review findings F8/F18; the TBE values are fitted
+ *    under the constraint that very long DNA stays inside the gel, top asymptote >= 0.005). Fitted
+ *    without the three 2.5-3 % TBE photographs, the same procedure predicts them with RMS errors of
+ *    0.021, 0.013 and 0.007.
  * The two dye conditions have a closed-form solution (see {@link gelParameters}), so the curve
  * follows the agarose percentage smoothly. As a result the resolving windows of the NEB and
  * Green & Sambrook guidelines ({@link resolvingWindow}: 0.7 % = 0.8-12 kb, 1 % = 0.5-10 kb,
@@ -83,16 +90,36 @@ export const DYE_FRONT_POSITIONS: Readonly<{ bromophenolBlue: number; xyleneCyan
 });
 
 /**
- * Exponent of the logistic curve in log size (dimensionless). Empirical: least-squares fit to the
- * vendor gel photographs listed in tools/oracle/gel_oracle.py (fit 1.119, rounded).
+ * Exponent of the logistic curve in log size (dimensionless) of TAE gels and of TBE gels up to 1 %
+ * agarose. Empirical: least-squares fit of one shared curve shape to the 17 vendor gel photographs
+ * that predate review findings F8/F18 (tools/oracle/gel_oracle.py, calibration stage 1; fit 1.119,
+ * rounded).
  */
 export const SHAPE_EXPONENT = 1.12;
 
 /**
- * Position approached by very short DNA in a standard run (fraction of the gel length). Empirical,
- * same fit as {@link SHAPE_EXPONENT} (fit 0.902, rounded).
+ * Position approached by very short DNA in a standard run (fraction of the gel length) in TAE gels
+ * and in TBE gels up to 1 % agarose. Empirical, same fit as {@link SHAPE_EXPONENT} (fit 0.902, rounded).
  */
 export const SMALL_DNA_POSITION = 0.9;
+
+/**
+ * {@link SHAPE_EXPONENT} of TBE gels at >= 2 % agarose. Empirical: least-squares fit to all 20
+ * photographs with the stage-1 constants fixed, under the constraint that very long DNA stays inside
+ * every supported gel (calibration stage 2; fit 1.129, rounded).
+ */
+export const TBE_HIGH_SHAPE_EXPONENT = 1.13;
+
+/** {@link SMALL_DNA_POSITION} of TBE gels at >= 2 % agarose. Empirical, same fit (fit 0.858, rounded). */
+export const TBE_HIGH_SMALL_DNA_POSITION = 0.86;
+
+/**
+ * Agarose percentages (% w/v) between which the TBE curve shape changes linearly from the shared
+ * values ({@link SHAPE_EXPONENT}, {@link SMALL_DNA_POSITION}) to the high-% TBE values
+ * ({@link TBE_HIGH_SHAPE_EXPONENT}, {@link TBE_HIGH_SMALL_DNA_POSITION}). Rows of {@link DYE_COMIGRATION_BP}:
+ * the TBE photographs at 1 % fit the shared shape (RMS <= 0.009), those at 2-3 % need the TBE one.
+ */
+export const TBE_SHAPE_RAMP_PERCENT: Readonly<{ from: number; to: number }> = Object.freeze({ from: 1, to: 2 });
 
 /**
  * Approximate apparent-size factors of circular forms: a molecule of L bp in that form is drawn where
@@ -111,6 +138,12 @@ export const FORM_SIZE_FACTOR: Readonly<Record<DnaForm, number>> = Object.freeze
   nicked: 1.6,
 });
 
+/** Freeze a table and each of its rows (the model reads them on every call: they must never change). */
+function freezeRows<T extends readonly (readonly number[])[]>(rows: T): T {
+  for (const row of rows) Object.freeze(row);
+  return Object.freeze(rows);
+}
+
 /**
  * Sizes (bp) of linear dsDNA co-migrating with bromophenol blue and xylene cyanol FF:
  * rows `[agarose %, bromophenol blue bp, xylene cyanol FF bp]`, per buffer.
@@ -120,11 +153,11 @@ export const FORM_SIZE_FACTOR: Readonly<Record<DnaForm, number>> = Object.freeze
  */
 export const DYE_COMIGRATION_BP: Readonly<Record<GelBuffer, ReadonlyArray<readonly [number, number, number]>>> =
   Object.freeze({
-    TAE: Object.freeze([
+    TAE: freezeRows([
       [0.5, 1150, 16700], [0.6, 850, 11600], [0.7, 660, 8500], [0.8, 530, 6500], [0.9, 440, 5140],
       [1.0, 370, 4160], [1.2, 275, 2890], [1.5, 190, 1840], [2.0, 120, 1040], [3.0, 60, 460],
     ] as const),
-    TBE: Object.freeze([
+    TBE: freezeRows([
       [0.5, 750, 13000], [0.6, 540, 8820], [0.7, 410, 6400], [0.8, 320, 4830], [0.9, 260, 3770],
       [1.0, 220, 3030], [1.2, 160, 2070], [1.5, 110, 1300], [2.0, 65, 710], [3.0, 30, 300],
     ] as const),
@@ -136,7 +169,7 @@ export const DYE_COMIGRATION_BP: Readonly<Record<GelBuffer, ReadonlyArray<readon
  * DNA"); 2 % and 3 %: Thermo Fisher, Invitrogen School of Molecular Biology, Table 3 ("range of
  * efficient separation", citing Green & Sambrook 2012).
  */
-export const RESOLVING_WINDOW_BP: ReadonlyArray<readonly [number, number, number]> = Object.freeze([
+export const RESOLVING_WINDOW_BP: ReadonlyArray<readonly [number, number, number]> = freezeRows([
   [0.5, 1000, 30000], [0.7, 800, 12000], [1.0, 500, 10000], [1.2, 400, 7000], [1.5, 200, 3000],
   [2.0, 100, 2000], [3.0, 25, 1000],
 ] as const);
@@ -147,13 +180,13 @@ export interface GelParameters {
   agarosePercent: number;
   /** Running buffer. */
   buffer: GelBuffer;
-  /** Position approached by very long linear DNA (the compression zone below the well). */
+  /** Position approached by very long linear DNA (the compression zone below the well; > 0). */
   topPosition: number;
-  /** Position approached by very short DNA ({@link SMALL_DNA_POSITION}). */
+  /** Position approached by very short DNA ({@link SMALL_DNA_POSITION}; for TBE see {@link TBE_SHAPE_RAMP_PERCENT}). */
   bottomPosition: number;
   /** Size (bp) halfway between top and bottom: centre of the semi-log part of the curve. */
   midpointBp: number;
-  /** Steepness exponent ({@link SHAPE_EXPONENT}). */
+  /** Steepness exponent ({@link SHAPE_EXPONENT}; for TBE see {@link TBE_SHAPE_RAMP_PERCENT}). */
   exponent: number;
   /** Size (bp) of linear DNA co-migrating with bromophenol blue (interpolated from the table). */
   bromophenolBlueBp: number;
@@ -195,9 +228,29 @@ function interpolateLog(rows: ReadonlyArray<readonly number[]>, percent: number)
 }
 
 /**
+ * Exponent and bottom asymptote of a gel's curve: the TAE constants, or for TBE their linear
+ * interpolation towards the high-% TBE constants over {@link TBE_SHAPE_RAMP_PERCENT} (the end values
+ * exactly; same arithmetic as tools/oracle/gel_model.py shape()).
+ */
+function curveShape(agarosePercent: number, buffer: GelBuffer): { exponent: number; bottom: number } {
+  if (buffer === 'TAE' || agarosePercent <= TBE_SHAPE_RAMP_PERCENT.from) {
+    return { exponent: SHAPE_EXPONENT, bottom: SMALL_DNA_POSITION };
+  }
+  if (agarosePercent >= TBE_SHAPE_RAMP_PERCENT.to) {
+    return { exponent: TBE_HIGH_SHAPE_EXPONENT, bottom: TBE_HIGH_SMALL_DNA_POSITION };
+  }
+  const t = (agarosePercent - TBE_SHAPE_RAMP_PERCENT.from) / (TBE_SHAPE_RAMP_PERCENT.to - TBE_SHAPE_RAMP_PERCENT.from);
+  return {
+    exponent: SHAPE_EXPONENT + t * (TBE_HIGH_SHAPE_EXPONENT - SHAPE_EXPONENT),
+    bottom: SMALL_DNA_POSITION + t * (TBE_HIGH_SMALL_DNA_POSITION - SMALL_DNA_POSITION),
+  };
+}
+
+/**
  * Parameters of the migration curve for a gel. The two dye conditions p(Lbpb) = P1 and
  * p(Lxc) = P2 (P1 = {@link BPB_POSITION}, P2 = P1 / {@link BPB_XC_SPEED_RATIO}) with bottom
- * position b and exponent k have the closed-form solution
+ * position b and exponent k (from the buffer and agarose %, see {@link TBE_SHAPE_RAMP_PERCENT}) have the
+ * closed-form solution
  *
  *     r = (Lxc / Lbpb)^k,  u = ((b - P1)(r - 1) / (P1 - P2) - 1) / r,
  *     span = (b - P1)(1 + u) / u,  top = b - span,  midpoint = Lbpb / u^(1/k)
@@ -209,8 +262,7 @@ export function gelParameters(agarosePercent: number = DEFAULT_AGAROSE_PERCENT, 
   checkPercent(agarosePercent);
   checkBuffer(buffer);
   const [bpb, xc] = interpolateLog(DYE_COMIGRATION_BP[buffer], agarosePercent);
-  const k = SHAPE_EXPONENT;
-  const b = SMALL_DNA_POSITION;
+  const { exponent: k, bottom: b } = curveShape(agarosePercent, buffer);
   const p1 = DYE_FRONT_POSITIONS.bromophenolBlue;
   const p2 = DYE_FRONT_POSITIONS.xyleneCyanolFF;
   const r = (xc / bpb) ** k;

@@ -23,7 +23,8 @@ export {
 } from './enzyme';
 export type { EnzymeCut, Overhang, RestrictionEnzyme } from './enzyme';
 export { compareSites, countCuts, countSites, findSites, findSitesForEnzyme } from './search';
-export { digest, digestDetailed, digestSizes } from './digest';
-export type { DigestCut, DigestFragment, DigestOptions, DigestReport, SkipReason, SkippedCleavage } from './digest';
+export type { SiteSearchOptions } from './search';
+export { digest, digestDetailed, digestSizes, digestSizesWithTopology } from './digest';
+export type { DigestCut, DigestFragment, DigestOptions, DigestReport, DigestSize, SkipReason, SkippedCleavage } from './digest';
 export { cuttersWithCount, filterEnzymes, nonCutters, uniqueCutters } from './sets';
 export type { EnzymeFilter } from './sets';

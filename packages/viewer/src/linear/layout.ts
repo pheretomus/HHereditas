@@ -24,6 +24,7 @@ import { complement, featureExtent, normalizeRange, splitAtOrigin } from '@hhere
 import { featureFill } from '../common/colors';
 import type { CutMarker, PlacedLabel } from './enzymeLabels';
 import { placeEnzymeLabels, rowsUsed } from './enzymeLabels';
+import { labelColorOnFill } from './labelColor';
 import { LabelSpace } from './labelSpace';
 import type { Lane, LaneInterval } from './lanes';
 import { buildLanes, packLanes, visibleSpan } from './lanes';
@@ -64,6 +65,8 @@ export const METRICS = {
   backboneGap: 9,
   strandGap: 4,
   letterBand: 30,
+  /** Letter band of a single-stranded molecule (one row of letters above its line). */
+  singleLetterBand: 18,
   rulerHeight: 24,
   labelFont: 11,
   labelWeight: 500,
@@ -104,6 +107,8 @@ const NEIGHBOUR_GAP = 10;
 const OUTWARD_GAP = 1.5;
 /** Labels keep this far from the edges of the map. */
 const EDGE = 6;
+/** A bar needs at least this much of itself on screen (px) to be labelled. */
+const MIN_VISIBLE_PX = 1;
 /** A truncated label needs at least this much room (px), and keeps at least MIN_TRUNCATED_CHARS characters. */
 const MIN_TRUNCATED_PX = 30;
 const MIN_TRUNCATED_CHARS = 4;
@@ -333,12 +338,17 @@ export function featureBarTop(v: VerticalLayout, side: Side, lane: number): numb
   return v.features[side][lane] + (METRICS.featureLaneHeight - METRICS.featureBarHeight) / 2;
 }
 
-/** Distance between the strand lines for a zoom level: opens smoothly from 5 to 8 px per base. */
-export function strandGapFor(pxPerBp: number): number {
+/**
+ * Distance between the strand lines for a zoom level: opens smoothly from 5 to 8 px per base to
+ * make room for the letters. Single-stranded molecules (RNA, protein) have one line, drawn at
+ * the bottom of the band, so their letters sit on it: their band opens from 0.
+ */
+export function strandGapFor(pxPerBp: number, singleStranded = false): number {
   const lo = LETTER_PX_PER_BASE - 3;
   const t = Math.min(1, Math.max(0, (pxPerBp - lo) / (LETTER_PX_PER_BASE - lo)));
   const s = t * t * (3 - 2 * t);
-  return METRICS.strandGap + (METRICS.letterBand - METRICS.strandGap) * s;
+  const [closed, open] = singleStranded ? [0, METRICS.singleLetterBand] : [METRICS.strandGap, METRICS.letterBand];
+  return closed + (open - closed) * s;
 }
 
 export function computeVerticalLayout(input: VerticalInput): VerticalLayout {
@@ -453,6 +463,8 @@ export type LabelPlacement = 'inside' | 'beside' | 'outside';
 export interface FeatureLabel extends TextBox {
   entry: number;
   placement: LabelPlacement;
+  /** Text colour of a label inside its bar (contrasting with the bar's fill); null outside. */
+  onFill: string | null;
 }
 
 export interface FillPath {
@@ -499,10 +511,15 @@ export interface LettersModel {
 }
 
 export interface BackboneModel {
+  /** x extent of the top strand line (the only line of a single-stranded molecule), and its y. */
   top: [number, number] | null;
+  topY: number;
+  /** x extent of the bottom strand line (DNA only), and its y. */
   bottom: [number, number] | null;
+  bottomY: number;
   /** Dashed continuations beyond the record ends of a circular record. */
   continuation: string | null;
+  /** RNA / protein: one line, at the bottom of the letter band (letters sit on it). */
   single: boolean;
 }
 
@@ -829,8 +846,10 @@ function layoutFeatures(
           bodyR = shape.bodyR;
         }
         row.add(Math.max(-CLIP, x0), Math.min(width + CLIP, x1));
-        if (isLabelPiece(entry.extent, it.piece, L, scale, width)) {
-          const vis = Math.min(width, x1) - Math.max(0, x0);
+        // Only bars that are on screen get a label (bars in the off-screen margin are drawn
+        // so panning reveals them seamlessly, but a label there would float detached at the edge).
+        const vis = Math.min(width, x1) - Math.max(0, x0);
+        if (vis >= MIN_VISIBLE_PX && isLabelPiece(entry.extent, it.piece, L, scale, width)) {
           candidates.push({
             ref: it.ref,
             piece: it.piece,
@@ -864,7 +883,8 @@ function layoutFeatures(
           const a = c - MIN_BAR_PX / 2;
           appendPath(smallByFill, entry.fill, rectPath(a, top, MIN_BAR_PX, barH));
           row.add(a, a + MIN_BAR_PX);
-          if (isLabelPiece(entry.extent, t.piece, L, scale, width)) {
+          const onScreen = Math.min(width, a + MIN_BAR_PX) - Math.max(0, a) >= MIN_VISIBLE_PX;
+          if (onScreen && isLabelPiece(entry.extent, t.piece, L, scale, width)) {
             tinyCandidates.push({
               ref: t.ref,
               piece: t.piece,
@@ -897,6 +917,25 @@ function layoutFeatures(
           }
         }
         row.add(a, b);
+        // A pinned (highlighted / selected) feature inside a density band still competes for a
+        // label: the highlight ring shows where it is, the label says what it is.
+        if (pinned?.has(entry.feature.id) && isLabelPiece(entry.extent, t.piece, L, scale, width)) {
+          const c = (t.x0 + t.x1) / 2;
+          if (Math.min(width, c + MIN_BAR_PX / 2) - Math.max(0, c - MIN_BAR_PX / 2) >= MIN_VISIBLE_PX) {
+            tinyCandidates.push({
+              ref: t.ref,
+              piece: t.piece,
+              side,
+              lane,
+              x0: c - MIN_BAR_PX / 2,
+              x1: c + MIN_BAR_PX / 2,
+              bodyL: 0,
+              bodyR: 0,
+              barTop: top,
+              priority: 1e9,
+            });
+          }
+        }
       }
       if (cov && dom) {
         let b = 0;
@@ -948,6 +987,7 @@ function layoutFeatures(
         top: y - font / 2 - 1,
         bottom: y + font / 2 + 1,
         placement,
+        onFill: placement === 'inside' ? labelColorOnFill(entry.fill) : null,
       });
     };
     const room = c.bodyR - c.bodyL - 2 * INSIDE_PAD;
@@ -969,12 +1009,15 @@ function layoutFeatures(
       row.add(ll, ll + tw);
       continue;
     }
-    // outside: above the bar (top side) or below it (bottom side), centred on its visible part
+    // outside: above the bar (top side) or below it (bottom side), centred on its visible part;
+    // kept over the bar so it never reads as the label of a neighbour
     const outer = space.row(featureRowKey(c.side, c.lane + 1));
-    const centre = (Math.max(0, c.x0) + Math.min(width, c.x1)) / 2;
-    const ol = Math.min(width - EDGE - tw, Math.max(EDGE, centre - tw / 2));
+    const visL = Math.max(0, c.x0);
+    const visR = Math.min(width, c.x1);
+    const ol = Math.min(width - EDGE - tw, Math.max(EDGE, (visL + visR) / 2 - tw / 2));
     const oy = c.side === 'above' ? c.barTop - OUTWARD_GAP - font / 2 - 1 : c.barTop + barH + OUTWARD_GAP + font / 2 + 1;
-    if (ol >= EDGE && outer.isFree(ol - NEIGHBOUR_GAP, ol + tw + NEIGHBOUR_GAP)) {
+    const overBar = ol < visR && ol + tw > visL;
+    if (ol >= EDGE && overBar && outer.isFree(ol - NEIGHBOUR_GAP, ol + tw + NEIGHBOUR_GAP)) {
       push(name, ol, tw, oy, 'outside');
       outer.add(ol, ol + tw);
       continue;
@@ -1149,6 +1192,33 @@ function layoutPrimers(
   }
 }
 
+/** Horizontal clearance (px) between a leader and a label it passes. */
+const LEADER_CLEARANCE = 2;
+
+/**
+ * Vertical leader at x from y0 down to y1, interrupted where it would cross a label box
+ * (with LEADER_CLEARANCE around it).
+ */
+export function leaderPath(x: number, y0: number, y1: number, obstacles: readonly TextBox[]): string {
+  let skips: Array<[number, number]> | null = null;
+  for (const b of obstacles) {
+    if (x < b.left - LEADER_CLEARANCE || x > b.right + LEADER_CLEARANCE) continue;
+    if (b.bottom + 1 <= y0 || b.top - 1 >= y1) continue;
+    (skips ??= []).push([b.top - 1, b.bottom + 1]);
+  }
+  if (!skips) return vlinePath(x, y0, y1);
+  skips.sort((a, b) => a[0] - b[0]);
+  let d = '';
+  let y = y0;
+  for (const [a, b] of skips) {
+    if (a > y) d += vlinePath(x, y, Math.min(a, y1));
+    y = Math.max(y, b);
+    if (y >= y1) break;
+  }
+  if (y < y1) d += vlinePath(x, y, y1);
+  return d;
+}
+
 /** Index of the first marker with pos >= bp. */
 function firstMarkerAtLeast(markers: readonly CutMarker[], bp: number): number {
   let lo = 0;
@@ -1213,6 +1283,12 @@ function layoutEnzymes(markers: readonly CutMarker[], v: VerticalLayout, ctx: La
   view.enzymes.ticksUnlabelled = ticksUnlabelled;
   view.enzymes.staggered = staggered;
 
+  // Leaders run down to the backbone behind the feature lanes (bars cover them) and stop short
+  // of the labels they pass, so labels need no halo and the selection band behind the map stays
+  // one even colour.
+  const obstacles: TextBox[] = [];
+  for (const l of view.features.labels) if (l.placement !== 'inside') obstacles.push(l);
+  for (const l of view.primers.labels) obstacles.push(l);
   let leaders = '';
   placed.forEach((p, j) => {
     if (!p) return;
@@ -1221,7 +1297,7 @@ function layoutEnzymes(markers: readonly CutMarker[], v: VerticalLayout, ctx: La
     const x = Math.round(p.x * 2) / 2;
     const rowTop = enzymeRowTop(v, p.row);
     const cy = rowTop + m.enzymeRowHeight / 2;
-    const leader = vlinePath(x, cy + 2, v.topStrandY - CUT_OVERSHOOT);
+    const leader = leaderPath(x, cy + 2, v.topStrandY - CUT_OVERSHOOT, obstacles);
     leaders += leader;
     const textW = p.right - p.left - m.enzymeLabelPad;
     const textLeft = p.align === 'start' ? x + m.enzymeLabelPad : x - m.enzymeLabelPad - textW;
@@ -1260,8 +1336,10 @@ export function computeView(input: ViewInput): ViewModel {
     features: count(input.features),
     orfs: count(input.orfs),
     primers: count(input.primers),
-    strandGap: isDna ? strandGapFor(k) : 0,
+    strandGap: strandGapFor(k, !isDna),
   });
+  // A single-stranded molecule's line runs under its letters (at the bottom of the band).
+  const lineY = isDna ? v.topStrandY : v.bottomStrandY;
 
   const ctx: LaneContext = { scale, width, bpFrom, bpTo, measure, seqLength: L };
 
@@ -1277,7 +1355,7 @@ export function computeView(input: ViewInput): ViewModel {
   let continuation: string | null = null;
   if (topology === 'circular' && L > 0) {
     // A few short dashes beyond each end say "the molecule continues round".
-    const ys = isDna ? [v.topStrandY, v.bottomStrandY] : [v.topStrandY];
+    const ys = isDna ? [v.topStrandY, v.bottomStrandY] : [lineY];
     const xs = scale.x(0);
     const xe = scale.x(L);
     let c = '';
@@ -1289,7 +1367,9 @@ export function computeView(input: ViewInput): ViewModel {
   }
   const backbone: BackboneModel = {
     top: strand(ext.top),
+    topY: lineY,
     bottom: isDna ? strand(ext.bottom) : null,
+    bottomY: v.bottomStrandY,
     continuation,
     single: !isDna,
   };
@@ -1311,7 +1391,8 @@ export function computeView(input: ViewInput): ViewModel {
     const fontSize = letterFontSize(k);
     letters = {
       fontSize,
-      topY: isDna ? v.topStrandY + (v.bottomStrandY - v.topStrandY) * 0.29 : v.topStrandY - fontSize * 0.8,
+      // DNA: the two rows between the strand lines; otherwise one row centred in the band
+      topY: v.topStrandY + (v.bottomStrandY - v.topStrandY) * (isDna ? 0.29 : 0.5),
       bottomY: v.topStrandY + (v.bottomStrandY - v.topStrandY) * 0.71,
       top: row(ext.top[0], ext.top[1], false),
       bottom: isDna ? row(ext.bottom[0], ext.bottom[1], true) : null,

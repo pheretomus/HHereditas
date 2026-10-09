@@ -1,4 +1,5 @@
 import '../../test/setup';
+import { useState } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { dividerTarget, keyboardDelta, maxPaneSize, resolvePaneResize } from './layout';
@@ -121,6 +122,51 @@ describe('SplitView', () => {
     expect(onCollapsed).toHaveBeenLastCalledWith(true);
     fireEvent.pointerUp(sep, { pointerId: 1, clientX: 60 });
     expect(document.documentElement.classList.contains('hh-split-resizing-x')).toBe(false);
+  });
+
+  it('keeps the size from before the drag when a drag snaps the pane closed', () => {
+    const sizes: number[] = [];
+    function Stateful() {
+      const [size, setSize] = useState(220);
+      const [collapsed, setCollapsed] = useState(false);
+      return (
+        <SplitView>
+          <SplitPane
+            id="sidebar"
+            label="Sidebar"
+            size={size}
+            minSize={180}
+            maxSize={360}
+            collapsible
+            collapsed={collapsed}
+            onSizeChange={(n) => {
+              sizes.push(n);
+              setSize(n);
+            }}
+            onCollapsedChange={setCollapsed}
+          >
+            <div>Sidebar content</div>
+          </SplitPane>
+          <SplitPane id="main" minSize={300}>
+            <div>Main content</div>
+          </SplitPane>
+        </SplitView>
+      );
+    }
+    const { container } = render(<Stateful />);
+    stubWidth(container.querySelector('[data-split-pane="sidebar"]')!, 220);
+    stubWidth(container.querySelector('[data-split-pane="main"]')!, 800);
+    const sep = screen.getByRole('separator');
+    fireEvent.pointerDown(sep, { pointerId: 1, button: 0, clientX: 220 });
+    // through the minimum (the pane sticks at 180) ...
+    fireEvent.pointerMove(sep, { pointerId: 1, clientX: 150 });
+    expect(sizes.at(-1)).toBe(180);
+    // ... and past half of it: closed, keeping 220 (not 180) for when it is shown again
+    fireEvent.pointerMove(sep, { pointerId: 1, clientX: 40 });
+    fireEvent.pointerUp(sep, { pointerId: 1, clientX: 40 });
+    expect(container.querySelector('[data-split-pane="sidebar"]')!.hasAttribute('data-collapsed')).toBe(true);
+    expect(sizes.at(-1)).toBe(220);
+    expect(screen.getByRole('separator').getAttribute('aria-valuenow')).toBe('0');
   });
 
   it('hides collapsed panes from assistive technology but keeps them mounted', () => {

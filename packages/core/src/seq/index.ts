@@ -20,3 +20,4 @@ export {
   proteinMolecularWeight,
 } from './stats';
 export type { DnaMolecularWeightOptions } from './stats';
+export type { IsoelectricPointOptions } from './stats';

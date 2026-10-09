@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LADDERS, bandMassAtLoad, getLadder } from './ladders';
 import { ladderLane } from './lane';
-import type { Ladder } from './ladders';
+import type { Ladder, LadderBand } from './ladders';
 
 function ladder(id: string): Ladder {
   const l = getLadder(id);
@@ -183,20 +183,34 @@ describe('vendor data (transcribed values)', () => {
   });
 
   it('Korean-market ladders (Bioneer, Enzynomics) and Takara', () => {
+    // Bioneer PM-338 prints its masses per 4 µl (D-1040, D-1035, D-1020) or 5 µl (D-1030); massNg is for the
+    // recommended load of 2 µl (D-1040, D-1030, D-1020) or 4 µl (D-1035), "Specifications" table.
+    const printed: Array<[string, number, number[]]> = [
+      ['bioneer-1kb', 4 / 2, [16, 16, 26, 20, 40, 60, 48, 54, 60, 60]],
+      ['bioneer-100bp', 5 / 2, [87.5, 20, 15, 88.5, 28, 25, 31, 18.5, 88.5, 16.5, 26.5, 24, 31]],
+      ['bioneer-100bp-plus', 4 / 4, [6, 6, 8, 8, 8, 8, 56.6, 13.4, 10, 40, 18, 16, 14, 12, 40, 10, 12, 12, 22]],
+      ['bioneer-25-100bp', 4 / 2, [20, 40, 9, 8, 14, 6, 40, 12, 12, 10, 16, 136, 32, 41, 96, 64, 44]],
+    ];
+    for (const [id, tableOverLoad, vendor] of printed) {
+      masses(id).forEach((m, i) => expect((m as number) * tableOverLoad, `${id} ${i}`).toBeCloseTo(vendor[i], 12));
+    }
     expect(sizes('bioneer-1kb')).toEqual([10200, 8000, 5991, 5007, 4000, 2961, 2000, 1600, 1000, 500]);
-    expect(masses('bioneer-1kb')).toEqual([16, 16, 26, 20, 40, 60, 48, 54, 60, 60]);
+    expect(masses('bioneer-1kb')).toEqual([8, 8, 13, 10, 20, 30, 24, 27, 30, 30]);
     expect(sizes('bioneer-100bp')).toEqual([2000, 1600, 1200, 1000, 900, 800, 700, 600, 500, 400, 300, 200, 100]);
-    expect(masses('bioneer-100bp')).toEqual([87.5, 20, 15, 88.5, 28, 25, 31, 18.5, 88.5, 16.5, 26.5, 24, 31]);
+    expect(masses('bioneer-100bp')).toEqual([35, 8, 6, 35.4, 11.2, 10, 12.4, 7.4, 35.4, 6.6, 10.6, 9.6, 12.4]);
     expect(sizes('bioneer-100bp-plus')).toEqual([10200, 8000, 5991, 5007, 4000, 2961, 2000, 1600, 1200, 1000, 900, 800,
       700, 600, 500, 400, 300, 200, 100]);
     expect(masses('bioneer-100bp-plus')).toEqual([6, 6, 8, 8, 8, 8, 56.6, 13.4, 10, 40, 18, 16, 14, 12, 40, 10, 12, 12, 22]);
     expect(sizes('bioneer-25-100bp')).toEqual([2000, 1000, 900, 800, 700, 600, 500, 400, 300, 200, 175, 150, 125, 100, 75,
       50, 25]);
-    expect(masses('bioneer-25-100bp')).toEqual([20, 40, 9, 8, 14, 6, 40, 12, 12, 10, 16, 136, 32, 41, 96, 64, 44]);
-    // Bioneer's printed masses add up exactly to the stated load (volume x concentration)
-    for (const id of ['bioneer-1kb', 'bioneer-100bp', 'bioneer-100bp-plus', 'bioneer-25-100bp']) {
+    expect(masses('bioneer-25-100bp')).toEqual([10, 20, 4.5, 4, 7, 3, 20, 6, 6, 5, 8, 68, 16, 20.5, 48, 32, 22]);
+    // Bioneer's masses add up exactly to the recommended load (volume x concentration)
+    const recommended: Array<[string, number]> = [['bioneer-1kb', 2 * 100], ['bioneer-100bp', 2 * 100],
+      ['bioneer-100bp-plus', 4 * 80], ['bioneer-25-100bp', 2 * 150]];
+    for (const [id, loadNg] of recommended) {
       const sum = masses(id).reduce((a, b) => (a as number) + (b as number), 0) as number;
-      expect(sum, id).toBeCloseTo(ladder(id).loadNg as number, 9);
+      expect(ladder(id).loadNg, id).toBe(loadNg);
+      expect(sum, id).toBeCloseTo(loadNg, 9);
     }
     expect(sizes('enzynomics-1kb')).toEqual([10000, 8000, 6000, 5000, 4000, 3000, 2000, 1000, 500, 200]);
     expect(emphasized('enzynomics-1kb')).toEqual([5000, 1000]);
@@ -268,10 +282,61 @@ describe('review: bandMassAtLoad never returns NaN', () => {
   });
 });
 
+// The predecessor's version of this test asserted that `l.bands.reverse()` does NOT throw, which contradicts
+// 'is deeply frozen' above (a frozen array cannot be reordered). The review's expectation is met the other
+// way: the types are read-only, so the mutation is a compile error (checked by tsc through the
+// expect-error directives below, which fail the typecheck when unused) and still throws at runtime.
 describe('review: built-in ladders are typed read-only, as they are frozen at runtime', () => {
-  it('type-checks only without mutation; mutation throws TypeError at runtime', () => {
+  it('in-place mutation of a built-in ladder is a type error (and throws TypeError at runtime)', () => {
     const l = ladder('neb-1kb');
-    expect(() => l.bands.reverse()).not.toThrow();
-    expect(() => LADDERS[0].bands.sort((a, b) => a.size - b.size)).not.toThrow();
+    // @ts-expect-error -- Ladder.bands is a readonly array
+    expect(() => l.bands.reverse()).toThrow(TypeError);
+    // @ts-expect-error -- Ladder.bands is a readonly array
+    expect(() => LADDERS[0].bands.sort((a: LadderBand, b: LadderBand) => a.size - b.size)).toThrow(TypeError);
+    expect(() => {
+      // @ts-expect-error -- LadderBand.size is readonly
+      l.bands[0].size = 1;
+    }).toThrow(TypeError);
+    // copying first is the supported way
+    expect([...l.bands].sort((a, b) => a.size - b.size)[0].size).toBe(500);
+    expect(l.bands[0].size).toBe(10002);
   });
+
+  it('accepts immutable (as const) custom ladders', () => {
+    const MY_LADDER = {
+      id: 'lab-ladder',
+      name: 'Lab ladder',
+      vendor: 'lab',
+      source: 'https://example.org',
+      bands: [{ size: 3000, massNg: 30 }, { size: 1000, massNg: 10, components: [1010, 1000] }, { size: 500, massNg: 10 }],
+    } as const;
+    const lane = ladderLane(MY_LADDER);
+    expect(lane.map((b) => b.sizes)).toEqual([[3000], [1010, 1000], [500]]);
+    expect(bandMassAtLoad(MY_LADDER, MY_LADDER.bands[0], 100)).toBeUndefined(); // no loadNg
+  });
+});
+
+describe('review: bandMassAtLoad validates custom ladder data', () => {
+  it('rejects a reference load that is not a finite number > 0 and an invalid band mass', () => {
+    const l = ladder('neb-1kb');
+    for (const loadNg of [0, -500, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => bandMassAtLoad({ ...l, loadNg }, l.bands[0], 100), String(loadNg)).toThrow(/neb-1kb.*loadNg/);
+    }
+    for (const massNg of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => bandMassAtLoad(l, { size: 100, massNg }, 100), String(massNg)).toThrow(/massNg/);
+    }
+    expect(bandMassAtLoad(l, { size: 100, massNg: 0 }, 100)).toBe(0);
+    expect(bandMassAtLoad({ ...l, loadNg: 1e-300 }, { size: 100, massNg: 1e300 }, 1e10)).toBe(Number.POSITIVE_INFINITY);
+  });
+});
+
+describe('review: Enzynomics notes state the sum of the printed band masses', () => {
+  for (const [id, total] of [['enzynomics-1kb', 480], ['enzynomics-1kb-plus', 740], ['enzynomics-100bp', 540]] as const) {
+    it(`${id}: "add up to ${total} ng"`, () => {
+      const l = ladder(id);
+      const sum = l.bands.reduce((s, b) => s + (b.massNg ?? 0), 0);
+      expect(sum).toBe(total);
+      expect(Number(/add up to (\d+) ng/.exec(l.notes ?? '')?.[1])).toBe(sum);
+    });
+  }
 });

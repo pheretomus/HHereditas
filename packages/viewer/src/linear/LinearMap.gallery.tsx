@@ -9,7 +9,7 @@ import { formatBp, formatInt } from '../common/format';
 import { SAMPLES } from '../fixtures';
 import type { SequenceSelection } from '../selection';
 import { selectRange } from '../selection';
-import { demoOrfs, demoPrimers, syntheticGenome } from './galleryData';
+import { demoGeneLocus, demoOrfs, demoPrimers, syntheticGenome } from './galleryData';
 import type { LinearMapProps } from './LinearMap';
 import { LinearMap } from './LinearMap';
 import { fullViewport, viewportForRange } from './viewport';
@@ -132,6 +132,7 @@ const stories: Stories = {
   pBR322: () => <Full record={SAMPLES.pBR322.record} enzymeSites={SAMPLES.pBR322.enzymeSites} />,
   linear: () => <Full record={SAMPLES.linear.record} enzymeSites={SAMPLES.linear.enzymeSites} />,
   'features-only': () => <Full record={SAMPLES.linear.record} />,
+  'exons-introns': () => <Full record={demoGeneLocus()} />,
   'primers-orfs': () => {
     const d = withPrimersAndOrfs();
     return <Full record={d.record} primerSites={d.primerSites} orfs={d.orfs} enzymeSites={SAMPLES.linear.enzymeSites.filter((s) => ['EcoRI', 'XhoI', 'NotI', 'KpnI', 'SpeI', 'NheI'].includes(s.enzyme))} />;
@@ -213,6 +214,39 @@ const stories: Stories = {
       }}
       viewport={{ start: 0, end: 48 }}
     />
+  ),
+  protein: () => (
+    <div style={{ height: '100%', display: 'grid', gridTemplateRows: '1fr 1fr' }}>
+      <LinearMap
+        record={{
+          id: 'egfp-protein',
+          name: 'EGFP',
+          description: '',
+          seq: 'MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFSRYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTLVNRIELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLADHYQQNTPIGDGPVLLPDNHYLSTQSALSKDPNEKRDHMVLLEFVTAAGITLGMDELYK*',
+          topology: 'linear',
+          molecule: 'protein',
+          features: [
+            { id: 'a', type: 'misc_feature', name: 'β-barrel', strand: 0, segments: [{ start: 10, end: 230 }], qualifiers: [] },
+            { id: 'b', type: 'misc_feature', name: 'Chromophore', strand: 0, segments: [{ start: 64, end: 67 }], qualifiers: [] },
+          ],
+          primers: [],
+          meta: {},
+        }}
+      />
+      <LinearMap
+        record={{
+          id: 'rna',
+          name: 'sgRNA',
+          description: '',
+          seq: 'GUUUUAGAGCUAGAAAUAGCAAGUUAAAAUAAGGCUAGUCCGUUAUCAACUUGAAAAAGUGGCACCGAGUCGGUGCUUUU',
+          topology: 'linear',
+          molecule: 'RNA',
+          features: [{ id: 'r', type: 'misc_RNA', name: 'scaffold', strand: 1, segments: [{ start: 0, end: 76 }], qualifiers: [] }],
+          primers: [],
+          meta: {},
+        }}
+      />
+    </div>
   ),
   empty: () => (
     <Full record={{ id: 'empty', name: 'Empty', description: '', seq: '', topology: 'linear', molecule: 'DNA', features: [], primers: [], meta: {} }} />

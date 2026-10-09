@@ -20,6 +20,8 @@ import {
 type TmRow = [string, number, number, number, number, number, number, number];
 type AdditiveRow = [string, number, number, number, number, number, number, number, number, number, number];
 type BioRow = [string, number, number, number, number, number, number];
+/** [seq, mv (always 0), dv, dntp, dna, Biopython Tm_NN saltcorr=7] */
+type BioNoMonovalentRow = [string, number, number, number, number, number];
 interface TmOracle {
   random: TmRow[];
   selfComplementary: TmRow[];
@@ -27,6 +29,7 @@ interface TmOracle {
   long: TmRow[];
   additives: AdditiveRow[];
   biopython: BioRow[];
+  biopythonNoMonovalent: BioNoMonovalentRow[];
 }
 
 const oracle = JSON.parse(
@@ -35,7 +38,7 @@ const oracle = JSON.parse(
 
 const PRIMER3_METHODS: SaltCorrectionMethod[] = ['schildkraut', 'santalucia', 'owczarzy'];
 
-function conditionsOf(row: TmRow | AdditiveRow | BioRow, method: SaltCorrectionMethod): Partial<TmConditions> {
+function conditionsOf(row: TmRow | AdditiveRow | BioRow | BioNoMonovalentRow, method: SaltCorrectionMethod): Partial<TmConditions> {
   return {
     monovalentMilliMolar: row[1],
     divalentMilliMolar: row[2],
@@ -149,6 +152,20 @@ describe('tm vs Biopython MeltingTemp.Tm_NN (secondary oracle)', () => {
       Math.abs(tm(seq, { ...mono, saltCorrection: 'owczarzy2008' }) - tm(seq, { ...mono, saltCorrection: 'owczarzy' })),
     ).toBeLessThan(0.01);
   });
+
+  it("'owczarzy2008' needs no monovalent ions: its Ka model leaves Mg2+ free even when dNTP >= Mg2+ (review regression)", () => {
+    // Biopython: Tm_NN(seq, nn_table=DNA_NN3, dnac1=12.5, dnac2=0, Na=0, Mg=1.5, dNTPs=1.5, saltcorr=7) (and Mg=1.0, dNTPs=1.2)
+    const seq = 'AGCGGATAACAATTTCACACAGGA';
+    const noMonovalent = { saltCorrection: 'owczarzy2008', monovalentMilliMolar: 0 } as const;
+    expect(tm(seq, { ...noMonovalent, divalentMilliMolar: 1.5, dntpMilliMolar: 1.5 })).toBeCloseTo(57.276484033224676, 9);
+    expect(tm(seq, { ...noMonovalent, divalentMilliMolar: 1.0, dntpMilliMolar: 1.2 })).toBeCloseTo(55.39459458395271, 9);
+    const rows = oracle.biopythonNoMonovalent;
+    expect(rows.length).toBeGreaterThanOrEqual(300);
+    expect(rows.filter((r) => r[1] === 0 && r[3] >= r[2]).length).toBeGreaterThan(100);
+    let max = 0;
+    for (const row of rows) max = Math.max(max, Math.abs(tm(row[0], conditionsOf(row, 'owczarzy2008')) - row[5]));
+    expect(max).toBeLessThan(1e-6);
+  });
 });
 
 describe('tm defaults and conditions', () => {
@@ -185,6 +202,28 @@ describe('tm defaults and conditions', () => {
     expect(Number.isFinite(tm('ACGTACGTAC', { monovalentMilliMolar: 0, divalentMilliMolar: 2, dntpMilliMolar: 0 }))).toBe(true);
     // undefined entries keep the defaults
     expect(resolveTmConditions({ saltCorrection: undefined }).saltCorrection).toBe('santalucia');
+  });
+
+  it('requires free cations as each model defines them (review regression)', () => {
+    // primer3's models (free Mg2+ = Mg2+ − dNTP) have no cations left without monovalent ions when dNTP >= Mg2+
+    const chelated = { monovalentMilliMolar: 0, divalentMilliMolar: 1.5, dntpMilliMolar: 1.5 };
+    for (const method of PRIMER3_METHODS) {
+      expect(() => tm('ACGTACGTAC', { ...chelated, saltCorrection: method })).toThrow(/no free cations/);
+    }
+    // 'owczarzy2008' only needs some Mg2+ (Ka model), but not none at all (ln 0)
+    expect(Number.isFinite(tm('ACGTACGTAC', { ...chelated, saltCorrection: 'owczarzy2008' }))).toBe(true);
+    expect(() => tm('ACGTACGTAC', { monovalentMilliMolar: 0, divalentMilliMolar: 0, saltCorrection: 'owczarzy2008' })).toThrow(
+      /no cations/,
+    );
+    // The GC% formula above nnMaxLength and thermo() use primer3's Na+ equivalent, which is 0 here:
+    // an explicit error instead of -Infinity or NaN.
+    const owc = { ...chelated, saltCorrection: 'owczarzy2008' } as const;
+    const long = 'ACGTTGCA'.repeat(8); // 64 nt
+    expect(() => tm(long, owc)).toThrow(/nnMaxLength/);
+    expect(() => tmRange(long.slice(0, 63) + 'N', owc)).toThrow(/nnMaxLength/);
+    expect(Number.isFinite(tm(long, { ...owc, nnMaxLength: 64 }))).toBe(true);
+    expect(() => thermo('ACGTACGTAC', owc)).toThrow(/free cations/);
+    expect(sodiumEquivalentMilliMolar(owc)).toBe(0);
   });
 
   it('switches to the GC% formula above nnMaxLength', () => {

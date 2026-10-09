@@ -48,6 +48,8 @@ export interface SequenceMetrics {
   readonly primerLaneHeight: number;
   /** Arrow tip length of a primer beyond its last base. */
   readonly primerTip: number;
+  /** Horizontal gap (the bend) between a primer's annealed part and its 5' tail. */
+  readonly primerTailGap: number;
   readonly strandHeight: number;
   /** Space between the strands and the first feature lane. */
   readonly featureGap: number;
@@ -80,6 +82,7 @@ export const DEFAULT_METRICS: SequenceMetrics = Object.freeze({
   enzymeClearance: 4,
   primerLaneHeight: 20,
   primerTip: 6,
+  primerTailGap: 5,
   strandHeight: 17,
   featureGap: 6,
   featureBarHeight: 15,
@@ -248,6 +251,18 @@ export interface RowModelInput {
   readonly measure?: MeasureLabel;
 }
 
+/**
+ * The 5' tail of a primer (bases that do not anneal), drawn as a flap bent away from the template
+ * beside the annealed part's 5' end: left of a forward primer, right of a reverse one.
+ */
+export interface PrimerTailPlacement {
+  /** Left x and width of the flap. */
+  readonly x: number;
+  readonly width: number;
+  /** '' when the tail's bases are drawn; otherwise its length ("+28 nt") because they do not fit. */
+  readonly text: string;
+}
+
 /** A name drawn on (inside) or beside a bar. */
 export interface LabelPlacement {
   /** Left x of the text. */
@@ -330,6 +345,8 @@ export interface PrimerPiece {
   readonly tip: boolean;
   /** This piece holds the annealed 5' end (where a 5' tail leaves the template). */
   readonly fivePrime: boolean;
+  /** The primer's 5' tail, on the piece holding the annealed 5' end, when there is room for it. */
+  readonly tail: PrimerTailPlacement | null;
   readonly label: LabelPlacement | null;
 }
 
@@ -449,6 +466,58 @@ function firstFitLane(laneRight: number[], left: number, spacing: number): numbe
   let lane = 0;
   while (lane < laneRight.length && laneRight[lane] + spacing > left) lane++;
   return lane;
+}
+
+/** A feature piece of a row whose name is still looking for room beside its bar. */
+interface PendingLabel {
+  /** Index into the row's feature pieces. */
+  index: number;
+  lane: number;
+  name: string;
+  width: number;
+  /** Extent of the piece's bars. */
+  x0: number;
+  x1: number;
+}
+
+/**
+ * Second labelling pass of a row. A piece whose name fits neither inside its bar nor (as the
+ * feature's main piece) beside it, with a lane of its own, gets its full name beside the bar,
+ * right or else left, wherever its lane is free; otherwise it keeps the truncated name inside.
+ * Never adds a lane, so the row height is unchanged.
+ */
+function placeOutsideLabels(pieces: FeaturePiece[], pending: readonly PendingLabel[], geo: RowGeometry, m: SequenceMetrics): void {
+  const lanes = new Map<number, Array<{ left: number; right: number; owner: number }>>();
+  pieces.forEach((p, i) => {
+    let left = colLeft(geo, p.startCol);
+    let right = colRight(geo, p.endCol - 1);
+    if (p.label && !p.label.inside) {
+      left = Math.min(left, p.label.x);
+      right = Math.max(right, p.label.x + p.label.width);
+    }
+    const item = { left, right, owner: i };
+    const list = lanes.get(p.lane);
+    if (list) list.push(item);
+    else lanes.set(p.lane, [item]);
+  });
+  const clearance = m.labelOffset;
+  for (const c of pending) {
+    const list = lanes.get(c.lane);
+    const self = list?.find((e) => e.owner === c.index);
+    if (!list || !self) continue;
+    const free = (a: number, b: number) => list.every((e) => e === self || e.right + clearance <= a || e.left >= b + clearance);
+    const rx = c.x1 + m.labelOffset;
+    const lx = c.x0 - m.labelOffset - c.width;
+    let x: number | null = null;
+    if (rx + c.width <= geo.labelRight && free(c.x1, rx + c.width)) {
+      x = rx;
+      self.right = rx + c.width;
+    } else if (lx >= geo.textLeft && free(lx, c.x0)) {
+      x = lx;
+      self.left = lx;
+    }
+    if (x !== null) pieces[c.index] = { ...pieces[c.index], label: { x, text: c.name, width: c.width, inside: false } };
+  }
 }
 
 // --- raw (pre-packing) items -----------------------------------------------------------------
@@ -762,12 +831,16 @@ export function buildRowModel(input: RowModelInput): RowModel {
       );
       const laneRight: number[] = [];
       featurePieces = [];
+      // Pieces whose name fits neither inside nor (being the feature's main piece) beside them
+      // with a lane of its own: offered the free space of their lane in a second pass.
+      let outsideCandidates: PendingLabel[] | null = null;
       for (const p of rawFeatures) {
         const x0 = colLeft(geo, p.startCol);
         const x1 = colRight(geo, p.endCol - 1);
         let left = x0;
         let right = x1;
         let label: LabelPlacement | null = null;
+        let pending: Omit<PendingLabel, 'index' | 'lane'> | null = null;
         const name = features[p.feature].feature.name;
         if (name && p.bars.length > 0) {
           const w = measure(name, 'feature');
@@ -788,6 +861,8 @@ export function buildRowModel(input: RowModelInput): RowModel {
               label = { x: lx, text: name, width: w, inside: false };
               left = lx;
             }
+          } else {
+            pending = { name, width: w, x0, x1 };
           }
           if (!label) {
             const t = truncateLabel(name, w, available, 'feature', measure);
@@ -799,6 +874,7 @@ export function buildRowModel(input: RowModelInput): RowModel {
         const translated = features[p.feature].translated;
         if (translated) laneTranslation[lane] = true;
         else if (laneTranslation[lane] === undefined) laneTranslation[lane] = false;
+        if (pending) (outsideCandidates ??= []).push({ ...pending, index: featurePieces.length, lane });
         featurePieces.push({
           feature: p.feature,
           lane,
@@ -809,6 +885,7 @@ export function buildRowModel(input: RowModelInput): RowModel {
           translated,
         });
       }
+      if (outsideCandidates) placeOutsideLabels(featurePieces, outsideCandidates, geo, m);
     }
 
     // enzyme labels: right to left, left-aligned at their cut, staggered upwards; a leader
@@ -852,6 +929,26 @@ export function buildRowModel(input: RowModelInput): RowModel {
         let right = x1 + (p.strand === 1 && p.tip ? m.primerTip : 0);
         let label: LabelPlacement | null = null;
         const name = primers[p.primer].name;
+        // the 5' tail: all its bases when they fit beside the 5' end, else its length, else nothing
+        let tail: PrimerTailPlacement | null = null;
+        const tailLength = primers[p.primer].site.tailLength;
+        if (p.fivePrime && tailLength > 0) {
+          const fwd = p.strand === 1;
+          const fits = (w: number) =>
+            fwd ? x0 - m.primerTailGap - w >= geo.textLeft - 8 : x1 + m.primerTailGap + w <= geo.labelRight;
+          let width = tailLength * geo.charWidth + 4;
+          let text = '';
+          if (!fits(width)) {
+            text = `+${formatInt(tailLength)} nt`;
+            width = Math.ceil(measure(text, 'primer')) + 10;
+          }
+          if (fits(width)) {
+            const x = fwd ? x0 - m.primerTailGap - width : x1 + m.primerTailGap;
+            tail = { x, width, text };
+            if (fwd) left = x;
+            else right = x + width;
+          }
+        }
         if (name && p.fivePrime) {
           const w = measure(name, 'primer');
           const before = left - m.labelOffset - w;
@@ -881,6 +978,7 @@ export function buildRowModel(input: RowModelInput): RowModel {
           openEnd: p.openEnd,
           tip: p.tip,
           fivePrime: p.fivePrime,
+          tail,
           label,
         });
       }

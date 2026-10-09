@@ -48,7 +48,8 @@ const CONTENT_MIN = 360;
  * sit on its top), a unified toolbar over the content and the inspector, the canvas in the
  * middle with a slim status bar, and the inspector on the right. Both side panes resize by
  * dragging their hairline divider and collapse (drag closed, double-click the divider, or the
- * toolbar toggles). Empty title-bar areas are Tauri drag regions.
+ * toolbar toggles). Empty title-bar areas are Tauri drag regions. While the window is
+ * inactive (`windowActive={false}`) the chrome dims and accent colours turn graphite.
  */
 export function AppShell({
   toolbar,
@@ -85,7 +86,8 @@ export function AppShell({
     <div className={styles.mainColumn}>
       <div
         className={styles.titlebar}
-        data-tauri-drag-region=""
+        // "deep": empty toolbar space drags the window, controls keep their clicks.
+        data-tauri-drag-region="deep"
         data-inset={sidebarShown ? undefined : ''}
         role="presentation"
       >
@@ -144,7 +146,7 @@ export function AppShell({
             >
               <nav id={SIDEBAR_PANE_ID} className={styles.sidebar} aria-label="Sidebar">
                 {/* The traffic lights sit here on macOS; the strip drags the window. */}
-                <div className={styles.sidebarTitlebar} data-tauri-drag-region="" />
+                <div className={styles.sidebarTitlebar} data-tauri-drag-region="deep" />
                 <div className={styles.sidebarBody}>{sidebar}</div>
               </nav>
             </SplitPane>

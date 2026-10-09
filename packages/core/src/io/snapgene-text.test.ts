@@ -3,6 +3,7 @@
  * Differential references: Node's TextDecoder/TextEncoder (WHATWG Encoding Standard) and
  * Python's html.unescape / html.parser (oracle file test/oracle/snapgene/html.json).
  */
+import { XMLValidator } from 'fast-xml-parser';
 import { describe, expect, it } from 'vitest';
 import { decodeUtf8, decodeUtf8WithReplacements, encodeUtf8 } from './snapgene-binary';
 import {
@@ -19,6 +20,7 @@ import {
   plainToRichText,
   richTextToPlain,
   textToHtmlDocument,
+  wellFormednessError,
   xmlElement,
 } from './snapgene-markup';
 import { Rng, loadJson } from '../../test/oracle/snapgene/testkit';
@@ -176,6 +178,87 @@ describe('XML documents', () => {
       expect(parsed.root.attributes.get('a')).toBe('&f;');
       expect(parsed.root.text).toBe('&f;');
     }
+  });
+});
+
+describe('XML well-formedness check (linear-time use of fast-xml-parser\'s XMLValidator)', () => {
+  /** The verdict of XMLValidator on the unmodified text, formatted as parseXml reports it. */
+  function validatorVerdict(text: string): string | undefined {
+    const validation = XMLValidator.validate(text);
+    if (validation === true) return undefined;
+    const { msg, line, col } = validation.err;
+    return col === undefined ? `${msg} (line ${line})` : `${msg} (line ${line}, column ${col})`;
+  }
+
+  /** Short XML-like text, biased towards whitespace runs in front of '=' with and without an attribute name. */
+  function randomXmlish(rng: Rng): string {
+    const space = () => rng.pick([' ', '  ', '\t', '\n', '\r\n', ' \n\t ', '    ', '\r', '\n\n']);
+    const maybeSpace = () => (rng.chance(0.5) ? space() : '');
+    const attribute = () =>
+      rng.pick([
+        () => `${space()}a${maybeSpace()}=${maybeSpace()}"1"`,
+        () => `${space()}b=${maybeSpace()}'2'`,
+        () => `${space()}=`, // '=' without a name
+        () => `${space()}="3"`,
+        () => `${maybeSpace()}c="4"`,
+        () => `${space()}d`, // boolean attribute
+        () => `${space()}a="5"`, // possibly repeated
+        () => `${space()}e=${space()}=`,
+        () => space(),
+      ])();
+    const tag = (name: string, inner: string) => {
+      let attributes = '';
+      for (let k = rng.int(0, 3); k > 0; k--) attributes += attribute();
+      return rng.chance(0.3) ? `<${name}${attributes}${maybeSpace()}/>` : `<${name}${attributes}>${inner}</${name}${maybeSpace()}>`;
+    };
+    if (rng.chance(0.6)) {
+      let inner = '';
+      for (let k = rng.int(0, 3); k > 0; k--) inner += rng.pick(['text', ' = ', '<!-- c -->', '&amp;', '&bad', '<?pi x?>', space(), tag('G', 'x'), tag('H', '')]);
+      return `${rng.chance(0.2) ? '<?xml version="1.0"?>' : ''}${maybeSpace()}${tag('F', inner)}${maybeSpace()}`;
+    }
+    const pieces = ['<F', '<G', '>', '/>', '</F>', '</G>', ' ', '  ', '\t', '\n', '\r\n', '=', '"v"', "'w'", 'a', 'b=', '<!--', '-->', '<?xml ', '?>', '&amp;', '&', '<![CDATA[', ']]>', '<!DOCTYPE F>', 'é'];
+    let text = '';
+    for (let k = rng.int(1, 25); k > 0; k--) text += rng.pick(pieces);
+    return text;
+  }
+
+  it('gives exactly XMLValidator\'s verdict and positions on 20 000 random XML-like texts (seeded)', () => {
+    const rng = new Rng(20261009);
+    const counts = { valid: 0, invalid: 0, shortened: 0, shortenedInvalid: 0 };
+    for (let n = 0; n < 20_000; n++) {
+      const text = randomXmlish(rng);
+      const expected = validatorVerdict(text);
+      expect(wellFormednessError(text), JSON.stringify(text)).toBe(expected);
+      if (expected === undefined) counts.valid++;
+      else counts.invalid++;
+      if (/[ \t\n\r]{2,}=/.test(text)) {
+        counts.shortened++;
+        if (expected !== undefined) counts.shortenedInvalid++;
+      }
+    }
+    expect(counts.valid).toBeGreaterThan(1000);
+    expect(counts.invalid).toBeGreaterThan(1000);
+    expect(counts.shortened).toBeGreaterThan(2000);
+    expect(counts.shortenedInvalid).toBeGreaterThan(1000);
+  });
+
+  it('reports positions in the original text when whitespace runs were shortened', () => {
+    // Line breaks in front of a '=' without a name: the error is on line 4 of the original.
+    expect(wellFormednessError('<F a="1"\n\n\n="2"/>')).toBe('Attribute \'"2"\' has no space in starting. (line 4, column 2)');
+    expect(wellFormednessError('<F    =    ="1"><G></F>')).toBe(validatorVerdict('<F    =    ="1"><G></F>'));
+    expect(wellFormednessError('<F\n\n  =\r\n\n=><G>\n\n</F>')).toBe("Expected closing tag 'G' (opened in line 5, col 3) instead of closing tag 'F'. (line 7, column 1)");
+    expect(wellFormednessError('﻿<F  ="1"/>')).toBe(validatorVerdict('﻿<F  ="1"/>'));
+  });
+
+  it('checks well-formedness in linear time when long whitespace runs precede a "=" (XMLValidator alone is quadratic)', () => {
+    const started = performance.now();
+    for (const space of [' ', '\t', '\n', '\r\n']) {
+      const run = space.repeat(250_000 / space.length);
+      expect(wellFormednessError(`<F><G${run}=/></F>`)).toBeUndefined(); // XMLValidator ignores a '=' without a name
+      expect(wellFormednessError(`<F><G a="x"${run}="y"/></F>`)).toMatch(/^Attribute '"y"' has no space in starting\. \(line \d+, column \d+\)$/);
+      expect(wellFormednessError(`<F><G a=${run}=/></F>`)).toMatch(/^Attribute 'a' is without value\./);
+    }
+    expect(performance.now() - started).toBeLessThan(2000);
   });
 });
 

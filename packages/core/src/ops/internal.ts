@@ -74,7 +74,7 @@ export function checkRange(range: Range, seqLength: number, topology: Topology, 
       `${describe()} (it is ${end - start} bases long, more than the whole circle: a range covers each base at most once, so end - start <= length)`,
     );
   }
-  return { start: plusZero(start), end };
+  return { start: plusZero(start), end: plusZero(end) };
 }
 
 /**
