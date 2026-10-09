@@ -5,3 +5,8 @@
  */
 export * from './types';
 export * from './seq';
+export * from './io';
+export * from './enzymes';
+export * from './primers';
+export * from './ops';
+export * from './gel';
