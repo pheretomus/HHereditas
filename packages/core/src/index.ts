@@ -10,3 +10,4 @@ export * from './enzymes';
 export * from './primers';
 export * from './ops';
 export * from './gel';
+export * from './cloning';
