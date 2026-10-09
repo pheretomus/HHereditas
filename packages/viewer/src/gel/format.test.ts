@@ -11,14 +11,18 @@ import {
 } from './format';
 
 describe('formatGelSize', () => {
-  it('writes ladder sizes like a marker legend', () => {
+  it('writes ladder sizes like a marker legend, rounding only when nothing is lost', () => {
     expect(formatGelSize(500, 'ladder')).toBe('500 bp');
-    expect(formatGelSize(1517, 'ladder')).toBe('1.5 kb');
+    expect(formatGelSize(1500, 'ladder')).toBe('1.5 kb');
     expect(formatGelSize(1000, 'ladder')).toBe('1 kb');
-    expect(formatGelSize(10002, 'ladder')).toBe('10 kb');
-    expect(formatGelSize(23130, 'ladder')).toBe('23.1 kb');
+    expect(formatGelSize(48500, 'ladder')).toBe('48.5 kb');
     expect(formatGelSize(145000, 'ladder')).toBe('145 kb');
-    expect(formatGelSize(4641652, 'ladder')).toBe('4.64 Mb');
+    expect(formatGelSize(2_500_000, 'ladder')).toBe('2.5 Mb');
+    // vendor sizes are kept exact (review finding: "1,517" must not read "1.5 kb")
+    expect(formatGelSize(1517, 'ladder')).toBe('1,517 bp');
+    expect(formatGelSize(10002, 'ladder')).toBe('10,002 bp');
+    expect(formatGelSize(23130, 'ladder')).toBe('23,130 bp');
+    expect(formatGelSize(4641652, 'ladder')).toBe('4,641,652 bp');
   });
 
   it('writes band sizes with 3 significant digits, and exact sizes with separators', () => {

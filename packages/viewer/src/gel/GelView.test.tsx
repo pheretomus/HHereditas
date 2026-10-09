@@ -74,7 +74,8 @@ describe('GelView', () => {
     expect(options.map((o) => o.getAttribute('aria-label'))).toEqual([
       '1 kb ladder, ladder: 7 bands: 10 kb, 5 kb, 3 kb, 1.5 kb, 1 kb, 500 bp, 250 bp',
       'EcoRI: 1 band: 4.36 kb',
-      'HinfI: 3 bands: 1.63 kb, 517 bp, 221 bp',
+      // the 220.5 bp band is a doublet of 221 + 220 bp: both sizes are read out
+      'HinfI: 3 bands: 1.63 kb, 517 bp, 221/220 bp',
     ]);
     expect(options.map((o) => o.getAttribute('aria-selected'))).toEqual(['false', 'false', 'true']);
     // roving tab stop on the selected lane

@@ -321,8 +321,10 @@ export function LinearMap(props: LinearMapProps) {
     stopAnimation();
     const t0 = performance.now();
     setAnimVp(from);
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - t0) / ANIMATION_MS);
+    // Elapsed time from performance.now() on both ends, not the frame timestamp: hosts may give
+    // requestAnimationFrame another clock (jsdom counts from window creation), which stalled the glide.
+    const tick = () => {
+      const t = Math.min(1, (performance.now() - t0) / ANIMATION_MS);
       if (t < 1) {
         const vp = interpolateViewport(from, to, easeInOutCubic(t));
         liveVp.current = vp;

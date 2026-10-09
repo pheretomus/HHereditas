@@ -37,6 +37,13 @@ function packetsOf(data: Uint8Array): Array<{ type: number; text: string; payloa
   return scan.packets.map((p) => ({ type: p.type, text: decodeUtf8(p.payload), payload: p.payload }));
 }
 
+/** Index of the first byte where `a` and `b` differ (a length mismatch counts at the shorter length), or -1. */
+function firstByteDifference(a: Uint8Array, b: Uint8Array): number {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) if (a[i] !== b[i]) return i;
+  return a.length === b.length ? -1 : n;
+}
+
 function roundTrip(record: SeqRecord, now = NOW): SeqRecord {
   const { data, warnings } = writeSnapGeneWithWarnings(record, { now });
   expect(warnings).toEqual([]);
@@ -704,7 +711,9 @@ describe('writeSnapGene: properties (seeded random records)', () => {
       expect(recordProblems(back), `record ${i}`).toEqual([]);
       expect(comparableRecord(back), `record ${i}`).toEqual(expectedRoundTrip(record, now, back.meta.extras?.UUID ?? ''));
       // A second write of what was read gives the same bytes (the format is a fixed point).
-      expect(writeSnapGene(back, { now }), `record ${i}`).toEqual(data);
+      // Compared via firstByteDifference: toEqual on a Uint8Array walks it element by element
+      // and made this test take seconds.
+      expect(firstByteDifference(writeSnapGene(back, { now }), data), `record ${i}`).toBe(-1);
     }
   });
 });

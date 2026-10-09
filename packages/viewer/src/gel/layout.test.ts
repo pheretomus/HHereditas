@@ -55,6 +55,21 @@ function noOverlap(ys: number[], spacing: number): boolean {
   return sorted.every((y, i) => i === 0 || y - sorted[i - 1] >= spacing - 1e-6);
 }
 
+/**
+ * Fastest of 3 runs of `fn`, in ms. Time budgets are ~10x the idle time: they catch quadratic
+ * behaviour, and the best of 3 keeps one pause on a loaded machine (GC, other test workers) from
+ * failing them.
+ */
+function fastestOf3(fn: () => void): number {
+  let best = Infinity;
+  for (let r = 0; r < 3; r++) {
+    const t0 = performance.now();
+    fn();
+    best = Math.min(best, performance.now() - t0);
+  }
+  return best;
+}
+
 // ---------------------------------------------------------------------------------------------
 // y mapping
 // ---------------------------------------------------------------------------------------------
@@ -397,9 +412,8 @@ describe('computeGelLayout', () => {
   it('draws lanes with very many bands as a smear inside the slab', () => {
     const sizes = Array.from({ length: GEL_SMEAR_THRESHOLD * 20 }, (_, i) => 100 + ((i * 7919) % 9000));
     const lanes = [ladderLane(), sampleLane('genome', sizes)];
-    const t0 = performance.now();
-    const layout = computeGelLayout(lanes, { width: 900, height: 600, showSizes: 'all' });
-    expect(performance.now() - t0).toBeLessThan(250);
+    let layout = computeGelLayout(lanes, { width: 900, height: 600, showSizes: 'all' });
+    expect(fastestOf3(() => (layout = computeGelLayout(lanes, { width: 900, height: 600, showSizes: 'all' })))).toBeLessThan(250);
     const smear = layout.lanes[1].smear;
     expect(smear).not.toBeNull();
     expect(smear!.length).toBeGreaterThan(10);
@@ -430,20 +444,20 @@ describe('computeGelLayout', () => {
     const frequent = digest(256);
     expect(frequent.length).toBeGreaterThan(15_000);
     const lanes = [ladderLane(), sampleLane('sau3ai', frequent), sampleLane('ecori', digest(7200))];
-    const t0 = performance.now();
-    const layout = computeGelLayout(lanes, { width: 1600, height: 1000, showSizes: 'all' });
-    const t1 = performance.now();
-    expect(t1 - t0).toBeLessThan(300);
+    let layout = computeGelLayout(lanes, { width: 1600, height: 1000, showSizes: 'all' });
+    expect(fastestOf3(() => (layout = computeGelLayout(lanes, { width: 1600, height: 1000, showSizes: 'all' })))).toBeLessThan(300);
     expect(layout.lanes[1].smear).not.toBeNull();
     expect(layout.lanes[1].bands.length).toBeGreaterThan(15_000);
     const lane = layout.lanes[1];
     let hits = 0;
-    const t2 = performance.now();
-    for (let i = 0; i < 2000; i++) {
-      const hit = hitTestGel(layout, lane.cx, layout.slab.y + (layout.slab.height * i) / 2000);
-      if (hit && hit.bandIndex >= 0) hits++;
-    }
-    expect(performance.now() - t2).toBeLessThan(100);
+    const hitTestColumn = () => {
+      hits = 0;
+      for (let i = 0; i < 2000; i++) {
+        const hit = hitTestGel(layout, lane.cx, layout.slab.y + (layout.slab.height * i) / 2000);
+        if (hit && hit.bandIndex >= 0) hits++;
+      }
+    };
+    expect(fastestOf3(hitTestColumn)).toBeLessThan(100);
     expect(hits).toBeGreaterThan(100);
   });
 
