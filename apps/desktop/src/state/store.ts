@@ -21,7 +21,17 @@ import {
 } from './documents';
 
 /** Modal sheets of the document window. */
-export type SheetId = 'digest' | 'add-primer' | 'add-feature' | 'new-sequence' | 'choose-enzymes' | 'save-as';
+export type SheetId =
+  | 'digest'
+  | 'add-primer'
+  | 'add-feature'
+  | 'new-sequence'
+  | 'choose-enzymes'
+  | 'save-as'
+  | 'clone-pcr'
+  | 'clone-restriction'
+  | 'clone-gibson'
+  | 'clone-golden-gate';
 
 export interface SheetOptions {
   /** Add Primer: forward (1) or reverse (-1). */

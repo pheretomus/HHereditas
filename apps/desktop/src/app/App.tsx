@@ -4,6 +4,7 @@
  * changes guard when the window closes.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { CloningSheets } from '../features/cloning';
 import { ChooseEnzymesSheet } from '../features/enzymes/ChooseEnzymesSheet';
 import { DigestSheet } from '../features/enzymes/DigestSheet';
 import { AddFeatureSheet } from '../features/features/AddFeatureSheet';
@@ -152,6 +153,7 @@ export function App() {
       <NewSequenceSheet open={sheet === 'new-sequence'} />
       <ChooseEnzymesSheet open={sheet === 'choose-enzymes'} doc={doc} />
       <SaveAsSheet open={sheet === 'save-as'} defaultName={sheetOptions.defaultName} format={sheetOptions.format} />
+      <CloningSheets sheet={sheet} doc={doc} />
       <ClosePromptDialog />
     </div>
   );

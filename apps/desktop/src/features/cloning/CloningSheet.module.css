@@ -1,0 +1,415 @@
+/* Shared layout of the cloning sheets: inputs on the left, the live preview on the right. */
+
+.layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: var(--hh-space-5);
+  height: min(600px, calc(100vh - 210px));
+  min-height: 380px;
+}
+
+.inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hh-space-4);
+  min-height: 0;
+  overflow-y: auto;
+  /* room for focus rings of the controls at the edges */
+  padding: 3px;
+  margin: -3px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hh-space-2);
+}
+
+.groupTitle {
+  margin: 0;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-xs);
+  font-weight: var(--hh-weight-semibold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--hh-space-2);
+}
+
+.row > .grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.inlineLabel {
+  flex: 0 0 auto;
+  width: 64px;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+}
+
+.hint {
+  margin: 0;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  line-height: 1.4;
+}
+
+.hint strong {
+  color: var(--hh-text);
+  font-weight: var(--hh-weight-medium);
+}
+
+.mono {
+  font-family: var(--hh-font-mono);
+  font-size: var(--hh-text-sm);
+  word-break: break-all;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hh-space-1) var(--hh-space-3);
+  margin: 0;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats strong {
+  color: var(--hh-text);
+  font-weight: var(--hh-weight-medium);
+}
+
+.problem {
+  color: var(--hh-red);
+}
+
+/* ---------------------------------------------------------------- preview */
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hh-space-3);
+  min-width: 0;
+  min-height: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1px solid var(--hh-separator);
+  border-radius: var(--hh-radius-md);
+  background: var(--hh-bg-content);
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--hh-space-2);
+  min-height: 36px;
+  padding: var(--hh-space-1) var(--hh-space-3);
+  border-bottom: 1px solid var(--hh-separator);
+  background: var(--hh-bg-subtle);
+}
+
+.cardTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--hh-text-md);
+  font-weight: var(--hh-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardMeta {
+  flex: 0 0 auto;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardBody {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.map {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  /* the preview is a picture: no selection, no context menus */
+  pointer-events: none;
+}
+
+.map > * {
+  width: 100%;
+  height: 100%;
+}
+
+.aside {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--hh-space-1);
+  padding: var(--hh-space-3);
+  border-left: 1px solid var(--hh-separator);
+}
+
+.asideCaption {
+  margin: 0;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-xs);
+}
+
+.empty {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  padding: var(--hh-space-6);
+}
+
+.issues {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--hh-space-2);
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.issueList {
+  margin: 0;
+  padding-left: 1.1em;
+}
+
+.issueList li + li {
+  margin-top: 2px;
+}
+
+.tableBox {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+}
+
+.tableBox > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ---------------------------------------------------------------- lists */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hh-separator);
+  border-radius: var(--hh-radius-sm);
+  background: var(--hh-bg-content);
+  overflow: hidden;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  gap: var(--hh-space-1);
+  min-height: 30px;
+  padding: 0 var(--hh-space-1) 0 var(--hh-space-2);
+}
+
+.listItem + .listItem {
+  border-top: 1px solid var(--hh-separator);
+}
+
+.listIndex {
+  flex: 0 0 auto;
+  width: 16px;
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.listName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--hh-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listMeta {
+  flex: 0 0 auto;
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.listEmpty {
+  padding: var(--hh-space-3);
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-sm);
+  text-align: center;
+}
+
+/* Enzyme picker */
+
+.enzymeList {
+  flex: 1 1 auto;
+  min-height: 120px;
+  overflow-y: auto;
+  border: 1px solid var(--hh-separator);
+  border-radius: var(--hh-radius-sm);
+  background: var(--hh-bg-content);
+  padding: var(--hh-space-1) 0;
+}
+
+.enzymeHeader,
+.enzymeOption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px 52px;
+  align-items: center;
+  gap: var(--hh-space-2);
+  padding: 2px var(--hh-space-2);
+}
+
+.enzymeHeader {
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-xs);
+  padding-top: 0;
+  padding-bottom: var(--hh-space-1);
+}
+
+.enzymeHeader > :not(:first-child),
+.enzymeOption > :not(:first-child) {
+  text-align: center;
+}
+
+.enzymeOption:hover {
+  background: var(--hh-bg-hover);
+}
+
+.cuts {
+  color: var(--hh-text-secondary);
+  font-size: var(--hh-text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.cuts[data-good='true'] {
+  color: var(--hh-accent);
+  font-weight: var(--hh-weight-semibold);
+}
+
+.cuts[data-none='true'] {
+  color: var(--hh-text-tertiary);
+}
+
+.chosen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hh-space-1);
+  min-height: 20px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 20px;
+  padding: 0 4px 0 8px;
+  border: none;
+  border-radius: 10px;
+  background: var(--hh-accent-soft);
+  color: var(--hh-accent);
+  font: inherit;
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-medium);
+  cursor: pointer;
+}
+
+.chip svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.7;
+}
+
+.chip:hover svg {
+  opacity: 1;
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: var(--hh-focus-ring);
+}
+
+/* Tabs in the preview column */
+
+.tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--hh-space-3);
+  min-height: 0;
+}
+
+.tabPanel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--hh-space-3);
+  min-height: 0;
+}
+
+.tabPanel[hidden] {
+  display: none;
+}
+
+.copyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hh-space-2);
+}
+
+.amountGrid {
+  display: grid;
+  grid-template-columns: auto 120px auto 120px;
+  align-items: center;
+  gap: var(--hh-space-2) var(--hh-space-3);
+}
+
+/* Molecule picker options: name left, size right */
+
+.option {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--hh-space-3);
+  width: 100%;
+  min-width: 0;
+}
+
+.optionLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.optionDetail {
+  flex: 0 0 auto;
+  color: var(--hh-text-secondary);
+  font-variant-numeric: tabular-nums;
+}

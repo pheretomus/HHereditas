@@ -94,7 +94,10 @@ export function installNativeMenu(focusSearch: () => void): () => void {
         await item('Choose Enzymes…', undefined, withDoc(() => app().openSheet('choose-enzymes'))),
         await item('Show Open Reading Frames', undefined, () => settings().update({ showOrfs: !settings().showOrfs })),
         await sep(),
-        await item('Cloning (coming soon)', undefined, () => undefined, false),
+        await item('PCR…', undefined, withDoc(() => app().openSheet('clone-pcr'))),
+        await item('Restriction Cloning…', undefined, withDoc(() => app().openSheet('clone-restriction'))),
+        await item('Gibson Assembly…', undefined, withDoc(() => app().openSheet('clone-gibson'))),
+        await item('Golden Gate Assembly…', undefined, withDoc(() => app().openSheet('clone-golden-gate'))),
       ],
     });
     const windowMenu = await Submenu.new({

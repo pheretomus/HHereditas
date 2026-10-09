@@ -127,6 +127,12 @@ export function DocumentWindow({ searchRef, searchQuery, onSearchQueryChange }: 
         if (summary?.hasBases) app.openSheet('add-primer', { direction: 1 });
         else app.flash('Select the bases a primer should anneal to, then choose Add Primer.');
         break;
+      case 'clone-pcr':
+      case 'clone-restriction':
+      case 'clone-gibson':
+      case 'clone-golden-gate':
+        app.openSheet(action);
+        break;
       case 'find-orfs': {
         const show = !settings.showOrfs;
         settings.update({ showOrfs: show });
@@ -206,7 +212,6 @@ export function DocumentWindow({ searchRef, searchQuery, onSearchQueryChange }: 
           enzymeDisplayLabels={ENZYME_DISPLAY_NAMES}
           onChooseEnzymes={() => app.openSheet('choose-enzymes')}
           onAction={onAction}
-          cloningAvailable={false}
           actionsMenuPrefix={isMac() ? undefined : fileItems}
           searchValue={searchQuery}
           onSearchChange={onSearchQueryChange}
