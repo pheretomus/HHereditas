@@ -171,7 +171,8 @@ describe('parseTraceFile', () => {
 // SnapGene's own alignments of the sample file are a cross-check: same strand and nearly the same stretch (the ends
 // differ by a few bases where the read is noisy, because noisy ends are trimmed here before they are aligned).
 describe.skipIf(!existsSync(SAMPLE))('against the alignments SnapGene saved in the sample file', () => {
-  const parsed: any = parseSnapGene(new Uint8Array(readFileSync(SAMPLE)));
+  // The suite is skipped without the sample, but its body still runs while tests are collected.
+  const parsed: any = existsSync(SAMPLE) ? parseSnapGene(new Uint8Array(readFileSync(SAMPLE))) : {};
   const rec = parsed.records?.[0] ?? parsed.record ?? parsed;
   const reads: any[] = rec.alignedSequences ?? [];
 
