@@ -93,6 +93,8 @@ export interface Primer {
   description?: string;
   /** Not drawn on the maps or the sequence view (SnapGene `visible="0"`). Absent means shown. */
   hidden?: boolean;
+  /** Ordered with a 5' phosphate (for ligation after PCR). A note for the order form; nothing else uses it. */
+  phosphorylated?: boolean;
 }
 
 /** Kind of single-stranded end of a linear double-stranded molecule. */

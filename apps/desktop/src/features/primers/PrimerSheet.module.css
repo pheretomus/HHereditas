@@ -1,190 +1,251 @@
+/* SnapGene-style Add Primer dialog: fields on top, statistics, then the template around the binding site. */
+
 .sheetBody {
   display: flex;
   flex-direction: column;
+  gap: var(--hh-space-2);
+  max-height: 78vh;
+}
+
+/* ----- Primer | Description ----- */
+
+.nameRow {
+  display: grid;
+  grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
   gap: var(--hh-space-3);
-  max-height: 72vh;
-  overflow-y: auto;
-  padding-right: 2px;
 }
 
-.topRow {
+.nameField,
+.descriptionField {
+  min-width: 0;
+}
+
+/* ----- 5′ sequence 3′ ----- */
+
+.sequenceRow {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  gap: var(--hh-space-3);
-  align-items: end;
-}
-
-.sectionBox {
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--hh-space-2);
-  padding: var(--hh-space-2) var(--hh-space-3);
-  border: 1px solid var(--hh-border-subtle, rgba(128, 128, 128, 0.2));
-  border-radius: var(--hh-radius-md, 6px);
-  background: var(--hh-bg-subtle, rgba(128, 128, 128, 0.04));
-}
-
-.sectionHeader {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--hh-space-2);
 }
 
-.sectionTitle {
-  font-size: var(--hh-text-xs, 10px);
-  font-weight: var(--hh-weight-semibold, 600);
-  color: var(--hh-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+.sequenceField {
+  min-width: 0;
 }
 
-.tailRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) auto;
-  gap: var(--hh-space-2);
-  align-items: end;
-}
-
-.motifRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.motifLabel {
-  font-size: var(--hh-text-xs, 10px);
-  color: var(--hh-text-secondary);
-  margin-right: 2px;
-}
-
-.bindingBadges {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.thermoGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--hh-space-2);
-}
-
-.thermoCard {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 6px 8px;
-  border-radius: var(--hh-radius-sm, 6px);
-  background: var(--hh-bg-field);
-  border: 1px solid var(--hh-border-control);
-}
-
-.thermoCardTitle {
-  font-size: var(--hh-text-xs, 10px);
-  font-weight: var(--hh-weight-semibold, 600);
-  color: var(--hh-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.thermoMetrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  font-size: var(--hh-text-sm, 11px);
-  color: var(--hh-text-secondary);
-  font-variant-numeric: tabular-nums;
-}
-
-.thermoMetrics strong {
-  color: var(--hh-text);
-  font-weight: var(--hh-weight-medium, 500);
-}
-
-.alignmentBox {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 10px;
-  border-radius: var(--hh-radius-sm, 6px);
-  background: var(--hh-bg-field);
-  border: 1px solid var(--hh-border-control);
-  overflow-x: auto;
+.endLabel {
   font-family: var(--hh-font-mono);
-  font-size: var(--hh-text-sm, 11px);
-  line-height: 1.45;
-}
-
-.alignmentHeader {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--hh-space-2);
-  margin-bottom: 4px;
-  font-family: var(--hh-font-ui);
-  font-size: var(--hh-text-xs, 10px);
-  color: var(--hh-text-secondary);
-}
-
-.alignmentLine {
-  display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  align-items: baseline;
-  gap: var(--hh-space-2);
-  white-space: pre;
-}
-
-.alignmentLabel {
-  font-family: var(--hh-font-ui);
-  font-size: var(--hh-text-xs, 10px);
+  font-style: italic;
+  font-size: var(--hh-text-sm);
   color: var(--hh-text-secondary);
   user-select: none;
 }
 
-.alignmentSeq {
-  font-family: var(--hh-font-mono);
-  color: var(--hh-seq-text, var(--hh-text));
-  letter-spacing: 0.02em;
-}
-
-.tailBases {
-  color: var(--hh-orange, #e65100);
-  background: rgba(230, 81, 0, 0.1);
-  border-radius: 2px;
-}
-
-.annealedBases {
-  color: var(--hh-accent, #0c4f30);
-  font-weight: var(--hh-weight-medium, 500);
-}
-
-.mismatchBase {
-  color: var(--hh-red, #dc2626);
-  font-weight: var(--hh-weight-bold, 700);
-}
-
-.pairingLine {
-  font-family: var(--hh-font-mono);
-  color: var(--hh-text-secondary);
-  letter-spacing: 0.02em;
-}
-
-.templateLine {
-  font-family: var(--hh-font-mono);
-  color: var(--hh-seq-text-complement, var(--hh-text-secondary));
-  letter-spacing: 0.02em;
-}
-
-.coordTag {
-  font-family: var(--hh-font-ui);
-  font-size: var(--hh-text-xs, 10px);
-  color: var(--hh-text-secondary);
+.menuSite {
   margin-left: 6px;
+  font-family: var(--hh-font-mono);
+  font-size: var(--hh-text-sm);
+  color: var(--hh-text-secondary);
+}
+
+.errorText {
+  margin: 0;
+  font-size: var(--hh-text-sm);
+  color: var(--hh-red, #e5484d);
+}
+
+/* ----- [ ] 5′ Phosphorylated            Reverse Complement ----- */
+
+.optionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hh-space-2);
+}
+
+/* ----- Primer: / Binding site: ----- */
+
+.statsRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--hh-space-3);
+  margin-top: var(--hh-space-1);
+}
+
+.statsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.statsBlockEnd {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.statsTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--hh-text-md);
+  color: var(--hh-text-secondary);
+}
+
+.siteNav {
+  display: inline-flex;
+  align-items: center;
+}
+
+.statsLine {
+  font-size: var(--hh-text-md);
+  color: var(--hh-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.statsLine strong {
+  color: var(--hh-text);
+  font-weight: var(--hh-weight-semibold, 600);
+}
+
+.statsMuted {
+  color: var(--hh-text-tertiary);
+}
+
+.dot {
+  margin: 0 4px;
+  color: var(--hh-text-tertiary);
+}
+
+.tmValue {
+  padding: 0 4px;
+  border: 1px solid var(--hh-border-control);
+  border-radius: 3px;
+  background: var(--hh-bg-field);
+}
+
+/* ----- preview: tools on the left, the sequence view on the right ----- */
+
+.previewBox {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  border: 1px solid var(--hh-border-control);
+  border-radius: var(--hh-radius-xs);
+  background: var(--hh-bg-content);
+  height: 400px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.previewTools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 4px 8px 6px;
+  border-right: 1px solid var(--hh-border-subtle, rgba(128, 128, 128, 0.18));
+  background: var(--hh-bg-content);
+}
+
+.toolPair {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.toolToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--hh-border-control);
+  border-radius: 5px;
+  background: var(--hh-bg-control);
+  color: var(--hh-text-secondary);
+  cursor: default;
+}
+
+.toolToggle > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.toolToggle[aria-pressed='true'] {
+  background: var(--hh-blue, #2563eb);
+  border-color: var(--hh-blue, #2563eb);
+  color: #ffffff;
+}
+
+.toolToggle:hover {
+  filter: brightness(0.96);
+}
+
+.toolChevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--hh-border-control);
+  border-radius: 4px;
+  background: var(--hh-bg-control);
+  color: var(--hh-text-secondary);
+  cursor: default;
+}
+
+.toolChevron > svg {
+  width: 12px;
+  height: 12px;
+}
+
+.previewView {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.sequenceView {
+  width: 100%;
+  height: 100%;
+}
+
+.previewEmpty {
+  margin: 0;
+  padding: var(--hh-space-4);
+  color: var(--hh-text-tertiary);
+  font-size: var(--hh-text-sm);
+}
+
+/* "Make a primer from the selection?" card over the preview */
+
+.selectionPrompt {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--hh-space-2);
+  padding: var(--hh-space-3) var(--hh-space-4);
+  border: 1px solid var(--hh-border-control);
+  border-radius: var(--hh-radius-lg);
+  background: var(--hh-bg-elevated);
+  box-shadow: var(--hh-shadow-popover, 0 8px 24px rgba(0, 0, 0, 0.18));
+}
+
+.selectionPromptText {
+  margin: 0;
+  font-size: var(--hh-text-md);
+  color: var(--hh-text);
+}
+
+.selectionPromptActions {
+  display: flex;
+  gap: 6px;
 }
 
 .footerActions {

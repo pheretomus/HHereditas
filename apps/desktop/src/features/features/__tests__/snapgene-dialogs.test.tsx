@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '../../../shell/__tests__/setup';
-import { makeFeature, makeRecord } from '@hhereditas/core';
+import { makeFeature, makeRecord, reverseComplement } from '@hhereditas/core';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -145,36 +145,41 @@ describe('SnapGene Feature Dialog (AddFeatureSheet)', () => {
 });
 
 describe('SnapGene Primer Dialog (AddPrimerSheet)', () => {
-  it('supports 5-prime restriction site extension, common tag insertion,template binding alignment, and Edit Primer mode', async () => {
+  it('shows the SnapGene layout, the binding site and the template view, and edits the primer', async () => {
     const user = userEvent.setup();
+    const forward = TEST_SEQ.slice(100, 122);
     const rec = makeRecord({
       name: 'pGFP',
       seq: TEST_SEQ,
       topology: 'circular',
-      primers: [
-        {
-          id: 'p1',
-          name: 'GFP_Fwd_1',
-          sequence: TEST_SEQ.slice(0, 22),
-          description: 'Initial forward primer',
-        },
-      ],
+      primers: [{ id: 'p1', name: 'GFP_Fwd_1', sequence: forward, description: 'Initial forward primer' }],
     });
     useApp.getState().openRecords([rec]);
     const doc = useApp.getState().documents[0];
 
     render(<AddPrimerSheet open={true} doc={doc} mode="edit" primerId="p1" />);
 
-    expect(screen.getByText('Edit Primer')).toBeTruthy();
-    expect(screen.getByText(/5′ Extension \/ Tail Addition/i)).toBeTruthy();
-    expect(screen.getByText(/Template Binding & Thermodynamics/i)).toBeTruthy();
+    expect(screen.getByText('Edit Primer in pGFP')).toBeTruthy();
+    expect((screen.getByLabelText('Primer') as HTMLInputElement).value).toBe('GFP_Fwd_1');
+    expect((screen.getByLabelText('Sequence') as HTMLInputElement).value).toBe(forward);
+    expect(screen.getByRole('checkbox', { name: /5′ Phosphorylated/ })).toBeTruthy();
+    expect(screen.getByText(/Binding site:/)).toBeTruthy();
+    expect(screen.getByText('101 .. 122')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Show enzymes/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Show features/ })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Show translations and ORFs/ })).toBeTruthy();
 
-    // Prepend a +Kozak or restriction site 5' extension
-    await user.click(screen.getByRole('button', { name: /\+Kozak/i }));
-    await user.click(screen.getByRole('button', { name: /Save Primer/i }));
+    // Reverse Complement flips the oligo; the binding site stays, on the bottom strand
+    await user.click(screen.getByRole('button', { name: /Reverse Complement/ }));
+    expect((screen.getByLabelText('Sequence') as HTMLInputElement).value).toBe(reverseComplement(forward));
+    expect(screen.getByText(/bottom strand/)).toBeTruthy();
+
+    await user.click(screen.getByRole('checkbox', { name: /5′ Phosphorylated/ }));
+    await user.click(screen.getByRole('button', { name: /Save Primer/ }));
 
     const updatedPrimer = useApp.getState().documents[0].record.primers[0];
-    expect(updatedPrimer.sequence.startsWith('GCCACCATGG')).toBe(true);
+    expect(updatedPrimer.sequence).toBe(reverseComplement(forward));
+    expect(updatedPrimer.phosphorylated).toBe(true);
   });
 });
 
