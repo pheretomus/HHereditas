@@ -15,5 +15,9 @@
   "peerDependencies": {
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
+  },
+  "dependencies": {
+    "lucide-react": "^1.52.0",
+    "radix-ui": "^1.7.0"
   }
 }
