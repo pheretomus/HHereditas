@@ -969,13 +969,15 @@ export function SnapGeneWorkspace({
 
   return (
     <TooltipProvider>
-      <div className={styles.window} data-tauri-drag-region="deep">
+      {/* Only the menu bar, tab strip and action toolbar drag the window: a drag anywhere else selects. */}
+      <div className={styles.window}>
         {/* =====================================================================
             ROW 1: SnapGene Top Menu Bar
             File | Edit | View | Enzymes | Features | Primers | Actions | Tools | Window | Help
            ===================================================================== */}
         <header
           className={styles.menuBar}
+          data-tauri-drag-region="deep"
           role="menubar"
           aria-label="Application menu"
         >
@@ -1844,7 +1846,7 @@ export function SnapGeneWorkspace({
             ROW 2: SnapGene Document Tab Strip
             [◧] [📁] | [🧬 TALED_Right... ×] [+]
            ===================================================================== */}
-        <div className={styles.tabStrip}>
+        <div className={styles.tabStrip} data-tauri-drag-region="deep">
           <Tooltip
             content={leftPanelOpen ? "Hide Side Panel" : "Show Side Panel"}
           >
@@ -1929,6 +1931,7 @@ export function SnapGeneWorkspace({
            ===================================================================== */}
         <div
           className={styles.actionToolbar}
+          data-tauri-drag-region="deep"
           role="toolbar"
           aria-label="Document actions"
         >
@@ -2095,7 +2098,7 @@ export function SnapGeneWorkspace({
             MAIN WORKSPACE BODY:
             Optional Left Side Panel + Full-Width White Canvas + Optional Right Info Panel
            ===================================================================== */}
-        <div ref={alignSplitRef} className={styles.workspaceColumn}>
+        <div ref={alignSplitRef} className={styles.workspaceColumn} data-tauri-drag-region="false">
         <div
           className={styles.workspaceBody}
           style={

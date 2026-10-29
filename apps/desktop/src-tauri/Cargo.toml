@@ -1,6 +1,6 @@
 [package]
 name = "hhereditas"
-version = "0.1.0"
+version = "0.1.1"
 description = "HHereditas desktop shell"
 authors = ["HHereditas contributors"]
 license = ""
