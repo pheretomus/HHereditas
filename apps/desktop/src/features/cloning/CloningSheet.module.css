@@ -413,3 +413,83 @@
   color: var(--hh-text-secondary);
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------------------------------------------------------------- Feature-based Gibson calculation panel */
+
+.featureCalcPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hh-space-2);
+  margin-bottom: var(--hh-space-4);
+  padding: var(--hh-space-3);
+  border: 1px solid rgba(22, 121, 75, 0.28);
+  border-radius: var(--hh-radius-md);
+  background: var(--hh-bg-subtle);
+}
+
+.featureCalcHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hh-space-3);
+  flex-wrap: wrap;
+}
+
+.featureCalcTitle {
+  margin: 0;
+  color: var(--hh-accent);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-semibold);
+}
+
+.featureCalcActions {
+  display: flex;
+  align-items: center;
+  gap: var(--hh-space-2);
+}
+
+.featureCalcTableWrap {
+  max-height: 210px;
+  overflow: auto;
+  border: 1px solid var(--hh-separator);
+  border-radius: var(--hh-radius-sm);
+  background: var(--hh-bg-content);
+}
+
+.featureCalcTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--hh-text-xs);
+  text-align: left;
+}
+
+.featureCalcTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 6px 8px;
+  background: var(--hh-bg-subtle);
+  border-bottom: 1px solid var(--hh-separator);
+  color: var(--hh-text-secondary);
+  font-weight: var(--hh-weight-semibold);
+  white-space: nowrap;
+}
+
+.featureCalcTable td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--hh-separator);
+  vertical-align: middle;
+}
+
+.featureCalcTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tailSeq {
+  color: var(--hh-accent);
+  font-weight: var(--hh-weight-semibold);
+}
+
+.annealSeq {
+  color: var(--hh-text);
+}

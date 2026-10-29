@@ -21,7 +21,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { FEATURE_LABEL_ON_FILL } from '../common/colors';
+import { labelColorOnFill } from '../linear/labelColor';
 import { formatBp, formatInt, formatPosition } from '../common/format';
 import { type ElementSize, useElementSize } from '../common/useElementSize';
 import {
@@ -49,10 +49,8 @@ import {
   type LabelPlacement,
   type LabelTone,
   type MapGeometry,
-  LABEL_CHIP_GAP,
   buildMapModel,
   computeGeometry,
-  labelChipSize,
   placeLabels,
 } from './layout';
 import { type TextMeasurer, createCanvasMeasurer } from './measure';
@@ -62,6 +60,8 @@ export interface CircularMapProps {
   record: SeqRecord;
   /** Sites to draw (already filtered by the app): every one given is shown. */
   enzymeSites?: readonly EnzymeSite[];
+  /** Names of the enzymes that share each enzyme's site and cut (see MapModelInput.enzymeAliases). */
+  enzymeAliases?: ReadonlyMap<string, readonly string[]>;
   /** Primer binding sites; names come from record.primers (matched by primerId). */
   primerSites?: readonly PrimerBindingSite[];
   orfs?: readonly Orf[];
@@ -70,10 +70,12 @@ export interface CircularMapProps {
   onSelectionChange?: (selection: SequenceSelection | null) => void;
   /** Feature to emphasise, e.g. hovered in the sidebar. */
   highlightedFeatureId?: string | null;
+  /** Multiple features selected (e.g. via Ctrl+Click). */
+  selectedFeatureIds?: readonly string[];
   onFeatureClick?: (featureId: string, info: FeatureClickInfo) => void;
   onFeatureHover?: (featureId: string | null) => void;
   onEnzymeClick?: (site: EnzymeSite) => void;
-  onPrimerClick?: (primerId: string) => void;
+  onPrimerClick?: (primerId: string, info: FeatureClickInfo) => void;
   onContextMenu?: (target: MapTarget, event: ReactMouseEvent) => void;
   /** Layers to draw; each defaults to visible when its data is given. */
   show?: MapShowOptions;
@@ -244,11 +246,13 @@ export function CircularMap(props: CircularMapProps) {
   const {
     record,
     enzymeSites = EMPTY,
+    enzymeAliases,
     primerSites = EMPTY,
     orfs = EMPTY,
     selection,
     onSelectionChange,
     highlightedFeatureId = null,
+    selectedFeatureIds,
     onFeatureClick,
     onFeatureHover,
     onEnzymeClick,
@@ -281,17 +285,28 @@ export function CircularMap(props: CircularMapProps) {
   const showEnzymes = show?.enzymes !== false;
   const showPrimers = show?.primers !== false;
   const showOrfs = show?.orfs !== false;
+  const showAlignments = show?.alignments !== false;
+  const showLengths = Boolean(show?.lengths);
+  const showPrimerLocations = Boolean(show?.primerLocations);
 
   const model = useMemo(
     () =>
       buildMapModel({
         record,
         enzymeSites,
+        enzymeAliases,
         primerSites,
         orfs,
-        layers: { features: showFeatures, enzymes: showEnzymes, primers: showPrimers, orfs: showOrfs },
+        layers: {
+          features: showFeatures,
+          enzymes: showEnzymes,
+          primers: showPrimers,
+          orfs: showOrfs,
+          lengths: showLengths,
+          primerLocations: showPrimerLocations,
+        },
       }),
-    [record, enzymeSites, primerSites, orfs, showFeatures, showEnzymes, showPrimers, showOrfs],
+    [record, enzymeSites, enzymeAliases, primerSites, orfs, showFeatures, showEnzymes, showPrimers, showOrfs, showLengths, showPrimerLocations],
   );
 
   const heavy = model.features.length + model.enzymes.length + model.primers.length + model.orfs.length > HEAVY_ITEMS;
@@ -307,6 +322,9 @@ export function CircularMap(props: CircularMapProps) {
   const pinnedKey = useMemo(() => {
     const ids: string[] = [];
     if (highlightedFeatureId) ids.push(highlightedFeatureId);
+    if (selectedFeatureIds) {
+      for (const id of selectedFeatureIds) if (!ids.includes(id)) ids.push(id);
+    }
     if (selEnd > selStart && model.length > 0) {
       const r = normalizeRange({ start: selStart, end: selEnd }, model.length, model.topology);
       for (const f of model.features) {
@@ -314,7 +332,7 @@ export function CircularMap(props: CircularMapProps) {
       }
     }
     return ids.sort().join('\u0000');
-  }, [model, selStart, selEnd, highlightedFeatureId]);
+  }, [model, selStart, selEnd, highlightedFeatureId, selectedFeatureIds]);
 
   const placement = useMemo(() => {
     if (!geom) return null;
@@ -539,7 +557,12 @@ export function CircularMap(props: CircularMapProps) {
         break;
       case 'primer':
         selectOrExtend(hit.shape.item.site.range);
-        onPrimerClick?.(hit.shape.item.site.primerId);
+        onPrimerClick?.(hit.shape.item.site.primerId, {
+          clickCount: Math.max(1, e.detail || 1),
+          shiftKey: e.shiftKey,
+          metaKey: e.metaKey,
+          ctrlKey: e.ctrlKey,
+        });
         break;
       case 'orf':
         selectOrExtend(hit.shape.item.orf.range);
@@ -583,6 +606,7 @@ export function CircularMap(props: CircularMapProps) {
         placement,
         hover,
         highlightedFeatureId: highlightedFeatureId !== hoverFeatureId ? highlightedFeatureId : null,
+        selectedFeatureIds,
       }
     : null;
   const selectionText = !sel
@@ -635,6 +659,9 @@ export function CircularMap(props: CircularMapProps) {
           <LeaderLayer placement={placement} />
           {hoverProps && <HoverLabelLayer {...hoverProps} />}
           <ShapeLayer geom={geom} idPrefix={idPrefix} />
+          {showAlignments && record.alignedSequences && record.alignedSequences.length > 0 && (
+            <AlignedArcLayer geom={geom} alignedSequences={record.alignedSequences} />
+          )}
           <LabelLayer geom={geom} placement={placement} />
           <SelectionOverlay geom={geom} selection={sel} />
           {hoverProps && <HoverShapeLayer {...hoverProps} />}
@@ -715,7 +742,7 @@ function SelectionOverlay({ geom, selection }: { geom: MapGeometry; selection: S
   const angle = positionToAngle(geom.scale, selection.range.start);
   const outer = geom.ringOuter + 4;
   const knob = polarToCartesian(cx, cy, outer + 2.5, angle);
-  const inner = geom.ruler ? Math.min(geom.ruler.radius, R - 12) : Math.max(geom.centreRadius, 8);
+  const inner = Math.max(geom.centreRadius, 8);
   return (
     <g pointerEvents="none" data-testid="circular-caret">
       <path className={styles.caret} d={radialLinePath(cx, cy, inner, outer, angle)} />
@@ -726,20 +753,71 @@ function SelectionOverlay({ geom, selection }: { geom: MapGeometry; selection: S
 
 const LeaderLayer = memo(function LeaderLayer({ placement }: { placement: LabelPlacement | null }) {
   if (!placement || placement.labels.length === 0) return null;
-  return <path className={styles.leader} d={placement.labels.map((l) => l.leader).join(' ')} />;
+  const regular: string[] = [];
+  const primer: string[] = [];
+  for (const l of placement.labels) {
+    if (l.candidate.ref.kind === 'primer') primer.push(l.leader);
+    else regular.push(l.leader);
+  }
+  return (
+    <g pointerEvents="none">
+      {regular.length > 0 && <path className={styles.leader} d={regular.join(' ')} />}
+      {primer.length > 0 && <path className={styles.leaderPrimer} d={primer.join(' ')} />}
+    </g>
+  );
+});
+
+const AlignedArcLayer = memo(function AlignedArcLayer({
+  geom,
+  alignedSequences,
+}: {
+  geom: MapGeometry;
+  alignedSequences: NonNullable<SeqRecord['alignedSequences']>;
+}) {
+  const L = geom.model.length;
+  if (L <= 0) return null;
+  const visible = alignedSequences.filter((a) => a.aligned && a.visible);
+  if (visible.length === 0) return null;
+  const { cx, cy, scale } = geom;
+  const baseR = Math.max(geom.centreRadius + 10, geom.radius - 12);
+  return (
+    <g data-testid="circular-alignments" pointerEvents="none">
+      {visible.map((aln, idx) => {
+        const norm = normalizeRange(aln.refRange, L, geom.model.topology);
+        if (norm.end <= norm.start) return null;
+        const r = Math.max(geom.centreRadius + 6, baseR - (idx % 4) * 6);
+        const a0 = positionToAngle(scale, norm.start);
+        const a1 = positionToAngle(scale, norm.end);
+        const arcD = arcPath(cx, cy, r, a0, a1);
+        const tipAngle = aln.strand === 1 ? a1 : a0;
+        const tipPt = polarToCartesian(cx, cy, r, tipAngle);
+        const backAngle = aln.strand === 1 ? tipAngle - 2.2 : tipAngle + 2.2;
+        const p1 = polarToCartesian(cx, cy, r - 3.2, backAngle);
+        const p2 = polarToCartesian(cx, cy, r + 3.2, backAngle);
+        const headD = `M${tipPt.x} ${tipPt.y}L${p1.x} ${p1.y}L${p2.x} ${p2.y}Z`;
+        return (
+          <g key={aln.id} data-alignment-id={aln.id}>
+            <path d={arcD} fill="none" stroke="#991b1b" strokeWidth={2.5} strokeLinecap="round" />
+            <path d={headD} fill="#991b1b" />
+          </g>
+        );
+      })}
+    </g>
+  );
 });
 
 const ShapeLayer = memo(function ShapeLayer({ geom, idPrefix }: { geom: MapGeometry; idPrefix: string }) {
   const { cx, ruler, centre } = geom;
   const empty = geom.model.length <= 0;
-  const withInside = geom.features.filter((f) => f.inside);
+  const withCurved = geom.features.filter((f) => f.inside || f.below);
   return (
     <g>
-      {withInside.length > 0 && (
+      {withCurved.length > 0 && (
         <defs>
-          {withInside.map((f) => (
-            <path key={f.inside!.key} id={`${idPrefix}${f.inside!.key}`} d={f.inside!.d} />
-          ))}
+          {withCurved.map((f) => {
+            const cur = (f.inside ?? f.below)!;
+            return <path key={cur.key} id={`${idPrefix}${cur.key}`} d={cur.d} />;
+          })}
         </defs>
       )}
       {ruler && (
@@ -749,7 +827,14 @@ const ShapeLayer = memo(function ShapeLayer({ geom, idPrefix }: { geom: MapGeome
           {ruler.major && <path className={styles.tickMajor} d={ruler.major} />}
           <path className={styles.tickOrigin} d={ruler.origin} />
           {ruler.labels.map((t) => (
-            <text key={t.text} className={styles.tickLabel} x={t.x} y={t.y} style={{ fontSize: ruler.fontSize }}>
+            <text
+              key={t.text}
+              className={styles.tickLabel}
+              x={t.x}
+              y={t.y}
+              transform={t.transform}
+              style={{ fontSize: ruler.fontSize }}
+            >
               {t.text}
             </text>
           ))}
@@ -760,7 +845,7 @@ const ShapeLayer = memo(function ShapeLayer({ geom, idPrefix }: { geom: MapGeome
       {geom.orfs.length > 0 && (
         <g>
           {geom.orfs.map((o) => (
-            <path key={o.index} className={styles.orf} d={o.d} />
+            <path key={o.index} className={o.item.orf.strand === 1 ? styles.orfFwd : styles.orfRev} d={o.d} />
           ))}
         </g>
       )}
@@ -772,11 +857,25 @@ const ShapeLayer = memo(function ShapeLayer({ geom, idPrefix }: { geom: MapGeome
               {f.connectors && <path className={styles.connector} d={f.connectors} style={{ stroke: f.stroke }} />}
               <path className={styles.feature} d={f.d} style={{ fill: f.fill, stroke: f.stroke }} />
               {f.inside && (
-                <text className={styles.insideLabel} style={{ fontSize: f.inside.fontSize, fill: FEATURE_LABEL_ON_FILL }}>
+                <text
+                  className={styles.insideLabel}
+                  data-label-tier="inside"
+                  style={{ fontSize: f.inside.fontSize, fill: labelColorOnFill(f.fill) }}
+                >
                   <textPath href={`#${idPrefix}${f.inside.key}`} startOffset="50%">
                     {f.inside.text}
                   </textPath>
                 </text>
+              )}
+              {f.below && (
+                <>
+                  {f.below.leader && <path className={styles.belowLeader} d={f.below.leader} />}
+                  <text className={styles.belowLabel} data-label-tier="below" style={{ fontSize: f.below.fontSize }}>
+                    <textPath href={`#${idPrefix}${f.below.key}`} startOffset="50%">
+                      {f.below.text}
+                    </textPath>
+                  </text>
+                </>
               )}
             </g>
           );
@@ -831,24 +930,28 @@ const LabelLayer = memo(function LabelLayer({
   placement: LabelPlacement | null;
 }) {
   if (!placement) return null;
-  const chip = labelChipSize(geom.labelFontSize);
-  const chipW = chip + LABEL_CHIP_GAP;
+  // Outside feature labels sit in a box tinted like the feature, SnapGene-style; the box adds `pad` on each side of the text.
+  const pad = geom.labelFrame.chipWidth / 2;
+  const boxH = Math.max(8, geom.labelLineHeight - 2);
   return (
     <g style={{ fontSize: geom.labelFontSize }}>
       {placement.labels.map((l) => {
         const c = l.candidate;
-        const textX = c.chip ? l.x + l.side * chipW : l.x;
+        const textX = c.chip ? l.x + l.side * pad : l.x;
         return (
           <g key={c.key}>
             {c.chip && (
               <rect
-                className={styles.chip}
-                x={l.side === 1 ? l.x : l.x - chip}
-                y={l.y - chip / 2}
-                width={chip}
-                height={chip}
-                rx={2}
-                style={{ fill: c.chip }}
+                className={styles.labelBox}
+                x={l.side === 1 ? l.x : l.x - l.width}
+                y={l.y - boxH / 2}
+                width={l.width}
+                height={boxH}
+                rx={3}
+                style={{
+                  fill: `color-mix(in srgb, ${c.chip} 38%, white)`,
+                  stroke: `color-mix(in srgb, ${c.chip} 70%, #555)`,
+                }}
               />
             )}
             <text
@@ -858,6 +961,7 @@ const LabelLayer = memo(function LabelLayer({
               textAnchor={l.side === 1 ? 'start' : 'end'}
               style={{ fontWeight: c.fontWeight }}
               data-label-key={c.key}
+              data-label-tier={c.ref.kind === 'feature' ? 'outside' : undefined}
             >
               {l.text}
             </text>
@@ -881,12 +985,24 @@ function sitesOfSameEnzyme(geom: MapGeometry, hover: HitResult | null) {
 }
 
 /** Keys of the outside labels and feature ids to emphasise for the hover / highlight state. */
-function emphasis(geom: MapGeometry, hover: HitResult | null, highlightedFeatureId: string | null) {
+function emphasis(
+  geom: MapGeometry,
+  hover: HitResult | null,
+  highlightedFeatureId: string | null,
+  selectedFeatureIds?: readonly string[],
+) {
   const labelKeys: string[] = [];
   const featureIds: Array<[string, 'hover' | 'highlight']> = [];
-  if (highlightedFeatureId) {
-    featureIds.push([highlightedFeatureId, 'highlight']);
-    labelKeys.push(`f:${highlightedFeatureId}`);
+  const added = new Set<string>();
+  const addHighlight = (id: string) => {
+    if (!id || added.has(id)) return;
+    added.add(id);
+    featureIds.push([id, 'highlight']);
+    labelKeys.push(`f:${id}`);
+  };
+  if (highlightedFeatureId) addHighlight(highlightedFeatureId);
+  if (selectedFeatureIds) {
+    for (const id of selectedFeatureIds) addHighlight(id);
   }
   if (hover?.kind === 'feature') {
     featureIds.push([hover.shape.id, 'hover']);
@@ -902,13 +1018,15 @@ interface HoverProps {
   placement: LabelPlacement | null;
   hover: HitResult | null;
   highlightedFeatureId: string | null;
+  selectedFeatureIds?: readonly string[];
 }
 
 /** Under the labels: a soft pill behind each emphasised label and its leader drawn darker. */
-function HoverLabelLayer({ geom, placement, hover, highlightedFeatureId }: HoverProps) {
-  if (!placement || (!hover && !highlightedFeatureId)) return null;
+function HoverLabelLayer({ geom, placement, hover, highlightedFeatureId, selectedFeatureIds }: HoverProps) {
+  const hasSelected = Boolean(selectedFeatureIds && selectedFeatureIds.length > 0);
+  if (!placement || (!hover && !highlightedFeatureId && !hasSelected)) return null;
   const parts: ReactNode[] = [];
-  for (const key of emphasis(geom, hover, highlightedFeatureId).labelKeys) {
+  for (const key of emphasis(geom, hover, highlightedFeatureId, selectedFeatureIds).labelKeys) {
     const l = placement.byKey.get(key);
     if (!l) continue;
     const b = l.box;
@@ -929,10 +1047,11 @@ function HoverLabelLayer({ geom, placement, hover, highlightedFeatureId }: Hover
 }
 
 /** Over the shapes: outline of the hovered / highlighted annotation. */
-function HoverShapeLayer({ geom, hover, highlightedFeatureId }: HoverProps) {
-  if (!hover && !highlightedFeatureId) return null;
+function HoverShapeLayer({ geom, hover, highlightedFeatureId, selectedFeatureIds }: HoverProps) {
+  const hasSelected = Boolean(selectedFeatureIds && selectedFeatureIds.length > 0);
+  if (!hover && !highlightedFeatureId && !hasSelected) return null;
   const parts: ReactNode[] = [];
-  for (const [id, kind] of emphasis(geom, hover, highlightedFeatureId).featureIds) {
+  for (const [id, kind] of emphasis(geom, hover, highlightedFeatureId, selectedFeatureIds).featureIds) {
     const f = geom.features.find((s) => s.id === id);
     if (f) {
       parts.push(

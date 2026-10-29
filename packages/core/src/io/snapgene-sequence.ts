@@ -55,6 +55,16 @@ export const SnapGeneExtraKey = {
   UpstreamModification: 'UpstreamModification',
   /** Chemistry of the right end, e.g. 'Unmodified' or 'FivePrimePhosphorylated'. */
   DownstreamModification: 'DownstreamModification',
+  /** Restriction enzyme that generated the upstream end (`<UpstreamEnzymeName>` in Packet 0x08). */
+  UpstreamEnzymeName: 'UpstreamEnzymeName',
+  /** Restriction enzyme that generated the downstream end (`<DownstreamEnzymeName>` in Packet 0x08). */
+  DownstreamEnzymeName: 'DownstreamEnzymeName',
+  /** Original 1-based base coordinate before linearization (`<OriginalFirstBase>` in Packet 0x08). */
+  OriginalFirstBase: 'OriginalFirstBase',
+  /** Base numbering origin (`<CountBasesFrom>` in Packet 0x08). */
+  CountBasesFrom: 'CountBasesFrom',
+  /** Offset from original origin (`<OffsetFromOriginalOrigin>` in Packet 0x08). */
+  OffsetFromOriginalOrigin: 'OffsetFromOriginalOrigin',
 } as const;
 
 const METHYLATION_FLAGS: ReadonlyArray<readonly [string, number]> = [
@@ -194,28 +204,57 @@ function childText(root: XmlElement, name: string): string | undefined {
 }
 
 /** Parse a stickiness value; 0 (blunt) when absent, and 0 with a warning when it is not an integer. */
-function readStickiness(root: XmlElement, name: string, warnings: ParseWarning[]): number {
-  const text = childText(root, name);
+function readStickiness(root: XmlElement, name: string, legacyName: string, warnings: ParseWarning[]): number {
+  const primary = childText(root, name);
+  const usedName = primary !== undefined ? name : legacyName;
+  const text = primary ?? childText(root, legacyName);
   if (text === undefined || text.trim() === '') return 0;
   if (!/^[+-]?\d+$/.test(text.trim())) {
-    warnings.push({ message: `Ignored the sequence property ${name}="${clip(text.trim())}": not an integer.` });
+    warnings.push({ message: `Ignored the sequence property ${usedName}="${clip(text.trim())}": not an integer.` });
     return 0;
   }
   return Number.parseInt(text.trim(), 10);
 }
 
+const OPTIONAL_SEQUENCE_PROPERTY_KEYS = [
+  SnapGeneExtraKey.UpstreamEnzymeName,
+  SnapGeneExtraKey.DownstreamEnzymeName,
+  SnapGeneExtraKey.OriginalFirstBase,
+  SnapGeneExtraKey.CountBasesFrom,
+  SnapGeneExtraKey.OffsetFromOriginalOrigin,
+] as const;
+
 /**
  * Read `<AdditionalSequenceProperties>`: sticky ends (linear molecules only; checked against
- * the sequence length) and end modifications.
+ * the sequence length), end modifications, and optional enzyme/origin properties discovered
+ * in `SnapGene.exe` (`0x1422d1a60..0x1422d285a`).
  */
 export function parseSequenceProperties(root: XmlElement, seqLength: number, topology: Topology, warnings: ParseWarning[]): SequenceProperties {
   const extras: Record<string, string> = {};
-  for (const key of [SnapGeneExtraKey.UpstreamModification, SnapGeneExtraKey.DownstreamModification]) {
+  for (const [key, legacyKey] of [
+    [SnapGeneExtraKey.UpstreamModification, 'UpstreamFivePrimePhosphate'],
+    [SnapGeneExtraKey.DownstreamModification, 'DownstreamFivePrimePhosphate'],
+  ] as const) {
     const text = childText(root, key);
-    if (text !== undefined && text.trim() !== '') extras[key] = richTextToPlain(text, 'line');
+    if (text !== undefined && text.trim() !== '') {
+      extras[key] = richTextToPlain(text, 'line');
+    } else {
+      const legacy = childText(root, legacyKey)?.trim();
+      if (legacy === '1' || legacy === 'true') {
+        extras[key] = 'FivePrimePhosphorylated';
+      } else if (legacy === '0' || legacy === 'false') {
+        extras[key] = 'Unmodified';
+      }
+    }
   }
-  const upstream = readStickiness(root, 'UpstreamStickiness', warnings);
-  const downstream = readStickiness(root, 'DownstreamStickiness', warnings);
+  for (const key of OPTIONAL_SEQUENCE_PROPERTY_KEYS) {
+    const text = childText(root, key);
+    if (text !== undefined && text.trim() !== '') {
+      extras[key] = richTextToPlain(text, 'line');
+    }
+  }
+  const upstream = readStickiness(root, 'UpstreamStickiness', 'UpstreamStickyness', warnings);
+  const downstream = readStickiness(root, 'DownstreamStickiness', 'DownstreamStickyness', warnings);
   if (upstream === 0 && downstream === 0) return { extras };
   if (topology === 'circular') {
     warnings.push({ message: `Ignored sticky ends (UpstreamStickiness=${upstream}, DownstreamStickiness=${downstream}) on a circular sequence.` });
@@ -269,12 +308,20 @@ export function buildSequencePropertiesXml(record: SeqRecord, warnings: ParseWar
     const value = record.meta.extras?.[key];
     return escapeXmlText(value !== undefined && value.trim() !== '' ? storeOneLine(value, `meta.extras.${key}`, changedText) : 'Unmodified');
   };
+  let extraTags = '';
+  for (const key of OPTIONAL_SEQUENCE_PROPERTY_KEYS) {
+    const value = record.meta.extras?.[key];
+    if (value !== undefined && value.trim() !== '') {
+      extraTags += `<${key}>${escapeXmlText(storeOneLine(value, `meta.extras.${key}`, changedText))}</${key}>`;
+    }
+  }
   return (
     '<AdditionalSequenceProperties>' +
     `<UpstreamStickiness>${upstream}</UpstreamStickiness>` +
     `<DownstreamStickiness>${downstream}</DownstreamStickiness>` +
     `<UpstreamModification>${modification(SnapGeneExtraKey.UpstreamModification)}</UpstreamModification>` +
     `<DownstreamModification>${modification(SnapGeneExtraKey.DownstreamModification)}</DownstreamModification>` +
+    extraTags +
     '</AdditionalSequenceProperties>'
   );
 }

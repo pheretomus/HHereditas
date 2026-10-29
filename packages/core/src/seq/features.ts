@@ -77,6 +77,8 @@ export function makeFeature(init: {
   segments: Range[];
   qualifiers?: Qualifier[];
   color?: string;
+  /** Drawn with an arrow head at both ends; see Feature.bidirectional. */
+  bidirectional?: boolean;
   id?: string;
 }): Feature {
   const qualifiers = init.qualifiers ?? (init.name ? [{ key: 'label', value: init.name }] : []);
@@ -88,6 +90,7 @@ export function makeFeature(init: {
     segments: init.segments.map((s) => ({ start: s.start, end: s.end })),
     qualifiers,
     ...(init.color !== undefined ? { color: init.color } : {}),
+    ...(init.bidirectional ? { bidirectional: true } : {}),
   };
 }
 
@@ -102,6 +105,7 @@ export function makeRecord(init: Partial<SeqRecord> & { seq: string }): SeqRecor
     molecule: init.molecule ?? 'DNA',
     features: init.features ?? [],
     primers: init.primers ?? [],
+    ...(init.alignedSequences && init.alignedSequences.length > 0 ? { alignedSequences: init.alignedSequences } : {}),
     ...(init.ends ? { ends: init.ends } : {}),
     meta: init.meta ?? {},
   };

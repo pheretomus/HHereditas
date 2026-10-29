@@ -3,12 +3,13 @@
  * features, translations, ORFs) is memoized per row; `RowBackdrop` (selection, search hits,
  * hover bands) and the caret are cheap and re-render with the selection.
  */
-import type { EnzymeSite, FragmentEnds, Orf, Topology } from '@hhereditas/core';
+import type { AlignedSequence, EnzymeSite, FragmentEnds, Orf, Topology } from '@hhereditas/core';
 import { complement, formatRange, iupacMatches, mod } from '@hhereditas/core';
 import { memo, type ReactNode } from 'react';
 import { FEATURE_LABEL_ON_FILL } from '../common/colors';
+import { labelColorOnFill } from '../linear/labelColor';
 import { formatBp, formatInt } from '../common/format';
-import type { BarPiece, LayoutFeature, LayoutPrimer, RowLayout, RowModel } from './layout';
+import type { BarPiece, LayoutFeature, LayoutPrimer, RowGeometry, RowLayout, RowModel } from './layout';
 import { colCenter, colLeft, colRight, gapX } from './layout';
 import type { CodingInfo } from './translation';
 import { residueTitle, rowCodons } from './translation';
@@ -29,6 +30,9 @@ export interface RowRenderContext {
   /** 5' tail of each primer in display order (left to right, lower case), '' when none. */
   readonly primerTails: readonly string[];
   readonly orfs: readonly Orf[];
+  /** Coding information of an ORF, for the amino acids under its arrow; null when they are not shown. */
+  readonly orfCoding?: (orfIndex: number) => CodingInfo | null;
+  readonly alignments?: readonly AlignedSequence[];
   readonly ends: FragmentEnds | undefined;
   readonly showNumbers: boolean;
   readonly coding: (featureIndex: number) => CodingInfo | null;
@@ -37,6 +41,9 @@ export interface RowRenderContext {
 }
 
 const NBSP = ' ';
+
+/** Cell colour of an ORF's amino acids: the ORF's own, so the strip reads as part of it. */
+const ORF_TRANSLATION_FILL = { 1: 'var(--hh-orf-fwd)', '-1': 'var(--hh-orf-rev)' } as const;
 
 /** Baseline that vertically centres capital letters of `size` px in a box [top, top + height). */
 function baseline(top: number, height: number, size: number): number {
@@ -368,6 +375,80 @@ export const RowContent = memo(function RowContent({
     );
   }
 
+  // ---- aligned sequences --------------------------------------------------------------------
+  if (row.alignments && row.alignments.length > 0 && ctx.alignments) {
+    const yAlnBase = row.y.alignments ?? y.primersRev;
+    for (const ap of row.alignments) {
+      const aln = ctx.alignments[ap.alignment];
+      if (!aln) continue;
+      const laneTop = yAlnBase + ap.lane * m.primerLaneHeight;
+      const pillTop = laneTop + 2;
+      const pillH = m.primerLaneHeight - 4;
+      const x0 = colLeft(geo, ap.startCol) - 0.5;
+      const x1 = colRight(geo, ap.endCol - 1) + 0.5;
+      const chars: string[] = [];
+      const glyphX: number[] = [];
+      const mismatchCols: Array<{ col: number; ch: string }> = [];
+      for (let col = ap.startCol; col < ap.endCol; col++) {
+        const idx = ap.offsetInAlignment + (col - ap.startCol);
+        const ch = aln.alignedBases[idx] ?? '';
+        if (!ch) continue;
+        const refCh = seq[row.start + col] ?? '';
+        chars.push(ch);
+        glyphX.push(colCenter(geo, col));
+        if (ch !== refCh) {
+          mismatchCols.push({ col, ch });
+        }
+      }
+      const dirArrow = aln.strand === 1 ? '→' : '←';
+      items.push(
+        <g key={`aln-${aln.id}-${ap.startCol}`} data-testid="sequence-alignment-piece">
+          <rect
+            x={x0}
+            y={pillTop}
+            width={Math.max(2, x1 - x0)}
+            height={pillH}
+            rx={2.5}
+            fill="#f6e8be"
+            stroke="#d4b86a"
+            strokeWidth={0.75}
+          >
+            <title>{`${aln.name} (${dirArrow}) · ${formatRange(aln.refRange, L)} · ${aln.identity}% identity`}</title>
+          </rect>
+          {mismatchCols.map(({ col }) => (
+            <rect
+              key={col}
+              x={colLeft(geo, col)}
+              y={pillTop + 1}
+              width={geo.charWidth}
+              height={pillH - 2}
+              rx={1.5}
+              fill="#fecaca"
+            />
+          ))}
+          {chars.length > 0 && (
+            <text
+              className={styles.bases}
+              style={{ fill: '#7f1d1d', fontWeight: 500 }}
+              x={glyphX.join(' ')}
+              y={baseline(pillTop, pillH, m.baseFontSize)}
+            >
+              {chars.join('')}
+            </text>
+          )}
+          <text
+            className={styles.number}
+            style={{ fill: '#991b1b', fontWeight: 600, fontSize: 10 }}
+            x={Math.max(4, x0 - 4)}
+            y={baseline(pillTop, pillH, 10)}
+          >
+            {`${aln.name} ${dirArrow}`}
+          </text>
+        </g>,
+      );
+    }
+  }
+
   // ---- features ------------------------------------------------------------------------------
   const featureItems: ReactNode[] = [];
   for (const piece of row.features) {
@@ -412,7 +493,7 @@ export const RowContent = memo(function RowContent({
         <text
           key="label"
           className={piece.label.inside ? styles.featureLabel : styles.featureLabelOutside}
-          style={piece.label.inside ? { fill: FEATURE_LABEL_ON_FILL } : undefined}
+          style={piece.label.inside ? { fill: labelColorOnFill(ctx.featureFills[piece.feature]) } : undefined}
           x={piece.label.x}
           y={baseline(barTop, m.featureBarHeight, 11)}
           data-kind="feature"
@@ -425,28 +506,16 @@ export const RowContent = memo(function RowContent({
     if (piece.translated && lane.translation) {
       const info = ctx.coding(piece.feature);
       if (info && info.codonCount > 0) {
-        const { shades, letters } = rowCodons(info, row.start, piece.bars);
-        const barStarts = new Set(piece.bars.map((b) => b.startCol));
-        const barEnds = new Set(piece.bars.map((b) => b.endCol));
-        // cells meet in the middle of group gaps, so the strip reads as one continuous band;
-        // at the ends of a bar they stop at the bar's edge
-        const edgeX = (c: number) => (barStarts.has(c) ? colLeft(geo, c) : barEnds.has(c) ? colRight(geo, c - 1) : gapX(geo, c, n));
         const trTop = barTop + m.featureBarHeight + 1;
         const trH = m.translationHeight - 2;
-        const trMid = trTop + trH / 2;
-        const normal: string[] = [];
-        const normalX: number[] = [];
-        let stopGlyphs = '';
-        for (const l of letters) {
-          if (l.aa === '*') stopGlyphs += asteriskPath(colCenter(geo, l.col), trMid, 3.4);
-          else if (l.aa) {
-            normal.push(l.aa);
-            normalX.push(colCenter(geo, l.col));
-          }
-        }
-        // the selected part of the strip (a clicked codon lights up together with its bases)
+        const strip = { info, rowStart: row.start, bars: piece.bars, geo, n, trTop, trH };
+        // the selected part of the strip (a clicked codon lights up together with its bases): the only part redrawn
+        // when the selection changes, between the codon cells and the letters (which stay as they are)
         const picked: Array<[number, number]> = [];
+        let edgeX: ((c: number) => number) | null = null;
         if (translationSelection.length > 0) {
+          const { shades } = rowCodons(info, row.start, piece.bars);
+          edgeX = stripEdgeX(piece.bars, geo, n);
           for (const s of shades) {
             for (const [a, b] of translationSelection) {
               const u = Math.max(a, s.c0);
@@ -460,56 +529,24 @@ export const RowContent = memo(function RowContent({
         }
         children.push(
           <g key="tr" className={styles.translation}>
-            {/* whole-strip hit area (partial codons included); codon cells above it carry their tooltips */}
-            <rect
-              className={styles.hitArea}
-              data-kind="translation"
-              data-index={piece.feature}
-              x={colLeft(geo, piece.startCol)}
-              y={trTop}
-              width={colRight(geo, piece.endCol - 1) - colLeft(geo, piece.startCol)}
-              height={trH}
-            />
-            {shades.map((s) => {
-              const x0 = edgeX(s.c0);
-              const x1 = edgeX(s.c1);
-              const stop = info.protein[s.codon] === '*';
-              return (
-                <rect
-                  key={`${s.codon}-${s.c0}`}
-                  className={stop ? styles.stopCell : s.codon % 2 === 0 ? styles.codonEven : styles.codonOdd}
-                  style={stop ? undefined : { fill }}
-                  x={x0}
-                  y={trTop}
-                  width={Math.max(0.5, x1 - x0)}
-                  height={trH}
-                  data-kind="translation"
-                  data-index={piece.feature}
-                >
-                  <title>{residueTitle(info, s.codon, seq)}</title>
-                </rect>
-              );
-            })}
-            {picked.map(([u, v]) => {
-              const x0 = Math.round(edgeX(u)) + 0.5;
-              const x1 = Math.round(edgeX(v)) - 0.5;
-              return (
-                <rect
-                  key={`sel${u}`}
-                  className={selectionFocused ? styles.translationSelection : styles.translationSelectionInactive}
-                  x={x0}
-                  y={trTop + 0.5}
-                  width={Math.max(0.5, x1 - x0)}
-                  height={trH - 1}
-                />
-              );
-            })}
-            {normal.length > 0 && (
-              <text className={styles.aminoAcids} x={normalX.join(' ')} y={baseline(trTop, trH, 11)}>
-                {normal.join('')}
-              </text>
-            )}
-            {stopGlyphs && <path className={styles.stopGlyph} style={{ stroke: FEATURE_LABEL_ON_FILL }} d={stopGlyphs} />}
+            <TranslationCells {...strip} fill={fill} feature={piece.feature} startCol={piece.startCol} endCol={piece.endCol} seq={seq} />
+            {edgeX
+              ? picked.map(([u, v]) => {
+                  const x0 = Math.round(edgeX(u)) + 0.5;
+                  const x1 = Math.round(edgeX(v)) - 0.5;
+                  return (
+                    <rect
+                      key={`sel${u}`}
+                      className={selectionFocused ? styles.translationSelection : styles.translationSelectionInactive}
+                      x={x0}
+                      y={trTop + 0.5}
+                      width={Math.max(0.5, x1 - x0)}
+                      height={trH - 1}
+                    />
+                  );
+                })
+              : null}
+            <TranslationLetters {...strip} />
           </g>,
         );
       }
@@ -523,9 +560,11 @@ export const RowContent = memo(function RowContent({
 
   // ---- ORFs ---------------------------------------------------------------------------------
   const orfItems: ReactNode[] = [];
+  const orfLaneHeight = m.orfLaneHeight + (model.orfTranslation ? m.translationHeight : 0);
   for (const p of row.orfs) {
     const orf = ctx.orfs[p.orf];
-    const mid = y.orfs + p.lane * m.orfLaneHeight + m.orfLaneHeight / 2;
+    const laneTop = y.orfs + p.lane * orfLaneHeight;
+    const mid = laneTop + m.orfLaneHeight / 2;
     const x0 = colLeft(geo, p.startCol);
     const x1 = colRight(geo, p.endCol - 1);
     const h = 1.5;
@@ -538,10 +577,32 @@ export const RowContent = memo(function RowContent({
       d += orf.strand === 1 ? `M${x1 - 2},${mid - 3.5}L${x1 + 4},${mid}L${x1 - 2},${mid + 3.5}Z` : `M${x0 + 2},${mid - 3.5}L${x0 - 4},${mid}L${x0 + 2},${mid + 3.5}Z`;
     }
     orfItems.push(
-      <path key={`o${p.orf}-${p.startCol}`} className={`${styles.orf} ${styles.hit}`} d={d} data-kind="orf" data-index={p.orf}>
+      <path key={`o${p.orf}-${p.startCol}`} className={`${orf.strand === 1 ? styles.orfFwd : styles.orfRev} ${styles.hit}`} d={d} data-kind="orf" data-index={p.orf}>
         <title>{`ORF ${orf.strand === 1 ? '→' : '←'} frame ${orf.strand === 1 ? '+' : '−'}${orf.frame + 1} · ${formatRange(orf.range, L)} · ${formatInt(orf.aaLength)} aa`}</title>
       </path>,
     );
+    // the ORF's amino acids, under its arrow: the strip of a CDS feature, over this piece alone
+    const info = model.orfTranslation ? (ctx.orfCoding?.(p.orf) ?? null) : null;
+    if (info && info.codonCount > 0) {
+      const trTop = laneTop + m.orfLaneHeight;
+      const trH = m.translationHeight - 2;
+      const bars = [{ startCol: p.startCol, endCol: p.endCol }];
+      const strip = { info, rowStart: row.start, bars, geo, n, trTop, trH };
+      orfItems.push(
+        <g key={`ot${p.orf}-${p.startCol}`} className={styles.translation}>
+          <TranslationCells
+            {...strip}
+            fill={ORF_TRANSLATION_FILL[orf.strand]}
+            feature={p.orf}
+            startCol={p.startCol}
+            endCol={p.endCol}
+            seq={seq}
+            kind="orf"
+          />
+          <TranslationLetters {...strip} />
+        </g>,
+      );
+    }
   }
 
   // ---- cut marks (drawn over the bases) --------------------------------------------------------
@@ -562,12 +623,13 @@ export const RowContent = memo(function RowContent({
     else cuts += d;
   }
 
-  const number = ctx.showNumbers && n > 0 ? formatInt(row.start + 1) : null;
+  // The number to the right of a row is the position of its last base.
+  const number = ctx.showNumbers && n > 0 ? formatInt(row.start + n) : null;
 
   return (
     <svg className={styles.rowContent} width={geo.width} height={row.height} aria-hidden="true">
       {number && (
-        <text className={styles.number} x={geo.textLeft - m.numberGap} y={strandBase}>
+        <text className={styles.rowNumber} x={geo.numberLeft} y={strandBase}>
           {number}
         </text>
       )}
@@ -645,3 +707,95 @@ export function RowBackdrop({ row, model, selection, hitsTop, hitsBottom, bands,
     </svg>
   );
 }
+
+
+// ---- translation strip ------------------------------------------------------------------------
+// Drawn by two memoised parts so that moving the selection redraws only its highlight: on a one-line view a single
+// row carries every codon of the record.
+
+interface StripProps {
+  info: NonNullable<ReturnType<RowRenderContext['coding']>>;
+  rowStart: number;
+  bars: ReadonlyArray<{ readonly startCol: number; readonly endCol: number }>;
+  geo: RowGeometry;
+  n: number;
+  trTop: number;
+  trH: number;
+}
+
+/** x of codon cell edge `c`: cells meet in the middle of group gaps, and stop at the bar's ends. */
+function stripEdgeX(bars: ReadonlyArray<{ startCol: number; endCol: number }>, geo: RowGeometry, n: number): (c: number) => number {
+  const barStarts = new Set(bars.map((b) => b.startCol));
+  const barEnds = new Set(bars.map((b) => b.endCol));
+  return (c: number) => (barStarts.has(c) ? colLeft(geo, c) : barEnds.has(c) ? colRight(geo, c - 1) : gapX(geo, c, n));
+}
+
+/** Hit area and the shaded codon cells (with their residue tooltips). */
+const TranslationCells = memo(function TranslationCells(
+  props: StripProps & { fill: string; feature: number; startCol: number; endCol: number; seq: string; kind?: 'translation' | 'orf' },
+) {
+  const { info, rowStart, bars, geo, n, trTop, trH, fill, feature, startCol, endCol, seq, kind = 'translation' } = props;
+  const { shades } = rowCodons(info, rowStart, bars);
+  const edgeX = stripEdgeX(bars, geo, n);
+  return (
+    <>
+      {/* whole-strip hit area (partial codons included); codon cells above it carry their tooltips */}
+      <rect
+        className={styles.hitArea}
+        data-kind={kind}
+        data-index={feature}
+        x={colLeft(geo, startCol)}
+        y={trTop}
+        width={colRight(geo, endCol - 1) - colLeft(geo, startCol)}
+        height={trH}
+      />
+      {shades.map((s) => {
+        const x0 = edgeX(s.c0);
+        const x1 = edgeX(s.c1);
+        const stop = info.protein[s.codon] === '*';
+        return (
+          <rect
+            key={`${s.codon}-${s.c0}`}
+            className={stop ? styles.stopCell : s.codon % 2 === 0 ? styles.codonEven : styles.codonOdd}
+            style={stop ? undefined : { fill }}
+            x={x0}
+            y={trTop}
+            width={Math.max(0.5, x1 - x0)}
+            height={trH}
+            data-kind={kind}
+            data-index={feature}
+          >
+            <title>{residueTitle(info, s.codon, seq)}</title>
+          </rect>
+        );
+      })}
+    </>
+  );
+});
+
+/** Amino-acid letters and stop glyphs, over the cells and the selection. */
+const TranslationLetters = memo(function TranslationLetters(props: StripProps) {
+  const { info, rowStart, bars, geo, trTop, trH } = props;
+  const { letters } = rowCodons(info, rowStart, bars);
+  const trMid = trTop + trH / 2;
+  const normal: string[] = [];
+  const normalX: number[] = [];
+  let stopGlyphs = '';
+  for (const l of letters) {
+    if (l.aa === '*') stopGlyphs += asteriskPath(colCenter(geo, l.col), trMid, 3.4);
+    else if (l.aa) {
+      normal.push(l.aa);
+      normalX.push(colCenter(geo, l.col));
+    }
+  }
+  return (
+    <>
+      {normal.length > 0 && (
+        <text className={styles.aminoAcids} x={normalX.join(' ')} y={baseline(trTop, trH, 11)}>
+          {normal.join('')}
+        </text>
+      )}
+      {stopGlyphs && <path className={styles.stopGlyph} style={{ stroke: FEATURE_LABEL_ON_FILL }} d={stopGlyphs} />}
+    </>
+  );
+});

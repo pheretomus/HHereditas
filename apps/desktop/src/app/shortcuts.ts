@@ -1,11 +1,14 @@
 /**
  * Keyboard shortcuts (Cmd on macOS, Ctrl elsewhere). One table: the toolbar shows the same
- * bindings in its tooltips.
+ * bindings in its tooltips. Includes full SnapGene shortcut parity.
  */
+import { reverseComplement, reverseComplementRecord, translate } from '@hhereditas/core';
+import { hasSelectedBases } from '@hhereditas/viewer';
 import type { ToolbarShortcuts, ViewMode } from '../shell';
+import type { DocumentState } from '../state/documents';
 import { useSettings } from '../state/settings';
-import { useApp } from '../state/store';
-import { requestClose } from './commands';
+import { getActiveDocument, useApp } from '../state/store';
+import { detectCommonFeaturesCommand, requestClose, selectedText } from './commands';
 import { openWithDialog, saveDocument } from './files';
 
 export const SHORTCUTS: ToolbarShortcuts = {
@@ -35,12 +38,44 @@ function modalOpen(): boolean {
   return !!document.querySelector('[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]');
 }
 
-/** Open the toolbar's enzyme menu (Radix menus open from the keyboard on Enter). */
-function openEnzymeMenu() {
-  const button = document.querySelector<HTMLButtonElement>('button[aria-label="Enzymes"]');
-  if (!button || button.disabled) return;
-  button.focus();
-  button.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+function openEnzymeMenu(): boolean {
+  const btn = document.querySelector<HTMLButtonElement>('button[aria-label="Enzymes"]');
+  if (!btn || btn.disabled) return false;
+  btn.focus();
+  btn.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+  return true;
+}
+
+async function copyReverseComplementSelection(doc: DocumentState | null): Promise<void> {
+  const app = useApp.getState();
+  const text = selectedText(doc);
+  if (!text) {
+    app.flash('Select bases first to copy reverse complement');
+    return;
+  }
+  const rc = reverseComplement(text);
+  try {
+    await navigator.clipboard.writeText(rc);
+    app.flash(`Copied reverse complement (${rc.length.toLocaleString('en-US')} bp)`);
+  } catch {
+    app.flash('Could not copy reverse complement to the clipboard', 'error');
+  }
+}
+
+async function copyTranslationSelection(doc: DocumentState | null): Promise<void> {
+  const app = useApp.getState();
+  const text = selectedText(doc);
+  if (!text || text.length < 3) {
+    app.flash('Select at least 3 bases to copy amino acid translation');
+    return;
+  }
+  try {
+    const aa = translate(text);
+    await navigator.clipboard.writeText(aa);
+    app.flash(`Copied amino acid translation (${aa.length.toLocaleString('en-US')} aa)`);
+  } catch {
+    app.flash('Could not copy translation to the clipboard', 'error');
+  }
 }
 
 export interface ShortcutContext {
@@ -51,9 +86,9 @@ export interface ShortcutContext {
 export function handleShortcut(e: KeyboardEvent, ctx: ShortcutContext): boolean {
   const mac = isMac();
   const mod = mac ? e.metaKey && !e.ctrlKey : e.ctrlKey && !e.metaKey;
-  if (!mod) return false;
   const app = useApp.getState();
   const hasDoc = app.activeId !== null;
+  const doc = hasDoc ? getActiveDocument() : null;
   const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   const code = e.code;
   const textField = inTextField(e.target);
@@ -65,6 +100,16 @@ export function handleShortcut(e: KeyboardEvent, ctx: ShortcutContext): boolean 
     fn();
     return true;
   };
+
+  // Browser-safe fallback: Alt+T opens Add Feature when Ctrl+T is intercepted by browser new-tab.
+  if (!mod && e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    if ((code === 'KeyT' || key === 't') && hasDoc && !textField && !modal) {
+      return run(() => app.openSheet('add-feature'));
+    }
+    return false;
+  }
+
+  if (!mod) return false;
 
   // Alt+Mod combinations (pane toggles); compare physical keys: Alt changes e.key on macOS.
   if (e.altKey) {
@@ -93,13 +138,67 @@ export function handleShortcut(e: KeyboardEvent, ctx: ShortcutContext): boolean 
       return run(() => requestClose());
     case 'f':
       if (!hasDoc) return false;
+      if (e.shiftKey) return run(() => detectCommonFeaturesCommand());
       return run(ctx.focusSearch);
     case 'd':
       if (!hasDoc) return false;
       return run(() => app.openSheet('digest'));
     case 'e':
       if (!hasDoc) return false;
-      return run(openEnzymeMenu);
+      return run(() => {
+        if (!openEnzymeMenu()) app.openSheet('choose-enzymes');
+      });
+    case 't': {
+      if (!hasDoc || textField) return false;
+      if (e.shiftKey) {
+        const featureId =
+          doc?.selectedItem?.kind === 'feature'
+            ? doc.selectedItem.id
+            : doc?.selectedFeatureIds?.[0] ?? doc?.record.features[0]?.id;
+        if (featureId) return run(() => app.openSheet('edit-feature', { featureId }));
+        return run(() => app.flash('Select a feature to edit or duplicate'));
+      }
+      return run(() => app.openSheet('add-feature'));
+    }
+    case 'i': {
+      if (!hasDoc || textField) return false;
+      const featureId =
+        doc?.selectedItem?.kind === 'feature' ? doc.selectedItem.id : doc?.selectedFeatureIds?.[0];
+      if (featureId) {
+        return run(() => app.openSheet('edit-feature', { featureId }));
+      }
+      return run(() =>
+        useSettings.getState().update({ inspectorVisible: !useSettings.getState().inspectorVisible }),
+      );
+    }
+    case 'r':
+    case 'p': {
+      if (!hasDoc || textField) return false;
+      if (key === 'p' && !e.shiftKey) return false;
+      return run(() => {
+        if (doc && hasSelectedBases(doc.selection)) {
+          app.openSheet('add-primer', { direction: e.shiftKey ? -1 : 1 });
+        } else {
+          app.flash('Select bases first to add a primer');
+        }
+      });
+    }
+    case 'g':
+    case 'j':
+      if (!hasDoc) return false;
+      return run(() => app.openSheet('goto-position'));
+    case 'u':
+      if (!hasDoc || textField) return false;
+      return run(() => {
+        app.change((r) => reverseComplementRecord(r), 'Reverse Complement');
+        app.flash('Flipped sequence (reverse complement)');
+      });
+    case 'c':
+      if (!e.shiftKey || !hasDoc || textField) return false;
+      return run(() => void copyReverseComplementSelection(doc));
+    case 'k':
+      if (!e.shiftKey || !hasDoc || textField) return false;
+      return run(() => void copyTranslationSelection(doc));
     case '1':
     case '2':
     case '3': {

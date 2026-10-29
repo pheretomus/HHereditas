@@ -17,6 +17,7 @@
 import type { EnzymeSite, Orf, PrimerBindingSite, Range, SeqRecord } from '@hhereditas/core';
 import { normalizeRange } from '@hhereditas/core';
 import type {
+  CSSProperties,
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
@@ -34,15 +35,18 @@ import type { FeatureEntry, ViewInput, ViewModel } from './layout';
 import {
   CUT_OVERSHOOT,
   METRICS,
+  buildAlignmentTrack,
   buildFeatureTrack,
   buildOrfTrack,
   buildPrimerTrack,
   computeView,
   contentOffsetY,
   enzymeRowsToReserve,
+  featureLabelRowsToReserve,
+  primerLabelRowsToReserve,
 } from './layout';
 import styles from './LinearMap.module.css';
-import { HighlightLayer, MapContent, SelectionOverlay, SelectionUnderlay } from './LinearMapLayers';
+import { AlignmentLayer, HighlightLayer, MapContent, SelectionOverlay, SelectionUnderlay } from './LinearMapLayers';
 import { targetKey, tooltipContent } from './LinearMapTooltip';
 import { extendSelection, extendSelectionToRange } from './selectionGeometry';
 import { vlinePath } from './shapes';
@@ -73,12 +77,21 @@ export interface LinearMapProps {
   onSelectionChange?: (selection: SequenceSelection | null) => void;
   /** Feature to emphasise, e.g. the one hovered in the sidebar. */
   highlightedFeatureId?: string | null;
+  /** Multiple features selected (e.g. via Ctrl+Click). */
+  selectedFeatureIds?: readonly string[];
   onFeatureClick?: (featureId: string, info: FeatureClickInfo) => void;
   onFeatureHover?: (featureId: string | null) => void;
   onEnzymeClick?: (site: EnzymeSite) => void;
-  onPrimerClick?: (primerId: string) => void;
+  onPrimerClick?: (primerId: string, info: FeatureClickInfo) => void;
   onContextMenu?: (target: MapTarget, event: ReactMouseEvent) => void;
   show?: MapShowOptions;
+  /** Slide the aligned sequences in and out when they are shown or hidden (default true; off for a hidden map). */
+  animateAlignments?: boolean;
+  /**
+   * The map's width is about to change in an animation: it is laid out once for the coming width (stretched to the
+   * live width meanwhile) and its labels glide to their new places with the animation's timing.
+   */
+  widthChange?: MapWidthChange;
   className?: string;
   /**
    * Visible window in bp (fractional bounds allowed). Uncontrolled by default (the whole
@@ -152,7 +165,7 @@ function useTextMeasurer(ref: RefObject<HTMLElement | null>): TextMeasurer {
 }
 
 export function LinearMap(props: LinearMapProps) {
-  const { record, enzymeSites, primerSites, orfs, show, className } = props;
+  const { record, enzymeSites, primerSites, orfs, show, className, animateAlignments = true } = props;
   const L = record.seq.length;
   const topology = record.topology;
 
@@ -163,7 +176,38 @@ export function LinearMap(props: LinearMapProps) {
   // The scroller's content box: the pane minus a vertical scrollbar, if one is shown.
   const size = useElementSize(scrollerRef);
   const measure = useTextMeasurer(rootRef);
-  const width = size.width;
+  // While the map is being resized the layout of the last settled width is kept and stretched to the live width
+  // (labels keep their places instead of jumping between placements at every pixel); it is laid out anew once the
+  // width has stopped changing.
+  const liveWidth = size.width;
+  const settledWidth = useSettledWidth(liveWidth);
+  // an announced width change (a side panel sliding) is laid out once, for the coming width
+  const announced = useAnnouncedWidth(liveWidth, props.widthChange?.by ?? 0);
+  const width = announced?.width ?? settledWidth;
+  // That drawing is shown squeezed (or spread) over the plot to the pane's width, and lets go with the panel's
+  // timing: the map then follows the panel exactly, with nothing laid out or drawn anew at any frame. Text keeps its
+  // shape (counter-scaled, see .stretched in the stylesheet).
+  const widthChangeRef = useRef(props.widthChange);
+  widthChangeRef.current = props.widthChange;
+  const announcedKey = announced?.key ?? 0;
+  useLayoutEffect(() => {
+    const svg = svgRef.current;
+    const change = widthChangeRef.current;
+    if (!svg || !announced || !change || typeof svg.animate !== 'function') return;
+    for (const a of svg.getAnimations()) a.cancel();
+    const pad = METRICS.padX;
+    const s = (announced.from - 2 * pad) / Math.max(1, announced.width - 2 * pad);
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || Math.abs(s - 1) < 0.001) return;
+    svg.animate(
+      [
+        { transform: `translateX(${pad * (1 - s)}px) scaleX(${s})`, '--hh-unstretch': String(1 / s) },
+        { transform: 'none', '--hh-unstretch': '1' },
+      ],
+      { duration: change.duration, delay: change.delay, easing: change.easing, fill: 'backwards' },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per announced change
+  }, [announcedKey]);
   const plotLeft = METRICS.padX;
   const plotWidth = Math.max(1, width - 2 * METRICS.padX);
 
@@ -172,6 +216,9 @@ export function LinearMap(props: LinearMapProps) {
   const showEnzymes = show?.enzymes !== false;
   const showPrimers = show?.primers !== false;
   const showOrfs = show?.orfs !== false;
+  const showAlignments = show?.alignments !== false;
+  const showLengths = Boolean(show?.lengths);
+  const showPrimerLocations = Boolean(show?.primerLocations);
   const featureTrack = useMemo(
     () => (showFeatures && record.features.length > 0 && L > 0 ? buildFeatureTrack(record.features, L, topology) : null),
     [showFeatures, record.features, L, topology],
@@ -187,6 +234,12 @@ export function LinearMap(props: LinearMapProps) {
         : null,
     [showPrimers, primerSites, record.primers, L, topology],
   );
+  // the aligned sequences are laid out at once; their band slides in and out (see the band section below)
+  const alnPresent = showAlignments;
+  const alignmentTrack = useMemo(
+    () => (alnPresent && L > 0 ? buildAlignmentTrack(record.alignedSequences, L, topology) : null),
+    [alnPresent, record.alignedSequences, L, topology],
+  );
   const markers = useMemo(
     () => (showEnzymes && enzymeSites && enzymeSites.length > 0 && L > 0 ? buildCutMarkers(enzymeSites, L, topology) : null),
     [showEnzymes, enzymeSites, L, topology],
@@ -194,6 +247,23 @@ export function LinearMap(props: LinearMapProps) {
   const enzymeRows = useMemo(
     () => (markers && width > 0 ? enzymeRowsToReserve(markers, L, plotLeft, plotWidth, width, measure) : 0),
     [markers, L, plotLeft, plotWidth, width, measure],
+  );
+  const primerLabelRows = useMemo(
+    () =>
+      primerTrack && width > 0
+        ? primerLabelRowsToReserve(
+            primerTrack,
+            L,
+            plotLeft,
+            plotWidth,
+            width,
+            measure,
+            Boolean(showPrimerLocations),
+            Boolean(showLengths),
+            new Map(record.primers.map((p) => [p.id, p.sequence.length] as const)),
+          )
+        : undefined,
+    [primerTrack, L, plotLeft, plotWidth, width, measure, showPrimerLocations, showLengths, record.primers],
   );
 
   // ---- selection ----------------------------------------------------------------------
@@ -224,26 +294,65 @@ export function LinearMap(props: LinearMapProps) {
 
   // Labels of the highlighted feature and of a selected feature win when space runs out.
   const highlightId = props.highlightedFeatureId ?? null;
+  const selectedIds = props.selectedFeatureIds;
   const selStart = selection?.range.start ?? -1;
   const selEnd = selection?.range.end ?? -1;
   const pinnedKey = useMemo(() => {
     const ids: string[] = [];
     if (highlightId) ids.push(highlightId);
+    if (selectedIds) {
+      for (const id of selectedIds) if (!ids.includes(id)) ids.push(id);
+    }
     if (featureTrack && selEnd > selStart && L > 0) {
       const r = normalizeRange({ start: selStart, end: selEnd }, L, topology);
       for (const e of featureTrack.entries) {
-        if (e.extent.start === r.start && e.extent.end === r.end && e.feature.id !== highlightId) ids.push(e.feature.id);
+        if (e.extent.start === r.start && e.extent.end === r.end && !ids.includes(e.feature.id)) ids.push(e.feature.id);
       }
     }
     return ids.join('\u0000');
-  }, [highlightId, featureTrack, selStart, selEnd, L, topology]);
+  }, [highlightId, selectedIds, featureTrack, selStart, selEnd, L, topology]);
 
+  // Rows of outside feature labels: what the whole-record view needs, so the map keeps its height while panning.
+  const featureLabelRows = useMemo(() => {
+    if (!featureTrack || width <= 0 || L <= 0) return undefined;
+    const whole = makeScale(fullViewport(L), plotLeft, plotWidth);
+    return featureLabelRowsToReserve({
+      record,
+      width,
+      scale: whole,
+      features: featureTrack,
+      orfs: orfTrack,
+      primers: primerTrack,
+      alignments: alignmentTrack,
+      markers,
+      enzymeRows,
+      primerLabelRows,
+      measure,
+      showLengths,
+      showPrimerLocations,
+    });
+  }, [record, width, plotLeft, plotWidth, L, featureTrack, orfTrack, primerTrack, alignmentTrack, markers, enzymeRows, primerLabelRows, measure, showLengths, showPrimerLocations]);
   const baseInput = useMemo<ViewInput | null>(
     () =>
       width > 0 && L > 0
-        ? { record, width, scale, features: featureTrack, orfs: orfTrack, primers: primerTrack, markers, enzymeRows, measure }
+        ? {
+            record,
+            width,
+            scale,
+            features: featureTrack,
+            orfs: orfTrack,
+            primers: primerTrack,
+            alignments: alignmentTrack,
+            markers,
+            enzymeRows,
+            primerLabelRows,
+            featureLabelRows,
+            measure,
+            showLengths,
+            showPrimerLocations,
+          }
         : null,
-    [record, width, scale, featureTrack, orfTrack, primerTrack, markers, enzymeRows, measure, L],
+    [record, width, scale, featureTrack, orfTrack, primerTrack, alignmentTrack, markers, enzymeRows, primerLabelRows, featureLabelRows, measure, showLengths, showPrimerLocations, L],
   );
   const baseView = useMemo(() => (baseInput ? computeView(baseInput) : null), [baseInput]);
   const view = useMemo<ViewModel | null>(() => {
@@ -258,6 +367,7 @@ export function LinearMap(props: LinearMapProps) {
     });
     return missing ? computeView({ ...baseInput, pinnedFeatureIds: pinned }) : baseView;
   }, [baseInput, baseView, pinnedKey, featureTrack]);
+  // labels that change place as the map narrows or widens glide there; new ones rise in
 
   // ---- hover / tooltip ----------------------------------------------------------------
   const [hoverTarget, setHoverTarget] = useState<MapTarget | null>(null);
@@ -423,6 +533,74 @@ export function LinearMap(props: LinearMapProps) {
   // The map content is centred vertically (slightly above centre) when the pane is taller.
   const contentHeight = view?.height ?? 0;
   const offsetY = contentOffsetY(size.height, contentHeight);
+  // ---- aligned sequences: shown and hidden with a slide --------------------------------
+  // Showing them: the layout opens their band's space at once (the map glides there, see useMapGlide) and the band
+  // slides in from the right once the space is open. Hiding them: the band, as last drawn, slides out to the right
+  // while the layout (already without it) waits, then the map glides on.
+  const prevShowRef = useRef(showAlignments);
+  const bandFlip: 'on' | 'off' | null = prevShowRef.current === showAlignments ? null : showAlignments ? 'on' : 'off';
+  useLayoutEffect(() => {
+    prevShowRef.current = showAlignments;
+  });
+  const bandRef = useRef<SVGGElement>(null);
+  const leavingRef = useRef<SVGGElement>(null);
+  const lastBand = useRef<{ alignments: ViewModel['alignments']; offsetY: number; width: number } | null>(null);
+  const [leaving, setLeaving] = useState<{ alignments: ViewModel['alignments']; offsetY: number; width: number; key: number } | null>(null);
+  const bandAnimated = animateAlignments && !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const bandTiming: GlideTiming | null | undefined = !bandFlip
+    ? undefined
+    : !bandAnimated
+      ? null
+      : bandFlip === 'on'
+        ? { delay: GLIDE_LEAD, duration: ALIGNMENT_REVEAL.open, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+        : { delay: ALIGNMENT_REVEAL.slideOut, duration: ALIGNMENT_REVEAL.close, easing: 'cubic-bezier(0.4, 0, 0.2, 1)' };
+  useLayoutEffect(() => {
+    if (!bandFlip || !bandAnimated) return;
+    if (bandFlip === 'off') {
+      const last = lastBand.current;
+      if (last) setLeaving({ ...last, key: performance.now() });
+      return;
+    }
+    setLeaving(null);
+    const g = bandRef.current;
+    if (!g || !view || typeof g.animate !== 'function') return;
+    for (const a of g.getAnimations()) a.cancel();
+    g.animate([{ translate: `${view.width}px 0px` }, { translate: '0px 0px' }], {
+      delay: GLIDE_LEAD + ALIGNMENT_REVEAL.open,
+      duration: ALIGNMENT_REVEAL.slideIn,
+      easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      fill: 'backwards',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- when the aligned sequences are shown or hidden
+  }, [bandFlip]);
+  useLayoutEffect(() => {
+    if (view?.alignments.band) lastBand.current = { alignments: view.alignments, offsetY, width: view.width };
+  });
+  useLayoutEffect(() => {
+    if (!leaving) return;
+    const g = leavingRef.current;
+    if (!g || typeof g.animate !== 'function') {
+      setLeaving(null);
+      return;
+    }
+    let live = true;
+    const a = g.animate([{ translate: '0px 0px' }, { translate: `${leaving.width}px 0px` }], {
+      duration: ALIGNMENT_REVEAL.slideOut,
+      easing: 'cubic-bezier(0.4, 0, 1, 1)',
+      fill: 'forwards',
+    });
+    const done = () => {
+      if (live) setLeaving((cur) => (cur?.key === leaving.key ? null : cur));
+    };
+    a.finished.then(done, done);
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per band leaving
+  }, [leaving?.key]);
+
+  useMapGlide(svgRef, view, offsetY, [record, shown, featureTrack, orfTrack, primerTrack, markers, measure], props.widthChange, bandTiming);
+  const stretched = !!view && !announced && liveWidth > 0 && Math.abs(liveWidth - view.width) >= 1;
   const offsetYRef = useRef(offsetY);
   useLayoutEffect(() => {
     offsetYRef.current = offsetY;
@@ -432,7 +610,9 @@ export function LinearMap(props: LinearMapProps) {
     const svg = svgRef.current;
     if (!svg || !latest.current.view) return null;
     const rect = svg.getBoundingClientRect();
-    return { x: clientX - rect.left, y: clientY - rect.top - offsetYRef.current };
+    // the drawing may be stretched to the live width while the layout keeps the settled one
+    const sx = rect.width > 0 && svg.viewBox.baseVal.width > 0 ? svg.viewBox.baseVal.width / rect.width : 1;
+    return { x: (clientX - rect.left) * sx, y: clientY - rect.top - offsetYRef.current };
   };
 
   const hitAt = (x: number, y: number): MapTarget => {
@@ -762,7 +942,7 @@ export function LinearMap(props: LinearMapProps) {
       case 'primer': {
         const entry = cur.primerTrack?.entries.find((en) => en.site.primerId === t.id);
         if (entry) selectItem(entry.annealed, e.shiftKey);
-        pr.onPrimerClick?.(t.id);
+        pr.onPrimerClick?.(t.id, { clickCount, shiftKey: e.shiftKey, metaKey: e.metaKey, ctrlKey: e.ctrlKey });
         return;
       }
       case 'orf':
@@ -876,10 +1056,18 @@ export function LinearMap(props: LinearMapProps) {
 
   const hoveredFeatureId = hoverTarget?.kind === 'feature' ? hoverTarget.id : null;
   const ring = useMemo(() => {
-    if (!view || !featureTrack || !highlightId) return '';
-    const idx = featureEntryIndex(featureTrack, highlightId);
-    return idx >= 0 ? featureOutline(view, featureTrack, idx) : '';
-  }, [view, featureTrack, highlightId]);
+    if (!view || !featureTrack) return '';
+    const ids = new Set<string>();
+    if (highlightId) ids.add(highlightId);
+    if (selectedIds) for (const id of selectedIds) ids.add(id);
+    if (ids.size === 0) return '';
+    let out = '';
+    for (const id of ids) {
+      const idx = featureEntryIndex(featureTrack, id);
+      if (idx >= 0) out += featureOutline(view, featureTrack, idx);
+    }
+    return out;
+  }, [view, featureTrack, highlightId, selectedIds]);
   const hoverRing = useMemo(() => {
     if (!view || !featureTrack || !hoveredFeatureId || hoveredFeatureId === highlightId) return '';
     const idx = featureEntryIndex(featureTrack, hoveredFeatureId);
@@ -895,7 +1083,7 @@ export function LinearMap(props: LinearMapProps) {
       for (const i of view.enzymes.visible) {
         if (markers[i].site.enzyme !== site.enzyme) continue;
         const x = Math.round(view.scale.x(markers[i].pos) * 2) / 2;
-        cuts += vlinePath(x, view.v.topStrandY - CUT_OVERSHOOT, view.v.bottomStrandY + CUT_OVERSHOOT);
+        cuts += vlinePath(x, view.v.topStrandY - CUT_OVERSHOOT, view.v.topStrandY);
       }
     }
     return { label, cuts };
@@ -930,10 +1118,13 @@ export function LinearMap(props: LinearMapProps) {
         ) : view ? (
           <svg
             ref={svgRef}
-            className={dragging ? `${styles.svg} ${styles.dragging}` : styles.svg}
-            width={view.width}
+            className={[styles.svg, dragging ? styles.dragging : '', stretched || announced ? styles.stretched : ''].filter(Boolean).join(' ')}
+            style={stretched ? ({ '--hh-unstretch': String(view.width / liveWidth) } as CSSProperties) : undefined}
+            // stretched, the drawing follows the pane at once (the measured width only arrives a frame later)
+            width={stretched ? '100%' : view.width}
             height={svgHeight}
             viewBox={`0 0 ${view.width} ${svgHeight}`}
+            preserveAspectRatio={stretched ? 'none' : undefined}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={endPress}
@@ -945,9 +1136,20 @@ export function LinearMap(props: LinearMapProps) {
             onContextMenu={onContextMenu}
             aria-hidden="true"
           >
-            <g transform={`translate(0 ${offsetY})`}>
+            <g data-map-content transform={`translate(0 ${offsetY})`}>
               <SelectionUnderlay view={view} selection={selection} />
               <MapContent view={view} />
+              {leaving ? (
+                <g
+                  ref={leavingRef}
+                  transform={`translate(0 ${leaving.offsetY - offsetY}) translate(${METRICS.padX} 0) scale(${(view.width - 2 * METRICS.padX) / Math.max(1, leaving.width - 2 * METRICS.padX)} 1) translate(${-METRICS.padX} 0)`}
+                >
+                  <AlignmentLayer alignments={leaving.alignments} />
+                </g>
+              ) : null}
+              <g ref={bandRef}>
+                <AlignmentLayer alignments={view.alignments} />
+              </g>
               <SelectionOverlay view={view} selection={selection} />
               <HighlightLayer ring={ring} hoverRing={hoverRing} enzyme={hotEnzyme.label} enzymeCuts={hotEnzyme.cuts} />
             </g>
@@ -998,3 +1200,222 @@ function thumbStyle(vp: Range, L: number, plotWidth: number): { left: number; wi
   return { left, width: w };
 }
 
+/** Durations (ms) of the aligned sequences' reveal: the band's space opens, then the band slides in; and back. */
+export const ALIGNMENT_REVEAL = { open: 300, slideIn: 360, slideOut: 220, close: 280 } as const;
+
+/** A width change of the map announced ahead of an animation (e.g. a side panel sliding open or closed). */
+export interface MapWidthChange {
+  /** By how much the width will change (px). */
+  by: number;
+  /** Timing of that change, as the animation that makes it: labels moving to their new places follow it. */
+  delay: number;
+  duration: number;
+  easing: string;
+}
+
+type GlideTiming = Omit<MapWidthChange, 'by'>;
+/** Timing of the glide to a new layout when nothing announced it (e.g. the window resized). */
+const GLIDE: GlideTiming = { delay: 0, duration: 260, easing: 'cubic-bezier(0.2, 0, 0, 1)' };
+/** Two frames: an animation starts after the heavy first render of what changed. */
+const GLIDE_LEAD = 34;
+/** How far below its place a new element starts rising (px). */
+const GLIDE_RISE = 8;
+
+/**
+ * Between two layouts of the same window at different sizes (the map narrowing or widening with a side panel, the
+ * aligned sequences' band opening or closing, the window resized) every element of the map (`data-k`: its vertical
+ * reference in `data-y`, or its own x / y for text and rects) glides from where it was on screen to where it is;
+ * new ones fade in rising from below; a leader (`data-lead`) goes along with its label, its far end staying on the
+ * bar. The glide keeps the timing of what announced the change (the panel's, the band's), so everything arrives
+ * together; nothing is laid out or drawn anew at any frame in between. `windowDeps` are what else the layout
+ * depends on: when one changes (zoom, data) the map is simply redrawn. A `bandTiming` of null skips the glide.
+ */
+function useMapGlide(
+  svgRef: RefObject<SVGSVGElement | null>,
+  view: ViewModel | null,
+  offsetY: number,
+  windowDeps: readonly unknown[],
+  change: MapWidthChange | undefined,
+  bandTiming: GlideTiming | null | undefined,
+): void {
+  const state = useRef<{
+    deps: readonly unknown[];
+    width: number;
+    height: number;
+    offsetY: number;
+    pos: Map<string, { x: number; y: number }>;
+    leads: Map<string, string>;
+    since: number;
+  } | null>(null);
+  const changeRef = useRef(change);
+  changeRef.current = change;
+  const bandRef = useRef(bandTiming);
+  bandRef.current = bandTiming;
+  useLayoutEffect(() => {
+    const svg = svgRef.current;
+    if (!svg || !view) {
+      // a hidden map starts afresh when shown again
+      state.current = null;
+      return;
+    }
+    const prev = state.current;
+    const now = performance.now();
+    // only a new size of a map that has been on screen a moment glides: the first layouts of a map just shown (its
+    // fonts measured, its pane settling) are simply drawn
+    const same =
+      !!prev &&
+      now - prev.since > 400 &&
+      (prev.width !== view.width || prev.height !== view.height) &&
+      prev.deps.length === windowDeps.length &&
+      prev.deps.every((d, i) => d === windowDeps[i]);
+    const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const pos = new Map<string, { x: number; y: number }>();
+    const els: SVGElement[] = [];
+    for (const el of svg.querySelectorAll<SVGElement>('[data-k]')) {
+      const boxed = el.tagName === 'text' || el.tagName === 'rect';
+      const x = boxed ? parseFloat(el.getAttribute('x') ?? '') : NaN;
+      const y = boxed ? Number(el.getAttribute('y')) : Number(el.dataset.y);
+      pos.set(el.dataset.k as string, { x, y });
+      els.push(el);
+    }
+    const leads = new Map<string, string>();
+    const leadEls: SVGElement[] = [];
+    for (const el of svg.querySelectorAll<SVGElement>('path[data-lead]')) {
+      leads.set(el.dataset.lead as string, el.getAttribute('d') ?? '');
+      leadEls.push(el);
+    }
+    state.current = { deps: windowDeps, width: view.width, height: view.height, offsetY, pos, leads, since: prev?.since ?? now };
+    const band = bandRef.current;
+    if (!same || reduced || band === null || typeof svg.animate !== 'function') return;
+
+    const pad = METRICS.padX;
+    // x scales with the plot (the drawing is squeezed or spread to the pane meanwhile, see LinearMap)
+    const sx = (view.width - 2 * pad) / Math.max(1, prev.width - 2 * pad);
+    const announced = changeRef.current && prev.width !== view.width ? changeRef.current : null;
+    const timing = announced ?? band ?? GLIDE;
+    const opts: KeyframeAnimationOptions = { duration: timing.duration, delay: timing.delay, easing: timing.easing, fill: 'backwards' };
+    // the drawing's vertical offset in the pane (centred) changes with its height
+    const dOff = prev.offsetY - offsetY;
+    for (const el of els) {
+      const k = el.dataset.k as string;
+      const { x, y } = pos.get(k)!;
+      const before = prev.pos.get(k);
+      if (!before) {
+        el.animate(
+          [
+            { opacity: 0, translate: `0px ${GLIDE_RISE}px` },
+            { opacity: 1, translate: '0px 0px' },
+          ],
+          opts,
+        );
+        continue;
+      }
+      const dx = Number.isNaN(x) || Number.isNaN(before.x) ? 0 : pad + (before.x - pad) * sx - x;
+      const dy = before.y + dOff - y;
+      if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) continue;
+      // from where it is shown now (a glide under way included)
+      const [ox, oy] = currentTranslate(el);
+      el.animate([{ translate: `${dx + ox}px ${dy + oy}px` }, { translate: '0px 0px' }], opts);
+    }
+    for (const el of leadEls) {
+      const k = el.dataset.lead as string;
+      const line = parseLine(leads.get(k));
+      const old = parseLine(prev.leads.get(k));
+      if (!line) continue;
+      if (!old) {
+        for (const a of el.getAnimations()) a.cancel();
+        el.animate([{ opacity: 0 }, { opacity: 1 }], opts);
+        continue;
+      }
+      // The old line (one on the move included), brought into the new drawing's frame, as a transform of the new
+      // line about its top end: being relative, it follows the line wherever the layout puts it.
+      const [ox, oy, os] = currentLineTransform(el);
+      const fromX = pad + (old.x + ox - pad) * sx;
+      const fromTop = Math.min(old.y0, old.y1) + oy + dOff;
+      const fromLen = Math.abs(old.y1 - old.y0) * os;
+      const top = Math.min(line.y0, line.y1);
+      const len = Math.max(0.01, Math.abs(line.y1 - line.y0));
+      const tx = fromX - line.x;
+      const ty = fromTop - top;
+      const sy = fromLen / len;
+      if (Math.abs(tx) < 0.5 && Math.abs(ty) < 0.5 && Math.abs(sy - 1) < 0.01) continue;
+      el.animate([{ transform: `translate(${tx}px, ${ty}px) scaleY(${sy})` }, { transform: 'none' }], opts);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs for every new layout; windowDeps are compared above
+  }, [view]);
+}
+
+/** The translate (px) an element is shown with by an animation under way, that animation cancelled; 0 0 otherwise. */
+function currentTranslate(el: Element): [number, number] {
+  const running = el.getAnimations();
+  if (running.length === 0) return [0, 0];
+  const [x, y] = getComputedStyle(el).translate.split(' ').map((v) => parseFloat(v) || 0);
+  for (const a of running) a.cancel();
+  return [x ?? 0, y ?? 0];
+}
+
+/**
+ * The translate (px) and vertical scale a leader is shown with by an animation under way, that animation cancelled;
+ * 0 0 1 otherwise.
+ */
+function currentLineTransform(el: Element): [number, number, number] {
+  const running = el.getAnimations();
+  if (running.length === 0) return [0, 0, 1];
+  const m = /^matrix\(([^)]*)\)$/.exec(getComputedStyle(el).transform);
+  for (const a of running) a.cancel();
+  if (!m) return [0, 0, 1];
+  const [, , , d, e, f] = m[1].split(',').map((v) => parseFloat(v));
+  return [e || 0, f || 0, d || 1];
+}
+
+/** A leader line (`M x y0 V y1`, see vlinePath) taken apart; null for anything else. */
+function parseLine(d: string | undefined): { x: number; y0: number; y1: number } | null {
+  // as written by vlinePath, or as a computed style gives it back (`M 1 2 V 3`)
+  const m = d && /^M\s*(-?[\d.]+)[\s,]+(-?[\d.]+)\s*V\s*(-?[\d.]+)$/.exec(d.trim());
+  return m ? { x: Number(m[1]), y0: Number(m[2]), y1: Number(m[3]) } : null;
+}
+
+/** Time of the last resize of the browser window (the settled layout below applies to those only). */
+let lastWindowResize = -Infinity;
+if (typeof window !== 'undefined') {
+  window.addEventListener('resize', () => {
+    lastWindowResize = performance.now();
+  });
+}
+
+/**
+ * `live`, but while the browser window is being resized only once it has stopped changing for `delay` ms. Other
+ * width changes (a side panel sliding open, the first measurement) are taken at once: an animated panel would
+ * otherwise keep the map stretched for the whole animation.
+ */
+function useSettledWidth(live: number, delay = 160): number {
+  const [settled, setSettled] = useState(live);
+  const windowResizing = live !== settled && performance.now() - lastWindowResize < 250;
+  useEffect(() => {
+    if (live === settled) return;
+    if (settled <= 0 || live <= 0 || performance.now() - lastWindowResize >= 250) {
+      setSettled(live);
+      return;
+    }
+    const t = setTimeout(() => setSettled(live), delay);
+    return () => clearTimeout(t);
+  }, [live, settled, delay]);
+  if (settled <= 0) return live;
+  return windowResizing ? settled : live;
+}
+
+/**
+ * The width to lay out at while an announced change is under way: the coming one, so the map is laid out once
+ * (shown squeezed or spread to the pane meanwhile, see LinearMap) instead of at every frame; kept as long as the
+ * live width is within a couple of pixels of it (the panel's border), or `null`. `from` is the width the change
+ * started from, `key` tells one change from the next.
+ */
+function useAnnouncedWidth(live: number, by: number): { width: number; from: number; key: number } | null {
+  const hold = useRef<{ by: number; width: number; from: number; key: number } | null>(null);
+  if (by && live > 0) {
+    if (hold.current?.by !== by) hold.current = { by, width: Math.max(1, live + by), from: live, key: (hold.current?.key ?? 0) + 1 };
+  } else if (hold.current && (by || Math.abs(live - hold.current.width) > 2)) {
+    hold.current = null;
+  }
+  return hold.current;
+}

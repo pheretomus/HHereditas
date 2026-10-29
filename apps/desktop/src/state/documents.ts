@@ -4,7 +4,7 @@
  */
 import type { Range, SeqRecord, SourceFormat } from '@hhereditas/core';
 import { deleteRange, insertBases, replaceRange } from '@hhereditas/core';
-import { caretAt, selectionAfterEdit, type SequenceEdit, type SequenceSelection } from '@hhereditas/viewer';
+import { selectionAfterEdit, type SequenceEdit, type SequenceSelection } from '@hhereditas/viewer';
 import type { SidebarItemRef, ViewMode } from '../shell';
 import { EMPTY_HISTORY, pushHistory, redoHistory, undoHistory, type History } from './history';
 
@@ -33,6 +33,8 @@ export interface DocumentState {
   format: FileFormat | null;
   selection: SequenceSelection | null;
   selectedItem: SidebarItemRef | null;
+  /** Multiple features selected via Ctrl+click for multi-feature operations (e.g. Gibson calculation). */
+  selectedFeatureIds?: readonly string[];
   view: ViewMode;
   history: History;
   /** Non-fatal problems reported while reading the file. */
@@ -74,8 +76,10 @@ export function createDocument(record: SeqRecord, source: DocumentSource = {}): 
     filePath: source.filePath ?? null,
     fileName: source.fileName ?? null,
     format: source.format ?? null,
-    selection: caretAt(0),
+    // Nothing is selected when a document opens (no caret at position 0 until the user clicks).
+    selection: null,
     selectedItem: null,
+    selectedFeatureIds: [],
     view: record.topology === 'circular' ? 'map' : 'split',
     history: EMPTY_HISTORY,
     warnings: source.warnings ?? [],

@@ -1,5 +1,6 @@
 # Builds installers for Windows (.msi/.exe), macOS (.dmg, Apple Silicon + Intel) and Linux
-# (.AppImage/.deb) and attaches them to a draft GitHub release.
+# (.AppImage/.deb), signs them for the in-app updater and publishes them, with latest.json, as a
+# GitHub release. Installed apps read latest.json from the newest release and offer the update.
 # Trigger: push a tag like v0.1.0, or run manually from the Actions tab.
 name: Release
 
@@ -52,12 +53,17 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Updater signing key (docs/DEVELOPMENT.md, "Releases"): without it the build fails.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           # Optional code signing (see docs/DEVELOPMENT.md): APPLE_CERTIFICATE, APPLE_ID, ...
         with:
           projectPath: apps/desktop
           tagName: ${{ github.ref_name }}
           releaseName: 'HHereditas ${{ github.ref_name }}'
           releaseBody: 'Download the installer for your platform below.'
-          releaseDraft: true
+          # Published right away: the updater only sees published releases.
+          releaseDraft: false
           prerelease: false
+          includeUpdaterJson: true
           args: ${{ matrix.args }}

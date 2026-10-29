@@ -5,8 +5,8 @@
 
 const r2 = (n: number): number => Math.round(n * 100) / 100;
 
-/** Which end of a bar carries the pointed 3' end. */
-export type ArrowEnd = 'right' | 'left' | 'none';
+/** Which end of a bar is pointed: its 3' end, or both for a bidirectional feature. */
+export type ArrowEnd = 'right' | 'left' | 'both' | 'none';
 
 export interface BarShapeOptions {
   /** Pointed end, if any. */
@@ -27,18 +27,21 @@ export interface BarShapeOptions {
  */
 export function barPath(x0: number, x1: number, y: number, h: number, o: BarShapeOptions): string {
   const w = Math.max(0, x1 - x0);
-  const head = o.arrow === 'none' ? 0 : Math.min(o.head, w * 0.6);
+  const pointL = o.arrow === 'left' || o.arrow === 'both';
+  const pointR = o.arrow === 'right' || o.arrow === 'both';
+  // two heads share the bar, so each takes at most 30% of it
+  const head = o.arrow === 'none' ? 0 : Math.min(o.head, w * (o.arrow === 'both' ? 0.3 : 0.6));
   const mid = y + h / 2;
   const bottom = y + h;
-  const bodyL = o.arrow === 'left' ? x0 + head : x0;
-  const bodyR = o.arrow === 'right' ? x1 - head : x1;
-  const radiusL = o.arrow === 'left' || o.squareLeft ? 0 : Math.min(o.radius, h / 2, (bodyR - bodyL) / 2);
-  const radiusR = o.arrow === 'right' || o.squareRight ? 0 : Math.min(o.radius, h / 2, (bodyR - bodyL) / 2);
+  const bodyL = pointL ? x0 + head : x0;
+  const bodyR = pointR ? x1 - head : x1;
+  const radiusL = pointL || o.squareLeft ? 0 : Math.min(o.radius, h / 2, (bodyR - bodyL) / 2);
+  const radiusR = pointR || o.squareRight ? 0 : Math.min(o.radius, h / 2, (bodyR - bodyL) / 2);
 
   let d = `M${r2(bodyL + radiusL)} ${r2(y)}`;
   // top edge to the right end
   d += `H${r2(bodyR - radiusR)}`;
-  if (o.arrow === 'right') {
+  if (pointR) {
     d += `L${r2(x1)} ${r2(mid)}L${r2(bodyR)} ${r2(bottom)}`;
   } else if (radiusR > 0) {
     d += `Q${r2(bodyR)} ${r2(y)} ${r2(bodyR)} ${r2(y + radiusR)}V${r2(bottom - radiusR)}Q${r2(bodyR)} ${r2(bottom)} ${r2(bodyR - radiusR)} ${r2(bottom)}`;
@@ -47,7 +50,7 @@ export function barPath(x0: number, x1: number, y: number, h: number, o: BarShap
   }
   // bottom edge back to the left end
   d += `H${r2(bodyL + radiusL)}`;
-  if (o.arrow === 'left') {
+  if (pointL) {
     d += `L${r2(x0)} ${r2(mid)}L${r2(bodyL)} ${r2(y)}`;
   } else if (radiusL > 0) {
     d += `Q${r2(bodyL)} ${r2(bottom)} ${r2(bodyL)} ${r2(bottom - radiusL)}V${r2(y + radiusL)}Q${r2(bodyL)} ${r2(y)} ${r2(bodyL + radiusL)} ${r2(y)}`;

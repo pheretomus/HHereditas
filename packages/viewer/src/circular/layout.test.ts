@@ -461,7 +461,7 @@ describe('geometry', () => {
     expect(shape.d.match(/M/g)).toHaveLength(3);
   });
 
-  it('draws short primers as visible arrows with the tip on the 3′ end, stacking neighbours that would touch', () => {
+  it('draws primers at their actual length with forward outside, reverse inside, and leader anchored at the 5′ end', () => {
     const L = 5000;
     const primers = ['a', 'b', 'c'].map((id) => ({ id, name: id.toUpperCase(), sequence: 'ACGTACGTACGTACGTACGT' }));
     const site = (primerId: string, start: number, strand: 1 | -1): PrimerBindingSite => ({
@@ -472,23 +472,29 @@ describe('geometry', () => {
       mismatches: 0,
       tailLength: 0,
     });
-    // b starts 30 bp after a ends: disjoint, but their lengthened arrows would touch
-    const primerSites = [site('a', 1000, 1), site('b', 1050, 1), site('c', 3000, -1)];
+    // b overlaps a on the forward strand; c is a reverse primer
+    const primerSites = [site('a', 1000, 1), site('b', 1010, 1), site('c', 3000, -1)];
     const g = geometryFor(rec(L, [], { primers }), 900, 700, { primerSites });
     const [a, b, c] = g.primers;
     expect(a.item.lane).not.toBe(b.item.lane);
     expect(c.item.lane).toBe(0);
-    for (const p of g.primers) {
-      expect(arcLength((p.rIn + p.rOut) / 2, p.a1 - p.a0)).toBeGreaterThanOrEqual(14 - 1e-6);
-    }
-    // the tip stays exactly on the 3' end: a1 for forward primers, a0 for reverse ones
+    // Exact primer length (20 bp)
+    expect(a.a0).toBeCloseTo(positionToAngle(g.scale, 1000), 9);
     expect(a.a1).toBeCloseTo(positionToAngle(g.scale, 1020), 9);
     expect(c.a0).toBeCloseTo(positionToAngle(g.scale, 3000), 9);
-    // outside the backbone, clear of the enzyme cut ticks
-    expect(Math.min(...g.primers.map((p) => p.rIn))).toBeGreaterThan(g.radius + 5);
+    expect(c.a1).toBeCloseTo(positionToAngle(g.scale, 3020), 9);
+    // Forward primers outside the double-line backbone; Reverse primers inside the double-line backbone
+    expect(a.rIn).toBeGreaterThan(g.radius);
+    expect(b.rIn).toBeGreaterThan(g.radius);
+    expect(c.rOut).toBeLessThan(g.radius - 3);
+    // Leader line anchors at the 5' end: a0 for Forward, a1 for Reverse
+    const candA = g.candidates.find((cand) => cand.key === 'p:0')!;
+    const candC = g.candidates.find((cand) => cand.key === 'p:2')!;
+    expect(candA.angle).toBeCloseTo(mod(a.a0, 360), 9);
+    expect(candC.angle).toBeCloseTo(mod(c.a1, 360), 9);
   });
 
-  it('never lets primer arrows on the same lane overlap as drawn (random sites, all sizes)', () => {
+  it('never lets primer lines on the same strand and lane overlap as drawn (random sites, all sizes)', () => {
     const rand = rng(11);
     const overlaps = (p: { a0: number; a1: number }, q: { a0: number; a1: number }) =>
       mod(q.a0 - p.a0, 360) < p.a1 - p.a0 - 1e-6 || mod(p.a0 - q.a0, 360) < q.a1 - q.a0 - 1e-6;
@@ -506,6 +512,7 @@ describe('geometry', () => {
         for (let i = 0; i < g.primers.length; i++) {
           for (let j = i + 1; j < g.primers.length; j++) {
             const [p, q] = [g.primers[i], g.primers[j]];
+            if (p.item.site.strand !== q.item.site.strand) continue;
             // lanes beyond the third share the outermost one (MAX_PRIMER_LANES)
             if (p.item.lane !== q.item.lane || p.item.lane >= 3) continue;
             expect(overlaps(p, q)).toBe(false);
@@ -555,6 +562,20 @@ describe('geometry', () => {
     expect(g.scale.gap).toBeGreaterThan(0);
     expect(g.backboneEnds).not.toBe('');
     expect(g.centre.detail).toBe('8,596 bp · linear');
+  });
+
+  it('renders a double-line outer backbone with SnapGene-style bp ticks and labels on the outer ring', () => {
+    const g = geometryFor(SAMPLES.pFA6a.record, 900, 700, { enzymeSites: SAMPLES.pFA6a.enzymeSites });
+    // Double-line circle: two concentric circle paths (2 'M' move commands)
+    expect(g.backbone.match(/M/g)).toHaveLength(2);
+    expect(g.ruler).not.toBeNull();
+    // Ruler attaches directly to the inner strand of the outer double-line backbone (R - 3)
+    expect(g.ruler!.radius).toBe(g.radius - 3);
+    expect(g.ruler!.circle).toBe('');
+    expect(g.ruler!.labels.length).toBeGreaterThan(0);
+    expect(g.ruler!.labels.every((l) => l.transform?.startsWith('rotate('))).toBe(true);
+    // Feature lanes sit cleanly inside the outer ruler band
+    expect(g.lanes[0].rOut).toBeLessThan(g.ruler!.radius - 8);
   });
 
   it('has sensible empty states', () => {

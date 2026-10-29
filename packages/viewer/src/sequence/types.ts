@@ -54,6 +54,8 @@ export interface SequenceViewShow {
   translations?: boolean;
   /** ORF arrows for the given ORFs (default true). */
   orfs?: boolean;
+  /** Reference-aligned sequence rows (default true). */
+  alignments?: boolean;
   /** Row start positions in the left margin (default true). */
   numbering?: boolean;
 }

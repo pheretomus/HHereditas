@@ -53,9 +53,9 @@ export function hitTest(geom: MapGeometry, placement: LabelPlacement | null, x: 
     if (best) return { kind: 'enzyme', shape: best, via: 'shape' };
   }
 
-  // Primer arrows.
-  if (geom.primers.length && r > R + 1) {
-    const hit = smallestContaining(geom.primers, r, angle, 1.5, 2);
+  // Primers (forward outside the double-line backbone, reverse inside).
+  if (geom.primers.length && r >= R - 24 && r <= geom.ringOuter + 4) {
+    const hit = smallestContaining(geom.primers, r, angle, 2, 2.5);
     if (hit) return { kind: 'primer', shape: hit, via: 'shape' };
   }
 
@@ -64,16 +64,26 @@ export function hitTest(geom: MapGeometry, placement: LabelPlacement | null, x: 
     let best: FeatureShape | null = null;
     let bestSpan = Infinity;
     for (const f of geom.features) {
-      if (r < f.rIn - 1 || r > f.rOut + 1) continue;
-      const tol = pxToDegrees(1, r);
-      for (const s of f.segments) {
-        if (angleInArc(angle, s.a0, s.a1, tol)) {
+      if (r >= f.rIn - 1 && r <= f.rOut + 1) {
+        const tol = pxToDegrees(1, r);
+        for (const s of f.segments) {
+          if (angleInArc(angle, s.a0, s.a1, tol)) {
+            const span = f.a1 - f.a0;
+            if (span < bestSpan) {
+              best = f;
+              bestSpan = span;
+            }
+            break;
+          }
+        }
+      }
+      if (f.below && f.below.rIn !== undefined && f.below.rOut !== undefined && f.below.a0 !== undefined && f.below.a1 !== undefined) {
+        if (r >= f.below.rIn - 1 && r <= f.below.rOut + 1 && angleInArc(angle, f.below.a0, f.below.a1, pxToDegrees(1, r))) {
           const span = f.a1 - f.a0;
           if (span < bestSpan) {
             best = f;
             bestSpan = span;
           }
-          break;
         }
       }
     }

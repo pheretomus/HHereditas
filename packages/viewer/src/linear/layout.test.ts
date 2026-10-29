@@ -18,7 +18,8 @@ import {
   contentOffsetY,
   enzymeRowsToReserve,
   featureBarTop,
-  leaderPath,
+  featureLabelRowsToReserve,
+  primerLabelRowsToReserve,
   strandExtents,
   strandGapFor,
 } from './layout';
@@ -54,15 +55,27 @@ function setup(
   const scale = makeScale(vp, METRICS.padX, pw);
   const features = record.features.length ? buildFeatureTrack(record.features, L, record.topology) : null;
   const markers = opts.enzymeSites?.length ? buildCutMarkers(opts.enzymeSites, L, record.topology) : null;
+  const primers = opts.primers?.length ? buildPrimerTrack(opts.primers, record.primers, L, record.topology) : null;
   const input: ViewInput = {
     record,
     width,
     scale,
     features,
     orfs: opts.orfs?.length ? buildOrfTrack(opts.orfs, L, record.topology) : null,
-    primers: opts.primers?.length ? buildPrimerTrack(opts.primers, record.primers, L, record.topology) : null,
+    primers,
     markers,
     enzymeRows: markers ? enzymeRowsToReserve(markers, L, METRICS.padX, pw, width, estimateTextWidth) : 0,
+    primerLabelRows: primerLabelRowsToReserve(
+      primers,
+      L,
+      METRICS.padX,
+      pw,
+      width,
+      estimateTextWidth,
+      false,
+      false,
+      new Map(record.primers.map((p) => [p.id, p.sequence.length] as const)),
+    ),
     measure: estimateTextWidth,
   };
   return { input, view: computeView(input), features };
@@ -115,7 +128,7 @@ function expectNoLabelOverlaps(s: Setup): void {
 }
 
 describe('computeVerticalLayout', () => {
-  it('stacks enzymes, overlays, features, backbone and ruler from the top', () => {
+  it('stacks enzymes, ORFs, features, primers, backbone and ruler from the top', () => {
     const v = computeVerticalLayout({
       enzymeRows: 3,
       features: { above: 2, below: 1 },
@@ -124,22 +137,34 @@ describe('computeVerticalLayout', () => {
       strandGap: 4,
     });
     expect(v.enzymeBottom - v.enzymeTop).toBe(3 * METRICS.enzymeRowHeight);
-    expect(v.primers.above[0]).toBeGreaterThan(v.enzymeBottom);
-    expect(v.orfs.above[0]).toBeGreaterThan(v.primers.above[0]);
-    // the free label band sits between the overlays and the outermost feature lane
-    expect(v.features.above[1] - (v.orfs.above[0] + METRICS.orfLaneHeight)).toBeGreaterThanOrEqual(METRICS.featureLabelBand);
+    expect(v.features.above[1]).toBeGreaterThan(v.enzymeBottom);
+    // the free label band sits above the outermost feature lane
+    expect(v.features.above[1] - v.enzymeBottom).toBeGreaterThanOrEqual(METRICS.featureLabelBand);
+    // the ORFs lie at the same distance from the DNA above and below it, between the features and the DNA
+    expect(v.topStrandY - (v.orfs.above[0] + METRICS.orfLaneHeight)).toBe(METRICS.orfNear);
+    expect(v.orfs.below[0] - v.bottomStrandY).toBe(METRICS.orfNear);
+    expect(v.orfs.above[0]).toBeGreaterThanOrEqual(v.features.above[0] + METRICS.featureLaneHeight);
     // lane 0 is nearest the backbone on both sides
     expect(v.features.above[0]).toBeGreaterThan(v.features.above[1]);
-    expect(v.topStrandY).toBeGreaterThan(v.features.above[0] + METRICS.featureLaneHeight);
+    // the primers sit right against the DNA: forward ones above it (inside the features), reverse ones right under it
+    expect(v.topStrandY).toBeGreaterThan(v.primers.above[0] + METRICS.primerLaneHeight);
+    expect(v.topStrandY - (v.primers.above[0] + METRICS.primerLaneHeight)).toBeLessThanOrEqual(2);
     expect(v.bottomStrandY - v.topStrandY).toBe(4);
-    expect(v.features.below[0]).toBeGreaterThanOrEqual(v.rulerBottom);
-    expect(v.orfs.below[0]).toBeGreaterThanOrEqual(v.features.below[0] + METRICS.featureLaneHeight + METRICS.featureLabelBand);
-    expect(v.primers.below[1]).toBeGreaterThan(v.primers.below[0]);
-    expect(v.height).toBeGreaterThan(v.primers.below[1] + METRICS.primerLaneHeight);
+    // the reverse primers lie right under the lower strand, then the ruler numbers, then the features hang from them
+    expect(v.primers.below[0]).toBe(v.bottomStrandY);
+    expect(v.primers.below[1]).toBe(v.primers.below[0] + METRICS.primerLaneHeight);
+    expect(v.rulerTop).toBeGreaterThanOrEqual(v.primers.below[1] + METRICS.primerLaneHeight);
+    // the numbers also clear the ORFs, which lie at a fixed distance from the strand
+    expect(v.rulerTop).toBeGreaterThanOrEqual(v.orfs.below[0] + METRICS.orfLaneHeight);
+    expect(v.features.below[0]).toBe(v.rulerBottom);
+    expect(v.height).toBeGreaterThan(v.features.below[0] + METRICS.featureLaneHeight + METRICS.featureLabelBand);
     // the selection band covers everything except the enzyme labels
-    expect(v.bodyTop).toBeLessThan(v.primers.above[0]);
+    expect(v.bodyTop).toBeLessThan(v.features.above[1]);
     expect(v.bodyTop).toBeGreaterThan(v.enzymeBottom - 4);
-    expect(v.bodyBottom).toBeGreaterThan(v.primers.below[1]);
+    expect(v.bodyBottom).toBeGreaterThan(v.features.below[0]);
+    // a selection band is the strands and the ruler numbers, reaching as far above the strands as the numbers reach below
+    expect(v.selectionTop).toBe(v.topStrandY - METRICS.rulerHeight - 3);
+    expect(v.selectionBottom).toBe(v.rulerBottom + 3);
   });
 
   it('opens the strands smoothly to make room for letters', () => {
@@ -194,8 +219,77 @@ describe('computeView: plasmids and fragments', () => {
     const s = setup(record, { primers: primerSites, orfs: demoOrfs(record.seq, 100), enzymeSites: SAMPLES.linear.enzymeSites });
     expect(s.view.primers.glyphs.length).toBe(4);
     expect(s.view.primers.labels.length).toBeGreaterThan(0);
+    // SnapGene-style: every label has a leader line to its primer; forward primers are labelled above the backbone,
+    // reverse primers below it.
+    for (const l of s.view.primers.labels) {
+      expect(l.leader).not.toBe('');
+      if (l.dir === 1) expect(l.y).toBeLessThan(s.view.backbone.topY);
+      else expect(l.y).toBeGreaterThan(s.view.backbone.bottomY);
+    }
     expectNoLabelOverlaps(s);
-    expect(s.view.orfs.glyphs.length + (s.view.orfs.small ? 1 : 0)).toBeGreaterThan(0);
+    expect(s.view.orfs.glyphs.length + (s.view.orfs.small.length > 0 ? 1 : 0)).toBeGreaterThan(0);
+  });
+
+  it('draws primers to scale, with the leader at the end where each one starts', () => {
+    const { record, primerSites } = demoPrimers(SAMPLES.linear.record, [
+      { name: 'short-F', start: 300, end: 320, strand: 1 },
+      { name: 'long-F', start: 800, end: 860, strand: 1 },
+      { name: 'long-R', start: 1500, end: 1560, strand: -1 },
+    ]);
+    const { view } = setup(record, { primers: primerSites });
+    // x extents of the rectangles of a glyph path ("M x y h w v h h -w Z"), and the x of a leader ("M x y0 V y1")
+    const extent = (entry: number) => {
+      const edges = view.primers.glyphs
+        .filter((g) => g.entry === entry)
+        .flatMap((g) => [...g.d.matchAll(/M(-?\d+(?:\.\d+)?) -?\d+(?:\.\d+)?h(-?\d+(?:\.\d+)?)/g)].flatMap((m) => [Number(m[1]), Number(m[1]) + Number(m[2])]));
+      return { x0: Math.min(...edges), x1: Math.max(...edges) };
+    };
+    const leaderX = (d: string) => Number(/M(-?\d+(?:\.\d+)?)/.exec(d)![1]);
+    const byName = (name: string) => view.primers.labels.find((l) => l.text === name)!;
+    const short = extent(byName('short-F').entry);
+    const long = extent(byName('long-F').entry);
+    // 60 bp is three times as long as 20 bp: no common minimum width
+    expect((long.x1 - long.x0) / (short.x1 - short.x0)).toBeGreaterThan(2.4);
+    // forward primers start at their left end, reverse ones at their right end
+    expect(leaderX(byName('long-F').leader)).toBeCloseTo(long.x0, 0);
+    const rev = extent(byName('long-R').entry);
+    expect(leaderX(byName('long-R').leader)).toBeCloseTo(rev.x1, 0);
+  });
+
+  it('keeps a label for crowded small features by reserving more outside rows', () => {
+    const base = SAMPLES.linear.record;
+    const features = Array.from({ length: 14 }, (_, i) => ({
+      id: `tiny${i}`,
+      type: 'misc_feature',
+      name: `small feature ${i}`,
+      strand: 1 as const,
+      segments: [{ start: 1000 + i * 60, end: 1000 + i * 60 + 45 }],
+      qualifiers: [],
+    }));
+    const record = { ...base, features };
+    const { input } = setup(record);
+    const labelled = (rows?: { above: number; below: number }) =>
+      computeView({ ...input, featureLabelRows: rows }).features.labels.length;
+    const reserved = featureLabelRowsToReserve(input);
+    // two rows are not enough for fourteen labels in a tiny span; the rows reserved from the whole-record view are
+    expect(reserved.above).toBeGreaterThan(2);
+    expect(labelled(reserved)).toBeGreaterThan(labelled({ above: 2, below: 2 }));
+    // every reserved row holds a label (the rows are capped, so not all fourteen can have one)
+    expect(labelled(reserved)).toBeGreaterThanOrEqual(reserved.above + reserved.below);
+  });
+
+  it('draws no line through the DNA: cut marks end on the upper strand, the ruler has numbers only', () => {
+    const { view } = setup(SAMPLES.pFA6a.record, { enzymeSites: SAMPLES.pFA6a.enzymeSites });
+    const nums = (d: string) => (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+    // "M x y0 V y1" for every cut mark: none reaches below the upper strand
+    for (const path of [view.enzymes.ticks, view.enzymes.ticksUnlabelled]) {
+      const n = nums(path);
+      for (let i = 0; i + 2 < n.length; i += 3) expect(Math.max(n[i + 1], n[i + 2])).toBeLessThanOrEqual(view.v.topStrandY + 0.01);
+    }
+    // the ruler is just numbers: no tick lines at all
+    expect(view.ticks.minor).toBe('');
+    expect(view.ticks.major).toBe('');
+    expect(view.ticks.labels.length).toBeGreaterThan(0);
   });
 
   it('puts a label inside a bar when it fits, else beside or outside it', () => {
@@ -337,33 +431,11 @@ describe('computeView: plasmids and fragments', () => {
 });
 
 describe('enzyme leaders', () => {
-  const box = (left: number, right: number, top: number, bottom: number): TextBox => ({ key: 'b', text: '', x: left, y: top, anchor: 'start', left, right, top, bottom });
-
-  it('run straight down when nothing is in the way', () => {
-    expect(leaderPath(10, 0, 100, [box(20, 60, 40, 50)])).toBe('M10 0V100');
-  });
-
-  it('stop short of the labels they pass', () => {
-    expect(leaderPath(30, 0, 100, [box(20, 60, 40, 50)])).toBe('M30 0V39M30 51V100');
-    // overlapping boxes merge into one gap; a box at the end ends the leader early
-    expect(leaderPath(30, 0, 100, [box(20, 60, 40, 50), box(25, 35, 45, 58), box(0, 40, 95, 110)])).toBe('M30 0V39M30 59V94');
-  });
-
-  it('never cross an outside feature label or a primer label on any sample', () => {
-    const segments = (d: string) =>
-      [...d.matchAll(/M([\d.-]+) ([\d.-]+)V([\d.-]+)/g)].map((m) => ({ x: +m[1], y0: +m[2], y1: +m[3] }));
-    for (const name of ['pFA6a', 'pBAD30', 'pBR322', 'linear'] as const) {
-      const { record, enzymeSites } = SAMPLES[name];
-      for (const width of [WIDTH, 900]) {
-        const s = setup(record, { width, enzymeSites });
-        const obstacles = [...s.view.features.labels.filter((l) => l.placement !== 'inside'), ...s.view.primers.labels];
-        for (const seg of s.view.enzymes.labels.flatMap((l) => segments(l.leader))) {
-          for (const b of obstacles) {
-            const crosses = seg.x >= b.left && seg.x <= b.right && seg.y0 < b.bottom && seg.y1 > b.top;
-            if (crosses) throw new Error(`a leader at x=${seg.x} crosses "${b.text}" (${name}, ${width}px)`);
-          }
-        }
-      }
+  it('run unbroken from the label to the backbone, behind the labels they pass', () => {
+    const { record, enzymeSites } = SAMPLES.pBR322;
+    const s = setup(record, { width: WIDTH, enzymeSites });
+    for (const l of s.view.enzymes.labels) {
+      expect(l.leader.match(/M/g)?.length).toBe(1);
     }
   });
 });

@@ -3,7 +3,7 @@
  * shortcuts (one implementation per command).
  */
 import type { SeqRecord } from '@hhereditas/core';
-import { extractRange, normalizeRange, sliceRange } from '@hhereditas/core';
+import { annotateCommonFeatures, extractRange, normalizeRange, sliceRange } from '@hhereditas/core';
 import { hasSelectedBases } from '@hhereditas/viewer';
 import { isDirty, type DocumentState } from '../state/documents';
 import { getActiveDocument, useApp } from '../state/store';
@@ -52,6 +52,28 @@ export function deleteFeatureCommand(id: string): void {
 export function deletePrimerCommand(id: string): void {
   const app = useApp.getState();
   app.change((r) => ({ ...r, primers: r.primers.filter((p) => p.id !== id) }), 'Delete Primer');
+}
+
+export function setPrimersHiddenCommand(ids: readonly string[], hidden: boolean): void {
+  const app = useApp.getState();
+  const target = new Set(ids);
+  app.change(
+    (r) => ({ ...r, primers: r.primers.map((p) => (target.has(p.id) ? (hidden ? { ...p, hidden } : { ...p, hidden: undefined }) : p)) }),
+    hidden ? 'Hide Primers' : 'Show Primers',
+  );
+}
+
+export function detectCommonFeaturesCommand(): void {
+  const doc = getActiveDocument();
+  if (!doc) return;
+  const app = useApp.getState();
+  const { record: updated, added } = annotateCommonFeatures(doc.record);
+  if (added.length === 0) {
+    app.flash('No new common features, epitope tags, or protease sites detected');
+    return;
+  }
+  app.change(() => updated, 'Detect Common Features');
+  app.flash(`Detected ${added.length} common feature${added.length === 1 ? '' : 's'} (${added.slice(0, 4).map((f) => f.name).join(', ')}${added.length > 4 ? ', …' : ''})`);
 }
 
 // ---------------------------------------------------------------------------------------

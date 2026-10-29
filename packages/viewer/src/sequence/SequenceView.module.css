@@ -13,7 +13,7 @@
   color: var(--hh-seq-text);
 }
 
-/* Keyboard focus (Tab into the view): a quiet inset ring. Mouse focus shows the blinking caret only. */
+/* Keyboard focus (Tab into the view): a quiet inset ring. Mouse focus shows the caret only. */
 .root[data-keyboard-focus='true']::after {
   content: '';
   position: absolute;
@@ -89,6 +89,15 @@
   font-variant-numeric: tabular-nums;
   text-anchor: end;
   /* --hh-seq-ruler is ~3:1 (light) / ~4.4:1 (dark); secondary text is 4.7:1 / 6.4:1 */
+  fill: var(--hh-text-secondary);
+}
+
+/* Row numbers stand to the right of the bases and start at the same x on every row. */
+.rowNumber {
+  font-family: var(--hh-font-ui);
+  font-size: var(--hh-text-sm);
+  font-variant-numeric: tabular-nums;
+  text-anchor: start;
   fill: var(--hh-text-secondary);
 }
 
@@ -207,32 +216,13 @@
   cursor: default;
 }
 
-/* CDS translation: alternating codon shading in the feature colour, letters centred on codons.
-   Dark backgrounds need stronger tints for the strip to read as the feature's colour. */
+/* CDS translation: alternating codon shading in the feature colour, letters centred on codons. */
 .codonEven {
   fill-opacity: 0.3;
 }
 
 .codonOdd {
   fill-opacity: 0.13;
-}
-
-:global(:root[data-theme='dark']) .codonEven {
-  fill-opacity: 0.46;
-}
-
-:global(:root[data-theme='dark']) .codonOdd {
-  fill-opacity: 0.26;
-}
-
-@media (prefers-color-scheme: dark) {
-  :global(:root:not([data-theme='light'])) .codonEven {
-    fill-opacity: 0.46;
-  }
-
-  :global(:root:not([data-theme='light'])) .codonOdd {
-    fill-opacity: 0.26;
-  }
 }
 
 .aminoAcids {
@@ -379,11 +369,16 @@
 
 /* ---- ORFs ----------------------------------------------------------------------------------- */
 
-.orf {
-  fill: var(--hh-orf);
+.orfFwd {
+  fill: var(--hh-orf-fwd);
 }
 
-.orf:hover {
+.orfRev {
+  fill: var(--hh-orf-rev);
+}
+
+.orfFwd:hover,
+.orfRev:hover {
   fill: var(--hh-indigo);
 }
 
@@ -415,29 +410,14 @@
 }
 
 .caretBlink {
-  animation: caret-blink 1.06s step-end infinite;
+  /* the caret of the focused view stays on (no blinking) */
+  opacity: 1;
 }
 
 .caretInactive {
   opacity: 0.38;
 }
 
-@keyframes caret-blink {
-  0%,
-  55% {
-    opacity: 1;
-  }
-  56%,
-  100% {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .caretBlink {
-    animation: none;
-  }
-}
 
 .hit {
   cursor: default;

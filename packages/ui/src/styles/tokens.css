@@ -80,310 +80,122 @@
   --hh-duration-fast: 120ms;
   --hh-duration: 200ms;
 
-  /* ---- Colours: light ---- */
-  --hh-accent: #007aff;
-  --hh-accent-hover: #0062cc;
+  /* ---- Colours: SnapGene light canvas + HHereditas White-DarkGreen accent ---- */
+  --hh-accent: #0c4f30;
+  --hh-accent-hover: #083b23;
   --hh-accent-contrast: #ffffff; /* text on accent */
-  --hh-accent-soft: rgba(0, 122, 255, 0.12);
-  --hh-focus-ring: rgba(0, 122, 255, 0.45);
+  --hh-accent-soft: rgba(12, 79, 48, 0.12);
+  --hh-focus-ring: rgba(12, 79, 48, 0.45);
 
-  --hh-red: #ff3b30;
-  --hh-orange: #ff9500;
-  --hh-yellow: #ffcc00;
-  --hh-green: #34c759;
-  --hh-teal: #30b0c7;
-  --hh-blue: #007aff;
-  --hh-indigo: #5856d6;
-  --hh-purple: #af52de;
-  --hh-pink: #ff2d55;
-  --hh-gray: #8e8e93;
+  --hh-red: #dc2626;
+  --hh-orange: #e65100;
+  --hh-yellow: #eab308;
+  --hh-green: #0c4f30;
+  --hh-teal: #0d9488;
+  --hh-blue: #2563eb;
+  --hh-indigo: #4f46e5;
+  --hh-purple: #7c3aed;
+  --hh-pink: #db2777;
+  --hh-gray: #6b7280;
 
-  --hh-text: rgba(0, 0, 0, 0.86);
-  --hh-text-secondary: rgba(0, 0, 0, 0.55);
-  --hh-text-tertiary: rgba(0, 0, 0, 0.32);
-  --hh-text-disabled: rgba(0, 0, 0, 0.25);
+  --hh-text: rgba(15, 23, 18, 0.9);
+  --hh-text-secondary: rgba(15, 23, 18, 0.6);
+  --hh-text-tertiary: rgba(15, 23, 18, 0.38);
+  --hh-text-disabled: rgba(15, 23, 18, 0.26);
 
-  --hh-bg-window: #ececec;        /* window / toolbar background */
-  --hh-bg-content: #ffffff;       /* main canvas, documents */
-  --hh-bg-sidebar: #e8e8ea;       /* source-list sidebar (approximates macOS vibrancy) */
-  --hh-bg-inspector: #f6f6f6;
+  --hh-bg-window: #f4f4f4;        /* window / toolbar background (neutral gray) */
+  --hh-bg-content: #ffffff;       /* main canvas, documents (pure white SnapGene sheet) */
+  --hh-bg-sidebar: #f7faf8;       /* source-list sidebar */
+  --hh-bg-inspector: #f8fbf9;
   --hh-bg-elevated: #ffffff;      /* popovers, menus, sheets */
   --hh-bg-control: #ffffff;       /* buttons, fields */
-  --hh-bg-control-hover: #f2f2f2;
-  --hh-bg-control-active: #e5e5e5;
-  --hh-bg-hover: rgba(0, 0, 0, 0.05);
-  --hh-bg-pressed: rgba(0, 0, 0, 0.09);
-  --hh-bg-selected: rgba(0, 0, 0, 0.09);           /* unemphasized selection (window inactive / secondary) */
-  --hh-bg-selected-strong: #0064e1;                /* emphasized source-list selection */
-  --hh-bg-subtle: rgba(0, 0, 0, 0.035);            /* zebra rows, wells */
+  --hh-bg-control-hover: #eef4f0;
+  --hh-bg-control-active: #e2ece6;
+  --hh-bg-hover: rgba(12, 79, 48, 0.06);
+  --hh-bg-pressed: rgba(12, 79, 48, 0.12);
+  --hh-bg-selected: rgba(12, 79, 48, 0.1);          /* unemphasized selection (window inactive / secondary) */
+  --hh-bg-selected-strong: #0c4f30;                 /* emphasized source-list selection */
+  --hh-bg-subtle: rgba(12, 79, 48, 0.04);           /* zebra rows, wells */
 
-  --hh-separator: rgba(0, 0, 0, 0.1);
-  --hh-separator-strong: rgba(0, 0, 0, 0.18);
-  --hh-border-control: rgba(0, 0, 0, 0.14);
+  --hh-separator: rgba(15, 35, 24, 0.1);
+  --hh-separator-strong: rgba(15, 35, 24, 0.18);
+  --hh-border-control: rgba(15, 35, 24, 0.15);
 
-  --hh-shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
-  --hh-shadow-popover: 0 8px 28px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
-  --hh-shadow-sheet: 0 22px 70px rgba(0, 0, 0, 0.28), 0 0 0 0.5px rgba(0, 0, 0, 0.14);
+  --hh-shadow-control: 0 0.5px 1px rgba(15, 35, 24, 0.1), 0 0 0 0.5px rgba(15, 35, 24, 0.08);
+  --hh-shadow-popover: 0 8px 28px rgba(15, 35, 24, 0.14), 0 0 0 0.5px rgba(15, 35, 24, 0.12);
+  --hh-shadow-sheet: 0 22px 70px rgba(15, 35, 24, 0.24), 0 0 0 0.5px rgba(15, 35, 24, 0.14);
 
   /* Controls and materials */
-  --hh-bg-overlay: rgba(0, 0, 0, 0.1);              /* dims the window behind sheets and alerts */
-  --hh-bg-menu: rgba(246, 246, 246, 0.86);          /* translucent menus (with --hh-backdrop-blur) */
+  --hh-bg-overlay: rgba(15, 23, 18, 0.12);          /* dims the window behind sheets and alerts */
+  --hh-bg-menu: rgba(250, 252, 251, 0.94);          /* translucent menus (with --hh-backdrop-blur) */
   --hh-bg-field: #ffffff;                           /* text fields */
-  --hh-bg-well: rgba(0, 0, 0, 0.055);               /* segmented-control track, toolbar search field */
+  --hh-bg-well: rgba(12, 79, 48, 0.075);            /* segmented-control track, toolbar search field */
   --hh-bg-thumb: #ffffff;                           /* selected segment of a segmented control */
   --hh-knob: #ffffff;                               /* switch and slider knobs */
-  --hh-switch-off: rgba(0, 0, 0, 0.1);              /* switch / slider track when off */
-  --hh-shadow-thumb: 0 0.5px 1.5px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
-  --hh-shadow-knob: 0 1px 2.5px rgba(0, 0, 0, 0.24), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
-  --hh-shadow-tooltip: 0 2px 8px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.1);
-  --hh-scrollbar-thumb: rgba(0, 0, 0, 0.22);
-  --hh-scrollbar-thumb-hover: rgba(0, 0, 0, 0.38);
+  --hh-switch-off: rgba(15, 35, 24, 0.12);          /* switch / slider track when off */
+  --hh-shadow-thumb: 0 1px 2px rgba(15, 35, 24, 0.14), 0 0 0 0.5px rgba(12, 79, 48, 0.15);
+  --hh-shadow-knob: 0 1px 2.5px rgba(15, 35, 24, 0.22), 0 0 0 0.5px rgba(15, 35, 24, 0.08);
+  --hh-shadow-tooltip: 0 2px 8px rgba(15, 35, 24, 0.14), 0 0 0 0.5px rgba(15, 35, 24, 0.1);
+  --hh-scrollbar-thumb: rgba(15, 35, 24, 0.22);
+  --hh-scrollbar-thumb-hover: rgba(12, 79, 48, 0.45);
 
-  /* ---- Sequence visualization ---- */
-  --hh-seq-text: rgba(0, 0, 0, 0.86);
-  --hh-seq-text-complement: rgba(0, 0, 0, 0.42);
-  --hh-seq-ruler: rgba(0, 0, 0, 0.42);
-  --hh-seq-backbone: rgba(0, 0, 0, 0.55);
-  --hh-seq-selection: rgba(0, 122, 255, 0.2);
-  --hh-seq-selection-edge: #007aff;
-  --hh-seq-caret: #007aff;
-  --hh-seq-search-hit: rgba(255, 204, 0, 0.55);
-  --hh-seq-hover: rgba(0, 0, 0, 0.06);
-  --hh-enzyme-unique: rgba(0, 0, 0, 0.86); /* single-cutter labels are emphasized */
-  --hh-enzyme-multi: rgba(0, 0, 0, 0.5);
-  --hh-enzyme-cut: #d70015;
-  --hh-primer-fwd: #1f7a3a;
-  --hh-primer-rev: #9c2c80;
-  --hh-orf: rgba(88, 86, 214, 0.55);
-  --hh-gel-bg: #1b1d22;
+  /* ---- Sequence visualization (SnapGene signature palette) ---- */
+  --hh-seq-text: #111814;
+  --hh-seq-text-complement: rgba(17, 24, 20, 0.48);
+  --hh-seq-ruler: rgba(17, 24, 20, 0.48);
+  --hh-seq-backbone: #333333;
+  --hh-seq-selection: rgba(12, 79, 48, 0.18);
+  --hh-seq-selection-edge: #0c4f30;
+  --hh-seq-caret: #0c4f30;
+  --hh-seq-search-hit: rgba(255, 214, 10, 0.58);
+  --hh-seq-hover: rgba(12, 79, 48, 0.06);
+  --hh-enzyme-unique: #111111; /* single-cutter labels are emphasized bold black like SnapGene */
+  --hh-enzyme-multi: #555555;
+  --hh-enzyme-cut: #cc0000;    /* SnapGene classic crimson cleavage line */
+  --hh-primer-fwd: #e65100;    /* Orange primer line & label */
+  --hh-primer-rev: #e65100;    /* Orange reverse primer line & label */
+  --hh-orf: rgba(204, 102, 0, 0.68);
+  --hh-orf-fwd: #1e90ff;       /* Fluorescent blue: forward ORFs */
+  --hh-orf-rev: #b44dff;       /* Fluorescent violet: reverse ORFs */
+  --hh-gel-bg: #181a1f;
   --hh-gel-band: #f2f5ff;
-  --hh-gel-text: rgba(255, 255, 255, 0.72);
+  --hh-gel-text: rgba(255, 255, 255, 0.78);
 
-  /* Feature fills by type (strokes are derived by darkening in the viewer). */
-  --hh-feature-cds: #f5b841;
-  --hh-feature-gene: #f0c96b;
-  --hh-feature-promoter: #5bbf6a;
-  --hh-feature-terminator: #e5584f;
-  --hh-feature-rep-origin: #f2d03b;
-  --hh-feature-primer-bind: #8a9bb0;
-  --hh-feature-rbs: #b18ae6;
-  --hh-feature-protein-bind: #e679ad;
-  --hh-feature-enhancer: #f39a3d;
-  --hh-feature-polya: #c49a6c;
-  --hh-feature-ltr: #7b8ce8;
-  --hh-feature-sig-peptide: #5ac8fa;
-  --hh-feature-rna: #9ccc3c;
-  --hh-feature-regulatory: #5fb3a6;
-  --hh-feature-repeat: #b0b7c3;
-  --hh-feature-misc: #9fb0c4;
+  /* Feature fills by type (SnapGene standardCommonFeatures.ftrs palette). */
+  --hh-feature-cds: #ff9933;
+  --hh-feature-gene: #ffcc66;
+  --hh-feature-promoter: #4ccb68;
+  --hh-feature-terminator: #e5534b;
+  --hh-feature-rep-origin: #f7dc4f;
+  --hh-feature-primer-bind: #a678de;
+  --hh-feature-rbs: #9b7ede;
+  --hh-feature-protein-bind: #ec73a8;
+  --hh-feature-enhancer: #f59342;
+  --hh-feature-polya: #c99663;
+  --hh-feature-ltr: #758be8;
+  --hh-feature-sig-peptide: #4bc2f7;
+  --hh-feature-rna: #95cc39;
+  --hh-feature-regulatory: #4db8a8;
+  --hh-feature-repeat: #a8b2c1;
+  --hh-feature-misc: #8cb4de;
 
-  /* Feature colour palette offered by colour pickers. These are DATA colours: the chosen hex
-     value is written into the document (Feature.color), so they are deliberately the same in
-     light and dark themes and are not redefined in the dark blocks below. */
-  --hh-swatch-1: #f5b841;
-  --hh-swatch-2: #f2d03b;
-  --hh-swatch-3: #9ccc3c;
-  --hh-swatch-4: #5bbf6a;
-  --hh-swatch-5: #5fb3a6;
-  --hh-swatch-6: #5ac8fa;
+  /* Feature colour palette offered by colour pickers (SnapGene swatch colours). */
+  --hh-swatch-1: #ff9933;
+  --hh-swatch-2: #f7dc4f;
+  --hh-swatch-3: #95cc39;
+  --hh-swatch-4: #4ccb68;
+  --hh-swatch-5: #4db8a8;
+  --hh-swatch-6: #4bc2f7;
   --hh-swatch-7: #4f8ef7;
-  --hh-swatch-8: #7b8ce8;
-  --hh-swatch-9: #b18ae6;
-  --hh-swatch-10: #e679ad;
-  --hh-swatch-11: #e5584f;
-  --hh-swatch-12: #f39a3d;
-  --hh-swatch-13: #c49a6c;
-  --hh-swatch-14: #8a9bb0;
-  --hh-swatch-15: #b0b7c3;
+  --hh-swatch-8: #758be8;
+  --hh-swatch-9: #a678de;
+  --hh-swatch-10: #ec73a8;
+  --hh-swatch-11: #e5534b;
+  --hh-swatch-12: #f59342;
+  --hh-swatch-13: #c99663;
+  --hh-swatch-14: #8cb4de;
+  --hh-swatch-15: #a8b2c1;
   --hh-swatch-16: #6e6e73;
-}
-
-/* Dark values: applied by explicit data-theme="dark" or by the OS preference when no theme is forced. */
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --hh-accent: #0a84ff;
-  --hh-accent-hover: #409cff;
-  --hh-accent-contrast: #ffffff;
-  --hh-accent-soft: rgba(10, 132, 255, 0.2);
-  --hh-focus-ring: rgba(10, 132, 255, 0.55);
-
-  --hh-red: #ff453a;
-  --hh-orange: #ff9f0a;
-  --hh-yellow: #ffd60a;
-  --hh-green: #30d158;
-  --hh-teal: #40c8e0;
-  --hh-blue: #0a84ff;
-  --hh-indigo: #5e5ce6;
-  --hh-purple: #bf5af2;
-  --hh-pink: #ff375f;
-  --hh-gray: #98989d;
-
-  --hh-text: rgba(255, 255, 255, 0.88);
-  --hh-text-secondary: rgba(255, 255, 255, 0.58);
-  --hh-text-tertiary: rgba(255, 255, 255, 0.32);
-  --hh-text-disabled: rgba(255, 255, 255, 0.25);
-
-  --hh-bg-window: #2b2b2d;
-  --hh-bg-content: #1e1e20;
-  --hh-bg-sidebar: #252527;
-  --hh-bg-inspector: #232325;
-  --hh-bg-elevated: #2f2f32;
-  --hh-bg-control: #48484b;
-  --hh-bg-control-hover: #535357;
-  --hh-bg-control-active: #5d5d62;
-  --hh-bg-hover: rgba(255, 255, 255, 0.06);
-  --hh-bg-pressed: rgba(255, 255, 255, 0.11);
-  --hh-bg-selected: rgba(255, 255, 255, 0.1);
-  --hh-bg-selected-strong: #0a5fd1;
-  --hh-bg-subtle: rgba(255, 255, 255, 0.04);
-
-  --hh-separator: rgba(255, 255, 255, 0.1);
-  --hh-separator-strong: rgba(255, 255, 255, 0.18);
-  --hh-border-control: rgba(255, 255, 255, 0.12);
-
-  --hh-shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
-  --hh-shadow-popover: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-  --hh-shadow-sheet: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
-
-  --hh-bg-overlay: rgba(0, 0, 0, 0.32);
-  --hh-bg-menu: rgba(40, 40, 42, 0.86);
-  --hh-bg-field: rgba(255, 255, 255, 0.055);
-  --hh-bg-well: rgba(255, 255, 255, 0.08);
-  --hh-bg-thumb: #5c5c61;
-  --hh-knob: #ececee;
-  --hh-switch-off: rgba(255, 255, 255, 0.16);
-  --hh-shadow-thumb: 0 0.5px 1.5px rgba(0, 0, 0, 0.45), inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
-  --hh-shadow-knob: 0 1px 2.5px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(0, 0, 0, 0.2);
-  --hh-shadow-tooltip: 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-  --hh-scrollbar-thumb: rgba(255, 255, 255, 0.24);
-  --hh-scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
-
-  --hh-seq-text: rgba(255, 255, 255, 0.88);
-  --hh-seq-text-complement: rgba(255, 255, 255, 0.42);
-  --hh-seq-ruler: rgba(255, 255, 255, 0.45);
-  --hh-seq-backbone: rgba(255, 255, 255, 0.6);
-  --hh-seq-selection: rgba(10, 132, 255, 0.32);
-  --hh-seq-selection-edge: #0a84ff;
-  --hh-seq-caret: #0a84ff;
-  --hh-seq-search-hit: rgba(255, 214, 10, 0.42);
-  --hh-seq-hover: rgba(255, 255, 255, 0.07);
-  --hh-enzyme-unique: rgba(255, 255, 255, 0.9);
-  --hh-enzyme-multi: rgba(255, 255, 255, 0.52);
-  --hh-enzyme-cut: #ff6961;
-  --hh-primer-fwd: #4cd07d;
-  --hh-primer-rev: #e07ad0;
-  --hh-orf: rgba(125, 122, 255, 0.6);
-  --hh-gel-bg: #0f1013;
-  --hh-gel-band: #eef2ff;
-  --hh-gel-text: rgba(255, 255, 255, 0.7);
-
-  --hh-feature-cds: #e0a53a;
-  --hh-feature-gene: #d6b25e;
-  --hh-feature-promoter: #4cad5b;
-  --hh-feature-terminator: #d64f47;
-  --hh-feature-rep-origin: #d9bb35;
-  --hh-feature-primer-bind: #7f90a6;
-  --hh-feature-rbs: #a07ed8;
-  --hh-feature-protein-bind: #d46d9f;
-  --hh-feature-enhancer: #e08c35;
-  --hh-feature-polya: #b38c61;
-  --hh-feature-ltr: #7080d8;
-  --hh-feature-sig-peptide: #4fb8e8;
-  --hh-feature-rna: #8dbb36;
-  --hh-feature-regulatory: #55a397;
-  --hh-feature-repeat: #8f96a3;
-  --hh-feature-misc: #8798ad;
-}
-
-/* Follow the OS when no theme is forced. Duplicates the dark block above on purpose. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']):not([data-theme='dark']) {
-    color-scheme: dark;
-    --hh-accent: #0a84ff;
-    --hh-accent-hover: #409cff;
-    --hh-accent-contrast: #ffffff;
-    --hh-accent-soft: rgba(10, 132, 255, 0.2);
-    --hh-focus-ring: rgba(10, 132, 255, 0.55);
-    --hh-red: #ff453a;
-    --hh-orange: #ff9f0a;
-    --hh-yellow: #ffd60a;
-    --hh-green: #30d158;
-    --hh-teal: #40c8e0;
-    --hh-blue: #0a84ff;
-    --hh-indigo: #5e5ce6;
-    --hh-purple: #bf5af2;
-    --hh-pink: #ff375f;
-    --hh-gray: #98989d;
-    --hh-text: rgba(255, 255, 255, 0.88);
-    --hh-text-secondary: rgba(255, 255, 255, 0.58);
-    --hh-text-tertiary: rgba(255, 255, 255, 0.32);
-    --hh-text-disabled: rgba(255, 255, 255, 0.25);
-    --hh-bg-window: #2b2b2d;
-    --hh-bg-content: #1e1e20;
-    --hh-bg-sidebar: #252527;
-    --hh-bg-inspector: #232325;
-    --hh-bg-elevated: #2f2f32;
-    --hh-bg-control: #48484b;
-    --hh-bg-control-hover: #535357;
-    --hh-bg-control-active: #5d5d62;
-    --hh-bg-hover: rgba(255, 255, 255, 0.06);
-    --hh-bg-pressed: rgba(255, 255, 255, 0.11);
-    --hh-bg-selected: rgba(255, 255, 255, 0.1);
-    --hh-bg-selected-strong: #0a5fd1;
-    --hh-bg-subtle: rgba(255, 255, 255, 0.04);
-    --hh-separator: rgba(255, 255, 255, 0.1);
-    --hh-separator-strong: rgba(255, 255, 255, 0.18);
-    --hh-border-control: rgba(255, 255, 255, 0.12);
-    --hh-shadow-control: 0 0.5px 1px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
-    --hh-shadow-popover: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-    --hh-shadow-sheet: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
-    --hh-bg-overlay: rgba(0, 0, 0, 0.32);
-    --hh-bg-menu: rgba(40, 40, 42, 0.86);
-    --hh-bg-field: rgba(255, 255, 255, 0.055);
-    --hh-bg-well: rgba(255, 255, 255, 0.08);
-    --hh-bg-thumb: #5c5c61;
-    --hh-knob: #ececee;
-    --hh-switch-off: rgba(255, 255, 255, 0.16);
-    --hh-shadow-thumb: 0 0.5px 1.5px rgba(0, 0, 0, 0.45), inset 0 0.5px 0 rgba(255, 255, 255, 0.08);
-    --hh-shadow-knob: 0 1px 2.5px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(0, 0, 0, 0.2);
-    --hh-shadow-tooltip: 0 2px 10px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(255, 255, 255, 0.12);
-    --hh-scrollbar-thumb: rgba(255, 255, 255, 0.24);
-    --hh-scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
-    --hh-seq-text: rgba(255, 255, 255, 0.88);
-    --hh-seq-text-complement: rgba(255, 255, 255, 0.42);
-    --hh-seq-ruler: rgba(255, 255, 255, 0.45);
-    --hh-seq-backbone: rgba(255, 255, 255, 0.6);
-    --hh-seq-selection: rgba(10, 132, 255, 0.32);
-    --hh-seq-selection-edge: #0a84ff;
-    --hh-seq-caret: #0a84ff;
-    --hh-seq-search-hit: rgba(255, 214, 10, 0.42);
-    --hh-seq-hover: rgba(255, 255, 255, 0.07);
-    --hh-enzyme-unique: rgba(255, 255, 255, 0.9);
-    --hh-enzyme-multi: rgba(255, 255, 255, 0.52);
-    --hh-enzyme-cut: #ff6961;
-    --hh-primer-fwd: #4cd07d;
-    --hh-primer-rev: #e07ad0;
-    --hh-orf: rgba(125, 122, 255, 0.6);
-    --hh-gel-bg: #0f1013;
-    --hh-gel-band: #eef2ff;
-    --hh-gel-text: rgba(255, 255, 255, 0.7);
-    --hh-feature-cds: #e0a53a;
-    --hh-feature-gene: #d6b25e;
-    --hh-feature-promoter: #4cad5b;
-    --hh-feature-terminator: #d64f47;
-    --hh-feature-rep-origin: #d9bb35;
-    --hh-feature-primer-bind: #7f90a6;
-    --hh-feature-rbs: #a07ed8;
-    --hh-feature-protein-bind: #d46d9f;
-    --hh-feature-enhancer: #e08c35;
-    --hh-feature-polya: #b38c61;
-    --hh-feature-ltr: #7080d8;
-    --hh-feature-sig-peptide: #4fb8e8;
-    --hh-feature-rna: #8dbb36;
-    --hh-feature-regulatory: #55a397;
-    --hh-feature-repeat: #8f96a3;
-    --hh-feature-misc: #8798ad;
-  }
 }
 
 /* macOS: the window title bar overlays the content (titleBarStyle "Overlay" in tauri.conf.json). */

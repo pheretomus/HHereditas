@@ -150,6 +150,27 @@ describe('ToolbarContent', () => {
     expect(onAction).toHaveBeenLastCalledWith('clone-gibson');
   });
 
+  it('groups SnapGene-style annotation and tool controls (Features, ORFs, Primers, Gel)', async () => {
+    const user = userEvent.setup();
+    const onAction = vi.fn();
+    render(<ToolbarHarness onAction={onAction} orfsShown />);
+    const orfsBtn = screen.getByRole('button', { name: 'ORFs' });
+    expect(orfsBtn.getAttribute('aria-pressed')).toBe('true');
+    await user.click(orfsBtn);
+    expect(onAction).toHaveBeenLastCalledWith('find-orfs');
+
+    await user.click(screen.getByRole('button', { name: 'Features' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Detect common features' }));
+    expect(onAction).toHaveBeenLastCalledWith('detect-features');
+
+    await user.click(screen.getByRole('button', { name: 'Primers' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Add primer…' }));
+    expect(onAction).toHaveBeenLastCalledWith('primers');
+
+    await user.click(screen.getByRole('button', { name: 'Digest & gel' }));
+    expect(onAction).toHaveBeenLastCalledWith('digest');
+  });
+
   it('shows shortcut hints, which the app can override', async () => {
     const user = userEvent.setup();
     document.documentElement.classList.add('hh-platform-mac');

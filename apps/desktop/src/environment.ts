@@ -17,8 +17,7 @@ export function detectPlatform(): Platform {
 
 export function applyEnvironment(params: URLSearchParams = new URLSearchParams(location.search)): Platform {
   const root = document.documentElement;
-  const theme = params.get('theme');
-  if (theme === 'light' || theme === 'dark') root.dataset.theme = theme;
+  root.dataset.theme = 'light';
 
   const forced = params.get('platform');
   const platform: Platform = forced === 'mac' || forced === 'windows' || forced === 'linux' ? forced : detectPlatform();

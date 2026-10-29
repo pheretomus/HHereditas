@@ -70,6 +70,11 @@ export interface Feature {
   color?: string;
   /** Optional per-direction colour override for the reverse strand (ApE files carry both). */
   reverseColor?: string;
+  /**
+   * Drawn with an arrow head at both ends (SnapGene's directionality 3). A marker for the eye only: the feature
+   * has no strand of its own (`strand` is 0), so nothing is translated or read from it in one direction.
+   */
+  bidirectional?: boolean;
   /** True if the start / end of the feature is fuzzy in the source file (`<1..`, `..>100`). */
   partialStart?: boolean;
   partialEnd?: boolean;
@@ -86,6 +91,8 @@ export interface Primer {
   /** 5'->3' oligo sequence, uppercase IUPAC. May contain a 5' tail that does not anneal. */
   sequence: string;
   description?: string;
+  /** Not drawn on the maps or the sequence view (SnapGene `visible="0"`). Absent means shown. */
+  hidden?: boolean;
 }
 
 /** Kind of single-stranded end of a linear double-stranded molecule. */
@@ -154,6 +161,65 @@ export interface RecordMeta {
   extras?: Record<string, string>;
 }
 
+/**
+ * A sequence or Sanger trace aligned to a reference DNA record
+ * (reconstructed from SnapGene.exe 0x142485905..0x14248e8e6:
+ * Packet 0x11 `<AlignableSequences>`, Packet 0x10 embedded sequence/trace,
+ * and Packet 0x1B BGZF-compressed BAM alignment).
+ */
+export interface AlignedSequence {
+  /** Unique ID within the document (matches `<Sequence ID="...">` and BAM read_name). */
+  id: string;
+  /** Display name (`<Sequence name="...">`). */
+  name: string;
+  /** Original 5'->3' query sequence (uppercase IUPAC). */
+  sequence: string;
+  /** True if imported from a chromatogram trace (.ab1 / .scf / .ztr, `isTrace="1"`). */
+  isTrace?: boolean;
+  /** Display order in the "Align with:" list (`sortOrder`). */
+  sortOrder: number;
+  /** Whether this sequence is checked / visible in the "Align with:" panel (`use="1"` / `use="0"`). */
+  visible: boolean;
+  /** Trimmed range on the query sequence (0-based half-open; in SnapGene XML 1-based `trimmedRange="a..b"`). */
+  trimmedRange?: Range;
+  /** True if `trimmedRange` was manually adjusted (`manuallyTrimmed="1"`). */
+  manuallyTrimmed?: boolean;
+  /** Whether the query aligned to the reference (`true` when `refRange` is valid). */
+  aligned: boolean;
+  /** 1 = forward strand, -1 = reverse strand (BAM flag 0x10). */
+  strand: 1 | -1;
+  /** Aligned footprint on the reference sequence (0-based half-open, may wrap origin on circular records). */
+  refRange: Range;
+  /** Unaligned 5'-most and 3'-most soft-clipped/trimmed tail lengths in bp (drawn as dotted extensions on the map). */
+  leftTail: number;
+  rightTail: number;
+  /** CIGAR string (e.g. `"2S14M1I974M"`) in reference orientation. */
+  cigar: string;
+  /** 0-based reference positions where a mismatch, insertion, or deletion occurs (for map tick marks and sequence highlighting). */
+  mismatches: number[];
+  /** Base-by-base aligned string on the reference top strand across `refRange` (length = `refRange.end - refRange.start`, with `'-'` for deletions). */
+  alignedBases: string;
+  /** Match identity percentage (0..100). */
+  identity: number;
+  /** Phred quality per base of `sequence` (chromatogram reads). */
+  quality?: number[];
+  /** Chromatogram of a trace read, in the orientation of `sequence`. */
+  trace?: ChromatogramTrace;
+  /** Date the read was run (ISO `YYYY-MM-DD`), when the trace file records it. */
+  runDate?: string;
+}
+
+/** Sanger chromatogram: four signal channels and the peak of every called base. */
+export interface ChromatogramTrace {
+  /** Signal per sample for A, C, G and T (all the same length). */
+  a: number[];
+  c: number[];
+  g: number[];
+  t: number[];
+  /** Sample index of the peak of each called base (one per base of the read). */
+  peaks: number[];
+}
+
 /** A sequence document: the central object the application edits and displays. */
 export interface SeqRecord {
   /** Unique id for the open document (not persisted to GenBank). */
@@ -168,6 +234,8 @@ export interface SeqRecord {
   molecule: MoleculeType;
   features: Feature[];
   primers: Primer[];
+  /** Sequences or Sanger traces aligned to this reference molecule (`Align with:` panel & Packet 0x10/0x11/0x1B). */
+  alignedSequences?: AlignedSequence[];
   /** Single-stranded ends; only meaningful for linear double-stranded DNA. Absent = both blunt. */
   ends?: FragmentEnds;
   meta: RecordMeta;

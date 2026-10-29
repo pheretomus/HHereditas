@@ -85,6 +85,18 @@
         "role": "Editor",
         "mimeType": "chemical/seq-na-fasta"
       }
-    ]
+    ],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI2MjU0NTZGOTY2M0NCNjIKUldSaXkyT1diMFVsdGhQWDBZVVlZZ3UvUkdFVnlPR2djYUxvZHRER2VGNmNqY0o1d2M1QnM2Q04K",
+      "endpoints": [
+        "https://github.com/pheretomus/HHereditas/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

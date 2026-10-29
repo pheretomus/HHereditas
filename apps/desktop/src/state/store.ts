@@ -24,20 +24,37 @@ import {
 export type SheetId =
   | 'digest'
   | 'add-primer'
+  | 'edit-primer'
   | 'add-feature'
+  | 'edit-feature'
+  | 'goto-position'
   | 'new-sequence'
   | 'choose-enzymes'
   | 'save-as'
+  | 'sequence-properties'
   | 'clone-pcr'
   | 'clone-restriction'
   | 'clone-gibson'
-  | 'clone-golden-gate';
+  | 'clone-golden-gate'
+  | 'clone-mutagenesis'
+  | 'clone-anneal-oligos'
+  | 'clone-infusion'
+  | 'clone-topo'
+  | 'codon-optimize';
 
 export interface SheetOptions {
   /** Add Primer: forward (1) or reverse (-1). */
   direction?: 1 | -1;
+  /** Edit Primer: target primer id. */
+  primerId?: string;
   /** Digest: enzymes chosen when the sheet opens. */
   enzymes?: string[];
+  /** Edit Feature: target feature id. */
+  featureId?: string;
+  /** Gibson calculation from Ctrl-selected features: feature ids in selection order. */
+  featureIds?: string[];
+  /** Sequence Properties: initial tab to open. */
+  propertiesTab?: 'properties' | 'methylation' | 'origin';
   /** Save As (browser). */
   docId?: string;
   defaultName?: string;
@@ -74,6 +91,8 @@ export interface AppState {
   setView: (view: ViewMode) => void;
   /** Select an annotation (sidebar row or map click): selects its range and reveals it. */
   selectItem: (item: SidebarItemRef | null, range?: Range | null, options?: { zoom?: boolean }) => void;
+  /** Set or toggle Ctrl-selected features for multi-feature actions (e.g. Gibson calculation). */
+  setSelectedFeatureIds: (ids: readonly string[]) => void;
   /** Scroll the sequence view to a base. */
   reveal: (position: number) => void;
   applyEdit: (edit: SequenceEdit) => void;
@@ -186,14 +205,24 @@ export const useApp = create<AppState>()((set, get) => ({
           const f = r.features.find((x) => x.id === item.id);
           if (f) target = featureExtent(f, n, r.topology);
         }
-        if (!target || n === 0) return { ...d, selectedItem: item };
+        if (!target || n === 0) return { ...d, selectedItem: item, selectedFeatureIds: item?.kind === 'feature' ? [item.id] : [] };
         return {
           ...d,
           selectedItem: item,
+          selectedFeatureIds: item?.kind === 'feature' ? [item.id] : [],
           selection: selectRange(target, n, r.topology),
           scrollRequest: { position: target.start % n, requestId: nextRequestId(), ...(options?.zoom ? { zoomRange: target } : {}) },
         };
       }),
+    ),
+
+  setSelectedFeatureIds: (ids) =>
+    set((s) =>
+      updateDoc(s, s.activeId, (d) => ({
+        ...d,
+        selectedFeatureIds: [...ids],
+        selectedItem: ids.length > 0 ? { kind: 'feature', id: ids[ids.length - 1] } : d.selectedItem?.kind === 'feature' ? null : d.selectedItem,
+      })),
     ),
 
   reveal: (position) => set((s) => updateDoc(s, s.activeId, (d) => ({ ...d, scrollRequest: { position, requestId: nextRequestId() } }))),

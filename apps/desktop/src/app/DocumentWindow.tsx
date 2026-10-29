@@ -4,21 +4,16 @@
  */
 import type { SearchHit } from '@hhereditas/core';
 import { featureExtent } from '@hhereditas/core';
-import { Banner, Button, MenuItem } from '@hhereditas/ui';
-import { FilePlus, FolderOpen, Save, X } from 'lucide-react';
+import { Banner, Button } from '@hhereditas/ui';
 import { selectRange } from '@hhereditas/viewer';
 import { useEffect, useMemo, useState, type RefObject } from 'react';
-import { DocumentView } from '../features/document/DocumentView';
+import { SnapGeneWorkspace } from '../features/document/SnapGeneWorkspace';
 import { InspectorPane } from '../features/inspector/InspectorPane';
-import { AppShell, Sidebar, StatusBar, ToolbarContent, formatDocumentSubtitle, useSelectionSummary, type DocumentSummary, type ShellAction, type SidebarItemRef } from '../shell';
-import { ENZYME_DISPLAY_CHOICES, ENZYME_DISPLAY_NAMES, ORF_MIN_AA, useDisplayedSites, useOrfs, usePrimerSites, useSearchHits } from '../state/analysis';
+import { useSelectionSummary, type DocumentSummary, type SidebarItemRef } from '../shell';
+import { useDisplayedSites, useOrfs, usePrimerSites, useSearchHits } from '../state/analysis';
 import { isDirty } from '../state/documents';
 import { useSettings } from '../state/settings';
 import { useActiveDocument, useApp } from '../state/store';
-import { requestClose } from './commands';
-import { openWithDialog, saveDocument } from './files';
-import { isMac } from './shortcuts';
-import { SHORTCUTS } from './shortcuts';
 
 export interface DocumentWindowProps {
   searchRef: RefObject<HTMLInputElement | null>;
@@ -43,16 +38,6 @@ export function nextHitIndex(hits: readonly SearchHit[], caret: number, current:
 /** Below this window width the inspector starts hidden. */
 export const NARROW_WINDOW = 1100;
 
-function useNarrowWindow(): boolean {
-  const [narrow, setNarrow] = useState(() => window.innerWidth < NARROW_WINDOW);
-  useEffect(() => {
-    const onResize = () => setNarrow(window.innerWidth < NARROW_WINDOW);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  return narrow;
-}
-
 export function DocumentWindow({ searchRef, searchQuery, onSearchQueryChange }: DocumentWindowProps) {
   const doc = useActiveDocument();
   const documents = useApp((s) => s.documents);
@@ -71,12 +56,6 @@ export function DocumentWindow({ searchRef, searchQuery, onSearchQueryChange }: 
   const orfs = useOrfs(record, settings.showOrfs);
   const hits = useSearchHits(record, searchQuery);
   const summary = useSelectionSummary(record, doc?.selection ?? null);
-
-  // Small windows hide the inspector so the canvas keeps its room (until it is shown explicitly).
-  const narrow = useNarrowWindow();
-  const [inspectorWhenNarrow, setInspectorWhenNarrow] = useState(false);
-  const inspectorVisible = narrow ? inspectorWhenNarrow : settings.inspectorVisible;
-  const setInspectorVisible = (v: boolean) => (narrow ? setInspectorWhenNarrow(v) : settings.update({ inspectorVisible: v }));
 
   // Current search hit ("3 of 12"): reset when the query or the sequence changes.
   const [hitIndex, setHitIndex] = useState<number | null>(null);
@@ -118,53 +97,6 @@ export function DocumentWindow({ searchRef, searchQuery, onSearchQueryChange }: 
     app.reveal(hit.range.start % n);
   };
 
-  const onAction = (action: ShellAction) => {
-    switch (action) {
-      case 'digest':
-        app.openSheet('digest');
-        break;
-      case 'primers':
-        if (summary?.hasBases) app.openSheet('add-primer', { direction: 1 });
-        else app.flash('Select the bases a primer should anneal to, then choose Add Primer.');
-        break;
-      case 'clone-pcr':
-      case 'clone-restriction':
-      case 'clone-gibson':
-      case 'clone-golden-gate':
-        app.openSheet(action);
-        break;
-      case 'find-orfs': {
-        const show = !settings.showOrfs;
-        settings.update({ showOrfs: show });
-        app.flash(show ? `Showing open reading frames of at least ${ORF_MIN_AA} codons` : 'Open reading frames hidden');
-        break;
-      }
-      default:
-        break;
-    }
-  };
-
-  // Windows and Linux have no menu bar: the file commands live at the top of the Actions menu.
-  const fileItems = (
-    <>
-      <MenuItem icon={<FilePlus />} shortcut="Mod+N" onSelect={() => app.openSheet('new-sequence')}>
-        New Sequence…
-      </MenuItem>
-      <MenuItem icon={<FolderOpen />} shortcut="Mod+O" onSelect={() => void openWithDialog()}>
-        Open…
-      </MenuItem>
-      <MenuItem icon={<Save />} shortcut="Mod+S" onSelect={() => void saveDocument()}>
-        Save
-      </MenuItem>
-      <MenuItem shortcut="Shift+Mod+S" onSelect={() => void saveDocument(undefined, true)}>
-        Save As…
-      </MenuItem>
-      <MenuItem icon={<X />} shortcut="Mod+W" onSelect={() => requestClose()}>
-        Close
-      </MenuItem>
-    </>
-  );
-
   const searchStatus =
     searchQuery.trim().length === 0 ? undefined : hits === null ? (searchQuery.replace(/\s/g, '').length < 3 ? undefined : 'Not DNA') : hits.length === 0 ? 'None' : hitIndex === null ? `${hits.length.toLocaleString('en-US')}` : `${hitIndex + 1} of ${hits.length.toLocaleString('en-US')}`;
 
@@ -186,67 +118,25 @@ export function DocumentWindow({ searchRef, searchQuery, onSearchQueryChange }: 
   ) : undefined;
 
   return (
-    <AppShell
-      sidebarVisible={settings.sidebarVisible}
-      onSidebarVisibleChange={(v) => settings.update({ sidebarVisible: v })}
-      inspectorVisible={inspectorVisible}
-      onInspectorVisibleChange={setInspectorVisible}
-      {...(settings.sidebarWidth ? { sidebarWidth: settings.sidebarWidth } : {})}
-      onSidebarWidthChange={(w) => settings.update({ sidebarWidth: w })}
-      {...(settings.inspectorWidth ? { inspectorWidth: settings.inspectorWidth } : {})}
-      onInspectorWidthChange={(w) => settings.update({ inspectorWidth: w })}
-      toolbar={
-        <ToolbarContent
-          title={record.name}
-          subtitle={formatDocumentSubtitle(n, record.topology, record.molecule)}
-          edited={isDirty(doc)}
-          sidebarVisible={settings.sidebarVisible}
-          onToggleSidebar={() => settings.update({ sidebarVisible: !settings.sidebarVisible })}
-          inspectorVisible={inspectorVisible}
-          onToggleInspector={() => setInspectorVisible(!inspectorVisible)}
-          view={doc.view}
-          onViewChange={app.setView}
-          enzymeDisplay={settings.enzymeDisplay}
-          onEnzymeDisplayChange={(d) => settings.update({ enzymeDisplay: d })}
-          enzymeDisplayOptions={ENZYME_DISPLAY_CHOICES}
-          enzymeDisplayLabels={ENZYME_DISPLAY_NAMES}
-          onChooseEnzymes={() => app.openSheet('choose-enzymes')}
-          onAction={onAction}
-          actionsMenuPrefix={isMac() ? undefined : fileItems}
-          searchValue={searchQuery}
-          onSearchChange={onSearchQueryChange}
-          onSearchSubmit={(_v, direction) => goToHit(direction)}
-          searchStatus={searchStatus}
-          searchRef={searchRef}
-          shortcuts={SHORTCUTS}
-        />
-      }
-      sidebar={
-        <Sidebar
-          documents={summaries}
-          activeDocumentId={doc.id}
-          onActivateDocument={app.activate}
-          onCloseDocument={(id) => requestClose(id)}
-          record={shown}
-          enzymeSites={enzymeSites}
-          selectedItem={doc.selectedItem}
-          onSelectItem={(item) => selectSidebarItem(item)}
-          onActivateItem={(item) => selectSidebarItem(item, true)}
-        />
-      }
+    <SnapGeneWorkspace
+      doc={doc}
+      shownDoc={shown && shown !== record ? { ...doc, record: shown } : doc}
+      documents={summaries}
+      enzymeSites={enzymeSites}
+      primerSites={primerScan.sites}
+      orfs={orfs}
+      searchHits={hits}
+      summary={summary}
       inspector={<InspectorPane doc={doc} summary={summary} primerSites={primerScan.sites} primerFailures={primerScan.failures} />}
-      statusBar={
-        <StatusBar
-          selection={summary}
-          length={n}
-          topology={record.topology}
-          molecule={record.molecule}
-          message={status ? <span data-tone={status.tone}>{status.text}</span> : undefined}
-        />
-      }
-    >
-      <DocumentView doc={shown && shown !== record ? { ...doc, record: shown } : doc} enzymeSites={enzymeSites} primerSites={primerScan.sites} orfs={orfs} searchHits={hits} banner={banner} />
-    </AppShell>
+      banner={banner}
+      searchRef={searchRef}
+      searchQuery={searchQuery}
+      onSearchQueryChange={onSearchQueryChange}
+      searchStatus={searchStatus}
+      onSearchSubmit={(_v, direction) => goToHit(direction)}
+      onSelectSidebarItem={selectSidebarItem}
+      statusMessage={status ? <span data-tone={status.tone}>{status.text}</span> : undefined}
+    />
   );
 }
 

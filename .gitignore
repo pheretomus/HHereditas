@@ -31,3 +31,6 @@ Thumbs.db
 # env
 .env
 .env.*
+
+# local scratch files (personal sequences)
+test_file/

@@ -67,7 +67,8 @@ export function parsePrimers(root: XmlElement, warnings: ParseWarning[]): Primer
       return;
     }
     const description = richTextToPlain(element.attributes.get('description') ?? '', 'line');
-    primers.push({ id: newId('p'), name, sequence: seq, ...(description !== '' ? { description } : {}) });
+    const hidden = element.attributes.get('visible') === '0';
+    primers.push({ id: newId('p'), name, sequence: seq, ...(description !== '' ? { description } : {}), ...(hidden ? { hidden } : {}) });
   });
   return primers;
 }
@@ -105,6 +106,7 @@ export function buildPrimersXml(primers: readonly Primer[], now: Date, warnings:
         ['name', storeOneLine(name, `${who} name`, changedText)],
         ['sequence', seq],
         ['description', description],
+        ['visible', primer.hidden ? '0' : undefined],
         ['dateAdded', dateAdded],
       ]),
     );

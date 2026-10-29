@@ -78,6 +78,7 @@ import { clip, listLabels } from './snapgene-messages';
 import { buildNotesXml, parseNotes } from './snapgene-notes';
 import { buildPrimersXml, parsePrimers } from './snapgene-primers';
 import { buildSequencePropertiesXml, encodeDnaPacket, parseDnaPacket, parseSequenceProperties, type SequenceProperties } from './snapgene-sequence';
+import { buildAlignedSequencePackets, parseSnapGeneAlignments } from './snapgene-alignments';
 
 export { SnapGeneExtraKey } from './snapgene-sequence';
 export { REFERENCES_EXTRA_KEY } from './snapgene-notes';
@@ -116,7 +117,6 @@ export interface SnapGeneWriteResult {
 const WRITER_COOKIE: SnapGeneCookie = { sequenceType: SnapGeneSequenceType.Dna, exportVersion: 15, importVersion: 19 };
 
 /** Constant packets present in every file written by recent SnapGene versions (fixtures). */
-const ALIGNABLE_SEQUENCES_XML = '<AlignableSequences trimStringency="Medium"/>';
 const ENZYME_VISIBILITIES_XML = '<?xml version="1.0"?><EnzymeVisibilities vals=""/>\n';
 const CUSTOM_ENZYME_SETS_XML = '<?xml version="1.0"?><CustomEnzymeSets/>\n';
 
@@ -207,6 +207,7 @@ function readSnapGene(data: Uint8Array, options: SnapGeneParseOptions): ParseRes
   const features: Feature[] = [];
   const primers: Primer[] = [];
   const notesRoots: XmlElement[] = [];
+  const alignableRoots: XmlElement[] = [];
   let properties: SequenceProperties | undefined;
   for (const packet of scan.packets) {
     if (packet.type === SnapGenePacketType.Features) {
@@ -221,8 +222,13 @@ function readSnapGene(data: Uint8Array, options: SnapGeneParseOptions): ParseRes
     } else if (packet.type === SnapGenePacketType.SequenceProperties) {
       const root = readXmlPacket(packet, 'AdditionalSequenceProperties', 'sequence properties', warnings);
       if (root !== undefined) properties = parseSequenceProperties(root, seqLength, dna.topology, warnings);
+    } else if (packet.type === SnapGenePacketType.AlignableSequences) {
+      const root = readXmlPacket(packet, 'AlignableSequences', 'alignable sequences', warnings);
+      if (root !== undefined) alignableRoots.push(root);
     }
   }
+
+  const alignedSequences = parseSnapGeneAlignments(scan.packets, alignableRoots, dna.seq, dna.topology);
 
   const notes = parseNotes(notesRoots);
   const meta: RecordMeta = {
@@ -238,6 +244,7 @@ function readSnapGene(data: Uint8Array, options: SnapGeneParseOptions): ParseRes
     molecule: 'DNA',
     features,
     primers,
+    ...(alignedSequences.length > 0 ? { alignedSequences } : {}),
     ...(properties?.ends !== undefined ? { ends: properties.ends } : {}),
     meta,
   });
@@ -332,7 +339,7 @@ export function writeSnapGeneWithWarnings(record: SeqRecord, options: SnapGeneWr
   const packets = [
     { type: SnapGenePacketType.Cookie, payload: encodeCookie(WRITER_COOKIE) },
     { type: SnapGenePacketType.Dna, payload: dnaPayload },
-    { type: SnapGenePacketType.AlignableSequences, payload: text(ALIGNABLE_SEQUENCES_XML) },
+    ...buildAlignedSequencePackets(record.alignedSequences),
     { type: SnapGenePacketType.SequenceProperties, payload: text(propertiesXml) },
     ...(featuresXml !== undefined ? [{ type: SnapGenePacketType.Features, payload: text(featuresXml) }] : []),
     { type: SnapGenePacketType.Primers, payload: text(primersXml) },

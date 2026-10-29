@@ -28,6 +28,37 @@
   gap: 0;
 }
 
+.toolCluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border-radius: calc(var(--hh-radius-sm) + 1px);
+  background: var(--hh-bg-control);
+  box-shadow: var(--hh-shadow-control);
+}
+
+.clusterDivider {
+  width: var(--hh-hairline);
+  height: 15px;
+  background: var(--hh-separator);
+  flex: none;
+}
+
+.clusterBtn {
+  height: calc(var(--hh-control-height-md) - 4px);
+  padding: 0 8px;
+  border-radius: calc(var(--hh-radius-sm) - 1px);
+  font-size: var(--hh-text-sm);
+  font-weight: var(--hh-weight-medium);
+}
+
+.clusterBtnActive {
+  background: var(--hh-accent-soft);
+  color: var(--hh-accent);
+  font-weight: var(--hh-weight-semibold);
+}
+
 .search {
   flex: 0 1 auto;
   min-width: 120px;

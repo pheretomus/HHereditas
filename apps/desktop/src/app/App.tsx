@@ -3,15 +3,18 @@
  * the window title, files from the OS (open-files events, drag and drop) and the unsaved
  * changes guard when the window closes.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, type ComponentType } from 'react';
 import { CloningSheets } from '../features/cloning';
-import { ChooseEnzymesSheet } from '../features/enzymes/ChooseEnzymesSheet';
-import { DigestSheet } from '../features/enzymes/DigestSheet';
-import { AddFeatureSheet } from '../features/features/AddFeatureSheet';
-import { AddPrimerSheet } from '../features/primers/AddPrimerSheet';
+import { ChooseEnzymesSheet as ChooseEnzymesSheetView } from '../features/enzymes/ChooseEnzymesSheet';
+import { DigestSheet as DigestSheetView } from '../features/enzymes/DigestSheet';
+import { AddFeatureSheet as AddFeatureSheetView } from '../features/features/AddFeatureSheet';
+import { AddPrimerSheet as AddPrimerSheetView } from '../features/primers/AddPrimerSheet';
 import { ClosePromptDialog } from '../features/dialogs/ClosePromptDialog';
+import { GotoPositionSheet as GotoPositionSheetView } from '../features/dialogs/GotoPositionSheet';
 import { NewSequenceSheet } from '../features/dialogs/NewSequenceSheet';
 import { SaveAsSheet } from '../features/dialogs/SaveAsSheet';
+import { SequencePropertiesSheet as SequencePropertiesSheetView } from '../features/dialogs/SequencePropertiesSheet';
+import { UpdateDialog } from '../features/dialogs/UpdateDialog';
 import { platform, readBrowserFile } from '../platform';
 import { WelcomeScreen, type RecentFile } from '../shell';
 import { folderOf, isDirty } from '../state/documents';
@@ -24,6 +27,20 @@ import { SAMPLES } from './samples';
 import { handleShortcut } from './shortcuts';
 import { installNativeMenu } from './nativeMenu';
 import styles from './App.module.css';
+
+/**
+ * A sheet that does not redraw while it stays closed: the sheets get the active document, which changes with every
+ * selection (a drag over the sequence), and computing a closed sheet each time slowed that down.
+ */
+function quietWhileClosed<P extends { open: boolean }>(Sheet: ComponentType<P>) {
+  return memo(Sheet, (prev, next) => !prev.open && !next.open);
+}
+const ChooseEnzymesSheet = quietWhileClosed(ChooseEnzymesSheetView);
+const DigestSheet = quietWhileClosed(DigestSheetView);
+const AddFeatureSheet = quietWhileClosed(AddFeatureSheetView);
+const AddPrimerSheet = quietWhileClosed(AddPrimerSheetView);
+const GotoPositionSheet = quietWhileClosed(GotoPositionSheetView);
+const SequencePropertiesSheet = quietWhileClosed(SequencePropertiesSheetView);
 
 const APP_NAME = 'HHereditas';
 const VERSION = '0.1.0';
@@ -148,13 +165,31 @@ export function App() {
         />
       )}
       <DigestSheet open={sheet === 'digest'} doc={doc} initialEnzymes={sheetOptions.enzymes} />
-      <AddPrimerSheet open={sheet === 'add-primer'} doc={doc} direction={sheetOptions.direction ?? 1} />
-      <AddFeatureSheet open={sheet === 'add-feature'} doc={doc} />
+      <AddPrimerSheet
+        open={sheet === 'add-primer' || sheet === 'edit-primer'}
+        doc={doc}
+        direction={sheetOptions.direction ?? 1}
+        mode={sheet === 'edit-primer' ? 'edit' : 'add'}
+        primerId={sheetOptions.primerId}
+      />
+      <AddFeatureSheet
+        open={sheet === 'add-feature' || sheet === 'edit-feature'}
+        doc={doc}
+        mode={sheet === 'edit-feature' ? 'edit' : 'add'}
+        featureId={sheetOptions.featureId}
+      />
+      <GotoPositionSheet open={sheet === 'goto-position'} doc={doc} />
       <NewSequenceSheet open={sheet === 'new-sequence'} />
       <ChooseEnzymesSheet open={sheet === 'choose-enzymes'} doc={doc} />
       <SaveAsSheet open={sheet === 'save-as'} defaultName={sheetOptions.defaultName} format={sheetOptions.format} />
+      <SequencePropertiesSheet
+        open={sheet === 'sequence-properties'}
+        doc={doc}
+        initialTab={sheetOptions.propertiesTab}
+      />
       <CloningSheets sheet={sheet} doc={doc} />
       <ClosePromptDialog />
+      <UpdateDialog />
     </div>
   );
 }

@@ -6,14 +6,25 @@
  * The preview shows the product and its junctions (overlap, Tm, GC), the designed primers (with
  * a copyable order list) and NEBuilder-style DNA amounts.
  */
-import type { AssemblyJunction, Primer, SeqRecord } from '@hhereditas/core';
-import { addPrimer, GIBSON_OVERLAP_TM_RANGE } from '@hhereditas/core';
+import type { AssemblyJunction, Feature, Primer, SeqRecord } from '@hhereditas/core';
+import {
+  addPrimer,
+  concatRecords,
+  designPrimerPair,
+  extractRange,
+  featureExtent,
+  GIBSON_OVERLAP_TM_RANGE,
+  newId,
+  oligoGcContent,
+  reverseComplement,
+  tm,
+} from '@hhereditas/core';
 import { Button, Checkbox, NumberField, SegmentedControl, Select, Sheet, Switch, Table, type TableColumn } from '@hhereditas/ui';
-import { Copy } from 'lucide-react';
+import { Copy, FilePlus2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { DocumentState } from '../../state/documents';
 import { useApp } from '../../state/store';
-import { formatBp, formatRange, selectionRange } from './model/common';
+import { formatBp, formatRange, selectionRange, withProvenance } from './model/common';
 import {
   amountsFor,
   assemblyProductRecord,
@@ -36,6 +47,25 @@ import styles from './CloningSheet.module.css';
 
 type Mode = 'design' | 'join';
 type Panel = 'product' | 'primers' | 'amounts';
+
+interface FeatureGibsonRow {
+  featureId: string;
+  featureName: string;
+  lengthBp: number;
+  fwdTail: string;
+  fwdAnneal: string;
+  fwdDisplay: string;
+  revTail: string;
+  revAnneal: string;
+  revDisplay: string;
+  fwdAnnealTm: number;
+  fwdFullTm: number;
+  revAnnealTm: number;
+  revFullTm: number;
+  fwdGc: number;
+  revGc: number;
+  overlapBp: number;
+}
 
 function fmt(n: number, digits: number): string {
   return Number.isFinite(n) ? n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits }) : '—';
@@ -82,6 +112,7 @@ function PrimerTable({ primers }: { primers: readonly Primer[] }) {
 
 export function GibsonSheet({ open, doc }: { open: boolean; doc: DocumentState | null }) {
   const documents = useApp((s) => s.documents);
+  const featureIds = useApp((s) => s.sheetOptions.featureIds);
   const [vectorId, setVectorId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>('design');
   const [panel, setPanel] = useState<Panel>('product');
@@ -100,15 +131,146 @@ export function GibsonSheet({ open, doc }: { open: boolean; doc: DocumentState |
     const design = doc.record.topology === 'circular';
     setMode(design ? 'design' : 'join');
     setPanel('product');
-    // Start with the first other document (its selection when it has one).
-    const others = sourceOptions(useApp.getState().documents, { exclude: doc.id });
-    const pick = others.find((o) => o.source.range) ?? others[0];
-    setEntries(design && pick ? [newEntry(pick.source)] : []);
+    if (featureIds && featureIds.length >= 2) {
+      const n = doc.record.seq.length;
+      const featEntries = featureIds
+        .map((fid) => doc.record.features.find((f) => f.id === fid))
+        .filter((f): f is Feature => !!f)
+        .map((f) => newEntry({ docId: doc.id, range: featureExtent(f, n, doc.record.topology) }));
+      if (featEntries.length > 0) {
+        setEntries(featEntries);
+      }
+    } else {
+      // Start with the first other document (its selection when it has one).
+      const others = sourceOptions(useApp.getState().documents, { exclude: doc.id });
+      const pick = others.find((o) => o.source.range) ?? others[0];
+      setEntries(design && pick ? [newEntry(pick.source)] : []);
+    }
     setAmountVector(null);
     setVectorNg(null);
     setRatio(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, featureIds]);
+
+  const ov = overlap ?? DEFAULT_OVERLAP;
+  const minOv = minOverlap ?? MIN_OVERLAP;
+
+  const featureCalc = useMemo(() => {
+    if (!open || !doc || !featureIds || featureIds.length < 2) return null;
+    const n = doc.record.seq.length;
+    if (n === 0) return null;
+    const selectedFeatures = featureIds
+      .map((id) => doc.record.features.find((f) => f.id === id))
+      .filter((f): f is Feature => !!f);
+    if (selectedFeatures.length < 2) return null;
+
+    const tailBp = Math.max(20, Math.min(25, ov));
+    const extracted = selectedFeatures.map((f) => {
+      const ext = featureExtent(f, n, doc.record.topology);
+      const rec = extractRange(doc.record, ext, { name: f.name || f.type });
+      return { feature: f, extent: ext, record: rec, seq: rec.seq.toUpperCase() };
+    });
+
+    const k = extracted.length;
+    const rows: FeatureGibsonRow[] = [];
+    const primers: Primer[] = [];
+
+    for (let i = 0; i < k; i++) {
+      const curr = extracted[i];
+      const prev = extracted[(i - 1 + k) % k];
+      const next = extracted[(i + 1) % k];
+      const featName = curr.feature.name || curr.feature.type;
+
+      let fwdAnneal = '';
+      let revAnneal = '';
+      let fwdAnnealTm = NaN;
+      let revAnnealTm = NaN;
+      try {
+        const minL = Math.max(2, Math.min(18, curr.seq.length));
+        const maxL = Math.max(minL, Math.min(30, curr.seq.length));
+        const pair = designPrimerPair(
+          curr.seq,
+          'linear',
+          { start: 0, end: curr.seq.length },
+          { targetTm: 60, minLength: minL, maxLength: maxL },
+        );
+        fwdAnneal = pair.forward.sequence.toUpperCase();
+        revAnneal = pair.reverse.sequence.toUpperCase();
+        fwdAnnealTm = pair.forward.tm;
+        revAnnealTm = pair.reverse.tm;
+      } catch {
+        const fallbackLen = Math.max(1, Math.min(20, curr.seq.length));
+        fwdAnneal = curr.seq.slice(0, fallbackLen).toUpperCase();
+        revAnneal = reverseComplement(curr.seq.slice(Math.max(0, curr.seq.length - fallbackLen))).toUpperCase();
+        fwdAnnealTm = tm(fwdAnneal);
+        revAnnealTm = tm(revAnneal);
+      }
+
+      const fwdTail = prev.seq.slice(Math.max(0, prev.seq.length - Math.min(tailBp, prev.seq.length))).toLowerCase();
+      const nextHead = next.seq.slice(0, Math.min(tailBp, next.seq.length));
+      const revTail = reverseComplement(nextHead).toLowerCase();
+
+      const fwdDisplay = fwdTail + fwdAnneal;
+      const revDisplay = revTail + revAnneal;
+      const fwdFullSeq = fwdDisplay.toUpperCase();
+      const revFullSeq = revDisplay.toUpperCase();
+      const fwdFullTm = tm(fwdFullSeq);
+      const revFullTm = tm(revFullSeq);
+      const fwdGc = oligoGcContent(fwdFullSeq);
+      const revGc = oligoGcContent(revFullSeq);
+
+      rows.push({
+        featureId: curr.feature.id,
+        featureName: featName,
+        lengthBp: curr.seq.length,
+        fwdTail,
+        fwdAnneal,
+        fwdDisplay,
+        revTail,
+        revAnneal,
+        revDisplay,
+        fwdAnnealTm,
+        fwdFullTm,
+        revAnnealTm,
+        revFullTm,
+        fwdGc,
+        revGc,
+        overlapBp: fwdTail.length,
+      });
+
+      primers.push(
+        {
+          id: newId('p'),
+          name: `${featName}_Gibson_F`,
+          sequence: fwdFullSeq,
+          description: `Gibson forward primer for ${featName}: ${fwdTail.length} nt homology tail + ${fwdAnneal.length} nt annealing (Tm ${fmt(fwdAnnealTm, 1)} °C / Full ${fmt(fwdFullTm, 1)} °C)`,
+        },
+        {
+          id: newId('p'),
+          name: `${featName}_Gibson_R`,
+          sequence: revFullSeq,
+          description: `Gibson reverse primer for ${featName}: ${revTail.length} nt homology tail + ${revAnneal.length} nt annealing (Tm ${fmt(revAnnealTm, 1)} °C / Full ${fmt(revFullTm, 1)} °C)`,
+        },
+      );
+    }
+
+    let assembledProduct: SeqRecord | null = null;
+    try {
+      const joined = concatRecords(
+        extracted.map((x) => x.record),
+        {
+          topology: circular ? 'circular' : 'linear',
+          name: `${doc.record.name} Gibson (${extracted.map((x) => x.record.name).join(' + ')})`,
+        },
+      );
+      const how = `Feature-based Gibson assembly of ${extracted.map((x) => x.record.name).join(', ')} from ${doc.record.name}`;
+      assembledProduct = withProvenance({ ...joined, id: newId('rec'), primers }, how);
+    } catch {
+      assembledProduct = null;
+    }
+
+    return { rows, primers, product: assembledProduct };
+  }, [open, doc, featureIds, ov, circular]);
 
   const vectorDoc = documents.find((d) => d.id === vectorId) ?? null;
   const vector = vectorDoc?.record ?? null;
@@ -124,8 +286,6 @@ export function GibsonSheet({ open, doc }: { open: boolean; doc: DocumentState |
   const records = useMemo(() => resolveEntries(documents, entries), [documents, entries]);
   const fragments = useMemo(() => records.filter((r): r is SeqRecord => !!r), [records]);
 
-  const ov = overlap ?? DEFAULT_OVERLAP;
-  const minOv = minOverlap ?? MIN_OVERLAP;
   const design = useMemo(
     () => (open && mode === 'design' && vector && insertion ? runDesign({ vector, insertion, inserts: fragments, overlapLength: ov }) : null),
     [open, mode, vector, insertion, fragments, ov],
@@ -166,6 +326,8 @@ export function GibsonSheet({ open, doc }: { open: boolean; doc: DocumentState |
       close();
       app.openRecords([rec]);
       app.flash(`Created ${rec.name} (${formatBp(rec.seq.length)})`);
+    } else if (featureCalc?.product) {
+      openFeatureProduct();
     }
   };
 
@@ -177,6 +339,32 @@ export function GibsonSheet({ open, doc }: { open: boolean; doc: DocumentState |
     } catch {
       useApp.getState().flash('Could not copy to the clipboard', 'error');
     }
+  };
+
+  const copyFeaturePrimers = async () => {
+    if (!featureCalc) return;
+    const lines = featureCalc.rows.flatMap((r) => [
+      `${r.featureName}_Gibson_F\t${r.fwdDisplay}\t${r.fwdDisplay.length}`,
+      `${r.featureName}_Gibson_R\t${r.revDisplay}\t${r.revDisplay.length}`,
+    ]);
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'));
+      useApp.getState().flash(`Copied ${featureCalc.primers.length} Gibson primers`);
+    } catch {
+      useApp.getState().flash('Could not copy primers to clipboard', 'error');
+    }
+  };
+
+  const openFeatureProduct = () => {
+    if (!featureCalc?.product) return;
+    const app = useApp.getState();
+    if (addPrimers && doc) {
+      app.activate(doc.id);
+      app.change((r) => featureCalc.primers.reduce((acc, p) => addPrimer(acc, p), r), 'Add Gibson Primers');
+    }
+    close();
+    app.openRecords([featureCalc.product]);
+    app.flash(`Created ${featureCalc.product.name} (${formatBp(featureCalc.product.seq.length)})`);
   };
 
   const L = vector?.seq.length ?? 0;
@@ -216,13 +404,72 @@ export function GibsonSheet({ open, doc }: { open: boolean; doc: DocumentState |
           : 'Join fragments that share terminal overlaps (e.g. PCR products made with overlap primers).'
       }
       width={980}
-      primaryAction={{ label: 'Create Product', onAction: create, disabled: !product }}
+      primaryAction={{ label: 'Create Product', onAction: create, disabled: !product && !featureCalc?.product }}
       footerStart={
         mode === 'design' ? (
           <Checkbox label="Add the primers to the template documents" checked={addPrimers} onCheckedChange={(v) => setAddPrimers(v === true)} />
         ) : null
       }
     >
+      {featureCalc ? (
+        <div className={styles.featureCalcPanel} data-testid="feature-gibson-panel">
+          <div className={styles.featureCalcHeader}>
+            <h3 className={styles.featureCalcTitle}>
+              Feature-Based Gibson Calculation ({featureCalc.rows.length} selected features)
+            </h3>
+            <div className={styles.featureCalcActions}>
+              <Button size="sm" icon={<Copy />} onClick={() => void copyFeaturePrimers()}>
+                Copy All Primers
+              </Button>
+              <Button
+                size="sm"
+                variant="primary"
+                icon={<FilePlus2 />}
+                disabled={!featureCalc.product}
+                onClick={openFeatureProduct}
+              >
+                Open Assembled Product
+              </Button>
+            </div>
+          </div>
+          <div className={styles.featureCalcTableWrap}>
+            <table className={styles.featureCalcTable}>
+              <thead>
+                <tr>
+                  <th>Feature Fragment</th>
+                  <th>Length (bp)</th>
+                  <th>Forward Gibson Primer (5&apos; tail + 3&apos; ANNEAL)</th>
+                  <th>Reverse Gibson Primer (5&apos; tail + 3&apos; ANNEAL)</th>
+                  <th>Annealing Tm / Full Tm</th>
+                  <th>Overlap (bp)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {featureCalc.rows.map((r) => (
+                  <tr key={r.featureId}>
+                    <td>
+                      <strong>{r.featureName}</strong>
+                    </td>
+                    <td className={styles.mono}>{r.lengthBp.toLocaleString('en-US')} bp</td>
+                    <td className={styles.mono} title={r.fwdDisplay}>
+                      <span className={styles.tailSeq}>{r.fwdTail}</span>
+                      <span className={styles.annealSeq}>{r.fwdAnneal}</span>
+                    </td>
+                    <td className={styles.mono} title={r.revDisplay}>
+                      <span className={styles.tailSeq}>{r.revTail}</span>
+                      <span className={styles.annealSeq}>{r.revAnneal}</span>
+                    </td>
+                    <td className={styles.mono}>
+                      F: {fmt(r.fwdAnnealTm, 1)} / {fmt(r.fwdFullTm, 1)} °C · R: {fmt(r.revAnnealTm, 1)} / {fmt(r.revFullTm, 1)} °C
+                    </td>
+                    <td className={styles.mono}>{r.overlapBp} bp</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
       {vector && vectorDoc ? (
         <div className={styles.layout}>
           <div className={styles.inputs}>

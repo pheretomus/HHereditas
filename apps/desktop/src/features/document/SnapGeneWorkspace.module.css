@@ -1,0 +1,1466 @@
+/*
+ * SnapGene-authentic workspace layout with HHereditas White + Bio-Green (#16794b) accent.
+ * Matches SnapGene's 4-tier top header, full-width white canvas, 7-button left floating layer
+ * bar, bottom-left search control, and bottom-right enzyme set status bar.
+ */
+
+.window {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #ffffff;
+  color: var(--hh-text);
+  font-family: var(--hh-font-ui);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- Row 1: Top Menu Bar (File Edit View Enzymes Features Primers Actions Tools Window Help) ---- */
+.menuBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 26px;
+  padding: 0 8px;
+  background: #ffffff;
+  border-bottom: 1px solid #e7e7e7;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.appBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--hh-accent);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+}
+
+.menuTrigger {
+  height: 22px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #1f2923;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: default;
+}
+
+.menuTrigger:hover,
+.menuTrigger[data-state='open'] {
+  background: var(--hh-accent-soft);
+  color: var(--hh-accent);
+}
+
+/* ---- Row 2: Document Tab Strip ---- */
+.tabStrip {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 30px;
+  padding: 0 6px;
+  background: #f4f4f4;
+  border-bottom: 1px solid #e0e0e0;
+  gap: 4px;
+}
+
+.stripIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #47544c;
+  cursor: default;
+}
+
+.stripIconBtn:hover {
+  background: #e9e9e9;
+  color: #111814;
+}
+
+.stripIconBtnActive {
+  background: var(--hh-accent-soft);
+  border-color: rgba(12, 79, 48, 0.32);
+  color: var(--hh-accent);
+}
+
+.stripIconBtn :where(svg) {
+  width: 14px;
+  height: 14px;
+}
+
+.docTabs {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: flex-end;
+  height: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  gap: 2px;
+  padding-top: 3px;
+  scrollbar-width: none;
+}
+
+.docTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  max-width: 240px;
+  padding: 0 8px 0 9px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
+  background: rgba(255, 255, 255, 0.55);
+  color: #4b554e;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.docTab:hover {
+  background: rgba(255, 255, 255, 0.85);
+  color: #111814;
+}
+
+.docTabActive {
+  background: #ffffff;
+  border-color: #dadada;
+  color: #111814;
+  font-weight: 600;
+  box-shadow: 0 1px 0 #ffffff;
+}
+
+.docTabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  background: var(--hh-accent);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  flex: none;
+}
+
+.docTabName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.docTabDirty {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hh-accent);
+  flex: none;
+}
+
+.docTabClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #6b7280;
+  cursor: default;
+  flex: none;
+}
+
+.docTabClose:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #111814;
+}
+
+.docTabClose :where(svg) {
+  width: 11px;
+  height: 11px;
+}
+
+.newTabBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-bottom: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #47544c;
+  cursor: default;
+  flex: none;
+}
+
+.newTabBtn:hover {
+  background: #e7e7e7;
+  color: var(--hh-accent);
+}
+
+.newTabBtn :where(svg) {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---- Row 3: SnapGene Icon-Over-Text Action Toolbar ---- */
+.actionToolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 48px;
+  padding: 0 10px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  gap: 2px;
+}
+
+.toolBtn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 44px;
+  height: 40px;
+  padding: 3px 7px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #2b352f;
+  font-size: 11px;
+  line-height: 1.1;
+  cursor: default;
+}
+
+.toolBtn:hover:not(:disabled) {
+  background: #f3f3f3;
+  border-color: #dddddd;
+  color: var(--hh-accent);
+}
+
+.toolBtn:active:not(:disabled) {
+  background: #e9e9e9;
+}
+
+.toolBtn:disabled {
+  opacity: 0.36;
+}
+
+.toolBtnActive {
+  background: var(--hh-accent-soft);
+  border-color: rgba(12, 79, 48, 0.36);
+  color: var(--hh-accent);
+  font-weight: 600;
+}
+
+.toolBtn :where(svg) {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.75;
+}
+
+.toolBtnLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.toolBtnLabel :where(svg) {
+  width: 10px;
+  height: 10px;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 28px;
+  margin: 0 4px;
+  background: #e5e5e5;
+  flex: none;
+}
+
+.toolbarRight {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.docHeaderTitle {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+  color: #2b352f;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.docHeaderName {
+  font-weight: 600;
+  color: #111814;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.docHeaderLength {
+  color: #64746b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Row 4: View Tabs Bar (Map | Sequence | Enzymes | Features | Primers | History) + Map Mode ---- */
+.viewTabsList {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Tabs and mode buttons are glass buttons like the layer toggles: translucent white, the active one tinted accent glass. */
+.viewTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.18));
+  -webkit-backdrop-filter: blur(6px) saturate(140%);
+  backdrop-filter: blur(6px) saturate(140%);
+  color: #3d4540;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(20, 30, 40, 0.12);
+  cursor: default;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+.viewTab:hover:not(.viewTabActive) {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+  color: var(--hh-accent);
+}
+
+.viewTabActive {
+  background: linear-gradient(160deg, rgba(22, 121, 75, 0.82), rgba(22, 121, 75, 0.58));
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(22, 121, 75, 0.3);
+}
+
+.viewTabBadge {
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(12, 79, 48, 0.12);
+  color: var(--hh-accent);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.viewTabActive .viewTabBadge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.viewBarRight {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.modeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.18));
+  -webkit-backdrop-filter: blur(6px) saturate(140%);
+  backdrop-filter: blur(6px) saturate(140%);
+  color: #3d4540;
+  box-shadow: 0 2px 8px rgba(20, 30, 40, 0.12);
+  cursor: default;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+.modeBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.modeBtn:hover:not(.modeBtnActive):not(:disabled) {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+  color: var(--hh-accent);
+}
+
+.modeBtnActive {
+  background: linear-gradient(160deg, rgba(22, 121, 75, 0.82), rgba(22, 121, 75, 0.58));
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(22, 121, 75, 0.3);
+}
+
+.modeBtn :where(svg) {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---- Main Body: Optional Left Panel + Full-Width White Canvas + Optional Right Info ---- */
+.workspaceBody {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.leftSidePanel {
+  position: relative;
+  display: flex;
+  flex: 0 0 236px;
+  /* the width is set by dragging the right edge; long names end in an ellipsis instead of widening the panel */
+  min-width: 0;
+  overflow: hidden;
+  flex-direction: column;
+  min-height: 0;
+  background: #f9f9f9;
+  border-right: 1px solid #dadada;
+}
+
+.leftSidePanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  padding: 0 10px;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 11px;
+  font-weight: 600;
+  color: #37413b;
+}
+
+/* ---- SnapGene "Align with:" Left Panel (Screenshot 3!) ---- */
+.alignPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 30px;
+  padding: 0 8px 0 10px;
+  background: #f2f2f2;
+  border-bottom: 1px solid #dadada;
+  flex: none;
+}
+
+.alignPanelTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2923;
+}
+
+.alignPanelHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.alignHeaderBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid #cbd5ce;
+  border-radius: 3px;
+  background: #ffffff;
+  color: #37413b;
+  cursor: pointer;
+}
+
+.alignHeaderBtn:hover {
+  border-color: var(--hh-accent);
+  color: var(--hh-accent);
+  background: #f3f3f3;
+}
+
+.alignHeaderBtn :where(svg) {
+  width: 13px;
+  height: 13px;
+}
+
+.pasteAlignBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #ffffff;
+  border-bottom: 1px solid #dadada;
+}
+
+.pasteAlignInput,
+.pasteAlignTextarea {
+  width: 100%;
+  padding: 5px 7px;
+  border: 1px solid #cbd5ce;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--hh-font-ui);
+  color: #111814;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.pasteAlignTextarea {
+  font-family: var(--hh-font-mono);
+  resize: vertical;
+}
+
+.pasteAlignActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.alignSeqList {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  background: #ffffff;
+  padding: 4px 0;
+}
+
+.alignEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 16px 12px;
+  color: #5b6860;
+  font-size: 11.5px;
+  text-align: center;
+}
+
+.alignEmptyState p {
+  margin: 0 0 4px;
+}
+
+.alignEmptyActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid #cbd5ce;
+  border-radius: 4px;
+  background: #fafafa;
+  color: #1f2923;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.alignEmptyActionBtn:hover {
+  border-color: var(--hh-accent);
+  color: var(--hh-accent);
+  background: #f3f3f3;
+}
+
+.alignEmptyActionBtn :where(svg) {
+  width: 13px;
+  height: 13px;
+}
+
+.alignSeqRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px 5px 10px;
+  border-bottom: 1px solid #f2f2f2;
+  cursor: pointer;
+}
+
+.alignSeqRow:hover {
+  background: #f5f5f5;
+}
+
+.alignSeqRowSelected {
+  background: rgba(12, 79, 48, 0.1) !important;
+}
+
+.alignSeqCheckbox {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--hh-accent);
+  cursor: pointer;
+  flex: none;
+}
+
+.alignSeqInfo {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.alignSeqNameRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.alignSeqName {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111814;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alignSeqDir {
+  flex: none;
+  color: #991b1b;
+  font-size: 11px;
+  font-weight: 700;
+  flex: none;
+}
+
+.alignSeqMeta {
+  font-size: 10.5px;
+  color: #5b6860;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alignSeqRowActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.alignRowIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #64746b;
+  cursor: pointer;
+}
+
+.alignRowIconBtn:hover {
+  background: rgba(12, 79, 48, 0.12);
+  color: var(--hh-accent);
+}
+
+.alignRowIconBtn :where(svg) {
+  width: 12px;
+  height: 12px;
+}
+
+.alignPanelFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px 10px 8px;
+  background: #f2f2f2;
+  border-top: 1px solid #dadada;
+  flex: none;
+}
+
+.alignMoveBar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.alignMoveLabel {
+  font-size: 11px;
+  color: #37413b;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.alignMoveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid #cbd5ce;
+  border-radius: 3px;
+  background: #ffffff;
+  color: #2b352f;
+  cursor: pointer;
+}
+
+.alignMoveBtn:hover:not(:disabled) {
+  border-color: var(--hh-accent);
+  color: var(--hh-accent);
+  background: #f3f3f3;
+}
+
+.alignMoveBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.alignMoveBtn :where(svg) {
+  width: 12px;
+  height: 12px;
+}
+
+.alignModeSelectBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid #cbd5ce;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1f2923;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.alignModeSelectBtn:hover {
+  border-color: var(--hh-accent);
+}
+
+.alignModeSelectBtn :where(svg) {
+  width: 12px;
+  height: 12px;
+}
+
+.alignModeHeaderBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 5px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #2b352f;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.alignModeHeaderBtn:hover {
+  background: #e9e9e9;
+}
+
+.alignModeHeaderBtn :where(svg) {
+  width: 11px;
+  height: 11px;
+}
+
+.canvasArea {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.rightInfoPanel {
+  display: flex;
+  flex: 0 0 288px;
+  flex-direction: column;
+  min-height: 0;
+  background: #fafafa;
+  border-left: 1px solid #dadada;
+}
+
+/*
+ * ---- Floating glass bars (view tabs, map mode switcher) ----
+ * Glassmorphism: a frosted, translucent panel (backdrop blur + saturation, a bright hairline edge, a soft shadow)
+ * holding translucent buttons; the active ones are tinted glass in the accent colour. Every bar can be dragged
+ * (press a button and move); a plain click still reaches the buttons.
+ */
+.glassBar {
+  position: absolute;
+  z-index: 15;
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.14));
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(20, 30, 40, 0.14);
+  touch-action: none;
+  user-select: none;
+}
+
+/* Without backdrop-filter the translucent panel would be see-through: fall back to a solid one. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glassBar {
+    background: #ffffff;
+  }
+}
+
+.glassBarDragging,
+.glassBarDragging * {
+  cursor: grabbing;
+}
+
+/* Default positions (until a bar has been dragged): the view tabs centred at the bottom, the map mode switcher at the bottom right. */
+/* The floating bars and buttons lie over the whole workspace column, so they can be dragged over the reads below the
+   canvas as well. They rest against this column, not the canvas, so that opening the reads below (the Sequence tab in
+   align mode) leaves them where they are; sideways they keep to the canvas (--canvas-l / -r, see SnapGeneWorkspace). */
+.floatingLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.floatingLayer > * {
+  pointer-events: auto;
+}
+
+.floatingTabsBar {
+  bottom: 16px;
+  left: calc(var(--canvas-l, 0px) + (100% - var(--canvas-l, 0px) - var(--canvas-r, 0px)) / 2);
+  transform: translateX(-50%);
+}
+
+.floatingModeBar {
+  right: calc(var(--canvas-r, 0px) + 14px);
+  bottom: 16px;
+}
+
+.glassButton {
+  position: absolute;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  touch-action: none;
+  user-select: none;
+}
+
+/* The layer toggles are single green-glass buttons: switched off a faint green tint, switched on a denser green with a white icon. */
+.layerToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  /* Glass from four things only: a gradient, transparency, a light backdrop blur and a soft shadow. */
+  background: linear-gradient(160deg, rgba(22, 121, 75, 0.2), rgba(22, 121, 75, 0.06));
+  -webkit-backdrop-filter: blur(5px) saturate(140%);
+  backdrop-filter: blur(5px) saturate(140%);
+  color: #0f5c38;
+  box-shadow: 0 4px 14px rgba(15, 60, 40, 0.18);
+  cursor: default;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+}
+
+/* Without backdrop-filter the tint would be see-through: use a pale solid green instead. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .layerToggleBtn {
+    background: #d6e9de;
+  }
+}
+
+.layerToggleBtn:hover:not(.layerToggleBtnActive) {
+  background: linear-gradient(160deg, rgba(22, 121, 75, 0.32), rgba(22, 121, 75, 0.14));
+}
+
+.layerToggleBtnActive {
+  background: linear-gradient(160deg, rgba(22, 121, 75, 0.82), rgba(22, 121, 75, 0.56));
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(22, 121, 75, 0.34);
+}
+
+.layerToggleBtnActive:hover {
+  background: linear-gradient(160deg, rgba(22, 121, 75, 0.92), rgba(22, 121, 75, 0.66));
+}
+
+.layerToggleBtn :where(svg) {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+/* ---- Linear Map Bottom Center Title (Screenshot 2 & 3) ---- */
+.linearMapFooterTitle {
+  position: absolute;
+  right: 0;
+  bottom: 17%;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.linearMapTitleName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111814;
+  line-height: 1.25;
+}
+
+.linearMapTitleLength {
+  font-size: 11px;
+  color: #4b5750;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Bottom-Left Search Button & Floating Search Bar (Screenshot 1, 2, 3) ---- */
+.floatingSearchBox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 10px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.36));
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  box-shadow: 0 4px 14px rgba(15, 35, 24, 0.14);
+}
+
+/* ---- Table Sub-Views (Enzymes / Features / Primers / History tabs) ---- */
+.tableView {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  background: #ffffff;
+}
+
+.tableToolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.tableToolbarLeft,
+.tableToolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tableToolbarTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111814;
+}
+
+.tableScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  /* Room below the last row so the floating bars at the bottom never cover it when scrolled to the end. */
+  padding: 0 16px 72px;
+}
+
+/* The Primers table runs edge to edge: no side gutters. */
+.tableScrollFlush {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.dataTable th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 10px;
+  background: #f6f6f6;
+  border-bottom: 1px solid #dadada;
+  color: #37413b;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dataTable td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #1f2923;
+  vertical-align: middle;
+}
+
+.dataTable tbody tr:hover {
+  background: #f5f5f5;
+  cursor: pointer;
+}
+
+.dataTableRowSelected {
+  background: rgba(0, 0, 0, 0.07) !important;
+}
+
+.primerNameCell {
+  color: #000;
+  font-weight: 600;
+}
+
+/* Hidden primers: lighter text and icons. Colour is faded instead of the cell opacity so a checked row's outline stays solid. */
+.dataTableRowHidden > td:not(:first-child) {
+  color: rgba(31, 41, 35, 0.45);
+}
+
+.dataTableRowHidden > td.primerNameCell {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/* Short values such as "58 °C" or "20 nt" must not wrap: a wrapped cell makes its row taller. */
+.noWrapCell {
+  white-space: nowrap;
+}
+
+/* Detail panel under a primer row: full sequence and every value of the row. */
+.dataTable tbody tr.primerDetailRow,
+.dataTable tbody tr.primerDetailRow:hover {
+  background: #fafafa;
+  cursor: default;
+}
+
+/* The cell has no padding of its own so the opening animation starts from zero height. */
+.dataTable tbody tr.primerDetailRow > td {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Opening: the panel grows from 0 to its natural height (0fr -> 1fr) while it fades in. */
+.primerDetailAnim {
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: primerDetailOpen 180ms ease-out;
+}
+
+.primerDetailClip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@keyframes primerDetailOpen {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+/* Closing: the reverse; the row is removed when the animation has finished (PRIMER_DETAIL_ANIMATION_MS). */
+.primerDetailClosing {
+  animation: primerDetailClose 180ms ease-in forwards;
+}
+
+@keyframes primerDetailClose {
+  from {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primerDetailAnim,
+  .primerDetailClosing {
+    animation: none;
+  }
+}
+
+/* The note gets a full row, so long text wraps late. */
+.primerDetailWide {
+  flex: 1 1 100%;
+}
+
+.primerDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0 10px 28px;
+}
+
+.primerDetailLabel,
+.primerDetailGrid dt {
+  color: #6b786f;
+  font-size: 11px;
+}
+
+.primerDetailSequence {
+  margin-top: 2px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.primerDetailGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  margin: 0;
+}
+
+/* Features take the room left in their row; they wrap onto the next row only when the panel is narrow. */
+.primerDetailGrow {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.primerDetailGrid dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Row buttons (edit / delete) only show while the row is hovered or a button has keyboard focus; they keep their space. */
+.rowActions {
+  white-space: nowrap;
+}
+
+.rowActions button {
+  opacity: 0;
+}
+
+.dataTable tbody tr:hover .rowActions button,
+.rowActions button:focus-visible {
+  opacity: 1;
+}
+
+.dataTable tbody tr.dataTableRowHidden:hover .rowActions button {
+  opacity: 0.45;
+}
+
+/*
+ * Checked primer rows: one outline around each run of adjacent checked rows (no lines between them).
+ * Drawn with inset shadows on the cells; a row outline is not reliable in every webview.
+ * The top edge is skipped when the row above is checked, the bottom edge when the row below is.
+ */
+.dataTableRowChecked > td {
+  box-shadow: var(--edge-top, 0 0 #0000), var(--edge-bottom, 0 0 #0000), var(--edge-left, 0 0 #0000), var(--edge-right, 0 0 #0000);
+}
+
+/*
+ * Inside a run of checked rows the 1px row separator is removed, otherwise it cuts the side outline and pokes out
+ * of it. A collapsed separator gives half its width to each row, so the rows get 0.5px of padding back to keep their height.
+ */
+.dataTableRowChecked:not(.dataTableRowCheckedTop) > td {
+  padding-top: 7.5px;
+}
+
+.dataTableRowChecked:not(.dataTableRowCheckedBottom) > td {
+  padding-bottom: 7.5px;
+  border-bottom: 0;
+}
+
+.dataTableRowCheckedTop > td {
+  --edge-top: inset 0 1.5px 0 #16794b;
+}
+
+.dataTableRowCheckedBottom > td {
+  --edge-bottom: inset 0 -1.5px 0 #16794b;
+}
+
+.dataTableRowChecked > td:first-child {
+  --edge-left: inset 1.5px 0 0 #16794b;
+}
+
+.dataTableRowChecked > td:last-child {
+  --edge-right: inset -1.5px 0 0 #16794b;
+}
+
+.swatchPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.swatchBox {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex: none;
+}
+
+/* ---- Bottom Status Bar (SnapGene style) ---- */
+.statusBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  padding: 0 12px;
+  background: #f6f6f6;
+  border-top: 1px solid #e0e0e0;
+  font-size: 11px;
+  color: #4b5750;
+}
+
+.statusLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.statusEnzymeBtn {
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--hh-accent);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.statusEnzymeBtn:hover {
+  background: var(--hh-accent-soft);
+}
+
+/* Align mode + Sequence view: side panel and one-line sequence on top, trace panel below (full width), resizable */
+.workspaceColumn {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.alignSplitHandle {
+  flex: none;
+  height: 5px;
+  background: #e9eaec;
+  border-top: 1px solid #d5d8dc;
+  cursor: row-resize;
+}
+
+.alignSplitBottom {
+  flex: 1 1 0;
+}
+
+
+/* drag the right edge of the side panel to resize it */
+.leftSidePanelResize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  width: 6px;
+  cursor: col-resize;
+}
+
+.leftSidePanelResize:hover {
+  background: rgba(12, 79, 48, 0.18);
+}
+
+/* align mode: the side panel slides in from the left, the trace panel rises from below (ALIGN_ANIMATION_MS).
+   Only transform and opacity change (composited, no layout per frame); the space is taken or given back at once.
+   Entry animations start after 34 ms (two frames), holding their first frame meanwhile: the heavy first render
+   of the panels then does not eat the start of the animation. */
+.leftSidePanelEnter {
+  animation: sidePanelIn 240ms cubic-bezier(0.16, 1, 0.3, 1) 34ms backwards;
+}
+
+.leftSidePanelClosing {
+  pointer-events: none;
+  animation: sidePanelOut 200ms cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+@keyframes sidePanelIn {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sidePanelOut {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+.traceDock {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.traceDockEnter {
+  animation: traceDockIn 240ms cubic-bezier(0.16, 1, 0.3, 1) 34ms backwards;
+}
+
+.traceDockClosing {
+  pointer-events: none;
+  animation: traceDockOut 200ms cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+@keyframes traceDockIn {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes traceDockOut {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+
+/* over a map the side panel really grows / shrinks (ALIGNMENT_REVEAL: open 300 ms; slideOut 220 ms then close 280 ms) */
+.leftSidePanelGrow {
+  animation: sidePanelGrow 300ms cubic-bezier(0.16, 1, 0.3, 1) 34ms backwards;
+}
+
+.leftSidePanelShrink {
+  pointer-events: none;
+  animation: sidePanelShrink 280ms cubic-bezier(0.4, 0, 0.2, 1) 220ms forwards;
+}
+
+@keyframes sidePanelGrow {
+  from {
+    flex-basis: 0;
+  }
+  to {
+    flex-basis: var(--panel-w);
+  }
+}
+
+@keyframes sidePanelShrink {
+  from {
+    flex-basis: var(--panel-w);
+  }
+  to {
+    flex-basis: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leftSidePanelEnter,
+  .leftSidePanelGrow,
+  .leftSidePanelShrink,
+  .leftSidePanelClosing,
+  .traceDockEnter,
+  .traceDockClosing {
+    transition-duration: 1ms;
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}

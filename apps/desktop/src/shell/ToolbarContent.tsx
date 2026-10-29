@@ -12,6 +12,8 @@ import {
   ScanSearch,
   Scissors,
   Search,
+  Sparkles,
+  Tag,
   AlignVerticalSpaceAround,
 } from 'lucide-react';
 import { useElementSize } from '@hhereditas/viewer';
@@ -75,6 +77,8 @@ export interface ToolbarContentProps {
   enzymeDisplayLabels?: Partial<Record<EnzymeDisplay, string>>;
   /** Commands of the Actions menu. */
   onAction?: (action: ShellAction) => void;
+  /** Whether ORF tracks are currently shown (highlights the ORFs button in the toolbar). */
+  orfsShown?: boolean;
   /** False while the cloning tools are not available: the Clone submenu becomes a disabled "Cloning (coming soon)" item. Default true. */
   cloningAvailable?: boolean;
   /** Extra items at the top of the Actions menu (e.g. file commands where there is no menu bar), followed by a separator. */
@@ -191,6 +195,7 @@ export function ToolbarContent({
   enzymeDisplayOptions = DEFAULT_ENZYME_DISPLAY_OPTIONS,
   enzymeDisplayLabels,
   onAction,
+  orfsShown = false,
   cloningAvailable = true,
   actionsMenuPrefix,
   searchValue,
@@ -256,7 +261,7 @@ export function ToolbarContent({
         disabled={disabled}
       />
       <ToolbarSpacer />
-      <ToolbarGroup label="Tools" className={styles.tools}>
+      <ToolbarGroup label="Annotations" className={styles.toolCluster}>
         <Menu modal={false}>
           <Tooltip content={`Enzymes: ${enzymeLabel(enzymeDisplay)}`} shortcut={keys.enzymes}>
             <MenuTrigger asChild>
@@ -266,10 +271,13 @@ export function ToolbarContent({
                 trailingIcon={<ChevronDown />}
                 aria-label="Enzymes"
                 disabled={disabled}
-              />
+                className={styles.clusterBtn}
+              >
+                {density === 'regular' ? 'Enzymes' : undefined}
+              </Button>
             </MenuTrigger>
           </Tooltip>
-          <MenuContent align="end">
+          <MenuContent align="start">
             <MenuLabel>Show Enzymes</MenuLabel>
             <MenuRadioGroup value={enzymeDisplay} onValueChange={(v) => onEnzymeDisplayChange(v as EnzymeDisplay)}>
               {enzymeMenuChoices(enzymeDisplayOptions, enzymeDisplay).map((d) => (
@@ -284,16 +292,106 @@ export function ToolbarContent({
             </MenuItem>
           </MenuContent>
         </Menu>
+        <span className={styles.clusterDivider} aria-hidden />
         <Menu modal={false}>
-          <Tooltip content="Actions">
+          <Tooltip content="Features & Auto-Detection">
             <MenuTrigger asChild>
               <Button
                 variant="plain"
-                icon={<FlaskConical />}
+                icon={<Tag />}
+                trailingIcon={<ChevronDown />}
+                aria-label="Features"
+                disabled={disabled}
+                className={styles.clusterBtn}
+              >
+                {density === 'regular' ? 'Features' : undefined}
+              </Button>
+            </MenuTrigger>
+          </Tooltip>
+          <MenuContent align="start">
+            <MenuLabel>Features</MenuLabel>
+            <MenuItem icon={<Sparkles />} onSelect={run('detect-features')}>
+              Detect common features
+            </MenuItem>
+            <MenuItem icon={<Tag />} onSelect={run('add-feature')}>
+              Add feature…
+            </MenuItem>
+            <MenuSeparator />
+            <MenuItem icon={<ScanSearch />} onSelect={run('find-orfs')}>
+              {orfsShown ? 'Hide ORFs' : 'Show ORFs'}
+            </MenuItem>
+          </MenuContent>
+        </Menu>
+        <span className={styles.clusterDivider} aria-hidden />
+        <Tooltip content={orfsShown ? 'Hide open reading frames' : 'Show open reading frames'}>
+          <Button
+            variant="plain"
+            icon={<ScanSearch />}
+            aria-label="ORFs"
+            aria-pressed={orfsShown}
+            disabled={disabled}
+            onClick={run('find-orfs')}
+            className={cx(styles.clusterBtn, orfsShown && styles.clusterBtnActive)}
+          >
+            {density === 'regular' ? 'ORFs' : undefined}
+          </Button>
+        </Tooltip>
+        <span className={styles.clusterDivider} aria-hidden />
+        <Menu modal={false}>
+          <Tooltip content="Primers & PCR">
+            <MenuTrigger asChild>
+              <Button
+                variant="plain"
+                icon={<ArrowRightToLine />}
+                trailingIcon={<ChevronDown />}
+                aria-label="Primers"
+                disabled={disabled}
+                className={styles.clusterBtn}
+              >
+                {density === 'regular' ? 'Primers' : undefined}
+              </Button>
+            </MenuTrigger>
+          </Tooltip>
+          <MenuContent align="start">
+            <MenuLabel>Primers</MenuLabel>
+            <MenuItem icon={<ArrowRightToLine />} onSelect={run('primers')}>
+              Add primer…
+            </MenuItem>
+            {cloningAvailable ? (
+              <MenuItem icon={<FlaskConical />} onSelect={run('clone-pcr')}>
+                PCR…
+              </MenuItem>
+            ) : null}
+          </MenuContent>
+        </Menu>
+      </ToolbarGroup>
+      <ToolbarGroup label="Tools" className={styles.toolCluster}>
+        <Tooltip content="Simulate restriction digest & agarose gel" shortcut={keys.digest}>
+          <Button
+            variant="plain"
+            icon={<AlignVerticalSpaceAround />}
+            aria-label="Digest & gel"
+            disabled={disabled}
+            onClick={run('digest')}
+            className={styles.clusterBtn}
+          >
+            {density === 'regular' ? 'Gel' : undefined}
+          </Button>
+        </Tooltip>
+        <span className={styles.clusterDivider} aria-hidden />
+        <Menu modal={false}>
+          <Tooltip content="Actions & Cloning">
+            <MenuTrigger asChild>
+              <Button
+                variant="plain"
+                icon={<Combine />}
                 trailingIcon={<ChevronDown />}
                 aria-label="Actions"
                 disabled={disabled}
-              />
+                className={styles.clusterBtn}
+              >
+                {density === 'regular' ? 'Actions' : undefined}
+              </Button>
             </MenuTrigger>
           </Tooltip>
           <MenuContent align="end">
@@ -323,6 +421,9 @@ export function ToolbarContent({
             </MenuItem>
             <MenuItem icon={<ScanSearch />} onSelect={run('find-orfs')}>
               Find ORFs
+            </MenuItem>
+            <MenuItem icon={<Sparkles />} onSelect={run('detect-features')}>
+              Detect common features
             </MenuItem>
             <MenuSeparator />
             <MenuItem icon={<ArrowRightToLine />} onSelect={run('primers')}>

@@ -9,7 +9,7 @@
 import { isTauri, platform } from '../platform';
 import { useSettings } from '../state/settings';
 import { useApp } from '../state/store';
-import { requestClose, requestQuit } from './commands';
+import { detectCommonFeaturesCommand, requestClose, requestQuit } from './commands';
 import { openWithDialog, saveDocument } from './files';
 import { isMac } from './shortcuts';
 
@@ -93,6 +93,7 @@ export function installNativeMenu(focusSearch: () => void): () => void {
         await item('Digest & Gel…', 'CmdOrCtrl+D', withDoc(() => app().openSheet('digest'))),
         await item('Choose Enzymes…', undefined, withDoc(() => app().openSheet('choose-enzymes'))),
         await item('Show Open Reading Frames', undefined, () => settings().update({ showOrfs: !settings().showOrfs })),
+        await item('Detect Common Features', undefined, withDoc(() => detectCommonFeaturesCommand())),
         await sep(),
         await item('PCR…', undefined, withDoc(() => app().openSheet('clone-pcr'))),
         await item('Restriction Cloning…', undefined, withDoc(() => app().openSheet('clone-restriction'))),

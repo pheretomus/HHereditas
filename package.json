@@ -8,8 +8,12 @@
     "apps/*"
   ],
   "scripts": {
+    "dev": "npm run dev -w @hhereditas/desktop",
+    "build": "npm run build -w @hhereditas/desktop",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "rea:replica": "node tools/rea-snapgene/replica-server.mjs",
+    "rea:verify": "node tools/rea-snapgene/verify-rea-pipeline.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -385,8 +385,18 @@ describe('CircularMap interaction', () => {
     const p = g.primers[0];
     const pt = polarToCartesian(g.cx, g.cy, (p.rIn + p.rOut) / 2, (p.a0 + p.a1) / 2);
     click({ clientX: pt.x, clientY: pt.y });
-    expect(onPrimerClick).toHaveBeenCalledWith('p1');
+    expect(onPrimerClick).toHaveBeenCalledWith('p1', { clickCount: 1, shiftKey: false, metaKey: false, ctrlKey: false });
     expect(log.at(-1)?.range).toEqual({ start: 2000, end: 2017 });
+  });
+
+  it('renders 3-tier feature labels (inside, below, outside) and highlights multiple selectedFeatureIds', () => {
+    const amp = pFA6a.record.features.find((f) => f.name === 'AmpR')!;
+    const kan = pFA6a.record.features.find((f) => f.name === 'KanR')!;
+    render(<CircularMap record={pFA6a.record} selectedFeatureIds={[amp.id, kan.id]} />);
+    expect(svg().querySelectorAll('[data-label-tier="inside"]').length).toBeGreaterThan(0);
+    expect(svg().querySelectorAll('[data-label-tier="below"]').length).toBeGreaterThan(0);
+    expect(svg().querySelectorAll('[data-label-tier="outside"]').length).toBeGreaterThan(0);
+    expect(svg().querySelectorAll(`.${styles.highlightFeature}`)).toHaveLength(2);
   });
 });
 

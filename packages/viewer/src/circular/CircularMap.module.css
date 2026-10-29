@@ -50,13 +50,13 @@
 .backbone {
   fill: none;
   stroke: var(--hh-seq-backbone);
-  stroke-width: 1.25;
+  stroke-width: 1.4;
 }
 
 .backboneEnds {
   fill: none;
   stroke: var(--hh-seq-backbone);
-  stroke-width: 1.25;
+  stroke-width: 1.4;
   stroke-linecap: round;
 }
 
@@ -75,8 +75,8 @@
 
 .tickMajor {
   fill: none;
-  stroke: var(--hh-seq-ruler);
-  stroke-width: 1;
+  stroke: var(--hh-seq-backbone);
+  stroke-width: 1.15;
 }
 
 .tickMinor {
@@ -89,12 +89,13 @@
 .tickOrigin {
   fill: none;
   stroke: var(--hh-seq-backbone);
-  stroke-width: 1.5;
+  stroke-width: 1.4;
   stroke-linecap: round;
 }
 
 .tickLabel {
-  fill: var(--hh-seq-ruler);
+  fill: var(--hh-text);
+  font-weight: var(--hh-weight-medium);
   text-anchor: middle;
   font-variant-numeric: tabular-nums;
 }
@@ -118,26 +119,33 @@
   pointer-events: none;
 }
 
-.orf {
-  fill: var(--hh-orf);
+.belowLabel {
+  fill: var(--hh-text);
+  font-weight: var(--hh-weight-medium);
+  text-anchor: middle;
+  pointer-events: none;
 }
 
-.primerFwd {
-  fill: var(--hh-primer-fwd);
+.orfFwd {
+  fill: var(--hh-orf-fwd);
 }
 
+.orfRev {
+  fill: var(--hh-orf-rev);
+}
+
+.primerFwd,
 .primerRev {
-  fill: var(--hh-primer-rev);
-}
-
-.enzymeTick {
   fill: none;
-  stroke: var(--hh-enzyme-multi);
-  stroke-width: 1;
+  stroke: var(--hh-primer-fwd);
+  stroke-width: 1.4;
+  stroke-linecap: butt;
 }
 
+.enzymeTick,
 .enzymeTickUnique {
-  stroke: var(--hh-enzyme-unique);
+  fill: none;
+  stroke: none;
 }
 
 /* ---- Outside labels ------------------------------------------------------------ */
@@ -146,6 +154,14 @@
   fill: none;
   stroke: var(--hh-separator-strong);
   stroke-width: 0.75;
+  stroke-linejoin: round;
+}
+
+.leaderPrimer {
+  fill: none;
+  stroke: var(--hh-primer-fwd);
+  stroke-width: 0.85;
+  stroke-linecap: round;
   stroke-linejoin: round;
 }
 
@@ -169,9 +185,17 @@
   fill: var(--hh-primer-rev);
 }
 
-.chip {
+.labelBox {
+  stroke-width: 0.7;
+}
+
+/* Thin line from a label inside the map up to its feature. */
+.belowLeader {
+  fill: none;
   stroke: var(--hh-separator-strong);
-  stroke-width: 0.5;
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  pointer-events: none;
 }
 
 .note {

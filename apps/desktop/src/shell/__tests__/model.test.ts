@@ -171,8 +171,11 @@ describe('formatting', () => {
     expect(featureTypeLabel('rep_origin')).toBe('Replication origin');
     expect(featureTypeLabel('mobile_element')).toBe('mobile element');
     expect(qualifierLabel('codon_start')).toBe('Codon start');
-    expect(featureTypeOptions('oriT').at(-1)).toEqual({ value: 'oriT', label: 'oriT' });
-    expect(featureTypeOptions('CDS').filter((o) => o.value === 'CDS')).toHaveLength(1);
+    // the Type pop-up offers the INSDC keys themselves (SnapGene's list), each one once
+    expect(featureTypeOptions('CDS').filter((o) => o.value === 'CDS')).toEqual([{ value: 'CDS', label: 'CDS' }]);
+    expect(featureTypeOptions('oriT').filter((o) => o.value === 'oriT')).toHaveLength(1);
+    // a type of its own that is not an INSDC key is kept, at the end
+    expect(featureTypeOptions('my_marker').at(-1)).toEqual({ value: 'my_marker', label: 'my_marker' });
   });
 });
 

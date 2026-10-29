@@ -35,7 +35,7 @@ import type { SequenceSelection } from '../selection';
 import { caretAt, hasSelectedBases, selectBetween, selectRange } from '../selection';
 import type { CaretAffinity, EditingContext } from './editing';
 import { caretGap, copyText, coverSelection, cutIntent, extendSelectionTo, keyIntent, textIntent } from './editing';
-import type { LayoutFeature, LayoutPrimer, RowModel } from './layout';
+import type { LayoutFeature, LayoutPrimer, RowModel, SequenceMetrics } from './layout';
 import {
   DEFAULT_METRICS,
   autoBasesPerRow,
@@ -74,18 +74,32 @@ export interface SequenceViewProps {
   onSelectionChange?: (selection: SequenceSelection | null) => void;
   /** e.g. hovered in the sidebar. */
   highlightedFeatureId?: string | null;
+  /** Multiple features selected (e.g. via Ctrl+Click). */
+  selectedFeatureIds?: readonly string[];
   /** Also selects the feature's extent (onSelectionChange); shift+click extends the selection over it. */
   onFeatureClick?: (featureId: string, info: FeatureClickInfo) => void;
   onFeatureHover?: (featureId: string | null) => void;
   /** Also selects the recognition site. */
   onEnzymeClick?: (site: EnzymeSite) => void;
   /** Also selects the binding site. */
-  onPrimerClick?: (primerId: string) => void;
+  onPrimerClick?: (primerId: string, info: FeatureClickInfo) => void;
   /** What is under the pointer; call event.preventDefault() to replace the native menu. The selection is unchanged. */
   onContextMenu?: (target: MapTarget, event: ReactMouseEvent) => void;
   show?: SequenceViewShow;
   /** Default 'auto': as many groups of 10 bases as fit the width. */
   basesPerRow?: number | 'auto';
+  /** Overrides of the layout metrics (e.g. a wider base column without group gaps for a one-line view). */
+  metrics?: Partial<SequenceMetrics>;
+  /** Horizontal scroll offset to apply (px); pair with onScrollLeftChange to scroll together with another view. */
+  scrollLeft?: number;
+  /** The view was scrolled horizontally (px). */
+  onScrollLeftChange?: (left: number) => void;
+  /** Height of the laid-out rows (px), reported whenever it changes (e.g. to fit a pane to a one-line view). */
+  onContentHeightChange?: (height: number) => void;
+  /** Rows shorter than the view sit in its vertical middle (the whole view still scrolls and takes the pointer). */
+  centerVertically?: boolean;
+  /** No horizontal scrollbar: the view is scrolled from outside (scrollLeft) or with the wheel. */
+  hideHorizontalScrollbar?: boolean;
   /** Typing, Backspace/Delete, paste and cut produce onEdit intents (requires onEdit). */
   editable?: boolean;
   onEdit?: (edit: SequenceEdit) => void;
@@ -201,6 +215,7 @@ export function SequenceView(props: SequenceViewProps) {
     selection: selectionProp,
     onSelectionChange,
     highlightedFeatureId = null,
+    selectedFeatureIds,
     onFeatureClick,
     onFeatureHover,
     onEnzymeClick,
@@ -208,6 +223,12 @@ export function SequenceView(props: SequenceViewProps) {
     onContextMenu,
     show,
     basesPerRow = 'auto',
+    metrics: metricsProp,
+    scrollLeft: scrollLeftProp,
+    onScrollLeftChange,
+    onContentHeightChange,
+    centerVertically = false,
+    hideHorizontalScrollbar = false,
     editable = false,
     onEdit,
     onInvalidInput,
@@ -226,6 +247,7 @@ export function SequenceView(props: SequenceViewProps) {
   const showPrimers = show?.primers ?? true;
   const showTranslations = !isProtein && (show?.translations ?? true);
   const showOrfs = show?.orfs ?? true;
+  const showAlignments = !isProtein && (show?.alignments ?? true);
   const showNumbers = show?.numbering ?? true;
   const canEdit = editable && !!onEdit;
 
@@ -254,6 +276,7 @@ export function SequenceView(props: SequenceViewProps) {
   }, []);
 
   // ---- layout inputs ----------------------------------------------------------------------------
+  const metrics = useMemo<SequenceMetrics>(() => (metricsProp ? { ...DEFAULT_METRICS, ...metricsProp } : DEFAULT_METRICS), [metricsProp]);
   const numberColumnWidth = useMemo(() => {
     void fontEpoch;
     if (!showNumbers || L === 0) return 0;
@@ -263,7 +286,7 @@ export function SequenceView(props: SequenceViewProps) {
   const N =
     typeof basesPerRow === 'number' && basesPerRow >= 1
       ? Math.floor(basesPerRow)
-      : autoBasesPerRow(viewportWidth, DEFAULT_METRICS, numberColumnWidth);
+      : autoBasesPerRow(viewportWidth, metrics, numberColumnWidth);
 
   const layoutFeatures = useMemo<LayoutFeature[]>(
     () =>
@@ -301,25 +324,32 @@ export function SequenceView(props: SequenceViewProps) {
     });
   }, [layoutPrimers, record.primers]);
   const visibleOrfs = showOrfs ? orfs : EMPTY;
+  const visibleAlignments = useMemo(
+    () => (showAlignments && record.alignedSequences ? record.alignedSequences.filter((a) => a.aligned && a.visible) : EMPTY),
+    [showAlignments, record.alignedSequences],
+  );
 
   // Until the viewport has been measured (synchronously, before the first paint) the number of
   // bases per row is unknown: use an empty placeholder instead of laying out the record twice.
   const model: RowModel = useMemo(() => {
     void fontEpoch;
-    if (!measured) return buildRowModel({ length: 0, topology, basesPerRow: N, numberColumnWidth, showComplement });
+    if (!measured) return buildRowModel({ length: 0, topology, basesPerRow: N, numberColumnWidth, showComplement, metrics });
     return buildRowModel({
       length: L,
       topology,
       basesPerRow: N,
+      metrics,
       numberColumnWidth,
       showComplement,
       features: layoutFeatures,
       enzymes,
       primers: layoutPrimers,
       orfs: visibleOrfs,
+      orfTranslation: showTranslations,
+      alignments: visibleAlignments,
       measure: measureLabel,
     });
-  }, [measured, L, topology, N, numberColumnWidth, showComplement, layoutFeatures, enzymes, layoutPrimers, visibleOrfs, fontEpoch]);
+  }, [measured, L, topology, N, numberColumnWidth, showComplement, layoutFeatures, enzymes, layoutPrimers, visibleOrfs, showTranslations, visibleAlignments, fontEpoch, metrics]);
 
   const translator = translate ?? translateFeatureLite;
   /** Coding information of a translated feature, computed lazily (only for rows on screen). */
@@ -334,6 +364,28 @@ export function SequenceView(props: SequenceViewProps) {
       return info;
     };
   }, [layoutFeatures, seq, topology, translator]);
+
+  /** Coding information of an ORF, computed lazily: its range read as one CDS on its own strand. */
+  const orfCoding = useMemo(() => {
+    if (!showTranslations) return undefined;
+    const cache = new Map<number, CodingInfo | null>();
+    return (index: number): CodingInfo | null => {
+      const hit = cache.get(index);
+      if (hit !== undefined) return hit;
+      const orf = visibleOrfs[index];
+      const info = orf
+        ? buildCodingInfo(
+            { id: `orf:${index}`, name: 'ORF', type: 'CDS', strand: orf.strand, segments: [orf.range], qualifiers: [] },
+            seq,
+            topology,
+            translator,
+            translateFeatureLite,
+          )
+        : null;
+      cache.set(index, info);
+      return info;
+    };
+  }, [showTranslations, visibleOrfs, seq, topology, translator]);
 
   /** x positions (glyph centres) of the bases of a row of n bases, as an SVG coordinate list. */
   const glyphXs = useMemo(() => {
@@ -363,12 +415,14 @@ export function SequenceView(props: SequenceViewProps) {
       primerAnnealed,
       primerTails,
       orfs: visibleOrfs,
+      alignments: visibleAlignments,
       ends: record.ends,
       showNumbers,
       coding,
+      orfCoding,
       glyphXs,
     }),
-    [model, seq, topology, layoutFeatures, featureFills, featureStrokes, enzymes, layoutPrimers, primerAnnealed, primerTails, visibleOrfs, record.ends, showNumbers, coding, glyphXs],
+    [model, seq, topology, layoutFeatures, featureFills, featureStrokes, enzymes, layoutPrimers, primerAnnealed, primerTails, visibleOrfs, visibleAlignments, record.ends, showNumbers, coding, orfCoding, glyphXs],
   );
 
   const hitBuckets = useMemo(() => bucketRangesByRow(searchHits, N, L, topology), [searchHits, N, L, topology]);
@@ -393,15 +447,20 @@ export function SequenceView(props: SequenceViewProps) {
   // ---- scrolling ------------------------------------------------------------------------------
   const [scrollTop, setScrollTop] = useState(0);
   const total = model.totalHeight;
+  useEffect(() => {
+    if (measured && L > 0) onContentHeightChange?.(total);
+  }, [measured, L, total, onContentHeightChange]);
   const spacerHeight = Math.min(total, MAX_SCROLL_HEIGHT);
   const ratio = total > spacerHeight && spacerHeight > viewportHeight ? (total - viewportHeight) / (spacerHeight - viewportHeight) : 1;
   const contentTop = scrollTop * ratio;
-  const shift = contentTop - scrollTop;
+  /** Empty space above the rows when they are centred in a taller view. */
+  const padTop = centerVertically && measured && total < viewportHeight ? Math.floor((viewportHeight - total) / 2) : 0;
+  const shift = contentTop - scrollTop - padTop;
 
   // Latest values for window-level listeners, effects and stable callbacks.
-  const latest = useRef({ model, selection, affinity, ratio, editCtx, canEdit, seq, onSelectionChange, controlled });
+  const latest = useRef({ model, selection, affinity, ratio, padTop, editCtx, canEdit, seq, onSelectionChange, controlled });
   useLayoutEffect(() => {
-    latest.current = { model, selection, affinity, ratio, editCtx, canEdit, seq, onSelectionChange, controlled };
+    latest.current = { model, selection, affinity, ratio, padTop, editCtx, canEdit, seq, onSelectionChange, controlled };
   });
 
   const lastEmitted = useRef<SequenceSelection | null>(null);
@@ -453,9 +512,16 @@ export function SequenceView(props: SequenceViewProps) {
   /** scrollTop written by the anchor restore below; its scroll event must not move the anchor. */
   const restoreEcho = useRef<number | null>(null);
 
+  const onScrollLeftRef = useRef(onScrollLeftChange);
+  onScrollLeftRef.current = onScrollLeftChange;
+  const lastLeft = useRef(0);
   const onScroll = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
+    if (el.scrollLeft !== lastLeft.current) {
+      lastLeft.current = el.scrollLeft;
+      onScrollLeftRef.current?.(el.scrollLeft);
+    }
     setScrollTop(el.scrollTop);
     const echo = restoreEcho.current;
     restoreEcho.current = null;
@@ -464,6 +530,30 @@ export function SequenceView(props: SequenceViewProps) {
     if (echo !== null && Math.abs(el.scrollTop - echo) < 0.5) return;
     updateAnchor(el);
   }, [updateAnchor]);
+
+  // a centred view with nothing to scroll vertically (the one-line view) turns the mouse wheel into horizontal scrolling
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || !centerVertically) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || el.scrollHeight > el.clientHeight + 1) return;
+      // the larger of the two directions moves the line sideways (also trackpads, without a scrollbar to grab)
+      const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (d === 0) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaMode === 1 ? d * 16 : d;
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [centerVertically]);
+
+  // a horizontal offset given from outside (scrolling together with another view)
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || scrollLeftProp == null || Math.abs(el.scrollLeft - scrollLeftProp) < 0.5) return;
+    el.scrollLeft = scrollLeftProp;
+    lastLeft.current = el.scrollLeft;
+  }, [scrollLeftProp, model]);
 
   const prevModel = useRef(model);
   const prevRecordId = useRef(record.id);
@@ -590,7 +680,7 @@ export function SequenceView(props: SequenceViewProps) {
     const el = scrollerRef.current;
     if (!el) return { x: 0, y: 0 };
     const rect = el.getBoundingClientRect();
-    return { x: clientX - rect.left + el.scrollLeft, y: clientY - rect.top + el.scrollTop * latest.current.ratio };
+    return { x: clientX - rect.left + el.scrollLeft, y: clientY - rect.top + el.scrollTop * latest.current.ratio - latest.current.padTop };
   }, []);
 
   const drag = useRef<{
@@ -711,7 +801,12 @@ export function SequenceView(props: SequenceViewProps) {
           const lp = layoutPrimers[hit.index];
           if (!lp) return false;
           commitSelection(selectRange(lp.site.range, L, topology));
-          onPrimerClick?.(lp.site.primerId);
+          onPrimerClick?.(lp.site.primerId, {
+            clickCount: e.detail || 1,
+            shiftKey: e.shiftKey,
+            metaKey: e.metaKey,
+            ctrlKey: e.ctrlKey,
+          });
           return true;
         }
         case 'orf': {
@@ -995,6 +1090,15 @@ export function SequenceView(props: SequenceViewProps) {
     if (highlightIndex < 0) return null;
     return featureExtent(layoutFeatures[highlightIndex].feature, L, topology);
   }, [highlightIndex, layoutFeatures, L, topology]);
+  const selectedFeatureExtents = useMemo(() => {
+    if (!selectedFeatureIds || selectedFeatureIds.length === 0) return EMPTY as readonly { start: number; end: number }[];
+    const idSet = new Set(selectedFeatureIds);
+    const out: Array<{ start: number; end: number }> = [];
+    for (const lf of layoutFeatures) {
+      if (idSet.has(lf.feature.id)) out.push(featureExtent(lf.feature, L, topology));
+    }
+    return out;
+  }, [selectedFeatureIds, layoutFeatures, L, topology]);
   const hoveredRange = hoveredSite >= 0 ? (enzymes[hoveredSite]?.range ?? null) : null;
 
   // Enzyme sites whose recognition site is exactly the selection (e.g. after clicking a label).
@@ -1033,9 +1137,10 @@ export function SequenceView(props: SequenceViewProps) {
       }
     }
     let bands: Array<[number, number]> = EMPTY as never[];
-    if (highlightExtent || hoveredRange) {
+    if (highlightExtent || hoveredRange || selectedFeatureExtents.length > 0) {
       bands = [];
       if (highlightExtent) bands.push(...rangeColsInRow(highlightExtent, row.start, row.end, L, topology));
+      for (const ext of selectedFeatureExtents) bands.push(...rangeColsInRow(ext, row.start, row.end, L, topology));
       if (hoveredRange) bands.push(...rangeColsInRow(hoveredRange, row.start, row.end, L, topology));
     }
     const rowHighlight = highlightIndex >= 0 && row.features.some((p) => p.feature === highlightIndex) ? highlightIndex : -1;
@@ -1105,13 +1210,14 @@ export function SequenceView(props: SequenceViewProps) {
       <div
         ref={scrollerRef}
         className={styles.scroller}
+        style={hideHorizontalScrollbar ? { overflowX: 'hidden' } : undefined}
         onScroll={onScroll}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
         onContextMenu={onContextMenuEvent}
       >
-        <div className={styles.canvas} style={{ height: spacerHeight, minWidth: geo.width }}>
+        <div className={styles.canvas} style={{ height: spacerHeight + padTop, minWidth: geo.width }}>
           {rowsOut}
           <textarea
             ref={inputRef}

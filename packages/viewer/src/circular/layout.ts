@@ -13,7 +13,7 @@
  *   enzyme cut ticks (crossing the backbone)
  *   backbone         (radius R)
  *   feature lanes    (lane 0 hugs the backbone, further lanes stack inwards)
- *   ORF lanes        (thin arrows inside the features)
+ *   ORF lanes        (thin arrows between the backbone and the features)
  *   ruler            (ticks + numbers, just inside the annotations)
  *   centre text      (record name + length)
  *
@@ -156,8 +156,10 @@ export interface EnzymeItem {
   cut: number;
   /** Every top-strand cut of the site (the recognition start when it does not cut). */
   cuts: number[];
-  /** "EcoRI (396)": 1-based position of the base 5' of the top-strand cut. */
+  /** "EcoRI (396)": 1-based position of the base 5' of the top-strand cut. Enzymes that cut at the same place share the label: "BspQI - SapI (58)". */
   label: string;
+  /** Every enzyme that cuts at this place, alphabetical; `site` is the first one met. */
+  names: string[];
   /** The enzyme cuts the record exactly once (among the given sites). */
   unique: boolean;
   /** Number of cuts of this enzyme in the record (among the given sites). */
@@ -191,11 +193,18 @@ export interface MapModel {
   primerLanes: number;
   orfs: OrfItem[];
   orfLanes: number;
+  showLengths?: boolean;
+  showPrimerLocations?: boolean;
 }
 
 export interface MapModelInput {
   record: SeqRecord;
   enzymeSites?: readonly EnzymeSite[];
+  /**
+   * Enzymes that share a recognition site and cut (isoschizomers): enzyme name -> every name of its group. The app shows
+   * one name per group in `enzymeSites`; the label lists the whole group ("BspQI - SapI").
+   */
+  enzymeAliases?: ReadonlyMap<string, readonly string[]>;
   primerSites?: readonly PrimerBindingSite[];
   orfs?: readonly Orf[];
   layers?: MapShowOptions;
@@ -209,24 +218,6 @@ export interface MapModelInput {
 export function cutLabelPosition(p: number, length: number, topology: Topology): number {
   if (p <= 0) return topology === 'circular' ? length : 0;
   return p;
-}
-
-/**
- * Fraction of the molecule reserved for each primer arrow on its lane (about PRIMER_MIN_PX on
- * a map of radius 150 px), so that short primers drawn longer than they are never touch.
- */
-const PRIMER_MIN_FRACTION = 0.015;
-
-/** A primer binding site lengthened at its 5' end to at least `minBp` (normalized). */
-function primerExtent(r: Range, strand: 1 | -1, minBp: number, length: number, topology: Topology): Range {
-  if (r.end - r.start >= minBp || length <= 0) return r;
-  const want = Math.min(minBp, length);
-  if (topology === 'circular') {
-    const grown = strand === 1 ? { start: r.end - want, end: r.end } : { start: r.start, end: r.start + want };
-    return normalizeRange(grown, length, topology);
-  }
-  const start = strand === 1 ? Math.max(0, r.end - want) : Math.min(r.start, length - want);
-  return { start, end: start + want };
 }
 
 /**
@@ -269,14 +260,27 @@ export function buildMapModel(input: MapModelInput): MapModel {
     primerLanes: 0,
     orfs: [],
     orfLanes: 0,
+    showLengths: Boolean(layers.lengths),
+    showPrimerLocations: Boolean(layers.primerLocations),
   };
   if (length <= 0) return model;
+
+  const activePrimerRanges =
+    layers.primers !== false && input.primerSites && input.primerSites.length > 0
+      ? new Set(
+          input.primerSites.map((s) => {
+            const r = normalizeRange(s.range, length, topology);
+            return `${r.start}|${r.end}`;
+          }),
+        )
+      : null;
 
   if (layers.features !== false) {
     const items: FeatureItem[] = [];
     for (const feature of record.features) {
       if (feature.segments.length === 0) continue;
       const extent = normalizeRange(featureExtent(feature, length, topology), length, topology);
+      if (feature.type === 'primer_bind' && activePrimerRanges?.has(`${extent.start}|${extent.end}`)) continue;
       const name = feature.name.trim();
       items.push({
         feature,
@@ -300,7 +304,7 @@ export function buildMapModel(input: MapModelInput): MapModel {
   if (layers.enzymes !== false && input.enzymeSites) {
     const cutCount = new Map<string, number>();
     for (const s of input.enzymeSites) cutCount.set(s.enzyme, (cutCount.get(s.enzyme) ?? 0) + s.cuts.length);
-    model.enzymes = input.enzymeSites.map((site) => {
+    const items: EnzymeItem[] = input.enzymeSites.map((site) => {
       const cuts = site.cuts.length
         ? site.cuts.map((c) => (topology === 'circular' ? mod(c.top, length) : c.top))
         : [topology === 'circular' ? mod(site.range.start, length) : site.range.start];
@@ -312,26 +316,49 @@ export function buildMapModel(input: MapModelInput): MapModel {
         cut,
         cuts,
         label: `${site.enzyme} (${formatInt(num)})`,
+        names: [...(input.enzymeAliases?.get(site.enzyme) ?? [site.enzyme])],
         unique: count === 1,
         cutCount: count,
       };
+    });
+    // Enzymes cutting at the same place (isoschizomers, or sites that overlap there) are labelled once, SnapGene-style.
+    const byCut = new Map<number, EnzymeItem>();
+    for (const item of items) {
+      const first = byCut.get(item.cut);
+      if (!first) {
+        byCut.set(item.cut, item);
+        continue;
+      }
+      for (const name of item.names) if (!first.names.includes(name)) first.names.push(name);
+      first.unique = first.unique || item.unique;
+    }
+    model.enzymes = [...byCut.values()].map((item) => {
+      if (item.names.length < 2) return item;
+      const names = [...item.names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+      const num = item.site.cuts.length ? cutLabelPosition(item.cut, length, topology) : item.cut + 1;
+      return { ...item, names, label: `${names.join(' - ')} (${formatInt(num)})` };
     });
   }
 
   if (layers.primers !== false && input.primerSites) {
     const names = new Map(record.primers.map((p) => [p.id, p.name] as const));
-    const minBp = Math.max(1, Math.round(length * PRIMER_MIN_FRACTION));
-    const extents = input.primerSites.map((s) =>
-      primerExtent(normalizeRange(s.range, length, topology), s.strand, minBp, length, topology),
-    );
-    const lanes = assignLanes(extents, length, topology, Math.ceil(minBp / 4));
+    const extents = input.primerSites.map((s) => normalizeRange(s.range, length, topology));
+    const padBp = Math.max(1, Math.round(length * 0.002));
+    const fwdIdx: number[] = [];
+    const revIdx: number[] = [];
+    input.primerSites.forEach((s, i) => (s.strand === 1 ? fwdIdx : revIdx).push(i));
+    const fwdLanes = assignLanes(fwdIdx.map((i) => extents[i]), length, topology, padBp);
+    const revLanes = assignLanes(revIdx.map((i) => extents[i]), length, topology, padBp);
+    const lanes = new Array<number>(input.primerSites.length).fill(0);
+    fwdIdx.forEach((idx, k) => (lanes[idx] = fwdLanes[k]));
+    revIdx.forEach((idx, k) => (lanes[idx] = revLanes[k]));
     model.primers = input.primerSites.map((site, i) => ({
       site,
       name: names.get(site.primerId)?.trim() || 'Primer',
       lane: lanes[i],
       extent: extents[i],
     }));
-    model.primerLanes = laneCountOf(lanes);
+    model.primerLanes = Math.max(laneCountOf(fwdLanes), laneCountOf(revLanes));
   }
 
   if (layers.orfs !== false && input.orfs) {
@@ -354,6 +381,15 @@ export interface InsideLabel {
   d: string;
   text: string;
   fontSize: number;
+  /** Optional radial/angular bounds for hit-testing Tier 2 ('below') curved labels. */
+  rIn?: number;
+  rOut?: number;
+  a0?: number;
+  a1?: number;
+  /** 'below' labels: radius of the text and shell (0 = just below the feature), and the leader line up to the feature. */
+  rMid?: number;
+  shell?: number;
+  leader?: string | null;
 }
 
 export interface FeatureShape {
@@ -376,7 +412,10 @@ export interface FeatureShape {
   connectors: string;
   fill: string;
   stroke: string;
+  /** Tier 1: Curved label inside the feature arc when the arc is wide enough. */
   inside: InsideLabel | null;
+  /** Tier 2: Curved label directly below/inside the feature arc without a leader line when space permits. */
+  below: InsideLabel | null;
 }
 
 export interface PrimerShape {
@@ -415,6 +454,8 @@ export interface TextItem {
   /** Baseline y. */
   y: number;
   text: string;
+  /** Optional SVG transform (tangential rotation along the outer backbone ring). */
+  transform?: string;
 }
 
 export interface RulerShape {
@@ -490,12 +531,23 @@ export interface LabelFrame {
   fontSize: number;
   /** Circle the label rows hug. */
   labelRadius: number;
+  /**
+   * Semi-axes of the (invisible) ellipse the label rows hug, around the map centre; both default to `labelRadius`
+   * (a circle just outside the ring). A wide ellipse puts the labels far from a smaller ring, giving the rows room.
+   */
+  radiusX?: number;
+  radiusY?: number;
   /** Outer edge of the ring decorations: leaders never cut inside it. */
   ringOuter: number;
   /** Radius where leaders bend from radial to straight. */
   elbowRadius: number;
   /** Largest angle (degrees) between a label's anchor and the label itself. */
   maxDisplacement: number;
+  /**
+   * Whether labels near 12 and 6 o'clock are shared between the two columns to even their load (default),
+   * which can send a label across the vertical axis; false keeps every label in the column of its own side.
+   */
+  balancePoles?: boolean;
   /** Labels must stay within [left, right] (x). */
   left: number;
   right: number;
@@ -558,32 +610,33 @@ export interface GeometryOptions {
 }
 
 // Radial constants (px).
-const GAP0 = 3; // backbone -> outer edge of feature lane 0
-const PRIMER_OFFSET = 6; // backbone -> inner edge of primer lane 0 (clear of the cut ticks)
-const PRIMER_W = 7; // arrow head width (the shaft is thinner)
-const PRIMER_SHAFT = 2.5;
-const PRIMER_STEP = 9;
-const PRIMER_HEAD = 6; // arrow head length
-/** Shortest primer arrow drawn (px): a 20-mer on a large plasmid is otherwise a dot. */
-const PRIMER_MIN_PX = 14;
+const BACKBONE_STRAND_GAP = 3; // outer strand (R) -> inner strand (R - 3) of double-line backbone
+const PRIMER_OFFSET = 1.6; // tight clearance from outer/inner backbone strand to primer lane 0
+const PRIMER_W = 1.4; // radial thickness of the orange primer line
+const PRIMER_STEP = 2.6; // radial step between stacked primer lanes
+const PRIMER_MIN_PX = 1.5; // minimum visible arc length (px) for actual primer span
 const MAX_PRIMER_LANES = 4;
-const TICK_IN = 3; // enzyme tick: inside the backbone
-const TICK_OUT = 5; // enzyme tick: outside the backbone
+const REV_PRIMER_BASE_BAND = 5.5; // reserved band just inside inner DNA strand for reverse primers
+const MAJOR_TICK = 7.5; // bp ruler tick length inside the reverse-primer band
+const MINOR_TICK = 2.5;
+const GAP0_NO_RULER = BACKBONE_STRAND_GAP + REV_PRIMER_BASE_BAND + 2; // backbone (R) -> outer edge of feature lane 0 when ruler is hidden
+const TICK_OUT = 4; // invisible hit-test stub outside the outer backbone for enzyme cuts
 const ORF_W = 6; // arrow head width
 const ORF_SHAFT = 2;
 const ORF_STEP = 7;
-const ORF_OFFSET = 3;
+const ORF_OFFSET = 1;
+const ORF_FEATURE_GAP = 3; // last ORF lane -> feature lane 0
 const MAX_ORF_LANES = 6;
-const RULER_GAP = 6; // innermost annotation -> ruler ticks
-const MAJOR_TICK = 5;
-const MINOR_TICK = 2.5;
 const INSIDE_PAD = 5; // inside label clearance at each end
+const INSIDE_MIN_ARC_PX = 24; // least room along the arc (after the arrowhead and the padding) for an inside label
 const HEAD_PX = 9; // arrowhead length
 export const LABEL_CHIP_GAP = 4; // colour chip -> label text
+/** Padding (px) on each side of the text of an outside feature label, which is drawn in a box tinted like the feature. */
+export const LABEL_BOX_PAD = 5;
 const ATTACH_GAP = 3; // leader end -> label
 const POLE_INSET = 6; // label columns keep this far from the vertical axis
 /** Radius candidates, as fractions of the largest radius the labels allow. */
-const RADIUS_TRIALS = [1, 0.94, 0.88, 0.82, 0.76];
+const RADIUS_TRIALS = [1, 0.94, 0.88, 0.82, 0.76, 0.68, 0.6, 0.52];
 /** Bare maps (no labels at all) keep this much breathing room. */
 const BARE_FILL = 0.86;
 
@@ -600,9 +653,15 @@ interface RadialPlan {
   orfLaneCount: number;
   rulerFont: number;
   rulerLabels: boolean;
-  /** Ticks are drawn (false on tiny maps where an unnumbered ruler would only crowd the centre). */
+  /** Ticks are drawn (false on tiny maps). */
   ruler: boolean;
   rulerRadius: number;
+  /** Radial distance from inner backbone strand (rr) to where bp ruler labels begin (clears reverse primers). */
+  revPrimerBand: number;
+  /** Radial distance from outer backbone R to feature lane 0 rOut (the ORF lanes lie in between). */
+  gap0: number;
+  /** Radial distance from outer backbone R to where the ORF lanes begin. */
+  orfGap0: number;
   centreRadius: number;
 }
 
@@ -620,21 +679,30 @@ function insideFontFor(band: number): number {
   return 0; // too thin for text
 }
 
-function planRadii(model: MapModel, R: number, rulerLabelWidth: (fontSize: number) => number): RadialPlan {
+function planRadii(model: MapModel, R: number, _rulerLabelWidth: (fontSize: number) => number): RadialPlan {
   let { band, laneGap } = sizeBand(R);
   const wanted = model.featureLanes;
   const orfLaneCount = Math.min(model.orfLanes, MAX_ORF_LANES);
-  const orfDepth = orfLaneCount ? ORF_OFFSET + orfLaneCount * ORF_STEP - (ORF_STEP - ORF_W) : 0;
-  const rulerFont = R < 150 ? 9 : 10;
-  const labelW = rulerLabelWidth(rulerFont);
-  let rulerLabels = R >= 115;
-  const rulerSpace = () => RULER_GAP + MAJOR_TICK + (rulerLabels ? 3 + labelW + 3 : 2);
-  const minCentre = Math.max(24, Math.min(110, R * 0.3));
-  let avail = R - GAP0 - orfDepth - rulerSpace() - minCentre;
-  if (avail < band && rulerLabels) {
-    rulerLabels = false;
-    avail = R - GAP0 - orfDepth - rulerSpace() - minCentre;
+  // every ORF lane adds its own depth, plus a clear gap before the feature lanes
+  const orfDepth = orfLaneCount ? ORF_OFFSET + orfLaneCount * ORF_STEP - (ORF_STEP - ORF_W) + ORF_FEATURE_GAP : 0;
+  const rulerFont = R < 150 ? 8 : 9;
+  const ruler = model.length > 0 && R >= 55;
+  const rulerLabels = ruler && R >= 85;
+  const rulerRadius = Math.max(1, R - BACKBONE_STRAND_GAP);
+  let maxRevLane = -1;
+  for (const p of model.primers) {
+    if (p.site.strand === -1 && p.lane > maxRevLane) maxRevLane = p.lane;
   }
+  const revLanes = Math.min(maxRevLane + 1, MAX_PRIMER_LANES);
+  const revPrimerBand = Math.max(
+    REV_PRIMER_BASE_BAND,
+    revLanes > 0 ? PRIMER_OFFSET + revLanes * PRIMER_STEP + 1.5 : 0,
+  );
+  const gap0 = ruler
+    ? BACKBONE_STRAND_GAP + revPrimerBand + MAJOR_TICK + 3
+    : Math.max(GAP0_NO_RULER, BACKBONE_STRAND_GAP + revPrimerBand + 2);
+  const minCentre = Math.max(24, Math.min(110, R * 0.3));
+  const avail = R - gap0 - orfDepth - 6 - minCentre;
   let laneCount = wanted;
   if (wanted > 0 && wanted * (band + laneGap) - laneGap > avail) {
     laneGap = 1.5;
@@ -645,14 +713,8 @@ function planRadii(model: MapModel, R: number, rulerLabelWidth: (fontSize: numbe
   }
   band = Math.round(band * 2) / 2;
   const featureDepth = laneCount > 0 ? laneCount * (band + laneGap) - laneGap : 0;
-  const innermost = R - GAP0 - featureDepth - orfDepth;
-  // Nothing drawn inside the backbone: the ticks hang straight off the backbone.
-  const bare = laneCount === 0 && orfLaneCount === 0;
-  const rulerRadius = bare ? R : innermost - RULER_GAP;
-  let centreRadius = Math.max(12, rulerRadius - MAJOR_TICK - (rulerLabels ? 3 + labelW + 4 : 4));
-  // Without numbers the ruler is decoration: drop it rather than squeeze the record name.
-  const ruler = rulerLabels || bare || centreRadius >= 44;
-  if (!ruler) centreRadius = Math.max(12, innermost - 6);
+  const innermost = R - gap0 - featureDepth - orfDepth;
+  const centreRadius = Math.max(12, innermost - 8);
   return {
     band,
     laneGap,
@@ -663,14 +725,35 @@ function planRadii(model: MapModel, R: number, rulerLabelWidth: (fontSize: numbe
     rulerLabels,
     ruler,
     rulerRadius,
+    revPrimerBand,
+    gap0: gap0 + orfDepth,
+    orfGap0: gap0,
     centreRadius,
   };
 }
 
 function laneRadii(plan: RadialPlan, R: number, lane: number): { rIn: number; rOut: number } {
   const k = Math.min(lane, Math.max(0, plan.laneCount - 1));
-  const rOut = R - GAP0 - k * (plan.band + plan.laneGap);
+  const rOut = R - plan.gap0 - k * (plan.band + plan.laneGap);
   return { rIn: rOut - plan.band, rOut };
+}
+
+/**
+ * Radial band for a primer arc:
+ * - Forward primers (strand === 1) sit OUTSIDE the outer strand (R) of the double-line backbone.
+ * - Reverse primers (strand === -1) sit INSIDE the inner strand (R - BACKBONE_STRAND_GAP) of the double-line backbone.
+ */
+function primerRadii(R: number, strand: 1 | -1, lane: number): { rIn: number; rOut: number; rMid: number } {
+  const k = Math.min(lane, MAX_PRIMER_LANES - 1);
+  if (strand === 1) {
+    const rIn = R + PRIMER_OFFSET + k * PRIMER_STEP;
+    const rOut = rIn + PRIMER_W;
+    return { rIn, rOut, rMid: (rIn + rOut) / 2 };
+  }
+  const rInnerBackbone = Math.max(1, R - BACKBONE_STRAND_GAP);
+  const rOut = rInnerBackbone - PRIMER_OFFSET - k * PRIMER_STEP;
+  const rIn = rOut - PRIMER_W;
+  return { rIn, rOut, rMid: (rIn + rOut) / 2 };
 }
 
 /** Angles of a (normalized) range. */
@@ -686,23 +769,13 @@ function widenToPx(a0: number, a1: number, r: number, minPx: number): { a0: numb
   return { a0: mid - min / 2, a1: mid + min / 2 };
 }
 
-/**
- * Make an arrow at least `minPx` long by extending its 5' end: the tip stays exactly at the
- * 3' end (a1 for the top strand, a0 for the bottom strand), where a primer is extended.
- */
-function lengthenTail(a0: number, a1: number, r: number, minPx: number, strand: 1 | -1): { a0: number; a1: number } {
-  const min = pxToDegrees(minPx, r);
-  if (a1 - a0 >= min) return { a0, a1 };
-  return strand === 1 ? { a0: a1 - min, a1 } : { a0, a1: a0 + min };
-}
-
 function featureName(f: Feature): string {
   const name = f.name.replace(/\s+/g, ' ').trim();
   return name || f.type;
 }
 
 function tickLabelText(p: number, length: number): string {
-  return length >= 100_000 ? formatCompactBp(p) : formatInt(p);
+  return length >= 100_000 ? formatCompactBp(p) : String(p);
 }
 
 /** Index of the longest piece (the one that carries the label). */
@@ -736,6 +809,8 @@ interface Context {
   rulerLabelWidth: (fontSize: number) => number;
   /** Feature names (inside labels and outside label text). */
   featureNames: string[];
+  /** Primer label texts (with optional location prefix and bp length suffix). */
+  primerNames: string[];
   /** Outside label widths: features include the colour chip. */
   featureWidth: number[];
   enzymeWidth: number[];
@@ -748,7 +823,7 @@ const FEATURE_WEIGHT = 500;
 const PRIMER_WEIGHT = 500;
 const enzymeWeight = (e: EnzymeItem) => (e.unique ? 600 : 400);
 
-/** Does feature i's name fit inside its arc at radius R? */
+/** Does feature i's name fit comfortably inside its arc at radius R (Tier 1 'inside')? */
 function insideFits(ctx: Context, R: number, plan: RadialPlan, i: number): boolean {
   if (!plan.insideFont) return false;
   const f = ctx.model.features[i];
@@ -756,8 +831,116 @@ function insideFits(ctx: Context, R: number, plan: RadialPlan, i: number): boole
   const rMid = (lane.rIn + lane.rOut) / 2;
   const head = f.feature.strand !== 0 ? Math.min(HEAD_PX, plan.band * 0.85) : 0;
   const avail = arcLength(rMid, ctx.featureSpan[i]) - head - 2 * INSIDE_PAD;
-  if (avail <= 0) return false;
-  return ctx.measure(ctx.featureNames[i], plan.insideFont, FEATURE_WEIGHT) <= avail;
+  // The name must fill at most 78% of the room; an arc shorter than INSIDE_MIN_ARC_PX is too tight for any text, but a
+  // short name such as "UGI" fits well in a short arc (a fixed, larger minimum used to push it out of its feature).
+  if (avail < INSIDE_MIN_ARC_PX) return false;
+  return ctx.measure(ctx.featureNames[i], plan.insideFont, FEATURE_WEIGHT) <= avail * 0.78;
+}
+
+/**
+ * How wide a 'below' label may be compared with its feature: up to BELOW_TEXT_PER_ARC times the feature's arc, and
+ * always up to BELOW_MIN_TEXT_PX. A long name on a short feature still reads well inside the map when the space around
+ * it is free (the checks below keep it clear of other features, ORFs and labels); this used to be 3.6 times / 85 px,
+ * which sent such names outside as soon as a smaller map made the arc shorter.
+ */
+const BELOW_TEXT_PER_ARC = 6;
+/** Shortest feature arc (px) that still gets a 'below' label; smaller ones have no anchor worth labelling in place. */
+const BELOW_MIN_FEATURE_ARC_PX = 2.5;
+const BELOW_MIN_TEXT_PX = 130;
+
+/** Number of concentric shells inside the map where Tier 2 ('below') labels can stand. */
+const BELOW_SHELLS = 2;
+
+/** Radial distance between two shells of 'below' labels for label font size `fs`. */
+const belowShellStep = (fs: number): number => fs * 1.25 + 1;
+
+/** Radius (centre of the text) of a 'below' label of a feature whose lane starts at `rIn`, in the given shell. */
+const belowRadius = (rIn: number, fs: number, shell: number): number => rIn - (fs * 0.62 + 2.5) - shell * belowShellStep(fs);
+
+/**
+ * Tier 2 ('below') features: medium-sized features whose label does not fit inside their arc, yet have
+ * sufficient arc span and clear angular/radial space inside the map to render curved below their arc
+ * without a leader line. Value = shell (0 = directly below the arc, 1 = one shell further in): a label that
+ * finds the first shell taken moves to the second one instead of going outside with a leader.
+ */
+function belowFeatureIndices(ctx: Context, R: number, plan: RadialPlan): Map<number, number> {
+  const placed = new Map<number, number>();
+  if (!plan.insideFont || plan.laneCount <= 0) return placed;
+  const fs = Math.max(9, plan.insideFont - 0.5);
+  const { model, scale, measure } = ctx;
+  const order = model.features.map((_, i) => i);
+  order.sort((a, b) => model.features[b].length - model.features[a].length || a - b);
+
+  const occupied: Array<{ lane: number; shell: number; r: number; a0: number; a1: number }> = [];
+  const arcsOverlap = (a0: number, a1: number, b0: number, b1: number, padDeg = 2): boolean => {
+    const spanA = Math.min(360, Math.max(0.1, a1 - a0) + padDeg);
+    const spanB = Math.min(360, Math.max(0.1, b1 - b0) + padDeg);
+    const midA = (a0 + a1) / 2;
+    const midB = (b0 + b1) / 2;
+    const diff = Math.abs(((((midA - midB) % 360) + 540) % 360) - 180);
+    return diff < (spanA + spanB) / 2;
+  };
+
+  for (const i of order) {
+    const item = model.features[i];
+    if (!item.named || insideFits(ctx, R, plan, i)) continue;
+    const k = Math.min(item.lane, Math.max(0, plan.laneCount - 1));
+    const { rIn } = laneRadii(plan, R, k);
+    const spanDeg = ctx.featureSpan[i];
+    const featArcPx = arcLength(rIn, spanDeg);
+    // Medium-sized features with clear surrounding space get Tier 2 ('below');
+    // tiny or crowded features get Tier 3 ('outside' with leader line)
+    if (featArcPx < BELOW_MIN_FEATURE_ARC_PX) continue;
+    const text = ctx.featureNames[i];
+    const tw = measure(text, fs, FEATURE_WEIGHT);
+    if (tw > Math.max(featArcPx * BELOW_TEXT_PER_ARC, BELOW_MIN_TEXT_PX)) continue;
+    const seg = rangeAngles(scale, item.pieces[longestPiece(item.pieces)]);
+    const mid = (seg.a0 + seg.a1) / 2;
+
+    for (let shell = 0; shell < BELOW_SHELLS; shell++) {
+      const rBelow = belowRadius(rIn, fs, shell);
+      if (rBelow - fs * 0.6 < Math.min(plan.centreRadius * 0.55, 64)) break; // no room further in either
+      const halfDeg = pxToDegrees(tw / 2 + 4, Math.max(12, rBelow));
+      if (halfDeg * 2 > 110) continue;
+      const lA0 = mid - halfDeg;
+      const lA1 = mid + halfDeg;
+
+      // Must not overlap any feature drawn in a deeper lane (lane > k)
+      let blocked = false;
+      for (let j = 0; j < model.features.length && !blocked; j++) {
+        if (j === i) continue;
+        const other = model.features[j];
+        const ok = Math.min(other.lane, Math.max(0, plan.laneCount - 1));
+        if (ok <= k) continue;
+        const otherRadii = laneRadii(plan, R, ok);
+        if (otherRadii.rOut < rBelow - fs * 0.7 || otherRadii.rIn > rIn) continue;
+        for (const p of other.pieces) {
+          const oa = rangeAngles(scale, p);
+          if (arcsOverlap(lA0, lA1, oa.a0, oa.a1, 0)) {
+            blocked = true;
+            break;
+          }
+        }
+      }
+      if (blocked) continue;
+
+      // Must not overlap an already placed 'below' label: the same or an adjacent lane in the first shell (as
+      // before), or any label at about the same radius (a first-shell label of a deeper lane can sit there).
+      for (const prev of occupied) {
+        if (!arcsOverlap(lA0, lA1, prev.a0, prev.a1, 3)) continue;
+        if ((shell === 0 && prev.shell === 0 && Math.abs(prev.lane - k) <= 1) || Math.abs(prev.r - rBelow) < fs * 1.25) {
+          blocked = true;
+          break;
+        }
+      }
+      if (blocked) continue;
+
+      placed.set(i, shell);
+      occupied.push({ lane: k, shell, r: rBelow, a0: lA0, a1: lA1 });
+      break;
+    }
+  }
+  return placed;
 }
 
 /** Largest backbone radius that leaves room for labels `allowance` px wide (or none). */
@@ -798,8 +981,9 @@ function labelCandidates(ctx: Context, R: number, plan: RadialPlan): LabelCandid
   const L = model.length;
   const out: LabelCandidate[] = [];
   const seen = new Set<string>();
+  const belowSet = belowFeatureIndices(ctx, R, plan);
   model.features.forEach((item, i) => {
-    if (insideFits(ctx, R, plan, i)) return;
+    if (insideFits(ctx, R, plan, i) || belowSet.has(i)) return;
     const text = ctx.featureNames[i];
     // Two annotations with the same name and extent (gene + CDS) share one outside label.
     const dedupe = `${ctx.featureNames[i]}|${item.extent.start}|${item.extent.end}`;
@@ -824,9 +1008,12 @@ function labelCandidates(ctx: Context, R: number, plan: RadialPlan): LabelCandid
     });
   });
   model.primers.forEach((item, i) => {
-    const text = item.name;
-    const k = Math.min(item.lane, MAX_PRIMER_LANES - 1);
-    const a = rangeAngles(scale, normalizeRange(item.site.range, L, model.topology));
+    const text = ctx.primerNames[i];
+    const { rMid } = primerRadii(R, item.site.strand, item.lane);
+    const ra = rangeAngles(scale, normalizeRange(item.site.range, L, model.topology));
+    const a = widenToPx(ra.a0, ra.a1, rMid, PRIMER_MIN_PX);
+    // Leader connects at the 5' end of the primer: a0 for Forward (strand === 1), a1 for Reverse (strand === -1)
+    const fivePrimeAngle = item.site.strand === 1 ? a.a0 : a.a1;
     out.push({
       key: `p:${i}`,
       ref: { kind: 'primer', index: i },
@@ -835,9 +1022,10 @@ function labelCandidates(ctx: Context, R: number, plan: RadialPlan): LabelCandid
       chip: null,
       fontWeight: PRIMER_WEIGHT,
       tone: item.site.strand === 1 ? 'primerFwd' : 'primerRev',
-      angle: mod((a.a0 + a.a1) / 2, 360),
-      anchorRadius: R + PRIMER_OFFSET + k * PRIMER_STEP + PRIMER_W,
-      priorityClass: 5,
+      angle: mod(fivePrimeAngle, 360),
+      anchorRadius: rMid,
+      // Place primers right after named features so their orange leader lines stay short and direct
+      priorityClass: 2,
       weight: item.site.range.end - item.site.range.start,
     });
   });
@@ -852,7 +1040,8 @@ function labelCandidates(ctx: Context, R: number, plan: RadialPlan): LabelCandid
       fontWeight: enzymeWeight(item),
       tone: item.unique ? 'enzymeUnique' : 'enzyme',
       angle: mod(positionToAngle(scale, item.cut), 360),
-      anchorRadius: R + TICK_OUT,
+      // Connect the faint leader line directly to the outer strand (R) of the double-line backbone
+      anchorRadius: R,
       priorityClass: item.unique ? 3 : 4,
       weight: 0,
     });
@@ -867,6 +1056,32 @@ function dropCost(p: LabelPlacement): number {
   return p.droppedCost;
 }
 
+/** What one pair of crossing leader lines costs when comparing layouts (see DROP_COST for lost labels). */
+const CROSSING_COST = 0.05;
+
+/** Number of pairs of leader lines that cross each other. */
+function leaderCrossings(labels: readonly PlacedLabel[]): number {
+  const lines = labels.map((l) => {
+    const n = (l.leader.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+    const pts: Pt[] = [];
+    for (let i = 0; i + 1 < n.length; i += 2) pts.push({ x: n[i], y: n[i + 1] });
+    return pts;
+  });
+  let count = 0;
+  for (let i = 0; i < lines.length; i++) {
+    for (let j = i + 1; j < lines.length; j++) {
+      let hit = false;
+      for (let a = 0; a + 1 < lines[i].length && !hit; a++) {
+        for (let b = 0; b + 1 < lines[j].length && !hit; b++) {
+          hit = segmentsCross(lines[i][a], lines[i][a + 1], lines[j][b], lines[j][b + 1]);
+        }
+      }
+      if (hit) count++;
+    }
+  }
+  return count;
+}
+
 /**
  * Size-dependent geometry. Returns null until the container has a usable size.
  */
@@ -878,7 +1093,7 @@ export function computeGeometry(model: MapModel, opts: GeometryOptions): MapGeom
   const small = Math.min(W, H) < 520;
   const fontSize = small ? 10 : 11;
   const lineHeight = Math.round(fontSize * 1.3);
-  const chipW = labelChipSize(fontSize) + LABEL_CHIP_GAP;
+  const chipW = 2 * LABEL_BOX_PAD; // width a feature label's box adds to its text
 
   const primerLaneCount = Math.min(model.primerLanes, MAX_PRIMER_LANES);
   const primerOuter = primerLaneCount ? PRIMER_OFFSET + primerLaneCount * PRIMER_STEP - (PRIMER_STEP - PRIMER_W) : 0;
@@ -894,7 +1109,25 @@ export function computeGeometry(model: MapModel, opts: GeometryOptions): MapGeom
     return w;
   };
 
-  const featureNames = model.features.map((f) => featureName(f.feature));
+  const featureNames = model.features.map((f) => {
+    const base = featureName(f.feature);
+    return model.showLengths ? `${base} (${formatInt(f.length)} bp)` : base;
+  });
+  const primerSeqLengths = new Map(model.record.primers.map((p) => [p.id, p.sequence.length] as const));
+  const primerNames = model.primers.map((p) => {
+    let text = p.name;
+    const norm = normalizeRange(p.site.range, L, model.topology);
+    if (model.showPrimerLocations && L > 0) {
+      const start1 = norm.start + 1;
+      const end1 = mod(norm.end - 1, L) + 1;
+      text = `(${start1} .. ${end1}) ${text}`;
+    }
+    if (model.showLengths) {
+      const bpLen = primerSeqLengths.get(p.site.primerId) || Math.max(0, norm.end - norm.start);
+      text = `${text} (${formatInt(bpLen)} bp)`;
+    }
+    return text;
+  });
   const dpb = (360 - scale.gap) / Math.max(1, L);
   const ctx: Context = {
     model,
@@ -910,14 +1143,15 @@ export function computeGeometry(model: MapModel, opts: GeometryOptions): MapGeom
     lineHeight,
     chipW,
     ringExtra: Math.max(model.enzymes.length ? TICK_OUT : 0, primerOuter, 1),
-    labelGap: small ? 15 : 22,
-    elbow: small ? 5 : 7,
+    labelGap: small ? 18 : 26,
+    elbow: 2,
     rulerInfo,
     rulerLabelWidth,
     featureNames,
+    primerNames,
     featureWidth: featureNames.map((t) => measure(t, fontSize, FEATURE_WEIGHT) + chipW),
     enzymeWidth: model.enzymes.map((e) => measure(e.label, fontSize, enzymeWeight(e))),
-    primerWidth: model.primers.map((p) => measure(p.name, fontSize, PRIMER_WEIGHT)),
+    primerWidth: primerNames.map((t) => measure(t, fontSize, PRIMER_WEIGHT)),
     featureSpan: model.features.map((f) => {
       const s = f.pieces[longestPiece(f.pieces)];
       return (s.end - s.start) * dpb;
@@ -935,15 +1169,23 @@ export function computeGeometry(model: MapModel, opts: GeometryOptions): MapGeom
   let allowance = Math.max(fixed, Math.min(cap, maxOf(fullFeatureWidth)));
   let Rmax = radiusLimit(ctx, allowance, anyLabels);
   if (fullFeatureWidth.length && Rmax > 20) {
-    // Only the features whose names do not fit inside their arcs need room outside.
+    // Only the features whose names do not fit inside or below their arcs need room outside.
     const plan0 = planRadii(model, Rmax, rulerLabelWidth);
-    const outside = fullFeatureWidth.filter((_, i) => !insideFits(ctx, Rmax, plan0, i));
+    const below0 = belowFeatureIndices(ctx, Rmax, plan0);
+    const outside = fullFeatureWidth.filter((_, i) => !insideFits(ctx, Rmax, plan0, i) && !below0.has(i));
     allowance = Math.max(fixed, Math.min(cap, maxOf(outside)));
     Rmax = Math.max(Rmax, radiusLimit(ctx, allowance, fixed > 0 || outside.length > 0));
   }
   // ---- Radius: the largest trial whose labels fit (almost) as well as the best one. ----
   Rmax = Math.max(20, Math.floor(Rmax));
-  type Trial = { R: number; plan: RadialPlan; candidates: LabelCandidate[]; frame: LabelFrame; placement: LabelPlacement };
+  type Trial = {
+    R: number;
+    plan: RadialPlan;
+    candidates: LabelCandidate[];
+    frame: LabelFrame;
+    placement: LabelPlacement;
+    cost: number;
+  };
   const trials: Trial[] = [];
   if (L === 0) Rmax = Math.max(20, Math.floor(Rmax * 0.62)); // empty state: a quiet, smaller circle
   const minR = Math.min(Rmax, 60);
@@ -952,14 +1194,36 @@ export function computeGeometry(model: MapModel, opts: GeometryOptions): MapGeom
     if (trials.length && trials[trials.length - 1].R === R) continue;
     const plan = planRadii(model, R, rulerLabelWidth);
     const candidates = labelCandidates(ctx, R, plan);
-    const frame = labelFrameFor(ctx, R);
-    const placement = layoutLabels(candidates, frame, NO_PINS);
-    trials.push({ R, plan, candidates, frame, placement });
-    if (placement.hidden === 0) break; // nothing lost: no smaller radius can do better
+    const base = labelFrameFor(ctx, R);
+    const costOf = (p: LabelPlacement) => dropCost(p) + CROSSING_COST * leaderCrossings(p.labels);
+    // Variants of the label layout, kept only when they beat the first one (so ties keep the simplest): rows hug a
+    // circle just outside the ring, or a wide ellipse over the free space around a smaller ring. Labels always stay
+    // in the column of their own side of the vertical axis (balancePoles: false).
+    const wideX = ctx.W / 2 - ctx.margin - allowance;
+    const wideY = ctx.H / 2 - ctx.margin - ctx.lineHeight / 2;
+    const variants: LabelFrame[] = [{ ...base, balancePoles: false }];
+    if (wideX > base.labelRadius + 4 || wideY > base.labelRadius + 4) {
+      variants.push({ ...base, radiusX: Math.max(base.labelRadius, wideX), radiusY: Math.max(base.labelRadius, wideY), balancePoles: false });
+    }
+    let frame = variants[0];
+    let placement = layoutLabels(candidates, frame, NO_PINS);
+    let cost = costOf(placement);
+    for (const variant of variants.slice(1)) {
+      if (cost === 0) break; // nothing lost and no crossing: nothing to improve
+      const alt = layoutLabels(candidates, variant, NO_PINS);
+      const altCost = costOf(alt);
+      if (altCost < cost - 1e-9) {
+        frame = variant;
+        placement = alt;
+        cost = altCost;
+      }
+    }
+    trials.push({ R, plan, candidates, frame, placement, cost });
+    if (cost === 0) break; // nothing lost and no crossing: no smaller radius can do better
   }
-  const best = trials.reduce((m, t) => Math.min(m, dropCost(t.placement)), Infinity);
+  const best = trials.reduce((m, t) => Math.min(m, t.cost), Infinity);
   const tolerance = best * 0.02 + 0.25;
-  const chosen = trials.find((t) => dropCost(t.placement) <= best + tolerance) ?? trials[0];
+  const chosen = trials.find((t) => t.cost <= best + tolerance) ?? trials[0];
   return buildGeometry(ctx, chosen.R, chosen.plan, chosen.candidates, chosen.frame, chosen.placement);
 }
 
@@ -975,22 +1239,24 @@ function buildGeometry(
   const L = model.length;
   const ringOuter = R + ctx.ringExtra;
 
-  // ---- Backbone ----------------------------------------------------------
+  // ---- Backbone (Double-line SnapGene-style ring) --------------------------
+  const rInner = Math.max(1, R - BACKBONE_STRAND_GAP);
   let backbone: string;
   let backboneEnds = '';
   if (L <= 0) {
-    backbone = circlePath(cx, cy, R);
+    backbone = `${circlePath(cx, cy, R)} ${circlePath(cx, cy, rInner)}`;
   } else if (model.topology === 'linear') {
     const a0 = positionToAngle(scale, 0);
     const a1 = positionToAngle(scale, L);
-    backbone = arcPath(cx, cy, R, a0, a1);
-    backboneEnds = `${radialLinePath(cx, cy, R - 4, R + 4, a0)} ${radialLinePath(cx, cy, R - 4, R + 4, a1)}`;
+    backbone = `${arcPath(cx, cy, R, a0, a1)} ${arcPath(cx, cy, rInner, a0, a1)}`;
+    backboneEnds = `${radialLinePath(cx, cy, rInner - 2, R + 2, a0)} ${radialLinePath(cx, cy, rInner - 2, R + 2, a1)}`;
   } else {
-    backbone = circlePath(cx, cy, R);
+    backbone = `${circlePath(cx, cy, R)} ${circlePath(cx, cy, rInner)}`;
   }
 
   // ---- Features ------------------------------------------------------------
   const head = Math.min(HEAD_PX, plan.band * 0.85);
+  const belowSet = belowFeatureIndices(ctx, R, plan);
   const features: FeatureShape[] = model.features.map((item, i) => {
     const f = item.feature;
     const { rIn, rOut } = laneRadii(plan, R, item.lane);
@@ -1031,25 +1297,34 @@ function buildGeometry(
       fill,
       stroke: featureStroke(fill),
       inside: null,
+      below: null,
     };
     if (insideFits(ctx, R, plan, i)) {
       const text = ctx.featureNames[i];
       const piece = longestPiece(item.pieces);
       shape.inside = insideLabel(shape, piece, plan, head, cx, cy, text, measure(text, plan.insideFont, FEATURE_WEIGHT), `f${i}`);
+    } else if (belowSet.has(i)) {
+      const text = ctx.featureNames[i];
+      const piece = longestPiece(item.pieces);
+      const fs = Math.max(9, plan.insideFont - 0.5);
+      shape.below = belowLabel(shape, piece, fs, cx, cy, text, measure(text, fs, FEATURE_WEIGHT), `fb${i}`, belowSet.get(i) ?? 0);
     }
     return shape;
   });
+  // Leader lines from the labels below the features up to their features.
+  const belowShapes = features.filter((f) => f.below);
+  for (const f of belowShapes) {
+    f.below!.leader = belowLeader(f, belowShapes, cx, cy, longestPiece(f.item.pieces));
+  }
   // Paint order: lanes beyond the available depth share the last lane, so draw long features
   // first and short ones on top.
   const featureOrder = features.map((_, i) => i);
   featureOrder.sort((a, b) => features[b].item.length - features[a].item.length || a - b);
 
   // ---- ORFs ------------------------------------------------------------------
-  const innermostFeature =
-    R - GAP0 - (plan.laneCount > 0 ? plan.laneCount * (plan.band + plan.laneGap) - plan.laneGap : 0);
   const orfs: OrfShape[] = model.orfs.map((item, index) => {
     const k = Math.min(item.lane, Math.max(0, plan.orfLaneCount - 1));
-    const rOut = innermostFeature - ORF_OFFSET - k * ORF_STEP;
+    const rOut = R - plan.orfGap0 - ORF_OFFSET - k * ORF_STEP;
     const rIn = rOut - ORF_W;
     const ra = rangeAngles(scale, normalizeRange(item.orf.range, L, model.topology));
     const a = widenToPx(ra.a0, ra.a1, rOut, 3);
@@ -1064,17 +1339,11 @@ function buildGeometry(
     };
   });
 
-  // ---- Primers ----------------------------------------------------------------
+  // ---- Primers (Orange arc lines of actual primer length; Forward outside R, Reverse inside R - 3) ----
   const primers: PrimerShape[] = model.primers.map((item, index) => {
-    const k = Math.min(item.lane, MAX_PRIMER_LANES - 1);
-    const rIn = R + PRIMER_OFFSET + k * PRIMER_STEP;
-    const rOut = rIn + PRIMER_W;
-    const rMid = (rIn + rOut) / 2;
+    const { rIn, rOut, rMid } = primerRadii(R, item.site.strand, item.lane);
     const ra = rangeAngles(scale, normalizeRange(item.site.range, L, model.topology));
-    // Never longer than the room reserved on the lane (tiny maps): arrows on a lane never touch.
-    const reserved = rangeAngles(scale, item.extent);
-    const minPx = Math.min(PRIMER_MIN_PX, arcLength(rMid, reserved.a1 - reserved.a0));
-    const a = lengthenTail(ra.a0, ra.a1, rMid, minPx, item.site.strand);
+    const a = widenToPx(ra.a0, ra.a1, rMid, PRIMER_MIN_PX);
     return {
       index,
       item,
@@ -1082,11 +1351,11 @@ function buildGeometry(
       rOut,
       a0: a.a0,
       a1: a.a1,
-      d: thinArrowPath(cx, cy, rMid, PRIMER_SHAFT, PRIMER_W, PRIMER_HEAD, a.a0, a.a1, item.site.strand),
+      d: arcPath(cx, cy, rMid, a.a0, a.a1),
     };
   });
 
-  // ---- Enzymes ----------------------------------------------------------------
+  // ---- Enzymes (No dark tick piercing the double-line ring; only outer stub for hit-testing) ----
   const enzymes: EnzymeShape[] = model.enzymes.map((item, index) => {
     const cutAngles = item.cuts.map((c) => positionToAngle(scale, c));
     return {
@@ -1094,49 +1363,63 @@ function buildGeometry(
       item,
       angle: cutAngles[0],
       cutAngles,
-      d: cutAngles.map((a) => radialLinePath(cx, cy, R - TICK_IN, R + TICK_OUT, a)).join(' '),
+      d: cutAngles.map((a) => radialLinePath(cx, cy, R, R + TICK_OUT, a)).join(' '),
     };
   });
 
-  // ---- Ruler ----------------------------------------------------------------------
+  // ---- Ruler (SnapGene-style ticks & bp labels placed inward of reverse primer band) ----
   let ruler: RulerShape | null = null;
   const rulerInfo = ctx.rulerInfo;
-  if (rulerInfo && plan.ruler && plan.rulerRadius > 16) {
+  if (rulerInfo && plan.ruler && plan.rulerRadius > 20) {
     const rr = plan.rulerRadius;
-    const pxPerMinor = arcLength(rr, rulerInfo.minorStep * ((360 - scale.gap) / Math.max(1, L)));
+    const tickInner = rr - plan.revPrimerBand - MAJOR_TICK;
+    const minorInner = rr - MINOR_TICK;
+    const dpb = (360 - scale.gap) / Math.max(1, L);
+    const pxPerMinor = arcLength(rr, rulerInfo.minorStep * dpb);
     let major = '';
     let minor = '';
     const labels: TextItem[] = [];
+    // Place bp coordinate text inside the reverse-primer band so it never collides with reverse primer lines
+    const rLabel = rr - plan.revPrimerBand - MAJOR_TICK * 0.55;
+    const labelClearanceDeg: Array<{ from: number; to: number }> = [];
     for (const p of rulerInfo.major) {
       const a = positionToAngle(scale, p);
-      major += `${radialLinePath(cx, cy, rr, rr - MAJOR_TICK, a)} `;
+      major += `${radialLinePath(cx, cy, rr, tickInner, a)} `;
       if (plan.rulerLabels) {
         const text = tickLabelText(p, L);
         const w = measure(text, plan.rulerFont, 400);
-        // Keep the text box clear of the tick: its extent along the radius depends on the angle.
-        const ext = Math.abs(Math.sin(a * DEG)) * (w / 2) + Math.abs(Math.cos(a * DEG)) * plan.rulerFont * 0.55;
-        const pt = polarToCartesian(cx, cy, rr - MAJOR_TICK - 3 - ext, a);
-        labels.push({ x: pt.x, y: pt.y + plan.rulerFont * 0.35, text });
+        const halfSpanDeg = pxToDegrees(w / 2 + 2.5, rLabel);
+        const labelAngle = a - halfSpanDeg;
+        labelClearanceDeg.push({ from: a - halfSpanDeg * 2 - 1, to: a + 1 });
+        const pt = polarToCartesian(cx, cy, rLabel, labelAngle);
+        const ang = mod(labelAngle, 360);
+        const rot = ang > 90 && ang < 270 ? ang - 180 : ang > 180 ? ang - 360 : ang;
+        const rx = Math.round(pt.x * 100) / 100;
+        const ry = Math.round(pt.y * 100) / 100;
+        const rRot = Math.round(rot * 100) / 100;
+        labels.push({
+          x: pt.x,
+          y: pt.y + plan.rulerFont * 0.35,
+          text,
+          transform: `rotate(${rRot} ${rx} ${ry})`,
+        });
       }
     }
-    if (rulerInfo.minorStep < rulerInfo.step && pxPerMinor >= 5) {
+    if (rulerInfo.minorStep < rulerInfo.step && pxPerMinor >= 6) {
       for (let p = rulerInfo.minorStep; p < L; p += rulerInfo.minorStep) {
         if (p % rulerInfo.step === 0) continue;
-        minor += `${radialLinePath(cx, cy, rr, rr - MINOR_TICK, positionToAngle(scale, p))} `;
+        const ma = positionToAngle(scale, p);
+        if (labelClearanceDeg.some((c) => ma >= c.from && ma <= c.to)) continue;
+        minor += `${radialLinePath(cx, cy, rr, minorInner, ma)} `;
       }
     }
     const a0 = positionToAngle(scale, 0);
     ruler = {
       radius: rr,
-      circle:
-        rr >= R - 0.5
-          ? ''
-          : model.topology === 'linear'
-            ? arcPath(cx, cy, rr, positionToAngle(scale, 0), positionToAngle(scale, L))
-            : circlePath(cx, cy, rr),
+      circle: '',
       major: major.trim(),
       minor: minor.trim(),
-      origin: radialLinePath(cx, cy, rr + 1, rr - MAJOR_TICK - 1, a0),
+      origin: radialLinePath(cx, cy, R, tickInner, a0),
       labels,
       fontSize: plan.rulerFont,
     };
@@ -1239,6 +1522,75 @@ function insideLabel(
   return { key, d, text, fontSize: fs };
 }
 
+/**
+ * Thin radial line from a 'below' label up to its feature. It meets the label inside the label's span and the feature
+ * inside the feature's arc, and picks the angle (middle, then near either end) where it does not run through the text
+ * of another 'below' label that stands between them (a label in the second shell sits behind one in the first).
+ * Null when the label touches the feature.
+ */
+function belowLeader(shape: FeatureShape, all: readonly FeatureShape[], cx: number, cy: number, piece: number): string | null {
+  const label = shape.below;
+  const seg = shape.segments[piece];
+  if (!label || label.rMid === undefined || label.a0 === undefined || label.a1 === undefined || !seg) return null;
+  const rEnd = label.rMid + label.fontSize * 0.55; // just outside the text
+  const rStart = shape.rIn;
+  if (rEnd >= rStart - 0.5) return null;
+  const lo = Math.max(seg.a0, label.a0) + 0.4;
+  const hi = Math.min(seg.a1, label.a1) - 0.4;
+  const mid = (seg.a0 + seg.a1) / 2;
+  const angles = lo <= hi ? [Math.min(hi, Math.max(lo, mid)), lo, hi] : [mid];
+  const blocked = (angle: number) =>
+    all.some((o) => {
+      const t = o.below;
+      if (o === shape || !t || t.rMid === undefined || t.a0 === undefined || t.a1 === undefined) return false;
+      const reach = t.fontSize * 0.7;
+      if (t.rMid + reach < rEnd || t.rMid - reach > rStart) return false; // not between the label and the feature
+      const half = (t.a1 - t.a0) / 2;
+      return Math.abs(angleDelta(angle, (t.a0 + t.a1) / 2)) <= half;
+    });
+  const angle = angles.find((a) => !blocked(a)) ?? angles[0];
+  const a = polarToCartesian(cx, cy, rEnd, angle);
+  const b = polarToCartesian(cx, cy, rStart, angle);
+  return `M ${r2(a.x)} ${r2(a.y)} L ${r2(b.x)} ${r2(b.y)}`;
+}
+
+/** Tier 2 ('below') curved label placed below/inside a feature arc (in the given shell) without a leader line. */
+function belowLabel(
+  shape: FeatureShape,
+  segIndex: number,
+  fontSize: number,
+  cx: number,
+  cy: number,
+  text: string,
+  textWidth: number,
+  key: string,
+  shell: number,
+): InsideLabel {
+  const seg = shape.segments[segIndex];
+  const centre = (seg.a0 + seg.a1) / 2;
+  const c = mod(centre, 360);
+  const flip = c > 90 && c < 270;
+  const rBelow = belowRadius(shape.rIn, fontSize, shell);
+  const baseline = flip ? rBelow + fontSize * 0.34 : rBelow - fontSize * 0.34;
+  const half = pxToDegrees(textWidth / 2 + 8, Math.max(12, baseline));
+  const d = flip
+    ? arcPath(cx, cy, baseline, centre + half, centre - half)
+    : arcPath(cx, cy, baseline, centre - half, centre + half);
+  return {
+    key,
+    d,
+    text,
+    fontSize,
+    rMid: rBelow,
+    shell,
+    rIn: rBelow - fontSize * 0.65,
+    // First shell: the hit area reaches up to the feature; a label in a further shell only covers its own text.
+    rOut: shell === 0 ? shape.rIn : rBelow + fontSize * 0.65,
+    a0: centre - half,
+    a1: centre + half,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Stage 3: outside label placement
 // ---------------------------------------------------------------------------
@@ -1339,9 +1691,10 @@ function clampInt(v: number, lo: number, hi: number): number {
  * a cluster there (typically a multiple cloning site next to the origin) is shared between
  * both columns instead of cascading far down one side.
  */
-export function assignSides(candidates: readonly LabelCandidate[]): Map<LabelCandidate, 1 | -1> {
+export function assignSides(candidates: readonly LabelCandidate[], balancePoles = true): Map<LabelCandidate, 1 | -1> {
   const side = new Map<LabelCandidate, 1 | -1>();
   for (const c of candidates) side.set(c, c.angle < 180 ? 1 : -1);
+  if (!balancePoles) return side;
   const quadrantLoad = (from: number, to: number) =>
     candidates.reduce((n, c) => n + (c.angle >= from && c.angle < to ? 1 : 0), 0);
   // Top: offsets from 0 deg in (-zone, zone]; the most counter-clockwise ones go left.
@@ -1382,20 +1735,26 @@ function columnAngle(angle: number, side: 1 | -1): number {
   return angle < 180 - POLE_ZONE ? angle + 360 : angle;
 }
 
-/** Row centre closest to the anchor: where the anchor's direction meets the label circle. */
+/** Row centre closest to the anchor: where the anchor's direction meets the label ellipse. */
 function idealY(frame: LabelFrame, columnAngleDeg: number, side: 1 | -1): number {
   const lo = side === 1 ? 0 : 180;
   const a = Math.min(lo + 180, Math.max(lo, columnAngleDeg));
-  return frame.cy - frame.labelRadius * Math.cos(a * DEG);
+  const A = frame.radiusX ?? frame.labelRadius;
+  const B = frame.radiusY ?? frame.labelRadius;
+  // Distance from the centre to the ellipse along direction a (a circle: its radius).
+  const t = 1 / Math.hypot(Math.sin(a * DEG) / A, Math.cos(a * DEG) / B);
+  return frame.cy - t * Math.cos(a * DEG);
 }
 
-/** x of the near edge of a label row centred at y: rows hug the label circle. */
+/** x of the near edge of a label row centred at y: rows hug the label ellipse. */
 export function hugX(frame: LabelFrame, side: 1 | -1, y: number): number {
-  const { cx, cy, labelRadius: Rl, lineHeight: h } = frame;
+  const { cx, cy, lineHeight: h } = frame;
+  const A = frame.radiusX ?? frame.labelRadius;
+  const B = frame.radiusY ?? frame.labelRadius;
   const yTop = y - h / 2;
   const yBot = y + h / 2;
   const dyMin = yTop <= cy && yBot >= cy ? 0 : Math.min(Math.abs(yTop - cy), Math.abs(yBot - cy));
-  const off = dyMin < Rl ? Math.sqrt(Rl * Rl - dyMin * dyMin) : 0;
+  const off = dyMin < B ? A * Math.sqrt(1 - (dyMin / B) * (dyMin / B)) : 0;
   return cx + side * Math.max(off, POLE_INSET);
 }
 
@@ -1407,6 +1766,10 @@ function rowFits(frame: LabelFrame, c: LabelCandidate, side: 1 | -1, y: number):
   const ax = hugX(frame, side, y) - side * ATTACH_GAP;
   const labelAngle = Math.atan2(ax - frame.cx, frame.cy - y) / DEG;
   if (Math.abs(angleDelta(c.angle, labelAngle)) > frame.maxDisplacement) return false;
+  // The leader always runs outwards, away from the vertical axis: a label on the left ends left of its anchor, a
+  // label on the right ends right of it (never back across the anchor towards the middle).
+  const anchor = polarToCartesian(frame.cx, frame.cy, c.anchorRadius, c.angle);
+  if (side * (ax - anchor.x) < -0.5) return false;
   const e = polarToCartesian(frame.cx, frame.cy, frame.elbowRadius, c.angle);
   return distanceToSegment(frame.cx, frame.cy, e.x, e.y, ax, y) >= frame.ringOuter + 0.5;
 }
@@ -1487,9 +1850,21 @@ function labelWindow(frame: LabelFrame, c: LabelCandidate, side: 1 | -1, top: nu
     ideal = found;
   }
   const edge = (to: number): number => {
-    if (fits(to)) return to;
+    const dir = to >= ideal ? 1 : -1;
+    const step = dir * (frame.lineHeight / 2);
     let ok = ideal;
     let bad = to;
+    let hitBad = false;
+    for (let y = ideal + step; dir > 0 ? y < to : y > to; y += step) {
+      if (fits(y)) {
+        ok = y;
+      } else {
+        bad = y;
+        hitBad = true;
+        break;
+      }
+    }
+    if (!hitBad && fits(to)) return to;
     while (Math.abs(bad - ok) > 0.5) {
       const mid = (ok + bad) / 2;
       if (fits(mid)) ok = mid;
@@ -1519,7 +1894,7 @@ function columnOrder(side: 1 | -1) {
 
 const nearPole = (angle: number) => Math.min(angle, 360 - angle, Math.abs(angle - 180)) <= POLE_ZONE;
 
-/** Try to add a label to a column; keeps the column unchanged when it does not fit. */
+/** Try to add a label to a column; keeps the column unchanged when it does not fit cleanly. */
 function tryInsert(col: Column, entry: ColumnEntry, h: number): boolean {
   const order = columnOrder(col.side);
   let lo = 0;
@@ -1545,9 +1920,8 @@ function tryInsert(col: Column, entry: ColumnEntry, h: number): boolean {
 }
 
 /**
- * Admits labels in priority order. Each goes to its preferred column (labels near 12 and
- * 6 o'clock may fall back to the other one) if the column can still place every kept label
- * inside its window; otherwise it is dropped.
+ * Admits labels in priority order. Each goes to its preferred column if the column can still
+ * place every kept label inside its window; otherwise it is dropped.
  */
 function admitLabels(
   candidates: readonly LabelCandidate[],
@@ -1599,6 +1973,70 @@ function admitLabels(
   return { columns: [right, left], dropped, droppedCost };
 }
 
+interface Pt {
+  x: number;
+  y: number;
+}
+
+/** Whether the open segments ab and cd cross (a shared endpoint or touching does not count). */
+function segmentsCross(a: Pt, b: Pt, c: Pt, d: Pt): boolean {
+  const side = (p: Pt, q: Pt, r: Pt) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+  return side(c, d, a) * side(c, d, b) < 0 && side(a, b, c) * side(a, b, d) < 0;
+}
+
+/** Above this many labels in a column the leader untangling is skipped (it is quadratic). */
+const UNCROSS_MAX_LABELS = 160;
+
+/**
+ * Row (centre y) of every label of a column after untangling the leaders. Labels start in the rows
+ * {@link spreadWithin} gave them (ordered like their anchors), which makes the leaders of a crowded cluster
+ * cross. When two leaders cross, the two labels swap rows if both rows are acceptable to them
+ * ({@link rowFits}, inside their window) and that leaves fewer crossings among all leaders. Rows are never
+ * added or moved, so labels cannot start to overlap.
+ */
+function uncrossRows(frame: LabelFrame, side: 1 | -1, kept: readonly ColumnEntry[], ys: readonly number[]): number[] {
+  const n = kept.length;
+  if (n < 2 || n > UNCROSS_MAX_LABELS) return [...ys];
+  const anchor = kept.map(({ c }) => polarToCartesian(frame.cx, frame.cy, c.anchorRadius, c.angle));
+  const elbow = kept.map(({ c }) => polarToCartesian(frame.cx, frame.cy, frame.elbowRadius, c.angle));
+  const end = ys.map((y): Pt => ({ x: hugX(frame, side, y) - side * ATTACH_GAP, y }));
+  const slotOf = kept.map((_, i) => i);
+  const allowed = (i: number, slot: number) =>
+    ys[slot] >= kept[i].lo - 0.5 && ys[slot] <= kept[i].hi + 0.5 && rowFits(frame, kept[i].c, side, ys[slot]);
+  // The leader of a label: a radial stub (anchor -> elbow), then a straight line to its row.
+  const cross = (i: number, si: number, j: number, sj: number) =>
+    segmentsCross(anchor[i], elbow[i], elbow[j], end[sj]) ||
+    segmentsCross(elbow[i], end[si], anchor[j], elbow[j]) ||
+    segmentsCross(elbow[i], end[si], elbow[j], end[sj]);
+  const crossingsOf = (i: number, si: number) => {
+    let k = 0;
+    for (let j = 0; j < n; j++) if (j !== i && cross(i, si, j, slotOf[j])) k++;
+    return k;
+  };
+  for (let pass = 0; pass < 30; pass++) {
+    let changed = false;
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const si = slotOf[i];
+        const sj = slotOf[j];
+        if (!cross(i, si, j, sj) || !allowed(i, sj) || !allowed(j, si)) continue;
+        const before = crossingsOf(i, si) + crossingsOf(j, sj) - 1; // the pair itself is counted twice
+        slotOf[i] = sj;
+        slotOf[j] = si;
+        const after = crossingsOf(i, sj) + crossingsOf(j, si) - (cross(i, sj, j, si) ? 1 : 0);
+        if (after < before) {
+          changed = true;
+        } else {
+          slotOf[i] = si;
+          slotOf[j] = sj;
+        }
+      }
+    }
+    if (!changed) break;
+  }
+  return kept.map((_, i) => ys[slotOf[i]]);
+}
+
 /**
  * Lays out outside labels SnapGene-style: each side of the circle is a column of rows,
  * ordered like their anchors, spread vertically (least displacement) and hugging a circle
@@ -1613,7 +2051,7 @@ export function layoutLabels(
   pinned: ReadonlySet<string> = NO_PINS,
 ): LabelPlacement {
   const isPinned: PinTest = (c) => c.featureId !== undefined && pinned.has(c.featureId);
-  const sideOf = assignSides(candidates);
+  const sideOf = assignSides(candidates, frame.balancePoles !== false);
   let run = admitLabels(candidates, frame, frame.bottom, isPinned, sideOf);
   const notes: LabelNote[] = [];
   if (run.dropped > 0 && frame.bottom - frame.lineHeight >= frame.top) {
@@ -1631,8 +2069,9 @@ export function layoutLabels(
   };
   const h = frame.lineHeight;
   for (const { side, kept, ys } of run.columns) {
+    const rows = uncrossRows(frame, side, kept, ys);
     kept.forEach(({ c }, i) => {
-      const y = ys[i];
+      const y = rows[i];
       const x = hugX(frame, side, y);
       let text = c.text;
       let width = c.width;

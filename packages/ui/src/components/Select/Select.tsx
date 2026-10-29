@@ -34,6 +34,11 @@ export interface SelectProps<T extends string = string> {
   name?: string;
   /** Width of the button (px or CSS length). */
   width?: number | string;
+  /**
+   * Where the menu opens: 'over' (the default) puts the chosen item over the button, as a macOS pop-up button does;
+   * 'below' drops it under the button (it flips up only when there is no room below).
+   */
+  placement?: 'over' | 'below';
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -59,6 +64,7 @@ export function Select<T extends string = string>({
   id,
   name,
   width,
+  placement = 'over',
   open,
   defaultOpen,
   onOpenChange,
@@ -90,7 +96,12 @@ export function Select<T extends string = string>({
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>
-        <SelectPrimitive.Content position="item-aligned" className={cx(menu.content, styles.content)}>
+        <SelectPrimitive.Content
+          position={placement === 'below' ? 'popper' : 'item-aligned'}
+          side={placement === 'below' ? 'bottom' : undefined}
+          sideOffset={placement === 'below' ? 4 : undefined}
+          className={cx(menu.content, styles.content)}
+        >
           <SelectPrimitive.Viewport className={styles.viewport}>
             {options.map((entry, i) => {
               if (!isOption(entry)) {

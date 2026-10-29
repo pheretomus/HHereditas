@@ -7,7 +7,7 @@ import { buildCutMarkers } from './enzymeLabels';
 import { syntheticGenome } from './galleryData';
 import { featureEntryIndex } from './hitTest';
 import type { FeatureEntry } from './layout';
-import { METRICS, buildFeatureTrack, computeView, contentOffsetY, enzymeRowsToReserve, featureBarTop } from './layout';
+import { METRICS, buildFeatureTrack, computeView, contentOffsetY, enzymeRowsToReserve, featureBarTop, featureLabelRowsToReserve } from './layout';
 import { LinearMap } from './LinearMap';
 import { estimateTextWidth } from './textMeasure';
 import type { MapTarget } from './types';
@@ -26,7 +26,7 @@ function geometry(record: SeqRecord, enzymeSites = pFA6a.enzymeSites, viewport: 
   const scale = makeScale(clampViewport(viewport, len, PLOT_W), METRICS.padX, PLOT_W);
   const features = buildFeatureTrack(record.features, len, record.topology);
   const markers = enzymeSites.length ? buildCutMarkers(enzymeSites, len, record.topology) : null;
-  const view = computeView({
+  const input = {
     record,
     width: W,
     scale,
@@ -36,7 +36,10 @@ function geometry(record: SeqRecord, enzymeSites = pFA6a.enzymeSites, viewport: 
     markers,
     enzymeRows: markers ? enzymeRowsToReserve(markers, len, METRICS.padX, PLOT_W, W, estimateTextWidth) : 0,
     measure: estimateTextWidth,
-  });
+  };
+  // like the component: outside feature label rows reserved from the whole-record view
+  const featureLabelRows = featureLabelRowsToReserve({ ...input, scale: makeScale(fullViewport(len), METRICS.padX, PLOT_W) });
+  const view = computeView({ ...input, featureLabelRows });
   const offsetY = contentOffsetY(H, view.height);
   /** Client point at the middle of a feature's bar (or at a bp inside it). */
   const featurePoint = (name: string, at?: number) => {
@@ -139,10 +142,15 @@ describe('<LinearMap /> rendering', () => {
     expect(screen.getByTestId('caret')).toBeTruthy();
   });
 
-  it('rings the highlighted feature', () => {
+  it('rings the highlighted feature and multiple selectedFeatureIds, and renders 3-tier feature labels', () => {
     const kan = pFA6a.record.features.find((f) => f.name === 'KanR')!;
-    render(<LinearMap record={pFA6a.record} highlightedFeatureId={kan.id} />);
+    const amp = pFA6a.record.features.find((f) => f.name === 'AmpR')!;
+    const { container } = render(<LinearMap record={pFA6a.record} highlightedFeatureId={kan.id} selectedFeatureIds={[kan.id, amp.id]} />);
     expect(screen.getByTestId('highlight-ring').getAttribute('d')).toMatch(/^M/);
+    expect(screen.getByTestId('feature-leaders').querySelector('path')?.getAttribute('d')).toMatch(/^M/);
+    expect(container.querySelectorAll('[data-label-tier="inside"]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-label-tier="below"]').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('[data-label-tier="outside"]').length).toBeGreaterThan(0);
   });
 
   it('hides layers turned off in `show`', () => {

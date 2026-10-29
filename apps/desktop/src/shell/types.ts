@@ -14,7 +14,7 @@ export type ViewMode = 'map' | 'sequence' | 'split';
  */
 export type EnzymeDisplay = 'unique' | 'unique-dual' | 'common' | 'commercial' | 'none' | 'custom';
 
-/** Commands of the toolbar's Actions menu. */
+/** Commands of the toolbar's Actions and tool menus. */
 export type ShellAction =
   | 'clone-restriction'
   | 'clone-gibson'
@@ -22,6 +22,8 @@ export type ShellAction =
   | 'clone-pcr'
   | 'digest'
   | 'find-orfs'
+  | 'detect-features'
+  | 'add-feature'
   | 'primers';
 
 /** An open document, as listed in the sidebar. */

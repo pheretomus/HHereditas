@@ -14,7 +14,7 @@
  *   </Features>
  *
  * Mapping and conventions:
- *  - directionality: 1 -> strand 1, 2 -> strand -1, absent / 0 / 3 (bidirectional) -> 0.
+ *  - directionality: 1 -> strand 1, 2 -> strand -1, absent / 0 -> 0, 3 -> 0 with bidirectional (arrows both ends).
  *  - Segment `range="a-b"` is 1-based inclusive; a > b wraps the origin and becomes ONE
  *    wrapping segment `{ start: a-1, end: b+L }` (Biopython instead splits it into two parts).
  *  - SnapGene lists segments in ascending top-strand order for both strands (sample-f.dna:
@@ -79,6 +79,11 @@ function strandFromDirectionality(raw: string | undefined, who: string, warnings
     warnings.push({ message: `${who}: unknown directionality "${clip(value)}"; read as non-directional.` });
   }
   return 0;
+}
+
+/** Directionality 3: no strand, but drawn with an arrow head at both ends. */
+function isBidirectional(raw: string | undefined): boolean {
+  return raw?.trim() === '3';
 }
 
 /**
@@ -254,7 +259,9 @@ function parseFeature(element: XmlElement, index: number, seqLength: number, top
   const name = rawName === undefined ? '' : richTextToPlain(rawName, 'line');
   const who = name !== '' ? `Feature "${clip(name)}"` : `Feature #${index + 1}`;
   const type = (element.attributes.get('type') ?? '').trim() || DEFAULT_FEATURE_TYPE;
-  const strand = strandFromDirectionality(element.attributes.get('directionality'), who, warnings);
+  const directionality = element.attributes.get('directionality');
+  const strand = strandFromDirectionality(directionality, who, warnings);
+  const bidirectional = isBidirectional(directionality);
 
   const segments: Range[] = [];
   const segmentNames: Array<[number, string]> = [];
@@ -306,6 +313,7 @@ function parseFeature(element: XmlElement, index: number, seqLength: number, top
     segments,
     qualifiers,
     ...(color !== undefined ? { color } : {}),
+    ...(bidirectional ? { bidirectional: true } : {}),
   });
 }
 
@@ -581,7 +589,7 @@ function buildFeatureXml(
     [
       ['recentID', String(recentId)],
       ['name', storeOneLine(name, `${who} name`, changedText)],
-      ['directionality', feature.strand === 1 ? '1' : feature.strand === -1 ? '2' : undefined],
+      ['directionality', feature.strand === 1 ? '1' : feature.strand === -1 ? '2' : feature.bidirectional ? '3' : undefined],
       ['type', type],
       ['swappedSegmentNumbering', feature.strand === -1 ? '1' : undefined],
       ['allowSegmentOverlaps', layout.overlaps ? '1' : '0'],

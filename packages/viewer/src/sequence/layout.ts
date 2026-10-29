@@ -19,7 +19,7 @@
  * a row (0..n), x / y are CSS pixels relative to the row's top-left corner (y) or the view's
  * left edge (x).
  */
-import type { EnzymeSite, Feature, Orf, PrimerBindingSite, Range, Topology } from '@hhereditas/core';
+import type { AlignedSequence, EnzymeSite, Feature, Orf, PrimerBindingSite, Range, Topology } from '@hhereditas/core';
 import { featureExtent, mod, normalizeRange, splitAtOrigin } from '@hhereditas/core';
 import { formatInt } from '../common/format';
 
@@ -38,7 +38,7 @@ export interface SequenceMetrics {
   readonly groupGap: number;
   readonly paddingLeft: number;
   readonly paddingRight: number;
-  /** Space between the row number column and the first base. */
+  /** Space between the last base of a row and the row number column on its right. */
   readonly numberGap: number;
   readonly rowPaddingTop: number;
   readonly rowPaddingBottom: number;
@@ -110,36 +110,43 @@ export interface RowGeometry {
   readonly textRight: number;
   /** Rightmost x a label may reach. */
   readonly labelRight: number;
+  /** x of the left edge of the row numbers, which stand to the right of the bases (equals `textRight` when there are none). */
+  readonly numberLeft: number;
   readonly charWidth: number;
   readonly groupSize: number;
   readonly groupGap: number;
   readonly basesPerRow: number;
 }
 
-/** x of the first base when the row-number column is `numberColumnWidth` wide (0 = no numbers). */
-export function textLeftFor(metrics: SequenceMetrics, numberColumnWidth: number): number {
-  return metrics.paddingLeft + (numberColumnWidth > 0 ? numberColumnWidth + metrics.numberGap : 0);
+/** x of the first base. The row numbers stand to the right of the bases, so they do not move it. */
+export function textLeftFor(metrics: SequenceMetrics): number {
+  return metrics.paddingLeft;
 }
 
 /** Largest multiple of `groupSize` bases that fits the width ('auto' bases per row). At least one group. */
 export function autoBasesPerRow(width: number, metrics: SequenceMetrics, numberColumnWidth: number): number {
-  const available = width - textLeftFor(metrics, numberColumnWidth) - metrics.paddingRight;
+  const numbers = numberColumnWidth > 0 ? numberColumnWidth + metrics.numberGap : 0;
+  const available = width - textLeftFor(metrics) - numbers - metrics.paddingRight;
   const groupWidth = metrics.groupSize * metrics.charWidth + metrics.groupGap;
   const groups = Math.floor((available + metrics.groupGap) / groupWidth);
   return Math.max(1, groups) * metrics.groupSize;
 }
 
 export function makeGeometry(metrics: SequenceMetrics, numberColumnWidth: number, basesPerRow: number): RowGeometry {
-  const textLeft = textLeftFor(metrics, numberColumnWidth);
+  const textLeft = textLeftFor(metrics);
   const n = Math.max(1, Math.floor(basesPerRow));
   const g = Math.max(1, metrics.groupSize);
   const textRight = textLeft + n * metrics.charWidth + Math.floor((n - 1) / g) * metrics.groupGap;
-  const width = Math.ceil(textRight + metrics.paddingRight);
+  const hasNumbers = numberColumnWidth > 0;
+  const numberLeft = hasNumbers ? textRight + metrics.numberGap : textRight;
+  const width = Math.ceil((hasNumbers ? numberLeft + numberColumnWidth : textRight) + metrics.paddingRight);
   return {
     width,
     textLeft,
     textRight,
-    labelRight: width - 4,
+    // Labels must not run into the numbers.
+    labelRight: hasNumbers ? numberLeft - 4 : width - 4,
+    numberLeft,
     charWidth: metrics.charWidth,
     groupSize: g,
     groupGap: metrics.groupGap,
@@ -248,6 +255,9 @@ export interface RowModelInput {
   readonly enzymes?: readonly EnzymeSite[];
   readonly primers?: readonly LayoutPrimer[];
   readonly orfs?: readonly Orf[];
+  /** Draw a translation sub-row under each ORF (its amino acids). */
+  readonly orfTranslation?: boolean;
+  readonly alignments?: readonly AlignedSequence[];
   readonly measure?: MeasureLabel;
 }
 
@@ -362,6 +372,16 @@ export interface OrfPiece {
   readonly tip: boolean;
 }
 
+export interface AlignmentPiece {
+  /** Index into RowModelInput.alignments. */
+  readonly alignment: number;
+  readonly lane: number;
+  readonly startCol: number;
+  readonly endCol: number;
+  /** Offset into AlignedSequence.alignedBases for startCol. */
+  readonly offsetInAlignment: number;
+}
+
 /** Vertical anchors inside a row (px from the row's top). */
 export interface RowY {
   readonly enzymes: number;
@@ -369,6 +389,7 @@ export interface RowY {
   readonly strand: number;
   readonly complement: number;
   readonly primersRev: number;
+  readonly alignments?: number;
   readonly features: number;
   readonly orfs: number;
 }
@@ -386,6 +407,8 @@ export interface RowLayout {
   readonly primerLanesFwd: number;
   readonly primerLanesRev: number;
   readonly primers: readonly PrimerPiece[];
+  readonly alignmentLanes?: number;
+  readonly alignments?: readonly AlignmentPiece[];
   readonly featureLanes: readonly FeatureLane[];
   readonly features: readonly FeaturePiece[];
   readonly orfLanes: number;
@@ -400,6 +423,8 @@ export interface RowModel {
   readonly basesPerRow: number;
   readonly showComplement: boolean;
   readonly rowCount: number;
+  /** The ORF lanes carry a translation sub-row (see RowModelInput.orfTranslation). */
+  readonly orfTranslation: boolean;
   readonly rows: readonly RowLayout[];
   /** offsets[i] = top of row i; offsets[rowCount] = total height. */
   readonly offsets: Float64Array;
@@ -599,6 +624,7 @@ export function buildRowModel(input: RowModelInput): RowModel {
   const enzymes = input.enzymes ?? EMPTY;
   const primers = input.primers ?? EMPTY;
   const orfs = input.orfs ?? EMPTY;
+  const alignments = input.alignments ?? EMPTY;
   const rowLen = (r: number) => Math.max(0, Math.min(L, (r + 1) * N) - r * N);
   const lastRow = rowCount - 1;
 
@@ -607,6 +633,8 @@ export function buildRowModel(input: RowModelInput): RowModel {
   const cutBuckets: (CutMark[] | undefined)[] = new Array(rowCount);
   const primerBuckets: (RawPrimerPiece[] | undefined)[] = new Array(rowCount);
   const orfBuckets: (RawOrfPiece[] | undefined)[] = new Array(rowCount);
+  const alignmentBuckets: (Array<{ alignment: number; startCol: number; endCol: number; offsetInAlignment: number }> | undefined)[] =
+    new Array(rowCount);
 
   // ---- features -----------------------------------------------------------------------------
   for (let fi = 0; fi < features.length && L > 0; fi++) {
@@ -629,8 +657,9 @@ export function buildRowModel(input: RowModelInput): RowModel {
           e,
           segStart: j === 0,
           segEnd: j === spans.length - 1,
-          arrowStart: f.strand === -1 && k === 0 && j === 0,
-          arrowEnd: f.strand === 1 && k === lastSeg && j === spans.length - 1,
+          // a bidirectional marker is pointed at both of its own ends
+          arrowStart: (f.strand === -1 || (f.strand === 0 && f.bidirectional === true)) && k === 0 && j === 0,
+          arrowEnd: (f.strand === 1 || (f.strand === 0 && f.bidirectional === true)) && k === lastSeg && j === spans.length - 1,
         });
       });
     });
@@ -810,10 +839,33 @@ export function buildRowModel(input: RowModelInput): RowModel {
     });
   }
 
+  // ---- Alignments ---------------------------------------------------------------------------
+  for (let ai = 0; ai < alignments.length && L > 0; ai++) {
+    const aln = alignments[ai];
+    if (!aln.aligned || !aln.visible) continue;
+    const spans = linearSpans(aln.refRange, L, topology);
+    let before = 0;
+    for (const [s, e] of spans) {
+      forEachRowPiece(s, e, N, (row, c0, c1) => {
+        const rs = row * N;
+        push(alignmentBuckets, row, {
+          alignment: ai,
+          startCol: c0,
+          endCol: c1,
+          offsetInAlignment: before + (rs + c0 - s),
+        });
+      });
+      before += e - s;
+    }
+  }
+
   // ---- per-row packing ------------------------------------------------------------------------
   const rows: RowLayout[] = new Array(rowCount);
   const offsets = new Float64Array(rowCount + 1);
   const m = metrics;
+  // an ORF's amino acids go in a strip under its arrow, so its lane is that much taller
+  const orfTranslation = input.orfTranslation === true;
+  const orfLaneHeight = m.orfLaneHeight + (orfTranslation ? m.translationHeight : 0);
   const arrow = m.featureArrow;
 
   for (let r = 0; r < rowCount; r++) {
@@ -1014,6 +1066,30 @@ export function buildRowModel(input: RowModelInput): RowModel {
       orfLanes = laneRight.length;
     }
 
+    // alignments
+    let alignmentPieces: AlignmentPiece[] = EMPTY as unknown as AlignmentPiece[];
+    let alignmentLanes = 0;
+    const rawAlignments = alignmentBuckets[r];
+    if (rawAlignments) {
+      rawAlignments.sort((a, b) => a.startCol - b.startCol || a.alignment - b.alignment);
+      const laneRight: number[] = [];
+      alignmentPieces = [];
+      for (const p of rawAlignments) {
+        const left = colLeft(geo, p.startCol);
+        const right = colRight(geo, p.endCol - 1);
+        const lane = firstFitLane(laneRight, left, m.laneSpacing);
+        laneRight[lane] = right;
+        alignmentPieces.push({
+          alignment: p.alignment,
+          lane,
+          startCol: p.startCol,
+          endCol: p.endCol,
+          offsetInAlignment: p.offsetInAlignment,
+        });
+      }
+      alignmentLanes = laneRight.length;
+    }
+
     // vertical layout
     let y = m.rowPaddingTop;
     const yEnzymes = y;
@@ -1027,6 +1103,8 @@ export function buildRowModel(input: RowModelInput): RowModel {
     if (showComplement) y += m.strandHeight;
     const yPrimersRev = y;
     y += revLanes * m.primerLaneHeight;
+    const yAlignments = alignmentLanes > 0 ? y + 2 : y;
+    if (alignmentLanes > 0) y = yAlignments + alignmentLanes * m.primerLaneHeight;
     let featureLanes: FeatureLane[] = EMPTY as unknown as FeatureLane[];
     const yFeatures = laneTranslation.length > 0 ? y + m.featureGap : y;
     if (laneTranslation.length > 0) {
@@ -1040,7 +1118,7 @@ export function buildRowModel(input: RowModelInput): RowModel {
       y -= m.featureLaneGap;
     }
     const yOrfs = orfLanes > 0 ? y + m.orfGap : y;
-    y = yOrfs + orfLanes * m.orfLaneHeight;
+    y = yOrfs + orfLanes * orfLaneHeight;
     y += m.rowPaddingBottom;
 
     rows[r] = {
@@ -1054,6 +1132,7 @@ export function buildRowModel(input: RowModelInput): RowModel {
         strand: yStrand,
         complement: yComplement,
         primersRev: yPrimersRev,
+        alignments: yAlignments,
         features: yFeatures,
         orfs: yOrfs,
       },
@@ -1063,6 +1142,8 @@ export function buildRowModel(input: RowModelInput): RowModel {
       primerLanesFwd: fwdLanes,
       primerLanesRev: revLanes,
       primers: primerPieces,
+      alignmentLanes,
+      alignments: alignmentPieces,
       featureLanes,
       features: featurePieces,
       orfLanes,
@@ -1079,6 +1160,7 @@ export function buildRowModel(input: RowModelInput): RowModel {
     basesPerRow: N,
     showComplement,
     rowCount,
+    orfTranslation,
     rows,
     offsets,
     totalHeight: offsets[rowCount],

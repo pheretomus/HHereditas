@@ -6,7 +6,7 @@
 import type { Feature, PrimerBindingSite } from '@hhereditas/core';
 import { analyzePrimer, dnaMolecularWeight, featureExtent, normalizeRange, tm as meltingTemperature, translate, translateFeature } from '@hhereditas/core';
 import { Button, Disclosure, PropertyList, type PropertyItem } from '@hhereditas/ui';
-import { ArrowLeftToLine, ArrowRightToLine, Scissors, Tag, Trash2 } from 'lucide-react';
+import { ArrowLeftToLine, ArrowRightToLine, Pencil, Scissors, Tag, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { Inspector, summarizeSequence, useSequenceIndex, type FeatureEdit, type SelectionSummary } from '../../shell';
 import { selectedText, deleteFeatureCommand, deletePrimerCommand } from '../../app/commands';
@@ -206,6 +206,9 @@ function PrimerCard({
       <div className={styles.stack}>
         <PropertyList labelWidth={76} items={items} />
         <div className={styles.actions}>
+          <Button size="sm" icon={<Pencil />} onClick={() => useApp.getState().openSheet('edit-primer', { primerId })}>
+            Edit Primer…
+          </Button>
           <Button size="sm" variant="destructive" icon={<Trash2 />} onClick={() => deletePrimerCommand(primerId)}>
             Delete Primer
           </Button>

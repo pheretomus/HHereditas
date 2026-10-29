@@ -15,13 +15,17 @@
  *     truncated inside, else they are left to the hover card. A shared occupancy model keeps
  *     every label clear of bars and of other labels. Enzyme labels are staggered into rows.
  *
- * Vertical order, from the top: enzyme labels, primers, ORFs, features, BACKBONE (two strands)
- * and ruler, features, ORFs, primers. Features sit next to the backbone because they are the
- * hero; analysis overlays (ORFs, primers) sit outside them.
+ * Vertical order, from the top: enzyme labels, primer labels (forward primers), features,
+ * [alignments], primers, BACKBONE (two strands), primers, ruler, features, primer labels
+ * (reverse primers). The forward primers lie right on the upper strand and the reverse ones right under the
+ * lower one, then the ruler numbers and the features below. The ORFs lie over the space of the primers, at a fixed
+ * distance from the DNA above and below it. Primer labels
+ * stand at the far ends with a leader to the end where each primer starts.
  */
-import type { Feature, Orf, Primer, PrimerBindingSite, Range, SeqRecord, Topology } from '@hhereditas/core';
-import { complement, featureExtent, normalizeRange, splitAtOrigin } from '@hhereditas/core';
+import type { AlignedSequence, Feature, Orf, Primer, PrimerBindingSite, Range, SeqRecord, Topology } from '@hhereditas/core';
+import { complement, featureExtent, featureLength, normalizeRange, reverseComplement, splitAtOrigin } from '@hhereditas/core';
 import { featureFill } from '../common/colors';
+import { formatInt } from '../common/format';
 import type { CutMarker, PlacedLabel } from './enzymeLabels';
 import { placeEnzymeLabels, rowsUsed } from './enzymeLabels';
 import { labelColorOnFill } from './labelColor';
@@ -29,7 +33,7 @@ import { LabelSpace } from './labelSpace';
 import type { Lane, LaneInterval } from './lanes';
 import { buildLanes, packLanes, visibleSpan } from './lanes';
 import type { ArrowEnd } from './shapes';
-import { barPath, hlinePath, orfPath, primerPath, rectPath, vlinePath } from './shapes';
+import { barPath, hlinePath, orfPath, rectPath, vlinePath } from './shapes';
 import type { TextMeasurer } from './textMeasure';
 import { truncateToWidth } from './textMeasure';
 import type { RulerTicks } from './ticks';
@@ -45,29 +49,43 @@ export const METRICS = {
   enzymeRowHeight: 15,
   enzymeLabelPad: 3,
   enzymeGap: 8,
-  featureLaneHeight: 22,
+  featureLaneHeight: 31,
   featureBarHeight: 16,
   featureHead: 7,
   featureRadius: 3.5,
-  /** Free band beyond the outermost feature lane, where labels of its small features go. */
-  featureLabelBand: 13,
-  orfLaneHeight: 11,
+  /** Free band beyond the outermost feature lane, where labels of its small features go (2 staggered rows). */
+  featureLabelBand: 31,
+  /** Row height of the outside feature labels (rows with a leader line in the band beyond the outermost lane). */
+  featureLabelRowHeight: 13,
+  /** Most rows of outside feature labels reserved on each side. */
+  maxFeatureLabelRows: 10,
+  orfLaneHeight: 9,
+  /** Distance from the DNA strand to the near edge of the first ORF lane (the same above and below). */
+  orfNear: 5,
+  /** Space the ORF lanes claim from the strand when the other tracks are laid out (they do not move with `orfNear`). */
+  orfReserve: 11,
   orfThickness: 3,
   orfHead: 7,
   orfHeadHalf: 4,
-  primerLaneHeight: 16,
+  primerLaneHeight: 8,
+  /** Gap between the primer lanes and the lanes next to them (smaller than groupGap: primers hug the DNA). */
+  primerGap: 3,
   primerShaft: 2,
   primerHead: 8,
   primerBarb: 4,
   primerFont: 10,
   primerWeight: 500,
+  /** Most rows of primer labels reserved above / below the primer lanes. */
+  maxPrimerLabelRows: 6,
+  alignmentLaneHeight: 15,
+  alignmentBandPad: 4,
   groupGap: 6,
-  backboneGap: 9,
+  backboneGap: 10,
   strandGap: 4,
   letterBand: 30,
   /** Letter band of a single-stranded molecule (one row of letters above its line). */
   singleLetterBand: 18,
-  rulerHeight: 24,
+  rulerHeight: 12,
   labelFont: 11,
   labelWeight: 500,
   enzymeFont: 11,
@@ -147,6 +165,10 @@ export interface FeatureEntry extends TrackEntryBase {
 
 export interface OrfEntry extends TrackEntryBase {
   orf: Orf;
+}
+
+export interface AlignmentEntry extends TrackEntryBase {
+  alignedSeq: AlignedSequence;
 }
 
 export interface PrimerEntry extends TrackEntryBase {
@@ -237,6 +259,38 @@ export function buildOrfTrack(
   return makeTrackSet(entries, seqLength, maxLanes);
 }
 
+export function buildAlignmentTrack(
+  alignedSequences: readonly AlignedSequence[] | undefined,
+  seqLength: number,
+  topology: Topology,
+  maxLanes = 6,
+): TrackSet<AlignmentEntry> | null {
+  if (!alignedSequences || alignedSequences.length === 0 || seqLength <= 0) return null;
+  const entries: AlignmentEntry[] = [];
+  for (const item of alignedSequences) {
+    if (!item.aligned || !item.visible) continue;
+    // the arrow covers the whole read: the aligned part plus the unaligned tails on both sides
+    let start = item.refRange.start - item.leftTail;
+    let end = item.refRange.end + item.rightTail;
+    if (topology === 'circular') {
+      if (start < 0) {
+        start += seqLength;
+        end += seqLength;
+      }
+      end = Math.min(end, start + seqLength);
+    } else {
+      start = Math.max(0, start);
+      end = Math.min(seqLength, end);
+    }
+    const extent = cleanRange({ start, end }, seqLength, topology);
+    if (!extent) continue;
+    // All aligned sequences are packed above the backbone in the SnapGene warm-amber alignment band
+    entries.push({ alignedSeq: item, extent, side: 'above', lane: 0 });
+  }
+  if (entries.length === 0) return null;
+  return makeTrackSet(entries, seqLength, maxLanes);
+}
+
 export function buildPrimerTrack(
   sites: readonly PrimerBindingSite[],
   primers: readonly Primer[],
@@ -294,9 +348,17 @@ export interface LaneCounts {
 
 export interface VerticalInput {
   enzymeRows: number;
+  /** Rows of outside feature labels (with leaders) above / below the outermost feature lane; 2 when not given. */
+  featureLabelRows?: { above: number; below: number };
+  /** Rows of primer labels reserved above the primer lanes (forward primers) and below them (reverse primers). */
+  primerLabelRows?: { above: number; below: number };
   features: LaneCounts;
   orfs: LaneCounts;
   primers: LaneCounts;
+  alignmentLanes?: number;
+  /** Share (0..1) of the alignment band's height that is opened in the layout, for animating it in and out; 1 when
+   *  not given. The band keeps its full height and position; only the space made for it shrinks. */
+  alignmentSpace?: number;
   /** Distance between the two strand lines (grows with zoom to make room for letters). */
   strandGap: number;
 }
@@ -313,15 +375,44 @@ export interface VerticalLayout {
   /** Top of the topmost enzyme row; row r (0 = lowest) spans enzymeRowTop(r) .. + rowHeight. */
   enzymeTop: number;
   enzymeBottom: number;
+  /** Rows of outside feature labels reserved above / below the outermost feature lane. */
+  featureLabelRows: { above: number; below: number };
+  /** Rows of primer labels: forward primers above their lanes, reverse ones below; row 0 is the one next to the lanes. */
+  primerLabels: { above: PrimerLabelBand; below: PrimerLabelBand };
   features: BandTops;
   orfs: BandTops;
   primers: BandTops;
+  alignmentBandTop: number;
+  alignmentBandHeight: number;
+  alignmentLanesTop: number[];
   topStrandY: number;
   bottomStrandY: number;
+  /** Top of the ruler: right under the lower strand. */
+  rulerTop: number;
   rulerBottom: number;
   /** Vertical extent of the selection band. */
   bodyTop: number;
   bodyBottom: number;
+  /** Vertical extent of a selection band: the strands and the ruler numbers, with a band as tall as the numbers above the strands. */
+  selectionTop: number;
+  selectionBottom: number;
+}
+
+export interface PrimerLabelBand {
+  top: number;
+  bottom: number;
+  rows: number;
+}
+
+/** Top y of a row of primer labels. */
+export function primerLabelRowTop(v: VerticalLayout, side: Side, row: number): number {
+  const band = v.primerLabels[side];
+  return side === 'above' ? band.bottom - (row + 1) * METRICS.enzymeRowHeight : band.top + row * METRICS.enzymeRowHeight;
+}
+
+/** Height of the free band for `rows` rows of outside feature labels (31 px for the default two rows). */
+export function featureLabelBandFor(rows: number): number {
+  return 5 + rows * METRICS.featureLabelRowHeight;
 }
 
 export function enzymeRowTop(v: VerticalLayout, row: number): number {
@@ -353,61 +444,111 @@ export function strandGapFor(pxPerBp: number, singleStranded = false): number {
 
 export function computeVerticalLayout(input: VerticalInput): VerticalLayout {
   const m = METRICS;
-  let y = m.padTop;
+  const featureLabelRows = input.featureLabelRows ?? { above: 2, below: 2 };
+  let y: number = m.padTop;
   const enzymeTop = y;
   y += input.enzymeRows * m.enzymeRowHeight;
   const enzymeBottom = y;
   if (input.enzymeRows > 0) y += m.enzymeGap;
+  const labelRowsAbove = input.primerLabelRows?.above ?? 0;
+  const primerLabelsAboveTop = y;
+  y += labelRowsAbove * m.enzymeRowHeight;
+  const primerLabelsAboveBottom = y;
+  if (labelRowsAbove > 0) y += m.enzymeGap;
   const aboveStart = y;
 
   // Above the backbone, outermost group first. Lane 0 of each group is the one nearest the backbone.
   let pendingGap = false;
-  const stackAbove = (count: number, h: number): number[] => {
+  const stackAbove = (count: number, h: number, gap: number = m.groupGap): number[] => {
     if (count === 0) return [];
-    if (pendingGap) y += m.groupGap;
+    if (pendingGap) y += gap;
     const tops: number[] = [];
     for (let k = 0; k < count; k++) tops.push(y + (count - 1 - k) * h);
     y += count * h;
     pendingGap = true;
     return tops;
   };
-  const primersAbove = stackAbove(input.primers.above, m.primerLaneHeight);
-  const orfsAbove = stackAbove(input.orfs.above, m.orfLaneHeight);
   if (input.features.above > 0) {
     // the free band for labels of the outermost lane also separates features from the overlays
-    y += m.featureLabelBand;
+    y += featureLabelBandFor(featureLabelRows.above);
     pendingGap = false;
   }
   const featuresAbove = stackAbove(input.features.above, m.featureLaneHeight);
+  const alnLanes = input.alignmentLanes ?? 0;
+  let alignmentBandTop = y;
+  let alignmentBandHeight = 0;
+  const alignmentLanesTop: number[] = [];
+  const alnSpace = Math.max(0, Math.min(1, input.alignmentSpace ?? 1));
+  if (alnLanes > 0 && alnSpace > 0) {
+    // with the band the layout grows by its height and one group gap; a partly opened band grows it by that share
+    const gapBefore = pendingGap ? m.groupGap : 0;
+    alignmentBandTop = y + gapBefore;
+    alignmentBandHeight = alnLanes * m.alignmentLaneHeight + 2 * m.alignmentBandPad;
+    for (let k = 0; k < alnLanes; k++) {
+      alignmentLanesTop.push(alignmentBandTop + m.alignmentBandPad + (alnLanes - 1 - k) * m.alignmentLaneHeight);
+    }
+    if (alnSpace >= 1) {
+      y = alignmentBandTop + alignmentBandHeight;
+      pendingGap = true;
+    } else {
+      y += alnSpace * (alignmentBandHeight + m.groupGap);
+    }
+  }
+  // The ORFs are not stacked with the primers: they lie at a fixed distance from the DNA on both sides, over the
+  // space of the primer lanes, so make sure the space above the strand is deep enough for them.
+  const orfZoneAbove = input.orfs.above > 0 ? m.orfReserve + input.orfs.above * m.orfLaneHeight + 2 : 0;
+  const abovePad = input.primers.above > 0 ? 1 : alnLanes > 0 ? 4 : m.backboneGap;
+  const orfExtraAbove = orfZoneAbove - abovePad - input.primers.above * m.primerLaneHeight;
+  if (orfExtraAbove > (pendingGap && input.primers.above > 0 ? m.primerGap : 0)) {
+    y += orfExtraAbove;
+    pendingGap = false;
+  }
+  const primersAbove = stackAbove(input.primers.above, m.primerLaneHeight, m.primerGap);
   const anyAbove = y > aboveStart;
-  y += m.backboneGap;
+  // forward primers sit right on the upper strand
+  y += abovePad;
 
   const topStrandY = y;
   y += input.strandGap;
   const bottomStrandY = y;
-  y += m.rulerHeight;
-  const rulerBottom = y;
+  // lane 0 of the ORFs is the nearest the DNA
+  const orfsAbove: number[] = [];
+  for (let k = 0; k < input.orfs.above; k++) orfsAbove.push(topStrandY - m.orfNear - (k + 1) * m.orfLaneHeight);
+  const orfsBelow: number[] = [];
+  for (let k = 0; k < input.orfs.below; k++) orfsBelow.push(bottomStrandY + m.orfNear + k * m.orfLaneHeight);
 
   pendingGap = false;
-  const stackBelow = (count: number, h: number): number[] => {
+  const stackBelow = (count: number, h: number, gap: number = m.groupGap): number[] => {
     if (count === 0) return [];
-    if (pendingGap) y += m.groupGap;
+    if (pendingGap) y += gap;
     const tops: number[] = [];
     for (let k = 0; k < count; k++) tops.push(y + k * h);
     y += count * h;
     pendingGap = true;
     return tops;
   };
+  // the reverse primers lie right against the lower strand, the ruler numbers (no tick lines) follow them and the
+  // features below hang right from the numbers. The ORFs lie over the space of the primers, at a fixed distance from
+  // the DNA, and push the numbers down only as far as they reach themselves.
+  const primersBelow = stackBelow(input.primers.below, m.primerLaneHeight, 0);
+  pendingGap = false;
+  if (input.orfs.below > 0) y = Math.max(y, bottomStrandY + m.orfReserve + input.orfs.below * m.orfLaneHeight);
+  const rulerTop = y;
+  y += m.rulerHeight;
+  const rulerBottom = y;
   const belowStart = y;
   const featuresBelow = stackBelow(input.features.below, m.featureLaneHeight);
   if (input.features.below > 0) {
-    y += m.featureLabelBand;
+    y += featureLabelBandFor(featureLabelRows.below);
     pendingGap = false;
   }
-  const orfsBelow = stackBelow(input.orfs.below, m.orfLaneHeight);
-  const primersBelow = stackBelow(input.primers.below, m.primerLaneHeight);
   const anyBelow = y > belowStart;
   const bodyBottom = anyBelow ? y + 2 : rulerBottom - 4;
+  const labelRowsBelow = input.primerLabelRows?.below ?? 0;
+  if (labelRowsBelow > 0) y += m.enzymeGap;
+  const primerLabelsBelowTop = y;
+  y += labelRowsBelow * m.enzymeRowHeight;
+  const primerLabelsBelowBottom = y;
   y += m.padBottom;
 
   return {
@@ -415,14 +556,25 @@ export function computeVerticalLayout(input: VerticalInput): VerticalLayout {
     enzymeRows: input.enzymeRows,
     enzymeTop,
     enzymeBottom,
+    featureLabelRows,
+    primerLabels: {
+      above: { top: primerLabelsAboveTop, bottom: primerLabelsAboveBottom, rows: labelRowsAbove },
+      below: { top: primerLabelsBelowTop, bottom: primerLabelsBelowBottom, rows: labelRowsBelow },
+    },
     features: { above: featuresAbove, below: featuresBelow },
     orfs: { above: orfsAbove, below: orfsBelow },
     primers: { above: primersAbove, below: primersBelow },
+    alignmentBandTop,
+    alignmentBandHeight,
+    alignmentLanesTop,
     topStrandY,
     bottomStrandY,
+    rulerTop,
     rulerBottom,
     bodyTop: anyAbove ? aboveStart - 2 : topStrandY - 10,
     bodyBottom,
+    selectionTop: topStrandY - m.rulerHeight - 3,
+    selectionBottom: rulerBottom + 3,
   };
 }
 
@@ -452,19 +604,31 @@ export interface FeatureGlyph {
   key: string;
   entry: number;
   d: string;
+  /** Top of the bar (its lane): the element's vertical reference between layouts, see LinearMap's glide. */
+  y: number;
   /** Line joining the segments of a multi-segment feature (introns), if any. */
   connector: string | null;
   fill: string;
 }
 
-/** 'inside' a bar, 'beside' it in its lane, or 'outside' it (above / below, away from the backbone). */
-export type LabelPlacement = 'inside' | 'beside' | 'outside';
+/**
+ * 3-Tier Feature Label Visualization (+ 'beside' fallback):
+ * - 'inside': Tier 1 — label text inside the feature arrow/bar
+ * - 'below':  Tier 2 — label text directly beneath/adjacent to the feature bar without a leader line
+ * - 'outside': Tier 3 — label text placed outside with a leader line connecting to the feature bar
+ */
+export type LabelPlacement = 'inside' | 'below' | 'beside' | 'outside';
 
 export interface FeatureLabel extends TextBox {
   entry: number;
   placement: LabelPlacement;
   /** Text colour of a label inside its bar (contrasting with the bar's fill); null outside. */
   onFill: string | null;
+  /** SVG path of the leader line for Tier 3 ('outside') labels; null for 'inside' / 'below' / 'beside'. */
+  leader?: string | null;
+  /** 'outside' labels: the side of the backbone and the row (0 = nearest the bars) they stand in. */
+  outsideSide?: Side;
+  outsideRow?: number;
 }
 
 export interface FillPath {
@@ -472,12 +636,45 @@ export interface FillPath {
   d: string;
   fill: string;
   opacity: number;
+  /** Top of the bars (their lane), see FeatureGlyph.y. */
+  y: number;
 }
 
 export interface OrfGlyph {
   key: string;
   entry: number;
+  dir: 1 | -1;
   d: string;
+  /** Centre line of the lane, see FeatureGlyph.y. */
+  y: number;
+}
+
+/** The marks of the ORFs of one lane and direction too small for a glyph. */
+export interface OrfMarks {
+  key: string;
+  dir: 1 | -1;
+  d: string;
+  /** Centre line of the lane, see FeatureGlyph.y. */
+  y: number;
+}
+
+/**
+ * An aligned read, drawn as in SnapGene: a hollow arrow over the whole read (pointing to its 3' end), filled red where
+ * read bases match the reference; mismatches and deletions stay as gaps in the red, insertions are short ticks above.
+ */
+export interface AlignmentGlyph {
+  key: string;
+  id: string;
+  name: string;
+  strand: 1 | -1;
+  /** Arrow outline over the whole read (aligned part and unaligned tails). */
+  outline: string;
+  /** Red fill over the aligned stretch. */
+  fill: string | null;
+  /** Mismatches and deletions, cut out of the fill (at least 1 px wide). */
+  gaps: string | null;
+  /** Insertions: short ticks above the arrow. */
+  inserts: string | null;
 }
 
 export interface PrimerGlyph {
@@ -487,11 +684,15 @@ export interface PrimerGlyph {
   /** Dashed 5' tail (path), if any. */
   tail: string | null;
   dir: 1 | -1;
+  /** Centre line of the lane, see FeatureGlyph.y. */
+  y: number;
 }
 
 export interface PrimerLabel extends TextBox {
   entry: number;
   dir: 1 | -1;
+  /** Leader from the label to the primer. */
+  leader: string;
 }
 
 export interface EnzymeLabel extends TextBox {
@@ -530,12 +731,21 @@ export interface ViewInput {
   features: TrackSet<FeatureEntry> | null;
   orfs: TrackSet<OrfEntry> | null;
   primers: TrackSet<PrimerEntry> | null;
+  alignments?: TrackSet<AlignmentEntry> | null;
+  /** See VerticalInput.alignmentSpace. */
+  alignmentSpace?: number;
   markers: readonly CutMarker[] | null;
   /** Enzyme label rows to use (reserved, see enzymeRowsToReserve). */
   enzymeRows: number;
+  /** Outside feature label rows to use above / below the features (reserved, see featureLabelRowsToReserve). */
+  featureLabelRows?: { above: number; below: number };
+  /** Primer label rows to use above / below the primer lanes (reserved, see primerLabelRowsToReserve). */
+  primerLabelRows?: { above: number; below: number };
   measure: TextMeasurer;
   /** Features whose labels are placed first (highlighted / selected ones). */
   pinnedFeatureIds?: ReadonlySet<string>;
+  showLengths?: boolean;
+  showPrimerLocations?: boolean;
 }
 
 export interface ViewModel {
@@ -557,8 +767,13 @@ export interface ViewModel {
     density: FillPath[];
     labels: FeatureLabel[];
   };
-  orfs: { glyphs: OrfGlyph[]; small: string };
+  /** `small`: per lane and direction, the marks of the ORFs too small for a glyph. */
+  orfs: { glyphs: OrfGlyph[]; small: OrfMarks[] };
   primers: { glyphs: PrimerGlyph[]; labels: PrimerLabel[] };
+  alignments: {
+    band: { x0: number; x1: number; y: number; height: number } | null;
+    glyphs: AlignmentGlyph[];
+  };
   enzymes: {
     /** Cut marks across the backbone: labelled cuts, and cuts whose label did not fit. */
     ticks: string;
@@ -606,6 +821,21 @@ export function enzymeRowsToReserve(
   return Math.max(1, rowsUsed(placeEnzymeLabels(boxes, { maxRows, minX: EDGE, maxX: width - EDGE })));
 }
 
+/**
+ * Rows of outside feature labels to reserve above and below the features: what the whole-record view needs (where the
+ * bars are narrowest, so most labels have to go outside), at least the default two. `input` must describe the
+ * whole-record view. Stable while panning and zooming, like the enzyme rows.
+ */
+export function featureLabelRowsToReserve(input: ViewInput): { above: number; below: number } {
+  const wide = computeView({ ...input, featureLabelRows: { above: METRICS.maxFeatureLabelRows, below: METRICS.maxFeatureLabelRows } });
+  const out = { above: 2, below: 2 };
+  for (const l of wide.features.labels) {
+    if (l.placement !== 'outside' || l.outsideSide === undefined || l.outsideRow === undefined) continue;
+    out[l.outsideSide] = Math.max(out[l.outsideSide], l.outsideRow + 1);
+  }
+  return out;
+}
+
 /** [top strand extent, bottom strand extent] in bp, honouring single-stranded ends. */
 export function strandExtents(record: SeqRecord): { top: [number, number]; bottom: [number, number] } {
   const L = record.seq.length;
@@ -636,6 +866,10 @@ interface LaneContext {
   bpTo: number;
   measure: TextMeasurer;
   seqLength: number;
+  topology: Topology;
+  showLengths: boolean;
+  showPrimerLocations: boolean;
+  primerSeqLengths: ReadonlyMap<string, number>;
 }
 
 /** Pieces (in [0, L]) of a normalized range. */
@@ -687,7 +921,12 @@ export function featurePieceShape(
       x1 = c + minWidth / 2;
     }
     let arrow: ArrowEnd = 'none';
-    if (strand === 1 && sp.end === end3) arrow = 'right';
+    if (entry.feature.bidirectional && strand === 0) {
+      // a marker pointing both ways: a head wherever the feature itself starts or ends
+      const atStart = sp.start === Math.min(entry.extent.start, L);
+      const atEnd = sp.end === (entry.extent.end > L ? entry.extent.end - L : entry.extent.end);
+      arrow = atStart && atEnd ? 'both' : atStart ? 'left' : atEnd ? 'right' : 'none';
+    } else if (strand === 1 && sp.end === end3) arrow = 'right';
     else if (strand === -1 && sp.start === end3) arrow = 'left';
     // ends where the feature continues across the origin are square
     let squareLeft = piece.piece === 2 && sp.start === 0;
@@ -697,11 +936,13 @@ export function featurePieceShape(
       x0 = -CLIP;
       squareLeft = true;
       if (arrow === 'left') arrow = 'none';
+      else if (arrow === 'both') arrow = 'right';
     }
     if (x1 > width + CLIP) {
       x1 = width + CLIP;
       squareRight = true;
       if (arrow === 'right') arrow = 'none';
+      else if (arrow === 'both') arrow = 'left';
     }
     if (x1 <= x0) continue;
     d += barPath(x0, x1, top, h, {
@@ -711,9 +952,9 @@ export function featurePieceShape(
       squareLeft,
       squareRight,
     });
-    const head = arrow === 'none' ? 0 : Math.min(METRICS.featureHead, (x1 - x0) * 0.6);
-    const bl = Math.max(0, arrow === 'left' ? x0 + head : x0);
-    const br = Math.min(width, arrow === 'right' ? x1 - head : x1);
+    const head = arrow === 'none' ? 0 : Math.min(METRICS.featureHead, (x1 - x0) * (arrow === 'both' ? 0.3 : 0.6));
+    const bl = Math.max(0, arrow === 'left' || arrow === 'both' ? x0 + head : x0);
+    const br = Math.min(width, arrow === 'right' || arrow === 'both' ? x1 - head : x1);
     if (br - bl > bestR - bestL) {
       bestL = bl;
       bestR = br;
@@ -776,10 +1017,6 @@ interface FeatureLabelCandidate {
   priority: number;
 }
 
-function appendPath(map: Map<string, string>, key: string, d: string): void {
-  map.set(key, (map.get(key) ?? '') + d);
-}
-
 /** Density level (index into DENSITY_LEVELS) of a coverage fraction. */
 function densityLevel(coverage: number): number {
   return Math.min(DENSITY_LEVELS.length - 1, Math.max(0, Math.ceil(Math.min(1, coverage) * DENSITY_LEVELS.length) - 1));
@@ -797,8 +1034,14 @@ function layoutFeatures(
   const m = METRICS;
   const barH = m.featureBarHeight;
   const nBins = Math.max(1, Math.ceil(width / BIN_PX));
-  const smallByFill = new Map<string, string>();
-  const densityByKey = new Map<string, { fill: string; level: number; d: string }>();
+  // slim bars and density per lane (and fill): a lane keeps its identity between layouts (see LinearMap's glide)
+  const smallBars = new Map<string, { fill: string; y: number; d: string }>();
+  const addSmall = (key: string, fill: string, y: number, d: string) => {
+    const cur = smallBars.get(key);
+    if (cur) cur.d += d;
+    else smallBars.set(key, { fill, y, d });
+  };
+  const densityByKey = new Map<string, { fill: string; level: number; y: number; d: string }>();
   const fills: string[] = [];
   const fillIndex = new Map<string, number>();
   const indexOfFill = (fill: string): number => {
@@ -838,10 +1081,10 @@ function layoutFeatures(
         let bodyL = 0;
         let bodyR = 0;
         if (w < SMALL_PX) {
-          appendPath(smallByFill, entry.fill, rectPath(x0, top, w, barH));
+          addSmall(`${side}:${lane}:${entry.fill}`, entry.fill, top, rectPath(x0, top, w, barH));
         } else {
           const shape = featurePieceShape(entry, it, top, ctx);
-          out.glyphs.push({ key: `${entry.feature.id}:${it.piece}`, entry: it.ref, d: shape.d, connector: shape.connector, fill: entry.fill });
+          out.glyphs.push({ key: `${entry.feature.id}:${it.piece}`, entry: it.ref, d: shape.d, connector: shape.connector, fill: entry.fill, y: top });
           bodyL = shape.bodyL;
           bodyR = shape.bodyR;
         }
@@ -881,7 +1124,7 @@ function layoutFeatures(
         if (isolated) {
           const c = (t.x0 + t.x1) / 2;
           const a = c - MIN_BAR_PX / 2;
-          appendPath(smallByFill, entry.fill, rectPath(a, top, MIN_BAR_PX, barH));
+          addSmall(`${side}:${lane}:${entry.fill}`, entry.fill, top, rectPath(a, top, MIN_BAR_PX, barH));
           row.add(a, a + MIN_BAR_PX);
           const onScreen = Math.min(width, a + MIN_BAR_PX) - Math.max(0, a) >= MIN_VISIBLE_PX;
           if (onScreen && isLabelPiece(entry.extent, t.piece, L, scale, width)) {
@@ -948,8 +1191,8 @@ function layoutFeatures(
           const fi = dom[b];
           let e = b + 1;
           while (e < nBins && cov[e] > 0.001 && dom[e] === fi && densityLevel(cov[e]) === level) e++;
-          const key = `${fi}:${level}`;
-          const path = densityByKey.get(key) ?? { fill: fills[fi], level, d: '' };
+          const key = `${side}:${lane}:${fi}:${level}`;
+          const path = densityByKey.get(key) ?? { fill: fills[fi], level, y: top, d: '' };
           path.d += rectPath(b * BIN_PX, top, (e - b) * BIN_PX, barH);
           densityByKey.set(key, path);
           b = e;
@@ -958,8 +1201,8 @@ function layoutFeatures(
     }
   }
 
-  for (const [fill, d] of smallByFill) out.small.push({ key: `small:${fill}`, d, fill, opacity: 1 });
-  for (const [key, p] of densityByKey) out.density.push({ key: `density:${key}`, d: p.d, fill: p.fill, opacity: DENSITY_LEVELS[p.level] });
+  for (const [key, p] of smallBars) out.small.push({ key: `small:${key}`, d: p.d, fill: p.fill, y: p.y, opacity: 1 });
+  for (const [key, p] of densityByKey) out.density.push({ key: `density:${key}`, d: p.d, fill: p.fill, y: p.y, opacity: DENSITY_LEVELS[p.level] });
 
   // Labels, most important first: pinned features, then the widest bars.
   for (const c of tinyCandidates) if (tinyCount <= MAX_LABELLED_TINY || c.priority > 0) candidates.push(c);
@@ -967,14 +1210,38 @@ function layoutFeatures(
   const font = m.labelFont;
   const weight = m.labelWeight;
   const widthOf = (s: string) => measure(s, font, weight);
+  // the labels placed outside, with what their leader needs
+  const outside: { label: FeatureLabel; side: Side; anchorX: number; barTop: number }[] = [];
+  // other labels standing in the outside rows (below labels of the outermost lane share the first row below)
+  const outsideBlocked: { side: Side; row: number; left: number; right: number }[] = [];
+  // where an outside label in row `extRow` stands, and its leader down (or up) to its bar
+  const outsideGeometry = (side: Side, extRow: number, anchorX: number, barTop: number) => {
+    const outerBarTop = featureBarTop(v, side, Math.max(1, set[side].length) - 1);
+    const offset = 4.5 + extRow * 13;
+    const oy = side === 'above' ? outerBarTop - offset - font / 2 - 1 : outerBarTop + barH + offset + font / 2 + 1;
+    const y0 = side === 'above' ? oy + font / 2 + 1 : barTop + barH;
+    const y1 = side === 'above' ? barTop : oy - font / 2 - 1;
+    const leader = y1 > y0 ? vlinePath(anchorX, y0, y1) : vlinePath(anchorX, Math.min(y0, y1), Math.max(y0, y1) + 2);
+    return { oy, leader };
+  };
   for (const c of candidates) {
     const entry = set.entries[c.ref];
-    const name = entry.feature.name;
-    if (!name) continue;
+    const rawName = entry.feature.name;
+    if (!rawName) continue;
+    const name = ctx.showLengths
+      ? `${rawName} (${formatInt(featureLength(entry.feature))} bp)`
+      : rawName;
     const tw = widthOf(name);
     const cy = c.barTop + barH / 2;
     const key = `${entry.feature.id}:${c.piece}:label`;
-    const push = (text: string, left: number, textW: number, y: number, placement: LabelPlacement) => {
+    const push = (
+      text: string,
+      left: number,
+      textW: number,
+      y: number,
+      placement: LabelPlacement,
+      leader: string | null = null,
+    ) => {
       out.labels.push({
         key,
         entry: c.ref,
@@ -988,38 +1255,90 @@ function layoutFeatures(
         bottom: y + font / 2 + 1,
         placement,
         onFill: placement === 'inside' ? labelColorOnFill(entry.fill) : null,
+        leader,
       });
     };
+    // Tier 1 ('inside'): label fits comfortably inside the feature arrow/bar
     const room = c.bodyR - c.bodyL - 2 * INSIDE_PAD;
-    if (tw <= room) {
-      push(name, (c.bodyL + c.bodyR) / 2 - tw / 2, tw, cy, 'inside');
+    const visL = Math.max(0, c.x0);
+    const visR = Math.min(width, c.x1);
+    const visW = visR - visL;
+    const ol = Math.min(width - EDGE - tw, Math.max(EDGE, (visL + visR) / 2 - tw / 2));
+    const overBar = ol < visR && ol + tw > visL;
+    const maxLane = Math.max(1, set[c.side].length);
+    const belowRow = space.row(`below:${c.side}:${c.lane}`);
+    const sharesBottomOuter = c.side === 'below' && c.lane === maxLane - 1;
+    const bottomOuterRow = sharesBottomOuter ? space.row(featureRowKey('below', maxLane)) : null;
+    // a feature above the strand never takes a label under its bar (between it and the strand): its labels stay above
+    const canPlaceBelow =
+      c.side === 'below' &&
+      visW >= 10 &&
+      ol >= EDGE &&
+      overBar &&
+      belowRow.isFree(ol - NEIGHBOUR_GAP, ol + tw + NEIGHBOUR_GAP) &&
+      (!bottomOuterRow || bottomOuterRow.isFree(ol - NEIGHBOUR_GAP, ol + tw + NEIGHBOUR_GAP));
+    if (tw <= room && (room >= 56 || tw <= room * 0.78 || !canPlaceBelow)) {
+      push(name, (c.bodyL + c.bodyR) / 2 - tw / 2, tw, cy, 'inside', null);
       continue;
     }
     const row = space.row(featureRowKey(c.side, c.lane));
-    // beside, right of the bar, then left of it
+
+    // Tier 2 ('below'): medium-sized feature with clear room directly below the feature bar (no leader line)
+    if (canPlaceBelow) {
+      const by = c.barTop + barH + OUTWARD_GAP + font / 2 + 1;
+      push(name, ol, tw, by, 'below', null);
+      belowRow.add(ol, ol + tw);
+      bottomOuterRow?.add(ol, ol + tw);
+      if (bottomOuterRow) outsideBlocked.push({ side: 'below', row: 0, left: ol, right: ol + tw });
+      continue;
+    }
+    if (visW >= 10) {
+      // Or beside the bar in the same lane (no leader line)
+      const rl = c.x1 + BESIDE_GAP;
+      if (rl >= EDGE && rl + tw <= width - EDGE && row.isFree(rl, rl + tw + NEIGHBOUR_GAP)) {
+        push(name, rl, tw, cy, 'beside', null);
+        row.add(rl, rl + tw);
+        continue;
+      }
+      const ll = c.x0 - BESIDE_GAP - tw;
+      if (ll >= EDGE && ll + tw <= width - EDGE && row.isFree(ll - NEIGHBOUR_GAP, ll + tw)) {
+        push(name, ll, tw, cy, 'beside', null);
+        row.add(ll, ll + tw);
+        continue;
+      }
+    }
+
+    // Tier 3 ('outside' with leader line): small/narrow features or crowded features routed to the external label band
+    let placedOutside = false;
+    if (ol >= EDGE && overBar) {
+      for (let extRow = 0; extRow < v.featureLabelRows[c.side]; extRow++) {
+        const outerRow = space.row(featureRowKey(c.side, maxLane + extRow));
+        if (!outerRow.isFree(ol - NEIGHBOUR_GAP, ol + tw + NEIGHBOUR_GAP)) continue;
+        const anchorX = Math.round(Math.max(visL + 0.5, Math.min(visR - 0.5, (visL + visR) / 2)) * 2) / 2;
+        const { oy, leader } = outsideGeometry(c.side, extRow, anchorX, c.barTop);
+        push(name, ol, tw, oy, 'outside', leader);
+        const placed = out.labels[out.labels.length - 1];
+        placed.outsideSide = c.side;
+        placed.outsideRow = extRow;
+        outerRow.add(ol, ol + tw);
+        outside.push({ label: placed, side: c.side, anchorX, barTop: c.barTop });
+        placedOutside = true;
+        break;
+      }
+    }
+    if (placedOutside) continue;
+
+    // Fallback: beside in own lane for small features if outer rows were full
     const rl = c.x1 + BESIDE_GAP;
     if (rl >= EDGE && rl + tw <= width - EDGE && row.isFree(rl, rl + tw + NEIGHBOUR_GAP)) {
-      push(name, rl, tw, cy, 'beside');
+      push(name, rl, tw, cy, 'beside', null);
       row.add(rl, rl + tw);
       continue;
     }
     const ll = c.x0 - BESIDE_GAP - tw;
     if (ll >= EDGE && ll + tw <= width - EDGE && row.isFree(ll - NEIGHBOUR_GAP, ll + tw)) {
-      push(name, ll, tw, cy, 'beside');
+      push(name, ll, tw, cy, 'beside', null);
       row.add(ll, ll + tw);
-      continue;
-    }
-    // outside: above the bar (top side) or below it (bottom side), centred on its visible part;
-    // kept over the bar so it never reads as the label of a neighbour
-    const outer = space.row(featureRowKey(c.side, c.lane + 1));
-    const visL = Math.max(0, c.x0);
-    const visR = Math.min(width, c.x1);
-    const ol = Math.min(width - EDGE - tw, Math.max(EDGE, (visL + visR) / 2 - tw / 2));
-    const oy = c.side === 'above' ? c.barTop - OUTWARD_GAP - font / 2 - 1 : c.barTop + barH + OUTWARD_GAP + font / 2 + 1;
-    const overBar = ol < visR && ol + tw > visL;
-    if (ol >= EDGE && overBar && outer.isFree(ol - NEIGHBOUR_GAP, ol + tw + NEIGHBOUR_GAP)) {
-      push(name, ol, tw, oy, 'outside');
-      outer.add(ol, ol + tw);
       continue;
     }
     if (room >= MIN_TRUNCATED_PX) {
@@ -1027,16 +1346,39 @@ function layoutFeatures(
       // "fro…" says little: keep a truncated label only if enough of the name survives
       if (text && text.length - 1 >= Math.min(MIN_TRUNCATED_CHARS, name.length - 1)) {
         const w = widthOf(text);
-        push(text, (c.bodyL + c.bodyR) / 2 - w / 2, w, cy, 'inside');
+        push(text, (c.bodyL + c.bodyR) / 2 - w / 2, w, cy, 'inside', null);
       }
     }
+  }
+
+  // Which labels go outside is settled above (most important first); their rows are then given again from left to
+  // right, each above any neighbour it would run into, so neighbours keep their order (a staircase rising to the
+  // right) at any width instead of swapping rows as the widths of their bars shift.
+  for (const side of SIDES) {
+    const items = outside.filter((o) => o.side === side).sort((a, b) => a.anchorX - b.anchorX || a.label.left - b.label.left);
+    const rows: number[] = [];
+    const runsInto = (a: { left: number; right: number }, b: { left: number; right: number }) =>
+      a.left < b.right + NEIGHBOUR_GAP && a.right > b.left - NEIGHBOUR_GAP;
+    for (let i = 0; i < items.length; i++) {
+      const q = items[i].label;
+      let row = 0;
+      for (let j = 0; j < i; j++) if (runsInto(items[j].label, q)) row = Math.max(row, rows[j] + 1);
+      while (outsideBlocked.some((b) => b.side === side && b.row === row && runsInto(b, q))) row++;
+      rows.push(row);
+    }
+    // more rows than there are: the rows found above stay
+    if (rows.some((r) => r >= v.featureLabelRows[side])) continue;
+    items.forEach((o, i) => {
+      const { oy, leader } = outsideGeometry(side, rows[i], o.anchorX, o.barTop);
+      Object.assign(o.label, { y: oy, top: oy - font / 2 - 1, bottom: oy + font / 2 + 1, leader, outsideRow: rows[i] });
+    });
   }
 }
 
 function layoutOrfs(set: TrackSet<OrfEntry>, v: VerticalLayout, ctx: LaneContext, out: ViewModel['orfs']): void {
   const { scale, width, bpFrom, bpTo, seqLength: L } = ctx;
   const m = METRICS;
-  let small = '';
+  const marks = new Map<string, OrfMarks>();
   for (const side of SIDES) {
     const lanes = set[side];
     for (let lane = 0; lane < lanes.length; lane++) {
@@ -1050,7 +1392,11 @@ function layoutOrfs(set: TrackSet<OrfEntry>, v: VerticalLayout, ctx: LaneContext
         const x1 = Math.min(width + CLIP, scale.x(it.end));
         if (x1 - x0 < SMALL_PX) {
           const w = Math.max(1, x1 - x0);
-          small += rectPath((x0 + x1) / 2 - w / 2, cy - m.orfThickness / 2, w, m.orfThickness);
+          const mark = rectPath((x0 + x1) / 2 - w / 2, cy - m.orfThickness / 2, w, m.orfThickness);
+          const key = `${side}:${lane}:${entry.orf.strand}`;
+          const cur = marks.get(key);
+          if (cur) cur.d += mark;
+          else marks.set(key, { key, dir: entry.orf.strand, y: cy, d: mark });
           continue;
         }
         const dir = entry.orf.strand;
@@ -1060,18 +1406,11 @@ function layoutOrfs(set: TrackSet<OrfEntry>, v: VerticalLayout, ctx: LaneContext
         const d = hasHead
           ? orfPath(x0, x1, cy, dir, m.orfThickness, m.orfHead, m.orfHeadHalf)
           : rectPath(x0, cy - m.orfThickness / 2, x1 - x0, m.orfThickness);
-        out.glyphs.push({ key: `orf:${it.ref}:${it.piece}`, entry: it.ref, d });
+        out.glyphs.push({ key: `orf:${it.ref}:${it.piece}`, entry: it.ref, dir, d, y: cy });
       }
     }
   }
-  out.small = small;
-}
-
-/** Drawn x extent of a primer piece: its annealed part widened to PRIMER_MIN_PX. */
-export function primerGlyphExtent(x0: number, x1: number): [number, number] {
-  if (x1 - x0 >= PRIMER_MIN_PX) return [x0, x1];
-  const c = (x0 + x1) / 2;
-  return [c - PRIMER_MIN_PX / 2, c + PRIMER_MIN_PX / 2];
+  out.small = [...marks.values()];
 }
 
 function layoutPrimers(
@@ -1090,7 +1429,10 @@ function layoutPrimers(
       const { items } = lanes[lane];
       const [i0, i1] = visibleSpan(lanes[lane], bpFrom, bpTo);
       // the shaft sits a little towards the backbone; the barb and tail rise away from it
-      const cy = v.primers[side][lane] + m.primerLaneHeight / 2 + (side === 'above' ? 2 : -2);
+      // the shaft lies against the strand: at the bottom of a lane above the backbone, at the top of a lane below it;
+      // the raised tail of the primer has the rest of the lane
+      const laneTop = v.primers[side][lane];
+      const cy = side === 'above' ? laneTop + m.primerLaneHeight - m.primerShaft / 2 - 0.5 : laneTop + m.primerShaft / 2 + 0.5;
       const row = space.row(`p:${side}:${lane}`);
       for (let i = i0; i < i1; i++) {
         const it = items[i];
@@ -1098,8 +1440,6 @@ function layoutPrimers(
         const entry = set.entries[it.ref];
         const dir = entry.site.strand;
         const ann = entry.annealed;
-        // 3' end of the primer in [0, L]: right end of a forward primer, left end of a reverse one
-        const end3 = dir === 1 ? (ann.end > L ? ann.end - L : ann.end) : ann.start;
 
         let d = '';
         let gx0 = Infinity;
@@ -1108,18 +1448,14 @@ function layoutPrimers(
           const s = Math.max(ap.start, it.start);
           const e = Math.min(ap.end, it.end);
           if (e <= s) continue;
-          const tip = dir === 1 ? e === end3 : s === end3;
           let [x0, x1] = [scale.x(s), scale.x(e)];
-          // only the piece with the arrow head is widened (a cut-off piece is just a shaft)
-          if (tip) [x0, x1] = primerGlyphExtent(x0, x1);
-          else if (x1 - x0 < 1.5) [x0, x1] = [(x0 + x1) / 2 - 0.75, (x0 + x1) / 2 + 0.75];
-          const showTip = tip && (dir === 1 ? x1 <= width + CLIP : x0 >= -CLIP);
+          // drawn to scale: a primer is as long as its annealed part (a speck of 1.5 px at least, so it stays visible)
+          if (x1 - x0 < 1.5) [x0, x1] = [(x0 + x1) / 2 - 0.75, (x0 + x1) / 2 + 0.75];
           const cx0 = Math.max(-CLIP, x0);
           const cx1 = Math.min(width + CLIP, x1);
           if (cx1 <= cx0) continue;
-          d += showTip
-            ? primerPath(cx0, cx1, cy, dir, m.primerShaft, m.primerHead, m.primerBarb)
-            : rectPath(cx0, cy - m.primerShaft / 2, cx1 - cx0, m.primerShaft);
+          // a plain bar (no arrow head): forward primers are drawn above the backbone, reverse ones below it
+          d += rectPath(cx0, cy - m.primerShaft / 2, cx1 - cx0, m.primerShaft);
           gx0 = Math.min(gx0, cx0);
           gx1 = Math.max(gx1, cx1);
         }
@@ -1147,7 +1483,7 @@ function layoutPrimers(
           }
         }
         if (!d && !tail) continue;
-        out.glyphs.push({ key: `primer:${it.ref}:${it.piece}`, entry: it.ref, d, tail, dir });
+        out.glyphs.push({ key: `primer:${it.ref}:${it.piece}`, entry: it.ref, d, tail, dir, y: cy });
         row.add(gx0, gx1);
         // a primer that wraps the origin is labelled on the piece holding its 3' end
         if (it.piece === 0 || it.piece === (dir === 1 ? 2 : 1)) {
@@ -1157,68 +1493,113 @@ function layoutPrimers(
     }
   }
 
-  candidates.sort((a, b) => a.x0 - b.x0);
+  // Labels stand in rows above (forward primers) or below (reverse primers) the primer lanes, SnapGene-style: each has a
+  // leader line to its primer, and sits left or right of that line so that the rows form a staircase.
   const font = m.primerFont;
-  for (const c of candidates) {
-    const entry = set.entries[c.ref];
-    if (!entry.name) continue;
-    const tw = measure(entry.name, font, m.primerWeight);
-    const row = space.row(`p:${c.side}:${c.lane}`);
-    const right = (): number | null => {
-      const l = c.x1 + BESIDE_GAP;
-      return l >= EDGE && l + tw <= width - EDGE && row.isFree(l, l + tw + NEIGHBOUR_GAP) ? l : null;
-    };
-    const left = (): number | null => {
-      const l = c.x0 - BESIDE_GAP - tw;
-      return l >= EDGE && l + tw <= width - EDGE && row.isFree(l - NEIGHBOUR_GAP, l + tw) ? l : null;
-    };
-    // the name goes on the 3' side first (right of a forward primer, left of a reverse one)
-    const l = c.dir === 1 ? (right() ?? left()) : (left() ?? right());
-    if (l === null) continue;
-    row.add(l, l + tw);
-    out.labels.push({
-      key: `primer:${c.ref}:${c.piece}:label`,
-      entry: c.ref,
-      dir: c.dir,
-      text: entry.name,
-      x: l + tw / 2,
-      y: c.cy,
-      anchor: 'middle',
-      left: l,
-      right: l + tw,
-      top: c.cy - font / 2 - 1,
-      bottom: c.cy + font / 2 + 1,
+  const pad = m.enzymeLabelPad;
+  for (const side of SIDES) {
+    const rows = v.primerLabels[side].rows;
+    if (rows === 0) continue;
+    const items = candidates
+      .filter((c) => c.side === side && set.entries[c.ref].name)
+      .sort((a, b) => a.x0 - b.x0)
+      .map((c) => {
+        const text = primerLabelText(set.entries[c.ref], L, ctx.showPrimerLocations, ctx.showLengths, ctx.primerSeqLengths);
+        // the leader meets the primer at the end where it starts (5'): the left end of a forward primer, the right end of a reverse one
+        const end5 = c.dir === 1 ? c.x0 : c.x1;
+        return { c, text, tw: measure(text, font, m.primerWeight), x: Math.min(width - EDGE, Math.max(EDGE, end5)) };
+      });
+    const placed = placeEnzymeLabels(
+      items.map((it) => ({ x: it.x, width: pad + it.tw, priority: 0 })),
+      { maxRows: rows, minX: EDGE, maxX: width - EDGE },
+    );
+    items.forEach((it, k) => {
+      const p = placed[k];
+      if (!p) return;
+      const x = Math.round(p.x * 2) / 2;
+      const rowTop = primerLabelRowTop(v, side, p.row);
+      const cy = rowTop + m.enzymeRowHeight / 2;
+      const textLeft = p.align === 'start' ? x + pad : x - pad - it.tw;
+      const edge = it.c.cy + (side === 'above' ? -m.primerShaft / 2 - 1 : m.primerShaft / 2 + 1);
+      const leader = side === 'above' ? vlinePath(x, cy + 2, edge) : vlinePath(x, edge, cy - 2);
+      out.labels.push({
+        key: `primer:${it.c.ref}:${it.c.piece}:label`,
+        entry: it.c.ref,
+        dir: it.c.dir,
+        text: it.text,
+        x: textLeft,
+        y: cy,
+        anchor: 'start',
+        left: p.left,
+        right: p.right,
+        top: rowTop + 1,
+        bottom: rowTop + m.enzymeRowHeight - 1,
+        leader,
+      });
     });
   }
 }
 
-/** Horizontal clearance (px) between a leader and a label it passes. */
-const LEADER_CLEARANCE = 2;
-
-/**
- * Vertical leader at x from y0 down to y1, interrupted where it would cross a label box
- * (with LEADER_CLEARANCE around it).
- */
-export function leaderPath(x: number, y0: number, y1: number, obstacles: readonly TextBox[]): string {
-  let skips: Array<[number, number]> | null = null;
-  for (const b of obstacles) {
-    if (x < b.left - LEADER_CLEARANCE || x > b.right + LEADER_CLEARANCE) continue;
-    if (b.bottom + 1 <= y0 || b.top - 1 >= y1) continue;
-    (skips ??= []).push([b.top - 1, b.bottom + 1]);
+/** Text of a primer label: the name, then its location and length when those options are on. */
+export function primerLabelText(
+  entry: PrimerEntry,
+  seqLength: number,
+  showLocations: boolean,
+  showLengths: boolean,
+  seqLengths: ReadonlyMap<string, number>,
+): string {
+  let text = entry.name;
+  if (showLocations && seqLength > 0) {
+    const start1 = entry.annealed.start + 1;
+    const end1 = (((entry.annealed.end - 1) % seqLength) + seqLength) % seqLength + 1;
+    text = `(${start1} .. ${end1}) ${text}`;
   }
-  if (!skips) return vlinePath(x, y0, y1);
-  skips.sort((a, b) => a[0] - b[0]);
-  let d = '';
-  let y = y0;
-  for (const [a, b] of skips) {
-    if (a > y) d += vlinePath(x, y, Math.min(a, y1));
-    y = Math.max(y, b);
-    if (y >= y1) break;
+  if (showLengths) {
+    const bpLen = seqLengths.get(entry.site.primerId) || Math.max(0, entry.extent.end - entry.extent.start);
+    text = `${text} (${formatInt(bpLen)} bp)`;
   }
-  if (y < y1) d += vlinePath(x, y, y1);
-  return d;
+  return text;
 }
 
+/**
+ * Rows of primer labels to reserve above (forward primers) and below (reverse primers) the primer lanes: what the
+ * whole-record view needs, capped. Stable while panning, like the enzyme rows.
+ */
+export function primerLabelRowsToReserve(
+  set: TrackSet<PrimerEntry> | null,
+  seqLength: number,
+  plotLeft: number,
+  plotWidth: number,
+  width: number,
+  measure: TextMeasurer,
+  showLocations: boolean,
+  showLengths: boolean,
+  seqLengths: ReadonlyMap<string, number>,
+  maxRows: number = METRICS.maxPrimerLabelRows,
+): { above: number; below: number } {
+  const out = { above: 0, below: 0 };
+  if (!set || seqLength <= 0) return out;
+  const k = plotWidth / seqLength;
+  for (const side of SIDES) {
+    const seen = new Set<number>();
+    const boxes: Array<{ x: number; width: number; priority: number }> = [];
+    for (const lane of set[side]) {
+      for (const it of lane.items) {
+        if (seen.has(it.ref)) continue;
+        seen.add(it.ref);
+        const entry = set.entries[it.ref];
+        if (!entry.name) continue;
+        const text = primerLabelText(entry, seqLength, showLocations, showLengths, seqLengths);
+        const end5 = (entry.site.strand === 1 ? entry.annealed.start : entry.annealed.end) % seqLength;
+        boxes.push({ x: plotLeft + end5 * k, width: METRICS.enzymeLabelPad + measure(text, METRICS.primerFont, METRICS.primerWeight), priority: 0 });
+      }
+    }
+    if (boxes.length > 0) out[side] = Math.max(1, rowsUsed(placeEnzymeLabels(boxes, { maxRows, minX: EDGE, maxX: width - EDGE })));
+  }
+  return out;
+}
+
+/** Horizontal clearance (px) between a leader and a label it passes. */
 /** Index of the first marker with pos >= bp. */
 function firstMarkerAtLeast(markers: readonly CutMarker[], bp: number): number {
   let lo = 0;
@@ -1258,20 +1639,21 @@ function layoutEnzymes(markers: readonly CutMarker[], v: VerticalLayout, ctx: La
     });
   }
 
-  // Cut marks across the backbone; at letter zoom the staggered cut between the strands.
+  // Cut marks stand on the backbone: from above down to the upper strand, never through the DNA; at letter zoom the
+  // staggered cut between the two strands.
   let ticks = '';
   let ticksUnlabelled = '';
   let staggered = '';
   const drawn = new Set<number>();
   const yTop = v.topStrandY - CUT_OVERSHOOT;
-  const yBottom = v.bottomStrandY + CUT_OVERSHOOT;
+  const yBottom = v.topStrandY;
   visible.forEach((i, j) => {
     const mk = markers[i];
     const x = Math.round(scale.x(mk.pos) * 2) / 2;
     if (letterZoom && mk.cuts) {
       const xb = Math.round(scale.x(mk.bottom) * 2) / 2;
       const yMid = (v.topStrandY + v.bottomStrandY) / 2;
-      staggered += `M${fmt(x)} ${fmt(v.topStrandY - 3)}V${fmt(yMid)}H${fmt(xb)}V${fmt(v.bottomStrandY + 3)}`;
+      staggered += `M${fmt(x)} ${fmt(v.topStrandY)}V${fmt(yMid)}H${fmt(xb)}V${fmt(v.bottomStrandY)}`;
       return;
     }
     const key = Math.round(x * 2);
@@ -1283,12 +1665,8 @@ function layoutEnzymes(markers: readonly CutMarker[], v: VerticalLayout, ctx: La
   view.enzymes.ticksUnlabelled = ticksUnlabelled;
   view.enzymes.staggered = staggered;
 
-  // Leaders run down to the backbone behind the feature lanes (bars cover them) and stop short
-  // of the labels they pass, so labels need no halo and the selection band behind the map stays
-  // one even colour.
-  const obstacles: TextBox[] = [];
-  for (const l of view.features.labels) if (l.placement !== 'inside') obstacles.push(l);
-  for (const l of view.primers.labels) obstacles.push(l);
+  // Leaders run down to the backbone behind the feature lanes (bars cover them) and straight through the
+  // labels they pass: the labels have a half-transparent backing, so the line stays faintly visible.
   let leaders = '';
   placed.forEach((p, j) => {
     if (!p) return;
@@ -1297,7 +1675,7 @@ function layoutEnzymes(markers: readonly CutMarker[], v: VerticalLayout, ctx: La
     const x = Math.round(p.x * 2) / 2;
     const rowTop = enzymeRowTop(v, p.row);
     const cy = rowTop + m.enzymeRowHeight / 2;
-    const leader = leaderPath(x, cy + 2, v.topStrandY - CUT_OVERSHOOT, obstacles);
+    const leader = vlinePath(x, cy + 2, v.topStrandY - CUT_OVERSHOOT);
     leaders += leader;
     const textW = p.right - p.left - m.enzymeLabelPad;
     const textLeft = p.align === 'start' ? x + m.enzymeLabelPad : x - m.enzymeLabelPad - textW;
@@ -1319,6 +1697,175 @@ function layoutEnzymes(markers: readonly CutMarker[], v: VerticalLayout, ctx: La
   view.enzymes.leaders = leaders;
 }
 
+/** Where a read matches the reference, in unwrapped reference coordinates from `refRange.start`. */
+interface AlignmentDetail {
+  start: number;
+  end: number;
+  /** Mismatched bases and deletions, as [start, end) runs. */
+  gaps: Array<[number, number]>;
+  /** Reference positions in front of which the read has extra bases. */
+  inserts: number[];
+}
+
+const alignmentDetails = new WeakMap<AlignedSequence, AlignmentDetail>();
+
+function alignmentDetail(aln: AlignedSequence, refSeq: string): AlignmentDetail {
+  const cached = alignmentDetails.get(aln);
+  if (cached && cached.start === aln.refRange.start) return cached;
+  const L = refSeq.length;
+  const read = (aln.strand === 1 ? aln.sequence : reverseComplement(aln.sequence)).toUpperCase();
+  const gaps: Array<[number, number]> = [];
+  const inserts: number[] = [];
+  const gap = (s: number, e: number) => {
+    const last = gaps[gaps.length - 1];
+    if (last && last[1] === s) last[1] = e;
+    else gaps.push([s, e]);
+  };
+  let qi = 0;
+  let rp = aln.refRange.start;
+  for (const m of aln.cigar.matchAll(/(\d+)([MIDNSHP=X])/g)) {
+    const len = Number(m[1]);
+    const op = m[2];
+    if (op === 'S' || op === 'I') {
+      if (op === 'I') inserts.push(rp);
+      qi += len;
+    } else if (op === 'D' || op === 'N') {
+      gap(rp, rp + len);
+      rp += len;
+    } else if (op === 'M' || op === '=' || op === 'X') {
+      for (let k = 0; k < len; k++) {
+        const q = read[qi + k];
+        if (!q || q !== refSeq[(rp + k) % L]?.toUpperCase()) gap(rp + k, rp + k + 1);
+      }
+      qi += len;
+      rp += len;
+    }
+  }
+  const detail = { start: aln.refRange.start, end: rp, gaps, inserts };
+  alignmentDetails.set(aln, detail);
+  return detail;
+}
+
+/** Arrow over [x0, x1], `h` high, with its head at the 3' end when `head`. */
+function readArrowPath(x0: number, x1: number, cy: number, h: number, dir: 1 | -1, head: boolean): string {
+  const t = cy - h / 2;
+  const b = cy + h / 2;
+  const hl = head ? Math.min(7, (x1 - x0) * 0.5) : 0;
+  const r = (n: number) => Math.round(n * 100) / 100;
+  if (hl <= 0) return `M${r(x0)} ${r(t)}H${r(x1)}V${r(b)}H${r(x0)}Z`;
+  if (dir === 1) return `M${r(x0)} ${r(t)}H${r(x1 - hl)}L${r(x1)} ${r(cy)}L${r(x1 - hl)} ${r(b)}H${r(x0)}Z`;
+  return `M${r(x1)} ${r(t)}H${r(x0 + hl)}L${r(x0)} ${r(cy)}L${r(x0 + hl)} ${r(b)}H${r(x1)}Z`;
+}
+
+function layoutAlignments(
+  set: TrackSet<AlignmentEntry>,
+  v: VerticalLayout,
+  ctx: LaneContext,
+  backboneTop: [number, number] | null,
+  out: ViewModel['alignments'],
+  refSeq: string,
+): void {
+  const { scale, width, bpFrom, bpTo, seqLength: L } = ctx;
+  const m = METRICS;
+  const lanes = set.above;
+  if (lanes.length === 0 || v.alignmentBandHeight <= 0) return;
+
+  if (backboneTop && backboneTop[1] > backboneTop[0]) {
+    out.band = {
+      x0: backboneTop[0],
+      x1: backboneTop[1],
+      y: v.alignmentBandTop,
+      height: v.alignmentBandHeight,
+    };
+  }
+
+  const H = 9; // arrow height
+  const INSET = 1.5; // the red fill sits this far inside the outline
+  const HEAD = 7;
+  for (let lane = 0; lane < lanes.length; lane++) {
+    const [i0, i1] = visibleSpan(lanes[lane], bpFrom, bpTo);
+    const cy = (v.alignmentLanesTop[lane] ?? v.alignmentBandTop) + m.alignmentLaneHeight / 2;
+    for (let i = i0; i < i1; i++) {
+      const it = lanes[lane].items[i];
+      if (it.end <= bpFrom || it.start >= bpTo) continue;
+      const entry = set.entries[it.ref];
+      const aln = entry.alignedSeq;
+      const dir = aln.strand;
+      const end3 = dir === 1 ? (entry.extent.end > L ? entry.extent.end - L : entry.extent.end) : entry.extent.start;
+
+      const x0 = scale.x(it.start);
+      const x1 = scale.x(it.end);
+      const cx0 = Math.max(-CLIP, x0);
+      const cx1 = Math.min(width + CLIP, x1);
+      if (cx1 <= cx0) continue;
+      const hasHead = dir === 1 ? it.end === end3 && x1 <= width + CLIP : it.start === end3 && x0 >= -CLIP;
+      const outline = readArrowPath(cx0, cx1, cy, H, dir, hasHead && cx1 - cx0 >= 4);
+
+      // this piece in unwrapped alignment coordinates (the second piece of a read over the origin is shifted by L)
+      const shift = it.start < entry.extent.start ? L : 0;
+      const u0 = it.start + shift;
+      const u1 = it.end + shift;
+      const det = alignmentDetail(aln, refSeq);
+      const xu = (u: number) => scale.x(u - shift);
+      // the fill stays out of the arrow head
+      const lim0 = hasHead && dir === -1 ? cx0 + Math.min(HEAD, (cx1 - cx0) * 0.5) : cx0;
+      const lim1 = hasHead && dir === 1 ? cx1 - Math.min(HEAD, (cx1 - cx0) * 0.5) : cx1;
+      const f0 = Math.max(lim0, xu(Math.max(u0, det.start)));
+      const f1 = Math.min(lim1, xu(Math.min(u1, det.end)));
+      const fill = f1 > f0 ? rectPath(f0, cy - H / 2 + INSET, f1 - f0, H - 2 * INSET) : '';
+
+      let gaps = '';
+      if (fill) {
+        let pendS = -Infinity;
+        let pendE = -Infinity;
+        const flush = () => {
+          if (pendE > pendS) gaps += rectPath(pendS, cy - H / 2 + INSET, pendE - pendS, H - 2 * INSET);
+        };
+        for (const [gs, ge] of det.gaps) {
+          if (ge <= u0 || gs >= u1) continue;
+          let a = Math.max(f0, xu(Math.max(gs, u0)));
+          let b = Math.min(f1, xu(Math.min(ge, u1)));
+          if (b - a < 1) {
+            const c = (a + b) / 2;
+            a = c - 0.5;
+            b = c + 0.5;
+          }
+          if (b <= f0 || a >= f1) continue;
+          // gaps closer than a pixel merge into one cut
+          if (a <= pendE + 0.5) pendE = Math.max(pendE, b);
+          else {
+            flush();
+            pendS = a;
+            pendE = b;
+          }
+        }
+        flush();
+      }
+
+      let inserts = '';
+      let lastX = -Infinity;
+      for (const p of det.inserts) {
+        if (p < u0 || p > u1) continue;
+        const x = Math.round(xu(p) * 2) / 2;
+        if (x < cx0 || x > cx1 || x - lastX < 1) continue;
+        inserts += vlinePath(x, cy - H / 2 - 4, cy - H / 2);
+        lastX = x;
+      }
+
+      out.glyphs.push({
+        key: `aln:${aln.id}:${it.piece}`,
+        id: aln.id,
+        name: aln.name,
+        strand: dir,
+        outline,
+        fill: fill || null,
+        gaps: gaps || null,
+        inserts: inserts || null,
+      });
+    }
+  }
+}
+
 /** Build the per-frame view model. */
 export function computeView(input: ViewInput): ViewModel {
   const { record, width, scale, measure } = input;
@@ -1333,15 +1880,30 @@ export function computeView(input: ViewInput): ViewModel {
   const isDna = record.molecule === 'DNA';
   const v = computeVerticalLayout({
     enzymeRows: input.markers && input.markers.length > 0 ? input.enzymeRows : 0,
+    primerLabelRows: input.primers ? input.primerLabelRows : undefined,
+    featureLabelRows: input.featureLabelRows,
     features: count(input.features),
     orfs: count(input.orfs),
     primers: count(input.primers),
+    alignmentLanes: input.alignments ? input.alignments.above.length : 0,
+    alignmentSpace: input.alignmentSpace,
     strandGap: strandGapFor(k, !isDna),
   });
   // A single-stranded molecule's line runs under its letters (at the bottom of the band).
   const lineY = isDna ? v.topStrandY : v.bottomStrandY;
 
-  const ctx: LaneContext = { scale, width, bpFrom, bpTo, measure, seqLength: L };
+  const ctx: LaneContext = {
+    scale,
+    width,
+    bpFrom,
+    bpTo,
+    measure,
+    seqLength: L,
+    topology,
+    showLengths: Boolean(input.showLengths),
+    showPrimerLocations: Boolean(input.showPrimerLocations),
+    primerSeqLengths: new Map(record.primers.map((p) => [p.id, p.sequence.length] as const)),
+  };
 
   // --- backbone -------------------------------------------------------------
   const ext = strandExtents(record);
@@ -1405,22 +1967,17 @@ export function computeView(input: ViewInput): ViewModel {
     x1: width,
     measure: (t) => measure(t, METRICS.tickFont, 400),
   });
-  const tickTop = v.bottomStrandY + 1.5;
-  let major = '';
-  let minor = '';
+  // The ruler is just the numbers, right under the lower strand: no tick lines.
+  const major = '';
+  const minor = '';
   const labels: TextBox[] = [];
-  const labelY = v.bottomStrandY + 15;
+  const labelY = v.rulerTop + 6;
   for (const n of tickInfo.major) {
     const x = Math.round(scale.x(n - 0.5) * 2) / 2;
-    major += vlinePath(x, tickTop, tickTop + 4.5);
     const text = formatTick(n, tickInfo.step);
     const tw = measure(text, METRICS.tickFont, 400);
     const cx = Math.min(width - 2 - tw / 2, Math.max(2 + tw / 2, x));
     labels.push({ key: `t${n}`, text, x: cx, y: labelY, anchor: 'middle', left: cx - tw / 2, right: cx + tw / 2, top: labelY - 6, bottom: labelY + 6 });
-  }
-  for (const n of tickInfo.minor) {
-    const x = Math.round(scale.x(n - 0.5) * 2) / 2;
-    minor += vlinePath(x, tickTop, tickTop + 2.5);
   }
 
   // --- tracks ---------------------------------------------------------------
@@ -1437,14 +1994,18 @@ export function computeView(input: ViewInput): ViewModel {
     backbone,
     ticks: { major, minor, labels, info: tickInfo },
     features: { glyphs: [], small: [], density: [], labels: [] },
-    orfs: { glyphs: [], small: '' },
+    orfs: { glyphs: [], small: [] },
     primers: { glyphs: [], labels: [] },
+    alignments: { band: null, glyphs: [] },
     enzymes: { ticks: '', ticksUnlabelled: '', staggered: '', leaders: '', labels: [], visible: [] },
   };
   const space = new LabelSpace();
   if (input.features) layoutFeatures(input.features, v, ctx, view.features, space, input.pinnedFeatureIds);
   if (input.orfs) layoutOrfs(input.orfs, v, ctx, view.orfs);
-  if (input.primers) layoutPrimers(input.primers, v, ctx, view.primers, space);
+  if (input.primers) {
+    layoutPrimers(input.primers, v, ctx, view.primers, space);
+  }
+  if (input.alignments) layoutAlignments(input.alignments, v, ctx, backbone.top, view.alignments, record.seq);
   if (input.markers && input.markers.length > 0) layoutEnzymes(input.markers, v, ctx, view, letters !== null);
   return view;
 }

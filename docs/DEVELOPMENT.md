@@ -91,12 +91,39 @@ curl -o packages/core/test/fixtures/large/ecoli_U00096.3.gb \
   "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&rettype=gbwithparts&retmode=text&id=U00096.3"
 ```
 
-## 4. Building installers for Windows and macOS
+## 4. Releases: installers and the in-app updater
 
-Tauri builds native installers on the platform they target, so the simplest path is GitHub Actions:
+Tauri builds native installers on the platform they target, so releases are built by GitHub Actions:
 `.github/workflows/release.yml` builds Windows (`.msi`, `.exe`), macOS (`.dmg`, Apple Silicon and
 Intel) and Linux (`.AppImage`, `.deb`) when a tag such as `v0.1.0` is pushed (or when run manually
-from the Actions tab) and attaches them to a draft release.
+from the Actions tab), signs them for the updater, and publishes them as a GitHub release together
+with `latest.json`.
+
+Installed copies of the app check
+`https://github.com/pheretomus/HHereditas/releases/latest/download/latest.json` at startup
+(`plugins.updater` in `tauri.conf.json`, `src/app/updater.ts`, `UpdateDialog.tsx`). When it names
+a newer version they offer to download, install and relaunch, so every laptop with the app installed
+picks a release up on its next launch. The repository must stay public for that URL to be reachable
+without a token.
+
+### One-time setup
+
+1. The updater key pair was generated with `npx tauri signer generate -w ~/.tauri/hhereditas.key`.
+   The public half is in `tauri.conf.json` (`plugins.updater.pubkey`); the private half,
+   `~/.tauri/hhereditas.key`, is NOT in the repository. Back it up: a release signed with another key
+   is rejected by installed apps, so losing it means they can never update again.
+2. Add the private key to the repository secrets (the workflow fails without it):
+   `gh secret set TAURI_SIGNING_PRIVATE_KEY < ~/.tauri/hhereditas.key` and, for a key without a
+   password, `gh secret set TAURI_SIGNING_PRIVATE_KEY_PASSWORD --body ""`.
+
+### Shipping a version
+
+1. Bump the version in `apps/desktop/src-tauri/tauri.conf.json`, `apps/desktop/src-tauri/Cargo.toml`
+   and `VERSION` in `apps/desktop/src/app/App.tsx` (the updater compares `tauri.conf.json`'s).
+2. Commit, then tag and push: `git tag v0.2.0 && git push origin main v0.2.0`.
+3. Wait for the Release workflow (about 15 minutes). The release appears under Releases with the
+   installers, their `.sig` files and `latest.json`. Nothing else is needed: apps already installed
+   see it on their next launch.
 
 Unsigned builds work but show a warning on first launch (macOS Gatekeeper: right-click → Open;
 Windows SmartScreen: More info → Run anyway). Code signing needs an Apple Developer ID and a Windows

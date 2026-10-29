@@ -35,6 +35,8 @@
 .svg {
   display: block;
   touch-action: none;
+  /* squeezed or spread over the plot while a side panel slides (see LinearMap) */
+  transform-origin: 0 0;
   font-family: var(--hh-font-ui);
   text-rendering: geometricPrecision;
 }
@@ -86,6 +88,12 @@
   opacity: 0.55;
 }
 
+.labelBacking {
+  fill: var(--hh-bg-content);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
 .tickLabel {
   fill: var(--hh-text-secondary);
   font-size: var(--hh-text-xs);
@@ -108,16 +116,56 @@
 .featureLabel {
   font-size: var(--hh-text-sm);
   font-weight: var(--hh-weight-medium);
+  /* every feature label is black: inside the bar, under it, beside it and in the outer rows */
+  fill: #000000;
 }
 
-.featureLabelOutside {
-  fill: var(--hh-text-secondary);
+.featureLeader {
+  fill: none;
+  stroke: var(--hh-separator-strong);
+  stroke-width: 1;
 }
 
-/* ---- ORFs and primers ---------------------------------------------------------------- */
+/* ---- ORFs, primers, and aligned sequences ------------------------------------------ */
 
-.orf {
-  fill: var(--hh-orf);
+.alignmentBand {
+  fill: #f6e8be;
+  fill-opacity: 0.88;
+  stroke: #e5d198;
+  stroke-width: 0.75;
+}
+
+.alignmentBody {
+  fill: #ffffff;
+}
+
+.alignmentFill {
+  fill: #9b0000;
+}
+
+.alignmentGap {
+  fill: #ffffff;
+}
+
+.alignmentOutline {
+  fill: none;
+  stroke: #9b0000;
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+.alignmentInsert {
+  fill: none;
+  stroke: #9b0000;
+  stroke-width: 1.25;
+}
+
+.orfFwd {
+  fill: var(--hh-orf-fwd);
+}
+
+.orfRev {
+  fill: var(--hh-orf-rev);
 }
 
 .primerFwd {
@@ -145,6 +193,12 @@
 .primerLabel {
   font-size: var(--hh-text-xs);
   font-weight: var(--hh-weight-medium);
+}
+
+/* Thin line from a primer's label to the primer; the colour comes from primerTailFwd / primerTailRev. */
+.primerLeader {
+  fill: none;
+  stroke-width: 0.75;
 }
 
 /* ---- Enzymes ----------------------------------------------------------------------- */
@@ -201,12 +255,6 @@
 
 .selection {
   fill: var(--hh-seq-selection);
-}
-
-.selectionEdge {
-  fill: none;
-  stroke: var(--hh-seq-selection-edge);
-  stroke-width: 1;
 }
 
 .caret {
@@ -349,4 +397,37 @@
   justify-content: center;
   color: var(--hh-text-tertiary);
   font-size: var(--hh-text-md);
+}
+
+/* The counter-scale of text in a stretched map; registered so that it can be animated (see LinearMap). */
+@property --hh-unstretch {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+/* A leader on the move with its label (see LinearMap) is shifted and scaled about its top end. */
+path[data-lead] {
+  transform-box: fill-box;
+  transform-origin: 0 0;
+}
+
+/* While the map is being resized its last layout is stretched to the new width (see LinearMap): lines keep their
+   width and text keeps its shape, scaled back about the point it is anchored at. */
+.stretched * {
+  vector-effect: non-scaling-stroke;
+}
+
+.stretched text {
+  transform: scaleX(var(--hh-unstretch, 1));
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+
+.stretched text[text-anchor='middle'] {
+  transform-origin: center;
+}
+
+.stretched text[text-anchor='end'] {
+  transform-origin: right center;
 }

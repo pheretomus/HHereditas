@@ -146,7 +146,14 @@ describe('SequenceView rendering', () => {
     expect(container.querySelector('[data-kind="feature"]')).not.toBeNull();
     expect(container.textContent).toContain('kan');
     const mdl = expectedModel(rec, { enzymes: [ECO] });
-    expect(container.textContent).toContain(formatInt(mdl.rows[1].start + 1));
+    // Row numbers stand to the right of the bases and give the position of the row's last base.
+    expect(container.textContent).toContain(formatInt(mdl.rows[1].end));
+    const numbers = Array.from(container.querySelectorAll('text[class*="rowNumber"]'));
+    expect(numbers.length).toBeGreaterThan(1);
+    const geo = mdl.geometry;
+    expect(numbers.every((t) => Number(t.getAttribute('x')) === geo.numberLeft)).toBe(true);
+    expect(geo.numberLeft).toBeGreaterThan(geo.textRight);
+    expect(geo.textLeft).toBeLessThan(geo.numberLeft);
   });
 
   it('translates CDS features unless translations are hidden', () => {

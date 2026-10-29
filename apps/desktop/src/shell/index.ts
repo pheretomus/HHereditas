@@ -48,7 +48,7 @@ export {
 export type { BaseComposition, SelectionSummary, SequenceIndex } from './selectionSummary';
 export { enzymeRows, featureRows, matchesFilter, primerRows } from './sidebarModel';
 export type { EnzymeRow, FeatureRow, PrimerRow } from './sidebarModel';
-export { COMMON_FEATURE_TYPES, featureTypeLabel, featureTypeOptions, qualifierLabel } from './featureTypes';
+export { FEATURE_TYPES, featureTypeLabel, featureTypeOptions, qualifierLabel } from './featureTypes';
 export type { FeatureTypeOption } from './featureTypes';
 export { formatCompactLength, formatDocumentSubtitle, formatLength, formatPercent, lengthUnit } from './format';
 export { INSPECTOR_PANE_ID, SIDEBAR_PANE_ID } from './ids';

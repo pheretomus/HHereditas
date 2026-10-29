@@ -1,0 +1,279 @@
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--hh-surface, #fff);
+  border-top: 1px solid var(--hh-border, #d5d8dc);
+  font-family: var(--hh-font-ui);
+  color: var(--hh-text, #1d1f22);
+}
+
+.scroller {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* horizontal scrollbar under the reads only (see .scroller: its own is hidden) */
+.hbar {
+  flex: none;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  background: #ffffff;
+}
+
+.content {
+  position: relative;
+  /* room to scroll the last read above the app's floating tab bar */
+  padding-bottom: 72px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--hh-surface, #fff);
+  border-bottom: 1px solid var(--hh-border, #d5d8dc);
+}
+
+.corner {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  background: #fff1c4;
+  border-right: 1px solid #e7d79a;
+}
+
+.cornerTitle {
+  flex: 1;
+  min-width: 0;
+  font-weight: 650;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navBtn {
+  width: 16px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid #b9b9b9;
+  border-radius: 3px;
+  background: #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.markBtn {
+  width: 16px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid #b9b9b9;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.markBtnOn {
+  background: #ff9a9a;
+}
+
+.strip {
+  position: absolute;
+  top: 0;
+  display: block;
+  cursor: text;
+}
+
+.row {
+  position: relative;
+  border-bottom: 1px solid #ece6cf;
+}
+
+.info {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 2px 6px 0 4px;
+  background: #fff1c4;
+  border-right: 1px solid #e7d79a;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.infoTitle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+}
+
+.disclosure {
+  width: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 9px;
+  color: #555;
+  cursor: pointer;
+}
+
+.readName {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.strandArrow {
+  flex: none;
+  fill: #b3001b;
+}
+
+.infoBody {
+  display: flex;
+  gap: 4px;
+  padding-left: 18px;
+  color: #6b6b6b;
+}
+
+.infoText {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  line-height: 13px;
+}
+
+.infoGap {
+  margin-top: 4px;
+}
+
+.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.refBase {
+  font-family: var(--hh-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+  fill: #111;
+}
+
+.readBase {
+  font-family: var(--hh-font-mono);
+  font-size: 12.5px;
+  text-anchor: middle;
+  fill: #111;
+}
+
+.tailBase {
+  font-family: var(--hh-font-mono);
+  font-size: 12.5px;
+  text-anchor: middle;
+  fill: #a6a6a6;
+}
+
+.diff {
+  fill: #ff9a9a;
+}
+
+.insertion {
+  stroke: #8a2be2;
+  stroke-width: 2;
+}
+
+.guide {
+  stroke: #b8b8b8;
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.baseline {
+  stroke: #d23b3b;
+  stroke-width: 1;
+}
+
+.rulerNumber {
+  font-size: 10px;
+  text-anchor: middle;
+  fill: #6b6b6b;
+}
+
+.traceFill {
+  fill-opacity: 0.13;
+  stroke: none;
+}
+
+.traceLine {
+  fill: none;
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+
+.highlight {
+  fill: #2b7bdc;
+  fill-opacity: 0.16;
+}
+
+.caret {
+  stroke: #2b7bdc;
+  stroke-width: 1.5;
+}
+
+.longDeletion {
+  stroke: #8c8c8c;
+  stroke-width: 1;
+}
+
+.rulerTick {
+  stroke: #9a9a9a;
+  stroke-width: 1;
+}
+
+.noReads {
+  position: sticky;
+  align-self: flex-start;
+  margin-top: 14px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #8a8a8a;
+  white-space: nowrap;
+}
+
+/* always visible, also where the system hides scrollbars until used */
+.hbar::-webkit-scrollbar {
+  height: 12px;
+}
+
+.hbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-top: 1px solid #e2e2e2;
+}
+
+.hbar::-webkit-scrollbar-thumb {
+  border: 3px solid #f1f1f1;
+  border-radius: 6px;
+  background: #b9b9b9;
+}
+
+.hbar::-webkit-scrollbar-thumb:hover {
+  background: #8f8f8f;
+}

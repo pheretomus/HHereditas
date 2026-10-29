@@ -11,5 +11,6 @@ export * from './circular';
 export * from './linear';
 export * from './sequence';
 export * from './gel';
+export * from './alignment';
 // The three maps define structurally identical shared types; export one copy explicitly.
 export type { FeatureClickInfo, MapShowOptions, MapTarget } from './circular';

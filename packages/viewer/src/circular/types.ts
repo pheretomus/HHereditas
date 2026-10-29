@@ -32,4 +32,9 @@ export interface MapShowOptions {
   enzymes?: boolean;
   primers?: boolean;
   orfs?: boolean;
+  alignments?: boolean;
+  /** Append `(N bp)` length to feature and primer labels. */
+  lengths?: boolean;
+  /** Prefix primer labels with `(start .. end) ` 1-based binding coordinates. */
+  primerLocations?: boolean;
 }

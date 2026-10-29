@@ -111,7 +111,7 @@ export function hitTest(input: HitInput, x: number, y: number): MapTarget {
   if (p) return { kind: 'primer', id: p.site.primerId };
 
   // Backbone and ruler. Cut marks are thin, so they get a few px of slack.
-  if (y >= v.topStrandY - 7 && y <= v.rulerBottom - 4) {
+  if (y >= v.topStrandY - 7 && y <= v.rulerBottom) {
     if (input.markers && y <= v.bottomStrandY + 7) {
       let best: number | null = null;
       let bestDist = 3.5;

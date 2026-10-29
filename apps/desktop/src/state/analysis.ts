@@ -47,6 +47,31 @@ export function representatives(list: readonly RestrictionEnzyme[]): Restriction
   return list.filter((e) => keep.has(e));
 }
 
+let aliasCache: Map<string, string[]> | null = null;
+
+/**
+ * For every NEB enzyme, the names of the NEB enzymes with the same recognition site and cut (itself included,
+ * alphabetical): `representatives` shows one of them, the map label lists the group ("BspQI - SapI"). Listing every
+ * commercial isoschizomer would make labels such as "BspQI - LguI - PciSI - SapI"; SnapGene's maps list the NEB ones.
+ */
+export function enzymeAliases(): ReadonlyMap<string, readonly string[]> {
+  if (aliasCache) return aliasCache;
+  const groups = new Map<string, string[]>();
+  for (const e of COMMERCIAL_ENZYMES) {
+    if (!e.suppliers.includes('N')) continue;
+    const key = `${e.site}|${e.cuts.map((c) => `${c.top},${c.bottom}`).join(';')}`;
+    const names = groups.get(key);
+    if (names) names.push(e.name);
+    else groups.set(key, [e.name]);
+  }
+  aliasCache = new Map();
+  for (const names of groups.values()) {
+    const sorted = [...names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    for (const name of names) aliasCache.set(name, sorted);
+  }
+  return aliasCache;
+}
+
 /** Names in the enzyme menu (overriding the shell's generic labels). */
 export const ENZYME_DISPLAY_NAMES: Partial<Record<EnzymeDisplay, string>> = {
   unique: 'Unique 6+ cutters',

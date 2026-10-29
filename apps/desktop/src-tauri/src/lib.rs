@@ -69,7 +69,11 @@ pub fn run() {
                 }
                 request_open(app, file_arguments(argv));
             }))
-            .plugin(tauri_plugin_window_state::Builder::default().build());
+            .plugin(tauri_plugin_window_state::Builder::default().build())
+            // Self-update: the frontend checks the release feed at startup (see src/app/updater.ts),
+            // downloads a signed installer and relaunches through the process plugin.
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .plugin(tauri_plugin_process::init());
     }
 
     let app = builder

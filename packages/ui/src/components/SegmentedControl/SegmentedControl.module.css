@@ -105,7 +105,8 @@
 }
 
 .item[aria-checked='true'] {
-  font-weight: var(--hh-weight-medium);
+  color: var(--hh-accent);
+  font-weight: var(--hh-weight-semibold);
 }
 
 .item[data-disabled] {
@@ -123,7 +124,7 @@
 }
 
 .item[aria-checked='true'] .icon {
-  color: var(--hh-text);
+  color: var(--hh-accent);
 }
 
 .icon :where(svg) {

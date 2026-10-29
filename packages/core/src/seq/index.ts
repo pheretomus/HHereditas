@@ -2,6 +2,7 @@ export * from './alphabet';
 export * from './range';
 export * from './id';
 export * from './features';
+export * from './common-features';
 export { GENETIC_CODES, NCBI_CODON_ORDER, getGeneticCode } from './codon-tables';
 export type { GeneticCode } from './codon-tables';
 export { TranslationError, translate, translateFeature } from './translate';
