@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { Primer, PrimerBindingSite, Topology } from '../types';
 import { IUPAC_DNA, complementBase, iupacMatches, reverseComplement } from '../seq/alphabet';
@@ -597,7 +598,7 @@ describe('findBindingSites properties (seeded random)', () => {
 });
 
 describe('findBindingSites on real sequences and performance', () => {
-  const puc19 = genbankSequence(new URL('../../test/fixtures/genbank/pUC19_M77789.gb', import.meta.url).pathname);
+  const puc19 = genbankSequence(fileURLToPath(new URL('../../test/fixtures/genbank/pUC19_M77789.gb', import.meta.url)));
 
   it('places the M13 primers on pUC19 (M77789)', () => {
     expect(puc19).toHaveLength(2686);
@@ -623,7 +624,7 @@ describe('findBindingSites on real sequences and performance', () => {
     expect(elapsed).toBeLessThan(50);
   });
 
-  const ecoliPath = new URL('../../test/fixtures/large/ecoli_U00096.3.gb', import.meta.url).pathname;
+  const ecoliPath = fileURLToPath(new URL('../../test/fixtures/large/ecoli_U00096.3.gb', import.meta.url));
   it.skipIf(!existsSync(ecoliPath))('1 primer on the 4.6 Mb E. coli genome in < 1 s', () => {
     const genome = genbankSequence(ecoliPath);
     expect(genome.length).toBeGreaterThan(4_600_000);

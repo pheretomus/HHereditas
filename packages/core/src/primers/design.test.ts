@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { Topology } from '../types';
 import { reverseComplement } from '../seq/alphabet';
@@ -8,8 +9,8 @@ import { findBindingSites } from './binding';
 import { DEFAULT_PRIMER_DESIGN, MAX_DESIGN_PRIMER_LENGTH, designPrimer, designPrimerPair, type DesignedPrimer } from './design';
 import { tm } from './tm';
 
-const PYTHON = new URL('../../../../tools/oracle/.venv/bin/python', import.meta.url).pathname;
-const LIVE = new URL('../../../../tools/oracle/primers_live.py', import.meta.url).pathname;
+const PYTHON = fileURLToPath(new URL('../../../../tools/oracle/.venv/bin/python', import.meta.url));
+const LIVE = fileURLToPath(new URL('../../../../tools/oracle/primers_live.py', import.meta.url));
 const hasPython = existsSync(PYTHON);
 
 function mulberry32(seed: number): () => number {
@@ -72,7 +73,7 @@ function expectedChoice(template: string, topology: Topology, position: number, 
 }
 
 describe('designPrimer', () => {
-  const puc19 = genbankSequence(new URL('../../test/fixtures/genbank/pUC19_M77789.gb', import.meta.url).pathname);
+  const puc19 = genbankSequence(fileURLToPath(new URL('../../test/fixtures/genbank/pUC19_M77789.gb', import.meta.url)));
 
   it('designs a forward primer whose sequence is the top strand at the position', () => {
     const p = designPrimer(puc19, 'circular', { position: 400, direction: 1 });
@@ -182,8 +183,8 @@ describe('designPrimer', () => {
 });
 
 describe('designPrimer review regressions', () => {
-  const puc19 = genbankSequence(new URL('../../test/fixtures/genbank/pUC19_M77789.gb', import.meta.url).pathname);
-  const pbr322 = genbankSequence(new URL('../../test/fixtures/genbank/pBR322_J01749.gb', import.meta.url).pathname);
+  const puc19 = genbankSequence(fileURLToPath(new URL('../../test/fixtures/genbank/pUC19_M77789.gb', import.meta.url)));
+  const pbr322 = genbankSequence(fileURLToPath(new URL('../../test/fixtures/genbank/pBR322_J01749.gb', import.meta.url)));
   // RNA records keep U (types.ts convention 6 converts U to T for DNA records only).
   const GFP = 'GGCTAGCTTACGGATCCATGGCTAGCAAAGGAGAAGAACTTTTCACTGGAGTTGTCCCAATTCTTGTTGAATTAGATGGTGATGTTAATGGGCACAAATTTTCTG';
   // E. coli 16S rRNA, U00096.3 bases 224265..224364.
@@ -282,7 +283,7 @@ describe('designPrimer review regressions', () => {
 });
 
 describe('designPrimerPair', () => {
-  const puc19 = genbankSequence(new URL('../../test/fixtures/genbank/pUC19_M77789.gb', import.meta.url).pathname);
+  const puc19 = genbankSequence(fileURLToPath(new URL('../../test/fixtures/genbank/pUC19_M77789.gb', import.meta.url)));
 
   it('amplifies exactly the target and the primers bind where designed', () => {
     const target = { start: 146, end: 469 }; // lacZα MCS region
