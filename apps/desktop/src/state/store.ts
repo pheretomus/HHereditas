@@ -42,11 +42,21 @@ export type SheetId =
   | 'clone-topo'
   | 'codon-optimize';
 
+/** A primer's fields for Add Primer (see {@link SheetOptions.primer}). */
+export interface PrimerPrefill {
+  name?: string;
+  sequence: string;
+  description?: string;
+  phosphorylated?: boolean;
+}
+
 export interface SheetOptions {
   /** Add Primer: forward (1) or reverse (-1). */
   direction?: 1 | -1;
   /** Edit Primer: target primer id. */
   primerId?: string;
+  /** Add Primer: fields filled in when the sheet opens (a pasted primer). */
+  primer?: PrimerPrefill;
   /** Digest: enzymes chosen when the sheet opens. */
   enzymes?: string[];
   /** Edit Feature: target feature id. */

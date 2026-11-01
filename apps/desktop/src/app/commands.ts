@@ -2,8 +2,8 @@
  * Application commands shared by the toolbar, context menus, the native menu and keyboard
  * shortcuts (one implementation per command).
  */
-import type { SeqRecord } from '@hhereditas/core';
-import { annotateCommonFeatures, extractRange, normalizeRange, sliceRange } from '@hhereditas/core';
+import type { Primer, SeqRecord } from '@hhereditas/core';
+import { annotateCommonFeatures, extractRange, normalizeDna, normalizeRange, sliceRange } from '@hhereditas/core';
 import { hasSelectedBases } from '@hhereditas/viewer';
 import { isDirty, type DocumentState } from '../state/documents';
 import { getActiveDocument, useApp } from '../state/store';
@@ -26,6 +26,86 @@ export async function copySelection(): Promise<void> {
   } catch {
     useApp.getState().flash('Could not copy to the clipboard', 'error');
   }
+}
+
+/** The selected primer of the active document, or null. */
+export function selectedPrimer(doc: DocumentState | null): Primer | null {
+  const item = doc?.selectedItem;
+  if (!doc || item?.kind !== 'primer') return null;
+  return doc.record.primers.find((p) => p.id === item.id) ?? null;
+}
+
+/**
+ * The primer last copied with {@link copyPrimerCommand}: its name travels with its sequence, so
+ * {@link pastePrimerCommand} can restore both while the clipboard (plain text) only holds the sequence.
+ */
+let copiedPrimer: Primer | null = null;
+
+/** Copy the selected primer's sequence (5'→3') to the clipboard; returns false without a selected primer. */
+export function copyPrimerCommand(): boolean {
+  const primer = selectedPrimer(getActiveDocument());
+  if (!primer) return false;
+  const app = useApp.getState();
+  copiedPrimer = primer;
+  navigator.clipboard.writeText(primer.sequence).then(
+    () => app.flash(`Copied primer "${primer.name}" (${primer.sequence.length} nt)`),
+    () => app.flash('Could not copy to the clipboard', 'error'),
+  );
+  return true;
+}
+
+/**
+ * Read a primer from pasted text: a bare sequence, FASTA (">name" then the sequence), or a line
+ * "name<tab or spaces>sequence" (as pasted from a table or an order form). Null when no sequence.
+ */
+export function parsePastedPrimer(text: string): { name?: string; sequence: string } | null {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return null;
+  const isDna = (s: string) => normalizeDna(s).invalid.length === 0 && normalizeDna(s).seq.length > 0;
+  if (lines[0].startsWith('>')) {
+    const body = lines.slice(1).join('');
+    if (!isDna(body)) return null;
+    return { name: lines[0].slice(1).trim() || undefined, sequence: normalizeDna(body).seq };
+  }
+  if (lines.length === 1) {
+    // "name<tab>sequence": the last word is the sequence unless every word is plain bases (a spaced-out sequence)
+    const parts = lines[0].split(/[\t,;]+|\s+/).filter(Boolean);
+    const plain = (s: string) => /^[ACGTUacgtu]+$/.test(s);
+    if (parts.length >= 2 && isDna(parts[parts.length - 1]) && !parts.every(plain)) {
+      return { name: parts.slice(0, -1).join(' '), sequence: normalizeDna(parts[parts.length - 1]).seq };
+    }
+  }
+  const body = lines.join('');
+  return isDna(body) ? { sequence: normalizeDna(body).seq } : null;
+}
+
+/**
+ * Paste a primer: opens Add Primer with the clipboard's sequence, and with the name of the primer
+ * last copied with {@link copyPrimerCommand} when the clipboard still holds its sequence.
+ */
+export async function pastePrimerCommand(): Promise<void> {
+  const app = useApp.getState();
+  if (!getActiveDocument()) return;
+  let text = '';
+  try {
+    text = await navigator.clipboard.readText();
+  } catch {
+    text = copiedPrimer?.sequence ?? '';
+  }
+  const parsed = parsePastedPrimer(text);
+  if (!parsed) {
+    app.flash('Clipboard does not contain a primer sequence', 'error');
+    return;
+  }
+  const same = copiedPrimer && normalizeDna(copiedPrimer.sequence).seq === parsed.sequence ? copiedPrimer : null;
+  app.openSheet('add-primer', {
+    primer: same
+      ? { name: same.name, sequence: same.sequence, description: same.description, phosphorylated: same.phosphorylated }
+      : { name: parsed.name, sequence: parsed.sequence },
+  });
 }
 
 /** Open a record as a new, unsaved document. */

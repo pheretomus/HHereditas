@@ -7,7 +7,7 @@ import type { ToolbarShortcuts, ViewMode } from '../shell';
 import type { DocumentState } from '../state/documents';
 import { useSettings } from '../state/settings';
 import { getActiveDocument, useApp } from '../state/store';
-import { detectCommonFeaturesCommand, requestClose, selectedText } from './commands';
+import { copyPrimerCommand, detectCommonFeaturesCommand, pastePrimerCommand, requestClose, selectedPrimer, selectedText } from './commands';
 import { openWithDialog, saveDocument } from './files';
 
 export const SHORTCUTS: ToolbarShortcuts = {
@@ -188,8 +188,14 @@ export function handleShortcut(e: KeyboardEvent, ctx: ShortcutContext): boolean 
         app.flash('Flipped sequence (reverse complement)');
       });
     case 'c':
+      if (!hasDoc || textField) return false;
+      if (e.shiftKey) return run(() => void copyReverseComplementSelection(doc));
+      // a selected primer copies its own sequence (5'→3'), not the template bases under it
+      if (selectedPrimer(doc)) return run(() => void copyPrimerCommand());
+      return false;
+    case 'v':
       if (!e.shiftKey || !hasDoc || textField) return false;
-      return run(() => void copyReverseComplementSelection(doc));
+      return run(() => void pastePrimerCommand());
     case 'k':
       if (!e.shiftKey || !hasDoc || textField) return false;
       return run(() => void copyTranslationSelection(doc));

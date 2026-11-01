@@ -67,6 +67,8 @@ export interface AddPrimerSheetProps {
   direction?: 1 | -1;
   mode?: 'add' | 'edit';
   primerId?: string;
+  /** Add mode: fields filled in when the sheet opens (a pasted primer) instead of the selection's template. */
+  prefill?: { name?: string; sequence: string; description?: string; phosphorylated?: boolean };
 }
 
 /** Primer for a selected template: forward = its first bases, reverse = reverse complement of its last bases. */
@@ -88,7 +90,7 @@ function siteCoords(site: PrimerBindingSite, seqLen: number): string {
   return `${first.toLocaleString('en-US')} .. ${last.toLocaleString('en-US')}`;
 }
 
-export function AddPrimerSheet({ open, doc, direction = 1, mode = 'add', primerId }: AddPrimerSheetProps) {
+export function AddPrimerSheet({ open, doc, direction = 1, mode = 'add', primerId, prefill }: AddPrimerSheetProps) {
   const [name, setName] = useState('');
   const [sequence, setSequence] = useState('');
   const [description, setDescription] = useState('');
@@ -128,12 +130,12 @@ export function AddPrimerSheet({ open, doc, direction = 1, mode = 'add', primerI
       return;
     }
     const d: 1 | -1 = direction === -1 ? -1 : 1;
-    setName(`Primer ${doc.record.primers.length + 1}`);
-    setSequence(primerFromTemplate(selectedText(doc) ?? '', d));
-    setDescription('');
-    setPhosphorylated(false);
+    setName(prefill?.name?.trim() || `Primer ${doc.record.primers.length + 1}`);
+    setSequence(prefill ? prefill.sequence : primerFromTemplate(selectedText(doc) ?? '', d));
+    setDescription(prefill?.description ?? '');
+    setPhosphorylated(prefill?.phosphorylated === true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, mode, existingPrimer?.id]);
+  }, [open, mode, existingPrimer?.id, prefill]);
 
   const clean = normalizeDna(sequence);
   const invalid = clean.invalid.length > 0;

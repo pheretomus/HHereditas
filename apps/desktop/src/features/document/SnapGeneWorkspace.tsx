@@ -121,7 +121,9 @@ import {
   type RefObject,
 } from "react";
 import {
+  copyPrimerCommand,
   copySelection,
+  pastePrimerCommand,
   deleteFeatureCommand,
   deletePrimerCommand,
   setPrimersHiddenCommand,
@@ -1612,6 +1614,22 @@ export function SnapGeneWorkspace({
                 onSelect={() => generatePrimerPairFromSelection()}
               >
                 Add Primers from Selection (Fwd &amp; Rev Pair)
+              </MenuItem>
+              <MenuSeparator />
+              <MenuItem
+                icon={<Copy />}
+                shortcut="Mod+C"
+                disabled={doc.selectedItem?.kind !== "primer"}
+                onSelect={() => void copyPrimerCommand()}
+              >
+                Copy Primer Sequence
+              </MenuItem>
+              <MenuItem
+                icon={<ClipboardPaste />}
+                shortcut="Mod+Shift+V"
+                onSelect={() => void pastePrimerCommand()}
+              >
+                Paste Primer…
               </MenuItem>
               <MenuSeparator />
               <MenuItem
