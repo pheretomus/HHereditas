@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Permissions of the main window: pick files with the native dialog and read them.","local":true,"windows":["main"],"permissions":["core:default","dialog:default","fs:read-files",{"identifier":"fs:scope","allow":["**","content://**"]}]}}

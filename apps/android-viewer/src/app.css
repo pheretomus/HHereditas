@@ -1,0 +1,15 @@
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--hh-bg, #fff); color: var(--hh-fg, #111); font-family: 'Inter Variable', system-ui, sans-serif; }
+.app { display: flex; flex-direction: column; height: 100%; padding-top: env(safe-area-inset-top); }
+.app-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,.1); }
+.app-header h1 { font-size: 17px; margin: 0; }
+.app-header button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(0,0,0,.2); background: #f4f4f5; }
+.app-main { flex: 1; overflow: auto; padding: 12px 16px; }
+.app-main h2 { font-size: 15px; margin: 0 0 8px; }
+.app-main h2 small { font-weight: 400; opacity: .7; }
+.app-map { height: 60vh; min-height: 280px; }
+.app-empty { display: grid; place-items: center; opacity: .7; text-align: center; }
+.app-error { margin: 8px 16px; color: #b91c1c; }
+.app-features { list-style: none; padding: 0; margin: 12px 0 0; font-size: 14px; }
+.app-features li { padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+.app-feature-type { display: inline-block; min-width: 72px; font-family: 'JetBrains Mono Variable', monospace; font-size: 12px; opacity: .7; }

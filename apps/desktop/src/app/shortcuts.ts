@@ -3,7 +3,6 @@
  * bindings in its tooltips. Includes full SnapGene shortcut parity.
  */
 import { reverseComplement, reverseComplementRecord, translate } from '@hhereditas/core';
-import { hasSelectedBases } from '@hhereditas/viewer';
 import type { ToolbarShortcuts, ViewMode } from '../shell';
 import type { DocumentState } from '../state/documents';
 import { useSettings } from '../state/settings';
@@ -175,13 +174,8 @@ export function handleShortcut(e: KeyboardEvent, ctx: ShortcutContext): boolean 
     case 'p': {
       if (!hasDoc || textField) return false;
       if (key === 'p' && !e.shiftKey) return false;
-      return run(() => {
-        if (doc && hasSelectedBases(doc.selection)) {
-          app.openSheet('add-primer', { direction: e.shiftKey ? -1 : 1 });
-        } else {
-          app.flash('Select bases first to add a primer');
-        }
-      });
+      // with bases selected the sheet offers to make the primer from them; without, a blank primer to fill in
+      return run(() => app.openSheet('add-primer', { direction: e.shiftKey ? -1 : 1 }));
     }
     case 'g':
     case 'j':

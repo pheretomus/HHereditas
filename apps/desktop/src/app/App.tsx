@@ -43,7 +43,7 @@ const GotoPositionSheet = quietWhileClosed(GotoPositionSheetView);
 const SequencePropertiesSheet = quietWhileClosed(SequencePropertiesSheetView);
 
 const APP_NAME = 'HHereditas';
-const VERSION = '0.1.2';
+const VERSION = '0.1.3';
 
 function formatRecentDate(ms: number): string {
   if (!ms) return '';

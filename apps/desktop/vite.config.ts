@@ -28,6 +28,8 @@ export default defineConfig({
     port: DEV_PORT,
     strictPort: true,
     host: host || false,
+    // Tailscale Funnel/Serve forwards requests with the *.ts.net host name; Vite rejects unknown hosts otherwise.
+    allowedHosts: ['.ts.net'],
     hmr: host ? { protocol: 'ws', host, port: 1421 } : undefined,
     watch: { ignored: ['**/src-tauri/**'] },
   },

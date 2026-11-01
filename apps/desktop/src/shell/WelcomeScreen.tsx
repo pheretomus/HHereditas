@@ -1,7 +1,7 @@
 import { useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { FileDown, FilePlus2, FileText, FolderOpen } from 'lucide-react';
 import { cx, formatShortcut, getPlatform } from '@hhereditas/ui';
-import appIcon from '../../src-tauri/icons/128x128@2x.png';
+import appIcon from '../assets/app-icon.svg';
 import { formatCompactLength, formatDocumentSubtitle } from './format';
 import { DocumentGlyph } from './glyphs';
 import type { RecentFile, SampleSequence } from './types';

@@ -239,10 +239,9 @@ export function SnapGeneWorkspace({
     setMapMode(record.topology === "circular" ? "circular" : "linear");
   }, [doc.id, record.topology]);
 
-  // Left side panel (Screenshot 3!) & Right Info panel: off by default so the canvas is wide open like SnapGene
-  const [leftPanelOpen, setLeftPanelOpen] = useState(
-    () => (record.alignedSequences?.length ?? 0) > 0,
-  );
+  // Left side panel & Right Info panel: closed by default so every document opens on its map (circular for
+  // plasmids), even when it carries aligned reads.
+  const [leftPanelOpen, setLeftPanelOpen] = useState(false);
   const [leftPanelMode, setLeftPanelMode] = useState<"align" | "explorer">(
     "align",
   );
@@ -338,11 +337,10 @@ export function SnapGeneWorkspace({
   const tabsBar = useDraggableBar();
   const modeBar = useDraggableBar();
 
+  // Keep the selected read valid when the document or its reads change. Opening the panel is left to the
+  // user (and to "Align with…", which opens it after adding reads).
   useEffect(() => {
     if ((record.alignedSequences?.length ?? 0) > 0) {
-      setLeftPanelOpen(true);
-      setLeftPanelMode("align");
-      setShowAlignmentsLayer(true);
       setSelectedAlignedId((prev) =>
         record.alignedSequences?.some((a) => a.id === prev)
           ? prev

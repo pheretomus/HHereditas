@@ -53,6 +53,7 @@
   user-select: none;
   -webkit-user-select: none;
   -webkit-user-drag: none;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.12)) drop-shadow(0 6px 14px rgb(0 0 0 / 0.14));
 }
 
 .appName {

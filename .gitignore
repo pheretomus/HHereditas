@@ -7,6 +7,9 @@ build/
 *.tsbuildinfo
 apps/*/src-tauri/target/
 apps/*/src-tauri/gen/
+# The Android project of the viewer is kept (its own .gitignore drops build output);
+# gradle.properties and buildSrc carry WSL workarounds.
+!apps/android-viewer/src-tauri/gen/
 
 # test output
 coverage/

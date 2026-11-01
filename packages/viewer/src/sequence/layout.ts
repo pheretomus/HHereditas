@@ -921,8 +921,10 @@ export function buildRowModel(input: RowModelInput): RowModel {
             if (t) label = { x: (bx0 + bx1) / 2 - t.width / 2, text: t.text, width: t.width, inside: true };
           }
         }
-        const lane = firstFitLane(laneRight, left, m.laneSpacing);
-        laneRight[lane] = right;
+        // Bars that merely touch share a lane (adjacent features sit side by side, as in SnapGene);
+        // the spacing is only demanded of a label that sticks out of its bar.
+        const lane = firstFitLane(laneRight, left === x0 ? left : left - m.laneSpacing, 0);
+        laneRight[lane] = right === x1 ? right : right + m.laneSpacing;
         const translated = features[p.feature].translated;
         if (translated) laneTranslation[lane] = true;
         else if (laneTranslation[lane] === undefined) laneTranslation[lane] = false;
