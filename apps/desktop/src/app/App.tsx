@@ -43,7 +43,7 @@ const GotoPositionSheet = quietWhileClosed(GotoPositionSheetView);
 const SequencePropertiesSheet = quietWhileClosed(SequencePropertiesSheetView);
 
 const APP_NAME = 'HHereditas';
-const VERSION = '0.1.3';
+const VERSION = '0.1.4';
 
 function formatRecentDate(ms: number): string {
   if (!ms) return '';
@@ -171,6 +171,7 @@ export function App() {
         direction={sheetOptions.direction ?? 1}
         mode={sheet === 'edit-primer' ? 'edit' : 'add'}
         primerId={sheetOptions.primerId}
+        prefill={sheetOptions.primer}
       />
       <AddFeatureSheet
         open={sheet === 'add-feature' || sheet === 'edit-feature'}
