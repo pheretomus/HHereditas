@@ -191,6 +191,10 @@
   display: flex;
   flex: 0 0 300px;
   flex-direction: column;
+  /* A flex item's automatic minimum width is its content's: the long paths of recent files would
+     widen the panel and squeeze the hero. Keep the panel at its 300px and let the paths ellipsize. */
+  min-width: 0;
+  max-width: 300px;
   min-height: 0;
   padding-top: var(--hh-toolbar-height);
   background: var(--hh-bg-sidebar);
@@ -201,6 +205,7 @@
   flex: 1 1 auto;
   min-height: 0;
   padding: 0 10px 16px;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -258,6 +263,7 @@
   align-items: center;
   gap: 9px;
   width: 100%;
+  min-width: 0;
   min-height: 44px;
   margin: 0;
   padding: 5px 8px;
