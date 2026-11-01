@@ -52,6 +52,11 @@
     "macOS": {
       "minimumSystemVersion": "13.0"
     },
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico"
+      }
+    },
     "fileAssociations": [
       {
         "ext": [
